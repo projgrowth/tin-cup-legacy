@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
+import { ActivityFeed } from "@/components/tin-cup/ActivityFeed";
 import { AvatarPair } from "@/components/tin-cup/Avatar";
 import { Countdown } from "@/components/tin-cup/Countdown";
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
@@ -198,6 +199,8 @@ export function PreTournamentPanel({
           </Link>
         </div>
       </section>
+
+      <ActivityFeed players={players} teams={teams} limit={6} />
 
       {/* Pulse only when there is something to show or user can add */}
       <PhotoVault canUpload={canUpload} variant="pulse" hideWhenEmpty={!canUpload} />

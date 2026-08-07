@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, ImagePlus, Loader2, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
+import { PhotoPicker } from "@/components/tin-cup/PhotoPicker";
 import { nhost } from "@/integrations/nhost/client";
 import { graphqlRequest, subscribeGraphql } from "@/integrations/nhost/graphql";
 
@@ -82,7 +83,6 @@ export function PhotoVault({
   hideWhenEmpty?: boolean;
 }) {
   const queryClient = useQueryClient();
-  const inputRef = useRef<HTMLInputElement>(null);
   const [mounted, setMounted] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [pendingCaption, setPendingCaption] = useState("");
@@ -145,6 +145,7 @@ export function PhotoVault({
     onSuccess: () => {
       toast.success("Added to Pulse");
       void queryClient.invalidateQueries({ queryKey: ["vault"] });
+      void queryClient.invalidateQueries({ queryKey: ["activity-feed"] });
       setProgress(0);
       setPendingFile(null);
       setPendingCaption("");
@@ -204,9 +205,9 @@ export function PhotoVault({
 
   const captionComposer =
     pendingFile && !upload.isPending ? (
-      <div className="surface space-y-3 p-3.5">
+      <div className="surface-inset space-y-3 p-3.5">
         <p className="t-micro text-muted-foreground">
-          {pendingFile.name}
+          Ready to post
           <span className="ml-1 opacity-70">· optional caption</span>
         </p>
         <input
@@ -235,19 +236,15 @@ export function PhotoVault({
       </div>
     ) : null;
 
-  const fileInput = (
-    <input
-      ref={inputRef}
-      type="file"
-      accept="image/*"
-      capture="environment"
-      className="hidden"
-      onChange={(e) => {
-        pickFile(e.target.files?.[0]);
-        e.target.value = "";
-      }}
+  const picker = canUpload ? (
+    <PhotoPicker
+      onFile={(f) => pickFile(f)}
+      disabled={upload.isPending}
+      cameraFacing="environment"
+      size="compact"
+      className="w-full sm:max-w-xs"
     />
-  );
+  ) : null;
 
   if (variant === "pulse") {
     const strip = photos?.slice(0, 16) ?? [];
@@ -257,25 +254,10 @@ export function PhotoVault({
 
     return (
       <section className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="t-section text-foreground">Pulse</h2>
-          {canUpload ? (
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              disabled={upload.isPending}
-              className="press btn-quiet t-micro inline-flex min-h-10 items-center gap-1.5 px-3"
-            >
-              {upload.isPending ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <ImagePlus className="size-3.5" />
-              )}
-              {upload.isPending ? `${progress}%` : "Add photo"}
-            </button>
-          ) : null}
+          {picker}
         </div>
-        {fileInput}
         {captionComposer}
         {upload.isPending && (
           <div
@@ -351,25 +333,10 @@ export function PhotoVault({
 
   return (
     <section className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="t-section text-foreground">Photo vault</h2>
-        {canUpload && (
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            disabled={upload.isPending}
-            className="press btn-quiet t-body inline-flex items-center gap-2"
-          >
-            {upload.isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <ImagePlus className="size-4" />
-            )}
-            {upload.isPending ? `Uploading ${progress}%` : "Add"}
-          </button>
-        )}
+        {picker}
       </div>
-      {fileInput}
       {captionComposer}
       {upload.isPending && (
         <div

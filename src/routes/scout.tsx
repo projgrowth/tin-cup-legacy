@@ -416,10 +416,10 @@ function RoundOverview({
   onJump: (h: number) => void;
 }) {
   return (
-    <section className="surface mt-4 overflow-hidden">
+    <section className="surface-inset mt-4 overflow-hidden">
       <div className="border-b border-border px-4 py-3">
-        <p className="t-eyebrow">{COURSE_LABEL[courseId]} · round sheet</p>
-        <p className="t-micro mt-0.5">Tap any hole to jump. Notes show as snippets.</p>
+        <p className="t-section text-foreground">{COURSE_LABEL[courseId]} · journal</p>
+        <p className="t-micro mt-0.5 text-muted-foreground">Tap a hole to jump</p>
       </div>
       <ul className="divide-y divide-border">
         {holes.map((h) => {
@@ -429,31 +429,20 @@ function RoundOverview({
               <button
                 type="button"
                 onClick={() => onJump(h.h)}
-                className={`press flex w-full items-start gap-3 px-4 py-3 text-left ${
-                  h.h === current ? "bg-secondary/60" : ""
+                className={`press flex w-full items-center gap-3 px-4 py-2.5 text-left ${
+                  h.h === current ? "bg-secondary/50" : ""
                 }`}
               >
                 <span
-                  className={`t-numeral w-8 shrink-0 tabular-nums ${
+                  className={`t-numeral w-7 shrink-0 tabular-nums ${
                     hasNote(h.h) ? "text-foreground" : "text-muted-foreground"
                   }`}
                 >
                   {h.h}
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="t-body block text-foreground">
-                    Par {h.par}
-                    <span className="t-micro ml-2 text-muted-foreground">
-                      {formatScorecardYards(h.yards)}
-                    </span>
-                  </span>
-                  {snippet ? (
-                    <span className="t-micro mt-0.5 line-clamp-2 block text-muted-foreground">
-                      {snippet}
-                    </span>
-                  ) : (
-                    <span className="t-micro mt-0.5 block text-muted-foreground/60">No notes</span>
-                  )}
+                <span className="t-micro w-12 shrink-0 text-muted-foreground">Par {h.par}</span>
+                <span className="t-micro min-w-0 flex-1 truncate text-muted-foreground">
+                  {snippet || "—"}
                 </span>
               </button>
             </li>
@@ -534,25 +523,28 @@ function HoleJournal({
   const [score, setScore] = useState(initial.score);
   const [notes, setNotes] = useState(initial.notes);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const skipNext = useRef(false);
+  const [editing, setEditing] = useState(
+    !initial.club && !initial.line && !initial.green && !initial.score && !initial.notes,
+  );
+  const dirty = useRef(false);
   const timer = useRef<number | null>(null);
 
   useEffect(() => {
     const next = draftFromSaved(saved, guest);
-    skipNext.current = true;
+    dirty.current = false;
+    if (timer.current) window.clearTimeout(timer.current);
     setClub(next.club);
     setLine(next.line);
     setGreen(next.green);
     setScore(next.score);
     setNotes(next.notes);
-    setStatus(saved || guest ? "saved" : "idle");
+    const filled = Boolean(next.club || next.line || next.green || next.score || next.notes);
+    setStatus(filled ? "saved" : "idle");
+    setEditing(!filled);
   }, [saved, guest, hole, courseId]);
 
   useEffect(() => {
-    if (skipNext.current) {
-      skipNext.current = false;
-      return;
-    }
+    if (!dirty.current) return;
     if (timer.current) window.clearTimeout(timer.current);
     setStatus("saving");
     timer.current = window.setTimeout(() => {
@@ -567,12 +559,16 @@ function HoleJournal({
         setGuestNote(courseId, hole, draft);
         onGuestChange();
         setStatus("saved");
+        dirty.current = false;
         return;
       }
       save.mutate(
         { hole, draft },
         {
-          onSuccess: () => setStatus("saved"),
+          onSuccess: () => {
+            setStatus("saved");
+            dirty.current = false;
+          },
           onError: () => setStatus("error"),
         },
       );
@@ -583,37 +579,98 @@ function HoleJournal({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate field-driven auto-save
   }, [club, line, green, score, notes, courseId, hole, mode]);
 
+  function touch<T>(setter: (v: T) => void) {
+    return (v: T) => {
+      dirty.current = true;
+      setter(v);
+    };
+  }
+
   const field = "control t-body w-full";
+  const hasContent = Boolean(club || line || green || score || notes);
   const statusLabel =
     status === "saving"
       ? "Saving…"
       : status === "saved"
         ? mode === "guest"
-          ? "Saved on this device"
+          ? "Saved on device"
           : "Saved"
         : status === "error"
-          ? "Couldn’t save — retry by editing"
+          ? "Couldn't save"
           : mode === "guest"
-            ? "Private on this device"
-            : "Private";
+            ? "Private on device"
+            : "Private · only you";
 
-  const hasContent = Boolean(club || line || green || score || notes);
+  if (!editing && hasContent) {
+    return (
+      <section className="surface-raised overflow-hidden">
+        <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
+          <div className="min-w-0">
+            <p className="t-section text-foreground">Game plan · {hole}</p>
+            <p className="t-micro mt-0.5 text-muted-foreground">{statusLabel}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="press btn-quiet t-micro shrink-0 !min-h-9 !px-3"
+          >
+            Edit
+          </button>
+        </div>
+        <dl className="divide-y divide-border">
+          {club.trim() && (
+            <div className="flex gap-3 px-4 py-2.5">
+              <dt className="t-micro w-16 shrink-0 text-muted-foreground">Club</dt>
+              <dd className="t-body min-w-0 font-medium text-foreground">{club.trim()}</dd>
+            </div>
+          )}
+          {line.trim() && (
+            <div className="flex gap-3 px-4 py-2.5">
+              <dt className="t-micro w-16 shrink-0 text-muted-foreground">Line</dt>
+              <dd className="t-body min-w-0 text-foreground">{line.trim()}</dd>
+            </div>
+          )}
+          {green.trim() && (
+            <div className="flex gap-3 px-4 py-2.5">
+              <dt className="t-micro w-16 shrink-0 text-muted-foreground">Green</dt>
+              <dd className="t-body min-w-0 text-foreground">{green.trim()}</dd>
+            </div>
+          )}
+          {score.trim() && (
+            <div className="flex gap-3 px-4 py-2.5">
+              <dt className="t-micro w-16 shrink-0 text-muted-foreground">Target</dt>
+              <dd className="t-body min-w-0 tabular-nums font-medium text-foreground">{score.trim()}</dd>
+            </div>
+          )}
+          {notes.trim() && (
+            <div className="px-4 py-2.5">
+              <dt className="t-micro text-muted-foreground">Notes</dt>
+              <dd className="t-body mt-1 line-clamp-4 text-foreground/90">“{notes.trim()}”</dd>
+            </div>
+          )}
+        </dl>
+      </section>
+    );
+  }
 
   return (
-    <section>
-      <details className="group" open={hasContent || undefined}>
-        <summary className="press mb-3 flex cursor-pointer list-none items-baseline justify-between gap-3 [&::-webkit-details-marker]:hidden">
-          <h2 className="t-section text-foreground">Game plan · {hole}</h2>
-          <span className="t-micro text-muted-foreground">
-            {statusLabel === "Private" || statusLabel === "Private on this device"
-              ? hasContent
-                ? "Edit"
-                : "Add"
-              : statusLabel}
-          </span>
-        </summary>
+    <section className="space-y-3">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="t-section text-foreground">Game plan · {hole}</h2>
+        <span
+          className={`t-micro ${
+            status === "saved"
+              ? "text-foreground/70"
+              : status === "error"
+                ? "text-destructive"
+                : "text-muted-foreground"
+          }`}
+        >
+          {statusLabel}
+        </span>
+      </div>
 
-      <div className="space-y-3 rounded-xl border border-border p-3.5">
+      <div className="surface-inset space-y-4 p-3.5">
         <div>
           <p className="t-micro mb-1.5 text-muted-foreground">Club off the tee</p>
           <div className="flex flex-wrap gap-1.5">
@@ -621,9 +678,12 @@ function HoleJournal({
               <button
                 key={c}
                 type="button"
-                onClick={() => setClub(c === "Other" ? "" : c)}
+                onClick={() => touch(setClub)(c === "Other" ? "" : c)}
                 className={`press t-micro min-h-10 rounded-full border px-3 ${
-                  club === c || (c === "Other" && club && !TEE_CLUBS.slice(0, -1).includes(club as (typeof TEE_CLUBS)[number]))
+                  club === c ||
+                  (c === "Other" &&
+                    club &&
+                    !TEE_CLUBS.slice(0, -1).includes(club as (typeof TEE_CLUBS)[number]))
                     ? "border-foreground/30 bg-secondary text-foreground"
                     : "border-border text-muted-foreground"
                 }`}
@@ -634,7 +694,7 @@ function HoleJournal({
           </div>
           <input
             value={club}
-            onChange={(e) => setClub(e.target.value)}
+            onChange={(e) => touch(setClub)(e.target.value)}
             aria-label="Club off the tee"
             placeholder="Or type a club"
             maxLength={60}
@@ -642,23 +702,26 @@ function HoleJournal({
           />
         </div>
 
-        <input
-          value={line}
-          onChange={(e) => setLine(e.target.value)}
-          aria-label="Target line"
-          placeholder="Target line (e.g. left edge of the right bunker)"
-          maxLength={140}
-          className={field}
-        />
+        <div>
+          <p className="t-micro mb-1.5 text-muted-foreground">Target line</p>
+          <input
+            value={line}
+            onChange={(e) => touch(setLine)(e.target.value)}
+            aria-label="Target line"
+            placeholder="e.g. left edge of the right bunker"
+            maxLength={140}
+            className={field}
+          />
+        </div>
 
         <div>
-          <p className="t-micro mb-1.5 text-muted-foreground">Miss side / green</p>
+          <p className="t-micro mb-1.5 text-muted-foreground">Miss / green</p>
           <div className="mb-2 flex flex-wrap gap-1.5">
             {MISS_SIDES.map((side) => (
               <button
                 key={side.id}
                 type="button"
-                onClick={() => setGreen(side.label)}
+                onClick={() => touch(setGreen)(side.label)}
                 className={`press t-micro min-h-10 rounded-full border px-3 ${
                   green === side.label
                     ? "border-foreground/30 bg-secondary text-foreground"
@@ -671,7 +734,7 @@ function HoleJournal({
           </div>
           <input
             value={green}
-            onChange={(e) => setGreen(e.target.value)}
+            onChange={(e) => touch(setGreen)(e.target.value)}
             aria-label="Green read or miss side"
             placeholder="Green read / miss side"
             maxLength={140}
@@ -679,57 +742,77 @@ function HoleJournal({
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="t-micro w-full text-muted-foreground">Personal target</p>
-          {[par - 1, par, par + 1].filter((n) => n > 0).map((n) => (
-            <button
-              key={n}
-              type="button"
-              onClick={() => setScore(String(n))}
-              className={`press t-micro min-h-10 min-w-11 rounded-full border px-3 tabular-nums ${
-                score === String(n)
-                  ? "border-foreground/30 bg-secondary text-foreground"
-                  : "border-border text-muted-foreground"
-              }`}
-            >
-              {n}
-            </button>
-          ))}
-          <input
-            value={score}
-            onChange={(e) => setScore(e.target.value.replace(/\D/g, "").slice(0, 2))}
-            inputMode="numeric"
-            aria-label="Personal target score"
-            placeholder="Score"
-            className={`${field} max-w-[5.5rem]`}
-          />
+        <div>
+          <p className="t-micro mb-1.5 text-muted-foreground">Personal target</p>
+          <div className="flex flex-wrap items-center gap-2">
+            {[par - 1, par, par + 1].filter((n) => n > 0).map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => touch(setScore)(String(n))}
+                className={`press t-micro min-h-10 min-w-11 rounded-full border px-3 tabular-nums ${
+                  score === String(n)
+                    ? "border-foreground/30 bg-secondary text-foreground"
+                    : "border-border text-muted-foreground"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+            <input
+              value={score}
+              onChange={(e) => touch(setScore)(e.target.value.replace(/\D/g, "").slice(0, 2))}
+              inputMode="numeric"
+              aria-label="Personal target score"
+              placeholder="Score"
+              className={`${field} max-w-[5.5rem]`}
+            />
+          </div>
         </div>
 
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={3}
-          maxLength={600}
-          aria-label="Hole notes"
-          placeholder="Wind, bail-out, anything you want to remember"
-          className={`${field} resize-none`}
-        />
+        <div>
+          <p className="t-micro mb-1.5 text-muted-foreground">Notes</p>
+          <textarea
+            value={notes}
+            onChange={(e) => touch(setNotes)(e.target.value)}
+            rows={3}
+            maxLength={600}
+            aria-label="Hole notes"
+            placeholder="Wind, bail-out, anything you want to remember"
+            className={`${field} resize-none`}
+          />
+        </div>
 
         {mode === "guest" && (
           <p className="t-micro text-muted-foreground">
             Notes stay on this phone until you{" "}
             <Link to="/profile" className="text-foreground underline underline-offset-2">
               sign in
-            </Link>{" "}
-            to sync across devices.
+            </Link>
+            .
           </p>
         )}
 
         {loading && mode === "cloud" && (
-          <p className="t-micro text-muted-foreground">Loading your cloud notes…</p>
+          <p className="t-micro text-muted-foreground">Loading your notes…</p>
+        )}
+
+        {hasContent && (
+          <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
+            <span className="t-micro text-muted-foreground">
+              {status === "saving" ? "Saving…" : status === "saved" ? "All set" : "Auto-saves"}
+            </span>
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              disabled={status === "saving"}
+              className="press btn-gold t-body !min-h-10 !px-4"
+            >
+              Done
+            </button>
+          </div>
         )}
       </div>
-      </details>
     </section>
   );
 }

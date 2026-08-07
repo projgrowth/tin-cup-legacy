@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Camera, ChevronRight, Loader2, LogOut } from "lucide-react";
 
 import { AuthCard } from "@/components/tin-cup/AuthCard";
 import { Avatar } from "@/components/tin-cup/Avatar";
+import { PhotoPicker } from "@/components/tin-cup/PhotoPicker";
 import { LoadingForm, LoadingRows, PageHeading, Shell } from "@/components/tin-cup/Shell";
 import { WhatsAppGroupButton } from "@/components/tin-cup/WhatsAppLinks";
 import { useAuth } from "@/hooks/useAuth";
@@ -179,13 +181,14 @@ function MyHubCard({
   matches: Parameters<typeof playerRecord>[0];
   sideBets: Array<{ player_name: string | null; amount: number | string }>;
 }) {
+  const queryClient = useQueryClient();
   const { profile, save } = useProfile();
   const { data: tournament } = useTournament();
   const avatars = usePlayerAvatars(tournament?.players ?? [], tournament?.teams ?? []);
   const face = avatars.data?.byPlayerId.get(player.id);
-  const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [localUrl, setLocalUrl] = useState<string | null>(null);
+  const [showPicker, setShowPicker] = useState(false);
 
   const d1 = day1GroupForPlayer(player.name);
   const record = playerRecord(matches, player.name, teamSlug);
@@ -194,8 +197,7 @@ function MyHubCard({
     .filter((b) => b.player_name === player.name)
     .reduce((sum, c) => sum + Number(c.amount), 0);
 
-  async function onPick(file: File | undefined) {
-    if (!file) return;
+  async function onPick(file: File) {
     if (!file.type.startsWith("image/")) {
       toast.error("Choose an image");
       return;
@@ -230,6 +232,9 @@ function MyHubCard({
       });
       const signed = await nhost.storage.getFilePresignedURL(stored.id);
       setLocalUrl(signed?.body?.url ?? null);
+      setShowPicker(false);
+      void queryClient.invalidateQueries({ queryKey: ["player-avatars"] });
+      void queryClient.invalidateQueries({ queryKey: ["activity-feed"] });
       toast.success("Photo updated");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not upload photo");
@@ -245,7 +250,7 @@ function MyHubCard({
       <div className="flex items-start gap-3">
         <button
           type="button"
-          onClick={() => inputRef.current?.click()}
+          onClick={() => setShowPicker((v) => !v)}
           disabled={uploading}
           className="press relative shrink-0"
           aria-label="Upload profile photo"
@@ -259,17 +264,6 @@ function MyHubCard({
             )}
           </span>
         </button>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          capture="user"
-          className="hidden"
-          onChange={(e) => {
-            void onPick(e.target.files?.[0]);
-            e.target.value = "";
-          }}
-        />
         <div className="min-w-0 flex-1">
           <p className="t-micro text-muted-foreground">{teamName}</p>
           <h2 className="t-title mt-0.5 text-foreground">{player.name}</h2>
@@ -278,7 +272,7 @@ function MyHubCard({
           )}
           <button
             type="button"
-            onClick={() => inputRef.current?.click()}
+            onClick={() => setShowPicker((v) => !v)}
             disabled={uploading}
             className="press t-micro mt-1 text-muted-foreground underline-offset-2 hover:underline"
           >
@@ -295,6 +289,18 @@ function MyHubCard({
           </p>
         </div>
       </div>
+      {showPicker && (
+        <div className="mt-3 border-t border-border pt-3">
+          <PhotoPicker
+            onFile={(f) => void onPick(f)}
+            disabled={uploading}
+            cameraFacing="user"
+            size="compact"
+            cameraLabel="Selfie"
+            libraryLabel="Library"
+          />
+        </div>
+      )}
     </section>
   );
 }
