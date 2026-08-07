@@ -154,7 +154,7 @@ function RostersPage() {
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
         {selected && (
-          <section className={`surface overflow-hidden ${teamRailClass(selected.slug)}`}>
+          <section className={`surface-raised overflow-hidden ${teamRailClass(selected.slug)}`}>
             <div className="border-b border-border px-4 py-3">
               <div className="flex items-baseline justify-between gap-3">
                 <div className="min-w-0">
