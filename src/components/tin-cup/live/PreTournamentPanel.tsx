@@ -26,15 +26,25 @@ export function PreTournamentPanel({
   rounds = [],
   matches = [],
   canUpload = false,
+  signedIn = false,
+  claimedName = null,
+  needsClaim = false,
 }: {
   rounds?: Round[];
   matches?: Match[];
   canUpload?: boolean;
+  signedIn?: boolean;
+  /** Full roster name when claimed */
+  claimedName?: string | null;
+  needsClaim?: boolean;
 }) {
   const nextRound = [...rounds].sort(
     (a, b) => new Date(a.play_date).getTime() - new Date(b.play_date).getTime(),
   )[0];
   const standings = tallyStandings(matches);
+  const firstName = claimedName?.trim().split(/\s+/)[0] ?? null;
+  const isClaimed = signedIn && Boolean(claimedName) && !needsClaim;
+
   return (
     <div className="space-y-8 pb-2">
       {/* Brand + clock */}
@@ -46,24 +56,55 @@ export function PreTournamentPanel({
           height={96}
           className="mx-auto h-16 w-auto object-contain sm:h-20"
         />
-        <h1 className="t-display mt-4 text-foreground">Tin Cup 2026</h1>
+        <h1 className="t-display mt-4 text-foreground">
+          {isClaimed && firstName ? `Hey ${firstName}` : "Tin Cup 2026"}
+        </h1>
         <p className="t-micro mt-1.5 text-muted-foreground">
           {EVENT.dates} · {EVENT.location}
         </p>
-        <p className="t-micro mx-auto mt-2 max-w-sm text-muted-foreground">
-          Sign in to join the field — claim your name, notes, and photos. Guests can still follow the
-          live cup scoreboard.
-        </p>
+        {!signedIn && (
+          <p className="t-micro mx-auto mt-2 max-w-sm text-muted-foreground">
+            Sign in to join the field — claim your name, notes, and photos. Guests can still follow
+            the live cup scoreboard.
+          </p>
+        )}
+        {signedIn && needsClaim && (
+          <p className="t-micro mx-auto mt-2 max-w-sm text-muted-foreground">
+            You&apos;re signed in — claim your roster name to unlock your hub and photo credits.
+          </p>
+        )}
+        {isClaimed && (
+          <p className="t-micro mx-auto mt-2 max-w-sm text-muted-foreground">
+            You&apos;re on the field as {claimedName}.
+          </p>
+        )}
         <div className="mt-5">
           <Countdown />
         </div>
       </section>
 
-      {/* Primary CTA */}
+      {/* Primary CTAs — never show “Sign in” when already signed in */}
       <section className="space-y-2">
-        <Link to="/profile" className="press btn-outline-gold t-body flex w-full justify-center">
-          Sign in · claim your spot
-        </Link>
+        {!signedIn && (
+          <Link to="/profile" className="press btn-outline-gold t-body flex w-full justify-center">
+            Sign in · claim your spot
+          </Link>
+        )}
+        {signedIn && needsClaim && (
+          <Link to="/profile" className="press btn-outline-gold t-body flex w-full justify-center">
+            Claim your roster name
+          </Link>
+        )}
+        {isClaimed && (
+          <div className="grid grid-cols-2 gap-2">
+            <Link to="/profile" className="press btn-quiet t-body flex justify-center">
+              My hub
+            </Link>
+            <Link to="/rosters" className="press btn-quiet t-body flex justify-center">
+              Your team
+            </Link>
+          </div>
+        )}
         <a
           href={venmoUrl}
           target="_blank"
@@ -174,7 +215,9 @@ export function PreTournamentPanel({
       </details>
 
       <p className="t-micro text-center text-muted-foreground">
-        Captains post live scores. Guests can watch the board anytime. Issues? Message Kevin.
+        {signedIn
+          ? "Captains post live scores. Issues? Message Kevin."
+          : "Captains post live scores. Guests can watch the board anytime. Issues? Message Kevin."}
       </p>
     </div>
   );

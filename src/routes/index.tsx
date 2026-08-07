@@ -96,12 +96,16 @@ function Index() {
   const { profile, loading: profileLoading } = useProfile();
   const stale = isError && Boolean(data);
   const needsClaim = Boolean(user && !profileLoading && !profile?.player_id);
+  const claimedPlayer = profile?.player_id
+    ? (data?.players ?? []).find((p) => p.id === profile.player_id)
+    : undefined;
 
   return (
     <>
       {!introDone && <CinematicIntro onDone={() => setIntroDone(true)} />}
       <Shell variant="dashboard">
-        {needsClaim && (
+        {/* Pre home handles claim CTA; keep banner on live only */}
+        {needsClaim && mode === "live" && (
           <Link
             to="/profile"
             className="press mb-4 flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3"
@@ -132,6 +136,9 @@ function Index() {
               rounds={data?.rounds ?? []}
               matches={data?.matches ?? []}
               canUpload={Boolean(user)}
+              signedIn={Boolean(user)}
+              claimedName={claimedPlayer?.name ?? null}
+              needsClaim={needsClaim}
             />
           )}
           {mode === "live" &&
