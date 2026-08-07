@@ -216,9 +216,9 @@ function GlobalSyncStatus({
 
 export function PageHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
-    <header className="mb-6 sm:mb-8">
+    <header className="mb-8 sm:mb-10">
       <p className="t-eyebrow">{eyebrow}</p>
-      <h1 className="t-display mt-1.5 text-foreground">{title}</h1>
+      <h1 className="t-display mt-2 text-foreground">{title}</h1>
     </header>
   );
 }

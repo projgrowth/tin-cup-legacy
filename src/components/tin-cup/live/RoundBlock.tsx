@@ -32,7 +32,7 @@ export function RoundBlock({
   if (rows.length === 0 && pendingOnly) return null;
 
   return (
-    <article className="surface overflow-hidden">
+    <article className="surface-inset overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

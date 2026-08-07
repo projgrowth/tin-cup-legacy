@@ -50,7 +50,7 @@ export function LivePanel({
   }, [rounds]);
 
   return (
-    <div className="space-y-6">
+    <div className="stack-page">
       <LiveHero rounds={rounds} matches={matches} teams={teams} />
       {decided && <StickyCupBar matches={matches} />}
       {decided && <RoundStrip rounds={rounds} matches={matches} />}

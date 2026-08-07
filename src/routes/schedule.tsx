@@ -72,7 +72,7 @@ function SchedulePage() {
   return (
     <Shell>
       <PageHeading eyebrow="Aug 28–30" title="Weekend" />
-      <div className="space-y-8 pb-4">
+      <div className="stack-page pb-4">
         {rounds.length > 0 && (
           <button
             type="button"
@@ -91,7 +91,7 @@ function SchedulePage() {
               {DAY1_META.day} · {DAY1_META.course} · {DAY1_META.tee}
             </p>
           </div>
-          <ul className="surface divide-y divide-border overflow-hidden">
+          <ul className="surface-inset divide-y divide-border overflow-hidden">
             {DAY1_PAIRINGS.map((p) => (
               <li key={p.matchIndex} className="flex items-center gap-2 px-3.5 py-3.5">
                 <span className="t-micro w-4 shrink-0 text-muted-foreground">{p.matchIndex}</span>
@@ -111,7 +111,7 @@ function SchedulePage() {
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
         {/* Golf days */}
-        <section className="space-y-3">
+        <section className="stack-tight">
           <h2 className="t-section text-foreground">Golf · 26 pts</h2>
           {rounds.map((round) => {
             const status = roundStatus(round, now ?? undefined);
@@ -121,11 +121,12 @@ function SchedulePage() {
             const countdown =
               start && now && status !== "complete" ? formatCountdown(start - now) : null;
             const hasDetail = Boolean(round.format_detail || round.meal);
+            const raised = status === "live";
 
             return (
               <article
                 key={round.id}
-                className={`surface overflow-hidden ${courseRail(round.course)}`}
+                className={`overflow-hidden ${raised ? "surface-raised" : "surface-inset"} ${courseRail(round.course)}`}
               >
                 <div className="flex items-start justify-between gap-3 p-4">
                   <div className="min-w-0">
@@ -137,7 +138,7 @@ function SchedulePage() {
                         {status === "live" ? "Live" : status === "complete" ? "Final" : "Upcoming"}
                       </span>
                     </div>
-                    <p className="t-body mt-1.5 text-foreground">{round.course}</p>
+                    <p className="t-body mt-1.5 font-medium text-foreground">{round.course}</p>
                     <p className="t-micro mt-0.5 text-muted-foreground">
                       {round.tee_window} · {round.format}
                       {countdown ? ` · ${countdown}` : ""}
@@ -171,10 +172,9 @@ function SchedulePage() {
           })}
         </section>
 
-        {/* Social — compact */}
         <section>
           <h2 className="t-section mb-3 text-foreground">Social</h2>
-          <ul className="surface divide-y divide-border overflow-hidden">
+          <ul className="surface-inset divide-y divide-border overflow-hidden">
             {WEEKEND_SOCIAL.map((row) => (
               <li key={row.day} className="px-4 py-3.5">
                 <p className="t-body font-medium text-foreground">

@@ -48,8 +48,8 @@ function PursePage() {
   return (
     <Shell>
       <PageHeading eyebrow={`$${BUY_IN} buy-in`} title="Purse" />
-      <div className="space-y-8 pb-4">
-        <section className="surface flex items-center justify-between gap-3 p-4">
+      <div className="stack-page pb-4">
+        <section className="surface-raised flex items-center justify-between gap-3 p-5">
           <span className="min-w-0">
             <span className="t-title block text-foreground">@{VENMO_HANDLE}</span>
             <span className="t-micro mt-0.5 block text-muted-foreground">{TOURNAMENT_BANK}</span>
@@ -75,11 +75,11 @@ function PursePage() {
         )}
 
         <section className="grid grid-cols-2 gap-3">
-          <div className="surface p-4">
+          <div className="surface-inset p-4">
             <p className="t-micro text-muted-foreground">Team win</p>
             <p className="t-display mt-1.5 text-foreground">${cup.winnerPayout}</p>
           </div>
-          <div className="surface p-4">
+          <div className="surface-inset p-4">
             <p className="t-micro text-muted-foreground">Side cash</p>
             <p className="t-display mt-1.5 text-foreground">${cash.pool}</p>
             {hasTbdPayouts && (
@@ -96,14 +96,16 @@ function PursePage() {
                 {claimed.length}/{bets.length}
               </span>
             </div>
-            <ul className="surface divide-y divide-border overflow-hidden">
+            <ul className="surface-inset divide-y divide-border overflow-hidden">
               {bets.map((bet) => (
                 <li
                   key={bet.id}
                   className="flex items-center justify-between gap-3 px-4 py-3.5"
                 >
                   <span className="min-w-0">
-                    <span className="t-body block truncate text-foreground">{bet.label}</span>
+                    <span className="t-body block truncate font-medium text-foreground">
+                      {bet.label}
+                    </span>
                     <span className="t-micro text-muted-foreground">
                       {bet.player_name ?? "Open"}
                       {bet.hole != null ? ` · ${contestHoleLabel(bet.hole)}` : ""}
@@ -121,9 +123,12 @@ function PursePage() {
         {perPlayer.length > 0 && (
           <section>
             <h2 className="t-section mb-3 text-foreground">Won so far</h2>
-            <ul className="divide-y divide-border border-t border-border">
+            <ul className="surface-inset divide-y divide-border overflow-hidden">
               {perPlayer.map((row) => (
-                <li key={row.name} className="flex items-center justify-between gap-3 py-3">
+                <li
+                  key={row.name}
+                  className="flex items-center justify-between gap-3 px-4 py-3"
+                >
                   <span className="t-body min-w-0 truncate text-foreground">{row.name}</span>
                   <span className="t-numeral shrink-0 text-foreground">
                     {formatPayout(row.total)}
@@ -134,8 +139,8 @@ function PursePage() {
           </section>
         )}
 
-        <section className="space-y-2">
-          <details className="surface">
+        <section className="stack-tight">
+          <details className="surface-inset">
             <summary className="press cursor-pointer list-none px-4 py-3.5 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
               Format & pairings
             </summary>
@@ -147,7 +152,7 @@ function PursePage() {
               ))}
             </ul>
           </details>
-          <details className="surface">
+          <details className="surface-inset">
             <summary className="press cursor-pointer list-none px-4 py-3.5 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
               Money rules
             </summary>

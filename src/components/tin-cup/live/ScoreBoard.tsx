@@ -182,7 +182,7 @@ export function ScoreBar({ matches, teams }: { matches: Match[]; teams: Team[] }
   const leadName = clinch.leader ? nameFor(clinch.leader) : null;
 
   return (
-    <section className="surface p-4 sm:p-5">
+    <section className="surface-raised p-4 sm:p-5">
       <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
         <div className="min-w-0">
           <p className="t-micro truncate text-gold-light">{nameFor("strong-mental")}</p>
@@ -190,7 +190,7 @@ export function ScoreBar({ matches, teams }: { matches: Match[]; teams: Team[] }
         </div>
         <p className="t-micro pb-1.5 text-muted-foreground">{EVENT.pointsToWin} wins</p>
         <div className="min-w-0 text-right">
-          <p className="t-micro truncate">{nameFor("grass-roots")}</p>
+          <p className="t-micro truncate text-copper">{nameFor("grass-roots")}</p>
           <p className="t-hero tabular-nums mt-1 text-copper">{standings.grassRoots}</p>
         </div>
       </div>

@@ -81,7 +81,7 @@ function RostersPage() {
     <Shell variant="dashboard">
       <PageHeading eyebrow="Locker room" title="Teams" />
 
-      <div className="space-y-6">
+      <div className="stack-page">
         {teams.length === 2 && (
           <section className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
             {teams.map((team, index) => {

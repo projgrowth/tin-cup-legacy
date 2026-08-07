@@ -34,7 +34,6 @@ export function PreTournamentPanel({
   matches?: Match[];
   canUpload?: boolean;
   signedIn?: boolean;
-  /** Full roster name when claimed */
   claimedName?: string | null;
   needsClaim?: boolean;
 }) {
@@ -46,61 +45,70 @@ export function PreTournamentPanel({
   const isClaimed = signedIn && Boolean(claimedName) && !needsClaim;
 
   return (
-    <div className="space-y-8 pb-2">
-      {/* Brand + clock */}
+    <div className="stack-page pb-2">
+      {/* Brand */}
       <section className="text-center">
         <img
           src="/tin-cup-logo.png"
           alt="The Tin Cup Invitational"
-          width={96}
-          height={96}
-          className="mx-auto h-16 w-auto object-contain sm:h-20"
+          width={80}
+          height={80}
+          className="mx-auto h-14 w-auto object-contain sm:h-16"
         />
-        <h1 className="t-display mt-4 text-foreground">
+        <h1 className="t-display mt-5 text-foreground">
           {isClaimed && firstName ? `Hey ${firstName}` : "Tin Cup 2026"}
         </h1>
         <p className="t-micro mt-1.5 text-muted-foreground">
           {EVENT.dates} · {EVENT.location}
         </p>
         {!signedIn && (
-          <p className="t-micro mx-auto mt-2 max-w-sm text-muted-foreground">
-            Sign in to join the field — claim your name, notes, and photos. Guests can still follow
-            the live cup scoreboard.
+          <p className="t-micro mx-auto mt-2 max-w-xs text-muted-foreground">
+            Sign in to join the field. Guests can follow the live cup.
           </p>
         )}
         {signedIn && needsClaim && (
-          <p className="t-micro mx-auto mt-2 max-w-sm text-muted-foreground">
-            You&apos;re signed in — claim your roster name to unlock your hub and photo credits.
+          <p className="t-micro mx-auto mt-2 max-w-xs text-muted-foreground">
+            Claim your roster name to unlock your hub.
           </p>
         )}
         {isClaimed && (
-          <p className="t-micro mx-auto mt-2 max-w-sm text-muted-foreground">
-            You&apos;re on the field as {claimedName}.
+          <p className="t-micro mx-auto mt-2 max-w-xs text-muted-foreground">
+            On the field as {claimedName}
           </p>
         )}
-        <div className="mt-5">
-          <Countdown />
-        </div>
       </section>
 
-      {/* Primary CTAs — never show “Sign in” when already signed in */}
-      <section className="space-y-2">
+      <Countdown />
+
+      {/* Cup metric — team-colored numerals */}
+      <section className="surface-raised px-4 py-5 text-center">
+        <p className="t-eyebrow">Cup</p>
+        <p className="t-hero mt-2">
+          <span className="text-gold-light">{standings.strongMental}</span>
+          <span className="mx-1 text-muted-foreground">–</span>
+          <span className="text-copper">{standings.grassRoots}</span>
+        </p>
+        <p className="t-micro mt-2 text-muted-foreground">13.5 wins · {EVENT.totalPoints} total</p>
+      </section>
+
+      {/* Single primary path */}
+      <section className="stack-tight">
         {!signedIn && (
-          <Link to="/profile" className="press btn-outline-gold t-body flex w-full justify-center">
+          <Link to="/profile" className="press btn-quiet t-body flex w-full justify-center">
             Sign in · claim your spot
           </Link>
         )}
         {signedIn && needsClaim && (
-          <Link to="/profile" className="press btn-outline-gold t-body flex w-full justify-center">
+          <Link to="/profile" className="press btn-quiet t-body flex w-full justify-center">
             Claim your roster name
           </Link>
         )}
         {isClaimed && (
-          <div className="grid grid-cols-2 gap-2">
-            <Link to="/profile" className="press btn-quiet t-body flex justify-center">
+          <div className="flex justify-center gap-4">
+            <Link to="/profile" className="press t-micro font-medium text-foreground underline-offset-4 hover:underline">
               My hub
             </Link>
-            <Link to="/rosters" className="press btn-quiet t-body flex justify-center">
+            <Link to="/rosters" className="press t-micro font-medium text-foreground underline-offset-4 hover:underline">
               Your team
             </Link>
           </div>
@@ -123,28 +131,23 @@ export function PreTournamentPanel({
         )}
       </section>
 
-      {/* First up + board pulse */}
-      <section className="grid gap-3">
-        {nextRound && (
-          <Link to="/schedule" className="press surface flex items-center justify-between gap-3 p-4">
-            <span className="min-w-0">
-              <span className="t-title block text-foreground">{nextRound.day_label}</span>
-              <span className="t-micro mt-0.5 block truncate text-muted-foreground">
-                {nextRound.course} · {nextRound.tee_window}
-              </span>
+      {nextRound && (
+        <Link
+          to="/schedule"
+          className="press surface-inset flex items-center justify-between gap-3 px-4 py-3.5"
+        >
+          <span className="min-w-0">
+            <span className="t-micro block text-muted-foreground">Up first</span>
+            <span className="t-title mt-0.5 block text-foreground">{nextRound.day_label}</span>
+            <span className="t-micro mt-0.5 block truncate text-muted-foreground">
+              {nextRound.course} · {nextRound.tee_window}
             </span>
-            <span className="t-numeral shrink-0 text-foreground">{nextRound.points}</span>
-          </Link>
-        )}
-        <div className="surface flex items-center justify-between gap-3 px-4 py-3">
-          <span className="t-micro text-muted-foreground">Cup</span>
-          <span className="t-numeral text-foreground">
-            {standings.strongMental}–{standings.grassRoots}
           </span>
-        </div>
-      </section>
+          <span className="t-numeral shrink-0 text-xl text-foreground">{nextRound.points}</span>
+        </Link>
+      )}
 
-      {/* Day 1 pairings — lean list */}
+      {/* Day 1 — inset list */}
       <section>
         <div className="mb-3 flex items-baseline justify-between gap-3">
           <h2 className="t-section text-foreground">Day 1 pairings</h2>
@@ -152,16 +155,16 @@ export function PreTournamentPanel({
             Full weekend →
           </Link>
         </div>
-        <ul className="surface divide-y divide-border overflow-hidden">
+        <ul className="surface-inset divide-y divide-border overflow-hidden">
           {DAY1_PAIRINGS.map((p) => (
             <li
               key={p.matchIndex}
-              className="flex items-center gap-2 px-3.5 py-3 t-body text-foreground"
+              className="flex items-center gap-2 px-3.5 py-3.5 t-body text-foreground"
             >
               <span className="t-micro w-4 shrink-0 text-muted-foreground">{p.matchIndex}</span>
-              <span className="min-w-0 flex-1 truncate">{p.sideA}</span>
+              <span className="min-w-0 flex-1 truncate font-medium">{p.sideA}</span>
               <span className="t-micro shrink-0 text-muted-foreground">vs</span>
-              <span className="min-w-0 flex-1 truncate text-right">{p.sideB}</span>
+              <span className="min-w-0 flex-1 truncate text-right font-medium">{p.sideB}</span>
             </li>
           ))}
         </ul>
@@ -172,13 +175,18 @@ export function PreTournamentPanel({
 
       <PhotoVault canUpload={canUpload} variant="pulse" />
 
-      {/* Quick links */}
       <div className="grid grid-cols-2 gap-2">
-        <Link to="/schedule" className="press surface flex min-h-12 items-center gap-2.5 px-3.5 py-3">
+        <Link
+          to="/schedule"
+          className="press surface-inset flex min-h-12 items-center gap-2.5 px-3.5 py-3"
+        >
           <CalendarDays className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.6} />
           <span className="t-body font-medium text-foreground">Schedule</span>
         </Link>
-        <Link to="/rosters" className="press surface flex min-h-12 items-center gap-2.5 px-3.5 py-3">
+        <Link
+          to="/rosters"
+          className="press surface-inset flex min-h-12 items-center gap-2.5 px-3.5 py-3"
+        >
           <Users className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.6} />
           <span className="t-body font-medium text-foreground">Teams</span>
         </Link>
@@ -189,14 +197,13 @@ export function PreTournamentPanel({
         <ShareBoardButton className="w-full" />
       </div>
       {WHATSAPP_GROUP_CONFIGURED && (
-        <p className="t-micro -mt-4 text-center text-muted-foreground">
+        <p className="-mt-4 t-micro text-center text-muted-foreground">
           Group chat is on WhatsApp · scores live here
         </p>
       )}
       <InstallHint />
 
-      {/* Fee breakdown — collapsed */}
-      <details className="surface group">
+      <details className="surface-inset group">
         <summary className="press cursor-pointer list-none px-4 py-3.5 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
           <span className="flex items-center justify-between gap-3">
             ${BUY_IN} entry breakdown
@@ -217,7 +224,7 @@ export function PreTournamentPanel({
       <p className="t-micro text-center text-muted-foreground">
         {signedIn
           ? "Captains post live scores. Issues? Message Kevin."
-          : "Captains post live scores. Guests can watch the board anytime. Issues? Message Kevin."}
+          : "Captains post live scores. Guests can watch the board anytime."}
       </p>
     </div>
   );

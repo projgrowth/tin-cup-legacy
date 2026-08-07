@@ -21,15 +21,17 @@ export function Countdown() {
   ];
 
   return (
-    <section>
-      <p className="t-eyebrow">{time?.done ? "The cup is live" : "First tee • Friday 12:19 PM"}</p>
-      <div className="surface mt-3 grid grid-cols-3 divide-x divide-border">
+    <section className="surface-raised overflow-hidden">
+      <p className="t-eyebrow border-b border-border px-4 py-2.5 text-center">
+        {time?.done ? "The cup is live" : "First tee · Friday 12:19 PM"}
+      </p>
+      <div className="grid grid-cols-3 divide-x divide-border">
         {cells.map((cell) => (
-          <div key={cell.label} className="py-4 text-center">
-            <div className="t-display tabular-nums text-foreground">
-              {cell.value === undefined ? "--" : String(cell.value).padStart(2, "0")}
+          <div key={cell.label} className="py-5 text-center">
+            <div className="t-hero tabular-nums text-foreground">
+              {cell.value === undefined ? "—" : String(cell.value).padStart(2, "0")}
             </div>
-            <div className="t-micro mt-1.5">{cell.label}</div>
+            <div className="t-micro mt-2 uppercase tracking-[0.08em]">{cell.label}</div>
           </div>
         ))}
       </div>
