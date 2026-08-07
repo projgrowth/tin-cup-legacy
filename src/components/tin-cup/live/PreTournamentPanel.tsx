@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { CalendarDays, Users } from "lucide-react";
 
 import { Countdown } from "@/components/tin-cup/Countdown";
+import { PhotoVault } from "@/components/tin-cup/PhotoVault";
 import {
   InstallHint,
   ShareBoardButton,
@@ -24,9 +25,11 @@ import { tallyStandings } from "@/lib/scoring";
 export function PreTournamentPanel({
   rounds = [],
   matches = [],
+  canUpload = false,
 }: {
   rounds?: Round[];
   matches?: Match[];
+  canUpload?: boolean;
 }) {
   const nextRound = [...rounds].sort(
     (a, b) => new Date(a.play_date).getTime() - new Date(b.play_date).getTime(),
@@ -118,6 +121,8 @@ export function PreTournamentPanel({
           {DAY1_META.course} · {DAY1_META.tee}
         </p>
       </section>
+
+      <PhotoVault canUpload={canUpload} variant="pulse" />
 
       {/* Quick links */}
       <div className="grid grid-cols-2 gap-2">

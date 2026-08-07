@@ -12,6 +12,8 @@ type VaultItem = {
   url: string;
   storagePath: string;
   uploadedBy: string | null;
+  authorName: string | null;
+  createdAt: string | null;
 };
 
 async function loadPhotos(): Promise<VaultItem[]> {
@@ -21,33 +23,54 @@ async function loadPhotos(): Promise<VaultItem[]> {
       caption: string | null;
       storage_path: string;
       uploaded_by: string | null;
+      created_at: string;
     }>;
+    profiles?: Array<{ id: string; display_name: string }>;
   }>(`query PhotoVault {
     photos(order_by: {created_at: desc}, limit: 60) {
-      id caption storage_path uploaded_by
+      id caption storage_path uploaded_by created_at
     }
+    profiles { id display_name }
   }`);
   const rows = result.photos;
   if (rows.length === 0) return [];
+
+  const names = new Map(
+    (result.profiles ?? []).map((p) => [p.id, p.display_name.trim()] as const),
+  );
 
   const signed = await Promise.all(
     rows.map((row) => nhost.storage.getFilePresignedURL(row.storage_path)),
   );
 
-  return rows.map((row, i) => ({
-    id: row.id,
-    caption: row.caption,
-    url: signed[i]?.body.url ?? "",
-    storagePath: row.storage_path,
-    uploadedBy: row.uploaded_by,
-  }));
+  return rows.map((row, i) => {
+    const fromProfile = row.uploaded_by ? names.get(row.uploaded_by) : null;
+    return {
+      id: row.id,
+      caption: row.caption,
+      url: signed[i]?.body.url ?? "",
+      storagePath: row.storage_path,
+      uploadedBy: row.uploaded_by,
+      authorName: fromProfile || null,
+      createdAt: row.created_at ?? null,
+    };
+  });
 }
 
-export function PhotoVault({ canUpload }: { canUpload: boolean }) {
+export function PhotoVault({
+  canUpload,
+  variant = "vault",
+}: {
+  canUpload: boolean;
+  /** `pulse` = compact horizontal strip for Live; `vault` = full masonry gallery */
+  variant?: "vault" | "pulse";
+}) {
   const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [mounted, setMounted] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [pendingCaption, setPendingCaption] = useState("");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -64,23 +87,24 @@ export function PhotoVault({ canUpload }: { canUpload: boolean }) {
   } = useQuery({
     queryKey: ["vault"],
     queryFn: loadPhotos,
-    enabled: mounted && Boolean(userId),
+    // Photos are public-read; signed-in users also get profile names.
+    enabled: mounted,
+    retry: 1,
   });
 
-  // New photos land for everyone with the tab open, no reload needed.
   useEffect(() => {
-    if (!mounted || !userId) return;
+    if (!mounted) return;
     let ready = false;
     return subscribeGraphql(`subscription PhotoVaultLive { photos { id created_at } }`, () => {
       if (ready) void queryClient.invalidateQueries({ queryKey: ["vault"] });
       ready = true;
     });
-  }, [mounted, queryClient, userId]);
+  }, [mounted, queryClient]);
 
   const [progress, setProgress] = useState(0);
 
   const upload = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async ({ file, caption }: { file: File; caption: string }) => {
       if (!file.type.startsWith("image/")) throw new Error("That file isn't an image");
       if (file.size > 12 * 1024 * 1024) throw new Error("Images need to be under 12MB");
       const user = nhost.getUserSession()?.user;
@@ -95,17 +119,19 @@ export function PhotoVault({ canUpload }: { canUpload: boolean }) {
       if (!stored) throw new Error("Nhost did not return the uploaded file");
       setProgress(85);
       await graphqlRequest(
-        `mutation AddPhoto($fileId: String!) {
-          insert_photos_one(object: {storage_path: $fileId}) { id }
+        `mutation AddPhoto($fileId: String!, $caption: String) {
+          insert_photos_one(object: {storage_path: $fileId, caption: $caption}) { id }
         }`,
-        { fileId: stored.id },
+        { fileId: stored.id, caption: caption.trim() || null },
       );
       setProgress(100);
     },
     onSuccess: () => {
-      toast.success("Added to the vault");
+      toast.success("Added to Pulse");
       void queryClient.invalidateQueries({ queryKey: ["vault"] });
       setProgress(0);
+      setPendingFile(null);
+      setPendingCaption("");
     },
     onError: (error: Error) => {
       toast.error(error.message || "Upload failed");
@@ -142,10 +168,177 @@ export function PhotoVault({ canUpload }: { canUpload: boolean }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [lightbox, photos]);
 
+  function pickFile(file: File | undefined) {
+    if (!file) return;
+    if (!canUpload) {
+      toast.message("Sign in to add photos");
+      return;
+    }
+    setPendingFile(file);
+    setPendingCaption("");
+  }
+
+  function confirmUpload() {
+    if (!pendingFile) return;
+    upload.mutate({ file: pendingFile, caption: pendingCaption });
+  }
+
+  const labelFor = (photo: VaultItem) =>
+    photo.authorName || (photo.uploadedBy === userId ? "You" : null);
+
+  const captionComposer =
+    pendingFile && !upload.isPending ? (
+      <div className="surface space-y-3 p-3.5">
+        <p className="t-micro text-muted-foreground">
+          {pendingFile.name}
+          <span className="ml-1 opacity-70">· optional caption</span>
+        </p>
+        <input
+          value={pendingCaption}
+          onChange={(e) => setPendingCaption(e.target.value)}
+          maxLength={140}
+          placeholder="Caption (optional)"
+          className="control t-body w-full"
+          autoFocus
+        />
+        <div className="flex gap-2">
+          <button type="button" onClick={() => confirmUpload()} className="press btn-gold t-body flex-1">
+            Post photo
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setPendingFile(null);
+              setPendingCaption("");
+            }}
+            className="press btn-quiet t-body"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    ) : null;
+
+  const fileInput = (
+    <input
+      ref={inputRef}
+      type="file"
+      accept="image/*"
+      capture="environment"
+      className="hidden"
+      onChange={(e) => {
+        pickFile(e.target.files?.[0]);
+        e.target.value = "";
+      }}
+    />
+  );
+
+  if (variant === "pulse") {
+    const strip = photos?.slice(0, 16) ?? [];
+    return (
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="t-section text-foreground">Pulse</h2>
+          {canUpload ? (
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              disabled={upload.isPending}
+              className="press btn-quiet t-micro inline-flex min-h-10 items-center gap-1.5 px-3"
+            >
+              {upload.isPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <ImagePlus className="size-3.5" />
+              )}
+              {upload.isPending ? `${progress}%` : "Add photo"}
+            </button>
+          ) : (
+            <span className="t-micro text-muted-foreground">Sign in to add</span>
+          )}
+        </div>
+        {fileInput}
+        {captionComposer}
+        {upload.isPending && (
+          <div
+            className="h-1 overflow-hidden rounded-full bg-secondary/60"
+            role="progressbar"
+            aria-valuenow={progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            <div
+              className="h-full rounded-full bg-gold transition-all duration-200"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        )}
+        {isPending && (
+          <div className="no-scrollbar flex gap-2 overflow-x-auto">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="skeleton size-24 shrink-0 rounded-xl" />
+            ))}
+          </div>
+        )}
+        {isError && (
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="press t-micro text-muted-foreground"
+          >
+            Pulse didn&apos;t load · Retry
+          </button>
+        )}
+        {!isPending && !isError && strip.length === 0 && (
+          <p className="t-micro text-muted-foreground">
+            {canUpload
+              ? "No photos yet — drop the first weekend shot."
+              : "No photos yet. Sign in from Account to add."}
+          </p>
+        )}
+        {strip.length > 0 && (
+          <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+            {strip.map((photo, idx) => (
+              <button
+                key={photo.id}
+                type="button"
+                onClick={() => setLightbox(idx)}
+                className="press relative shrink-0 overflow-hidden rounded-xl border border-border"
+              >
+                <img
+                  src={photo.url}
+                  alt={photo.caption ?? "Weekend moment"}
+                  loading="lazy"
+                  className="size-24 object-cover sm:size-28"
+                />
+                {labelFor(photo) && (
+                  <span className="absolute inset-x-0 bottom-0 truncate bg-black/55 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                    {labelFor(photo)}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+        {lightbox !== null && photos && photos[lightbox] && (
+          <Lightbox
+            photos={photos}
+            index={lightbox}
+            setIndex={setLightbox}
+            labelFor={labelFor}
+            userId={userId}
+            onRemove={(p) => remove.mutate(p)}
+            removing={remove.isPending}
+          />
+        )}
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="t-eyebrow">Photo Vault</h2>
+        <h2 className="t-section text-foreground">Photo vault</h2>
         {canUpload && (
           <button
             type="button"
@@ -162,6 +355,8 @@ export function PhotoVault({ canUpload }: { canUpload: boolean }) {
           </button>
         )}
       </div>
+      {fileInput}
+      {captionComposer}
       {upload.isPending && (
         <div
           className="h-1 overflow-hidden rounded-full bg-secondary/60"
@@ -177,17 +372,6 @@ export function PhotoVault({ canUpload }: { canUpload: boolean }) {
           />
         </div>
       )}
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) upload.mutate(file);
-          e.target.value = "";
-        }}
-      />
       {isPending && (
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label="Loading photos">
           {[120, 170, 140, 190, 130, 160].map((height, index) => (
@@ -222,6 +406,16 @@ export function PhotoVault({ canUpload }: { canUpload: boolean }) {
                   loading="lazy"
                   className="w-full rounded-xl border border-border object-cover"
                 />
+                {(labelFor(photo) || photo.caption) && (
+                  <span className="mt-1.5 block px-0.5">
+                    {labelFor(photo) && (
+                      <span className="t-micro font-medium text-foreground">{labelFor(photo)}</span>
+                    )}
+                    {photo.caption && (
+                      <span className="t-micro block text-muted-foreground">{photo.caption}</span>
+                    )}
+                  </span>
+                )}
               </button>
               {userId && photo.uploadedBy === userId && (
                 <button
@@ -238,63 +432,113 @@ export function PhotoVault({ canUpload }: { canUpload: boolean }) {
           ))}
         </div>
       ) : !isPending && !isError ? (
-        <p className="surface t-body p-5 text-center">
+        <p className="surface t-body p-5 text-center text-muted-foreground">
           {canUpload
-            ? "No photos yet. Add the first one — tap Add above."
+            ? "No photos yet. Add the first one."
             : "No photos yet. Sign in to add the first one."}
         </p>
       ) : null}
 
       {lightbox !== null && photos && photos[lightbox] && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--scrim)] p-4"
-          onClick={() => setLightbox(null)}
-        >
-          <button
-            type="button"
-            onClick={() => setLightbox(null)}
-            className="press absolute right-4 top-4 rounded-full bg-background/60 p-2 text-foreground"
-            aria-label="Close lightbox"
-          >
-            <X className="size-5" />
-          </button>
-          <button
-            type="button"
-            disabled={lightbox === 0}
-            onClick={(e) => {
-              e.stopPropagation();
-              setLightbox((i) => Math.max(0, (i ?? 0) - 1));
-            }}
-            className="press absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-background/60 p-2 text-foreground disabled:opacity-30"
-            aria-label="Previous photo"
-          >
-            <ChevronLeft className="size-6" />
-          </button>
-          <button
-            type="button"
-            disabled={lightbox >= photos.length - 1}
-            onClick={(e) => {
-              e.stopPropagation();
-              setLightbox((i) => Math.min(photos.length - 1, (i ?? 0) + 1));
-            }}
-            className="press absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-background/60 p-2 text-foreground disabled:opacity-30"
-            aria-label="Next photo"
-          >
-            <ChevronRight className="size-6" />
-          </button>
-          <img
-            src={photos[lightbox].url}
-            alt={photos[lightbox].caption ?? "Tin Cup Invitational moment"}
-            className="max-h-[85vh] max-w-full rounded-2xl object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-          {photos[lightbox].caption && (
-            <p className="t-body absolute bottom-4 left-0 right-0 px-4 text-center text-foreground/90">
-              {photos[lightbox].caption}
-            </p>
-          )}
-        </div>
+        <Lightbox
+          photos={photos}
+          index={lightbox}
+          setIndex={setLightbox}
+          labelFor={labelFor}
+          userId={userId}
+          onRemove={(p) => remove.mutate(p)}
+          removing={remove.isPending}
+        />
       )}
     </section>
+  );
+}
+
+function Lightbox({
+  photos,
+  index,
+  setIndex,
+  labelFor,
+  userId,
+  onRemove,
+  removing,
+}: {
+  photos: VaultItem[];
+  index: number;
+  setIndex: (n: number | null | ((i: number | null) => number | null)) => void;
+  labelFor: (p: VaultItem) => string | null;
+  userId: string | null;
+  onRemove: (p: VaultItem) => void;
+  removing: boolean;
+}) {
+  const photo = photos[index];
+  if (!photo) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--scrim)] p-4"
+      onClick={() => setIndex(null)}
+    >
+      <button
+        type="button"
+        onClick={() => setIndex(null)}
+        className="press absolute right-4 top-4 rounded-full bg-background/60 p-2 text-foreground"
+        aria-label="Close lightbox"
+      >
+        <X className="size-5" />
+      </button>
+      {userId && photo.uploadedBy === userId && (
+        <button
+          type="button"
+          disabled={removing}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(photo);
+            setIndex(null);
+          }}
+          className="press absolute right-4 top-16 rounded-full bg-background/60 p-2 text-muted-foreground"
+          aria-label="Remove photo"
+        >
+          <Trash2 className="size-4" />
+        </button>
+      )}
+      <button
+        type="button"
+        disabled={index === 0}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIndex((i) => Math.max(0, (i ?? 0) - 1));
+        }}
+        className="press absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-background/60 p-2 text-foreground disabled:opacity-30"
+        aria-label="Previous photo"
+      >
+        <ChevronLeft className="size-6" />
+      </button>
+      <button
+        type="button"
+        disabled={index >= photos.length - 1}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIndex((i) => Math.min(photos.length - 1, (i ?? 0) + 1));
+        }}
+        className="press absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-background/60 p-2 text-foreground disabled:opacity-30"
+        aria-label="Next photo"
+      >
+        <ChevronRight className="size-6" />
+      </button>
+      <div className="max-w-full" onClick={(e) => e.stopPropagation()}>
+        <img
+          src={photo.url}
+          alt={photo.caption ?? "Tin Cup Invitational moment"}
+          className="max-h-[80vh] max-w-full rounded-2xl object-contain"
+        />
+        {(labelFor(photo) || photo.caption) && (
+          <p className="t-body mt-3 text-center text-foreground/90">
+            {labelFor(photo)}
+            {labelFor(photo) && photo.caption ? " · " : ""}
+            {photo.caption}
+          </p>
+        )}
+      </div>
+    </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { Match, Player, Round, SideBet, Team } from "@/hooks/useTournament";
+import { PhotoVault } from "@/components/tin-cup/PhotoVault";
 import { roundStatus } from "@/lib/scoring";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { formatPayout } from "@/lib/purse";
@@ -19,6 +20,7 @@ export function LivePanel({
   onRetryFailed,
   stale = false,
   canScore = false,
+  canUpload = false,
   initialOpenOnly = false,
 }: {
   rounds: Round[];
@@ -32,6 +34,7 @@ export function LivePanel({
   onRetryFailed?: () => void;
   stale?: boolean;
   canScore?: boolean;
+  canUpload?: boolean;
   initialOpenOnly?: boolean;
 }) {
   const ctp = sideBets.filter((b) => isCtp(b.kind));
@@ -58,6 +61,8 @@ export function LivePanel({
         onRetryFailed={onRetryFailed}
         stale={stale}
       />
+
+      <PhotoVault canUpload={canUpload} variant="pulse" />
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-2">

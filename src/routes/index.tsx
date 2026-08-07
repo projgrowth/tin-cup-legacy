@@ -7,6 +7,7 @@ import { Shell, SkeletonBlock } from "@/components/tin-cup/Shell";
 import { ShareBoardButton } from "@/components/tin-cup/WhatsAppLinks";
 import { HallOfFamePanel, LivePanel, PreTournamentPanel } from "@/components/tin-cup/panels";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useJournal";
 import { useTournament, type Match, type Round } from "@/hooks/useTournament";
 import { getEventPhase, phaseMode } from "@/lib/event-phase";
 import { defaultCourseId, COURSE_LABEL } from "@/lib/courses";
@@ -92,12 +93,28 @@ function Index() {
     retryFailedWrites,
   } = useTournament();
   const { canScore, user } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
   const stale = isError && Boolean(data);
+  const needsClaim = Boolean(user && !profileLoading && !profile?.player_id);
 
   return (
     <>
       {!introDone && <CinematicIntro onDone={() => setIntroDone(true)} />}
       <Shell variant="dashboard">
+        {needsClaim && (
+          <Link
+            to="/profile"
+            className="press mb-4 flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3"
+          >
+            <span className="min-w-0">
+              <span className="t-body block font-medium text-foreground">Claim your roster name</span>
+              <span className="t-micro block text-muted-foreground">
+                So photos and the field know who you are
+              </span>
+            </span>
+            <span className="t-micro shrink-0 text-muted-foreground">Account →</span>
+          </Link>
+        )}
         {mode === "live" && (
           <TodayAtTinCup
             rounds={data?.rounds ?? []}
@@ -109,7 +126,11 @@ function Index() {
 
         <div className="mt-4">
           {mode === "pre" && (
-            <PreTournamentPanel rounds={data?.rounds ?? []} matches={data?.matches ?? []} />
+            <PreTournamentPanel
+              rounds={data?.rounds ?? []}
+              matches={data?.matches ?? []}
+              canUpload={Boolean(user)}
+            />
           )}
           {mode === "live" &&
             (isPending && !data ? (
@@ -129,6 +150,7 @@ function Index() {
                 onRetryFailed={() => void retryFailedWrites()}
                 stale={stale}
                 canScore={canScore}
+                canUpload={Boolean(user)}
                 initialOpenOnly={canScore}
               />
             ))}
