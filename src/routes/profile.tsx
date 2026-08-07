@@ -103,30 +103,33 @@ function ProfilePage() {
               <Link
                 to="/player/$playerId"
                 params={{ playerId: claimedPlayer.id }}
-                className="press surface flex items-center justify-between gap-2 px-4 py-3.5"
+                className="press surface-raised flex items-center justify-between gap-2 px-4 py-3.5"
               >
                 <span className="t-body font-medium text-foreground">Your player card</span>
                 <ChevronRight className="size-4 text-muted-foreground" />
               </Link>
             )}
             <Link
+              to="/scout"
+              className="press surface-raised flex items-center justify-between gap-2 px-4 py-3.5"
+            >
+              <span className="t-body font-medium text-foreground">Course notes</span>
+              <ChevronRight className="size-4 text-muted-foreground" />
+            </Link>
+            <Link
               to="/rosters"
-              className="press surface flex items-center justify-between gap-2 px-4 py-3.5"
+              className="press surface-inset flex items-center justify-between gap-2 px-4 py-3.5"
             >
               <span className="t-body font-medium text-foreground">
                 {claimedTeam ? "Your team hub" : "Teams"}
               </span>
               <ChevronRight className="size-4 text-muted-foreground" />
             </Link>
-            <Link
-              to="/scout"
-              className="press surface flex items-center justify-between gap-2 px-4 py-3.5"
-            >
-              <span className="t-body font-medium text-foreground">Course notes</span>
-              <ChevronRight className="size-4 text-muted-foreground" />
-            </Link>
             {canScore && (
-              <Link to="/" className="press surface flex items-center justify-between gap-2 px-4 py-3.5">
+              <Link
+                to="/"
+                className="press surface-inset flex items-center justify-between gap-2 px-4 py-3.5"
+              >
                 <span className="t-body font-medium text-foreground">Live board · score</span>
                 <ChevronRight className="size-4 text-muted-foreground" />
               </Link>

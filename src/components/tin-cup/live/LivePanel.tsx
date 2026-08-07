@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { Match, Player, Round, SideBet, Team } from "@/hooks/useTournament";
+import { LiveWireTicker } from "@/components/tin-cup/LiveWireTicker";
 import { PhotoVault } from "@/components/tin-cup/PhotoVault";
 import { roundStatus } from "@/lib/scoring";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
@@ -39,6 +40,7 @@ export function LivePanel({
 }) {
   const ctp = sideBets.filter((b) => isCtp(b.kind));
   const ld = sideBets.filter((b) => isLongDrive(b.kind));
+  const claimedPots = sideBets.filter((b) => Boolean(b.player_name?.trim())).length;
   const decided = matches.some((m) => m.result !== "pending");
   const [needsResultOnly, setNeedsResultOnly] = useState(initialOpenOnly);
   const [sideOpen, setSideOpen] = useState(false);
@@ -54,6 +56,17 @@ export function LivePanel({
       <LiveHero rounds={rounds} matches={matches} teams={teams} />
       {decided && <StickyCupBar matches={matches} />}
       {decided && <RoundStrip rounds={rounds} matches={matches} />}
+
+      {/* PGA-style wire: score changes, side cash, social — before the board */}
+      <LiveWireTicker
+        matches={matches}
+        sideBets={sideBets}
+        players={players}
+        teams={teams}
+        variant="live"
+        limit={5}
+      />
+
       <StatusLine
         syncedAt={syncedAt}
         pendingWrites={pendingWrites}
@@ -61,8 +74,6 @@ export function LivePanel({
         onRetryFailed={onRetryFailed}
         stale={stale}
       />
-
-      <PhotoVault canUpload={canUpload} variant="pulse" />
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-2">
@@ -102,7 +113,7 @@ export function LivePanel({
         ))}
       </section>
 
-      <section className="surface overflow-hidden">
+      <section className="surface-inset overflow-hidden">
         <button
           type="button"
           onClick={() => setSideOpen((v) => !v)}
@@ -112,7 +123,7 @@ export function LivePanel({
           <span className="t-body font-medium text-foreground">
             Side cash
             <span className="t-micro ml-2 font-normal text-muted-foreground">
-              {ctp.length} CTP · {ld.length} LD
+              {claimedPots}/{sideBets.length} claimed · {ctp.length} CTP · {ld.length} LD
             </span>
           </span>
           <span className="t-micro text-muted-foreground">{sideOpen ? "Hide" : "Show"}</span>
@@ -152,6 +163,9 @@ export function LivePanel({
           </div>
         )}
       </section>
+
+      {/* Photos after board — secondary during live play */}
+      <PhotoVault canUpload={canUpload} variant="pulse" hideWhenEmpty={!canUpload} />
     </div>
   );
 }

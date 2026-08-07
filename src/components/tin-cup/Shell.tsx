@@ -14,6 +14,7 @@ import {
 } from "@/hooks/useTournament";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { graphqlRequest } from "@/integrations/nhost/graphql";
+import { tallyStandings } from "@/lib/scoring";
 import { retryFailed } from "@/lib/write-queue";
 import { playerInitials } from "@/lib/team-styles";
 
@@ -53,6 +54,9 @@ export function Shell({
     : undefined;
   const avatars = usePlayerAvatars(tournament?.players ?? [], tournament?.teams ?? []);
   const face = claimed ? avatars.data?.byPlayerId.get(claimed.id) : undefined;
+  const standings = tallyStandings(tournament?.matches ?? []);
+  const cupLive = standings.played > 0;
+  const fmtPts = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
   useEffect(() => {
     setOnline(navigator.onLine);
@@ -90,13 +94,28 @@ export function Shell({
             <span className="min-w-0 leading-none">
               <span className="t-section block truncate text-foreground">Tin Cup</span>
               <span className="mt-0.5 hidden truncate text-[0.6875rem] leading-tight tracking-[0.04em] text-muted-foreground min-[370px]:block">
-                Innisbrook · 2026
+                {cupLive ? (
+                  <>
+                    <span className="text-gold-light">{fmtPts(standings.strongMental)}</span>
+                    <span className="mx-0.5">–</span>
+                    <span className="text-copper">{fmtPts(standings.grassRoots)}</span>
+                    <span className="ml-1.5">Cup</span>
+                  </>
+                ) : (
+                  "Innisbrook · 2026"
+                )}
               </span>
             </span>
           </Link>
           <Link
             to="/profile"
-            aria-label={user ? "Your hub" : "Sign in"}
+            aria-label={
+              user
+                ? claimed
+                  ? "Your hub"
+                  : "Claim your roster name"
+                : "Sign in"
+            }
             className="press relative shrink-0"
           >
             {claimed ? (
@@ -118,6 +137,12 @@ export function Shell({
                   ? playerInitials(user.email?.split("@")[0] || "P")
                   : "?"}
               </span>
+            )}
+            {user && !claimed && (
+              <span
+                aria-label="Claim your name"
+                className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border border-background bg-gold"
+              />
             )}
             {user && canScore && (
               <span

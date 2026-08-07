@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 
-import { ActivityFeed } from "@/components/tin-cup/ActivityFeed";
 import { AvatarPair } from "@/components/tin-cup/Avatar";
 import { Countdown } from "@/components/tin-cup/Countdown";
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
+import { LiveWireTicker } from "@/components/tin-cup/LiveWireTicker";
 import { PairingRow } from "@/components/tin-cup/PairingRow";
 import { PhotoVault } from "@/components/tin-cup/PhotoVault";
 import {
@@ -200,7 +200,15 @@ export function PreTournamentPanel({
         </div>
       </section>
 
-      <ActivityFeed players={players} teams={teams} limit={6} />
+      <LiveWireTicker
+        matches={matches}
+        sideBets={[]}
+        players={players}
+        teams={teams}
+        variant="pre"
+        limit={6}
+        toastEnabled={false}
+      />
 
       {/* Pulse only when there is something to show or user can add */}
       <PhotoVault canUpload={canUpload} variant="pulse" hideWhenEmpty={!canUpload} />

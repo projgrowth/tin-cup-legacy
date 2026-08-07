@@ -161,6 +161,14 @@ function SchedulePage() {
                         {tally.strongMental}–{tally.grassRoots}
                       </p>
                     )}
+                    {status === "live" && (
+                      <Link
+                        to="/"
+                        className="press t-micro mt-2.5 inline-flex font-semibold text-foreground underline-offset-2 hover:underline"
+                      >
+                        Open live board →
+                      </Link>
+                    )}
                   </div>
                   <span className="t-numeral shrink-0 text-2xl text-foreground">{round.points}</span>
                 </div>

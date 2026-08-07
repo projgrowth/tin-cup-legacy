@@ -29,7 +29,8 @@ export function RoundBlock({
   const allDone =
     status === "complete" ||
     (rows.length > 0 && rows.every((m) => m.result !== "pending") && !pendingOnly);
-  const [open, setOpen] = useState(status === "live" || !allDone);
+  // Default open only for the live round; completed / upcoming stay collapsed.
+  const [open, setOpen] = useState(status === "live");
   const avatars = usePlayerAvatars(players, teams);
 
   if (rows.length === 0 && pendingOnly) return null;
