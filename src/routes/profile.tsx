@@ -58,7 +58,10 @@ function ProfilePage() {
         <div className="space-y-6">
           <AuthCard blurb="Claim your name and sync private hole notes." />
           <p className="t-micro text-muted-foreground">
-            Sign in → pick your roster name → optional Map notes.
+            Optional. Scores, schedule, and pay work without an account.
+          </p>
+          <p className="t-micro text-muted-foreground">
+            Sign in → pick your roster name → optional Map notes & photos.
           </p>
         </div>
       ) : (
@@ -71,6 +74,13 @@ function ProfilePage() {
             </Link>
           )}
           <RoundPlans />
+          <section className="surface p-4">
+            <p className="t-section text-foreground">Add to Home Screen</p>
+            <p className="t-micro mt-1.5 text-muted-foreground">
+              iPhone: Share → Add to Home Screen. Android: browser menu → Install app. Best for
+              captains on the course.
+            </p>
+          </section>
           <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
             <Link to="/scout" className="press t-micro text-muted-foreground">
               Course notes
@@ -93,6 +103,9 @@ function ProfilePage() {
               <LogOut className="size-3.5" strokeWidth={1.6} /> Sign out
             </button>
           </div>
+          <p className="t-micro text-center text-muted-foreground">
+            Issues? Message Kevin in the group chat.
+          </p>
         </div>
       )}
     </Shell>

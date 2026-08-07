@@ -50,6 +50,9 @@ export function PreTournamentPanel({
         <p className="t-micro mt-1.5 text-muted-foreground">
           {EVENT.dates} · {EVENT.location}
         </p>
+        <p className="t-micro mx-auto mt-2 max-w-sm text-muted-foreground">
+          No account needed to browse. Sign in only to claim your name, notes, or photos.
+        </p>
         <div className="mt-5">
           <Countdown />
         </div>
@@ -160,6 +163,11 @@ export function PreTournamentPanel({
           ))}
         </ul>
       </details>
+
+      <p className="t-micro text-center text-muted-foreground">
+        Live scoring goes live the weekend · captains post results. Issues? Message Kevin in the
+        group.
+      </p>
     </div>
   );
 }

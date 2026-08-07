@@ -92,7 +92,7 @@ function Index() {
     failedWrites,
     retryFailedWrites,
   } = useTournament();
-  const { canScore, user } = useAuth();
+  const { canScore, isAdmin, user } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
   const stale = isError && Boolean(data);
   const needsClaim = Boolean(user && !profileLoading && !profile?.player_id);
@@ -109,7 +109,7 @@ function Index() {
             <span className="min-w-0">
               <span className="t-body block font-medium text-foreground">Claim your roster name</span>
               <span className="t-micro block text-muted-foreground">
-                So photos and the field know who you are
+                Unlocks your player card, private notes, and photo credits
               </span>
             </span>
             <span className="t-micro shrink-0 text-muted-foreground">Account →</span>
@@ -122,7 +122,9 @@ function Index() {
             playerCount={data?.players.length || EXPECTED_PLAYER_COUNT}
           />
         )}
-        <PhaseControl mode={mode} automatic={!override} onChange={selectMode} />
+        {(canScore || isAdmin) && (
+          <PhaseControl mode={mode} automatic={!override} onChange={selectMode} />
+        )}
 
         <div className="mt-4">
           {mode === "pre" && (
