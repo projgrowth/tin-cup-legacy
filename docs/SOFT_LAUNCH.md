@@ -28,12 +28,21 @@ Chat stays in WhatsApp.
 
 ## Backend you can do without interrupting sign-in
 
-Run when free (Nhost SQL → paste `scripts/prod-data-ready.sql`):
+**Status check (run anytime):**
+
+```bash
+node scripts/verify-prod-data.mjs
+```
+
+If FAIL: follow **`docs/NHOST_P0.md`** (SQL + Hasura avatar/public profiles).
+
+Run when free (Nhost SQL → paste full `scripts/prod-data-ready.sql`):
 
 1. Side pots $100 + holes NULL  
 2. Friday match `side_a` / `side_b` Day 1 pairings  
+3. `profiles.avatar_path` column  
 
-Does **not** touch `auth.*` or `profiles` insert paths.
+Does **not** touch `auth.*`. Still need Hasura perms for public avatar read.
 
 ## After people start claiming (same day / this week)
 
