@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { CalendarDays, Users } from "lucide-react";
 
+import { AvatarPair } from "@/components/tin-cup/Avatar";
 import { Countdown } from "@/components/tin-cup/Countdown";
 import { PhotoVault } from "@/components/tin-cup/PhotoVault";
 import {
@@ -8,6 +9,7 @@ import {
   ShareBoardButton,
   WhatsAppGroupButton,
 } from "@/components/tin-cup/WhatsAppLinks";
+import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import {
   BUY_IN,
   EVENT,
@@ -18,13 +20,15 @@ import {
   WHATSAPP_GROUP_CONFIGURED,
   venmoUrl,
 } from "@/lib/tin-cup";
-import type { Match, Round } from "@/hooks/useTournament";
+import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { DAY1_META, DAY1_PAIRINGS, day1GroupForPlayer } from "@/lib/day1-pairings";
 import { tallyStandings } from "@/lib/scoring";
 
 export function PreTournamentPanel({
   rounds = [],
   matches = [],
+  players = [],
+  teams = [],
   canUpload = false,
   signedIn = false,
   claimedName = null,
@@ -32,6 +36,8 @@ export function PreTournamentPanel({
 }: {
   rounds?: Round[];
   matches?: Match[];
+  players?: Player[];
+  teams?: Team[];
   canUpload?: boolean;
   signedIn?: boolean;
   claimedName?: string | null;
@@ -44,6 +50,7 @@ export function PreTournamentPanel({
   const firstName = claimedName?.trim().split(/\s+/)[0] ?? null;
   const isClaimed = signedIn && Boolean(claimedName) && !needsClaim;
   const myDay1 = claimedName ? day1GroupForPlayer(claimedName) : null;
+  const avatars = usePlayerAvatars(players, teams);
 
   return (
     <div className="stack-page pb-2">
@@ -135,15 +142,34 @@ export function PreTournamentPanel({
       {isClaimed && myDay1 && (
         <section className="surface-raised p-4">
           <p className="t-eyebrow">Next up for you</p>
-          <p className="t-title mt-1.5 text-foreground">
-            Day 1 · Match {myDay1.pairing.matchIndex}
-          </p>
-          <p className="t-body mt-2 font-medium text-foreground">
-            w/ {myDay1.partner.split(" ")[0]}
-            <span className="t-micro mx-1.5 font-normal text-muted-foreground">vs</span>
-            {myDay1.opponents}
-          </p>
-          <p className="t-micro mt-1.5 text-muted-foreground">
+          <div className="mt-3 flex items-center gap-3">
+            <AvatarPair
+              people={[
+                {
+                  name: claimedName!,
+                  teamSlug: avatars.data?.getByName(claimedName!)?.teamSlug,
+                  src: avatars.data?.getByName(claimedName!)?.url,
+                },
+                {
+                  name: myDay1.partner,
+                  teamSlug: avatars.data?.getByName(myDay1.partner)?.teamSlug,
+                  src: avatars.data?.getByName(myDay1.partner)?.url,
+                },
+              ]}
+              size="md"
+            />
+            <div className="min-w-0">
+              <p className="t-title text-foreground">
+                Day 1 · Match {myDay1.pairing.matchIndex}
+              </p>
+              <p className="t-body mt-1 font-medium text-foreground">
+                w/ {myDay1.partner.split(" ")[0]}
+                <span className="t-micro mx-1.5 font-normal text-muted-foreground">vs</span>
+                {myDay1.opponents}
+              </p>
+            </div>
+          </div>
+          <p className="t-micro mt-2 text-muted-foreground">
             {DAY1_META.course} · {DAY1_META.tee} · {DAY1_META.formats}
           </p>
           <Link to="/schedule" className="press t-micro mt-3 inline-block text-muted-foreground">
@@ -179,6 +205,16 @@ export function PreTournamentPanel({
         <ul className="surface-inset divide-y divide-border overflow-hidden">
           {DAY1_PAIRINGS.map((p) => {
             const mine = myDay1?.pairing.matchIndex === p.matchIndex;
+            const sideA = p.playersA.map((name) => ({
+              name,
+              teamSlug: "strong-mental" as const,
+              src: avatars.data?.getByName(name)?.url,
+            }));
+            const sideB = p.playersB.map((name) => ({
+              name,
+              teamSlug: "grass-roots" as const,
+              src: avatars.data?.getByName(name)?.url,
+            }));
             return (
               <li
                 key={p.matchIndex}
@@ -187,9 +223,11 @@ export function PreTournamentPanel({
                 }`}
               >
                 <span className="t-micro w-4 shrink-0 text-muted-foreground">{p.matchIndex}</span>
+                <AvatarPair people={sideA} />
                 <span className="min-w-0 flex-1 truncate font-medium">{p.sideA}</span>
                 <span className="t-micro shrink-0 text-muted-foreground">vs</span>
                 <span className="min-w-0 flex-1 truncate text-right font-medium">{p.sideB}</span>
+                <AvatarPair people={sideB} />
                 {mine && (
                   <span className="t-micro shrink-0 text-muted-foreground">You</span>
                 )}

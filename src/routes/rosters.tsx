@@ -3,10 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronRight } from "lucide-react";
 
-import { Monogram } from "@/components/tin-cup/Monogram";
+import { Avatar } from "@/components/tin-cup/Avatar";
 import { ErrorState, LoadingRows, PageHeading, Shell } from "@/components/tin-cup/Shell";
 import { WhatsAppGroupButton } from "@/components/tin-cup/WhatsAppLinks";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { graphqlRequest } from "@/integrations/nhost/graphql";
 import { useTournament } from "@/hooks/useTournament";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
@@ -41,6 +42,7 @@ function RostersPage() {
   const teams = data?.teams ?? [];
   const bets = data?.sideBets ?? [];
   const players = data?.players ?? [];
+  const avatars = usePlayerAvatars(players, teams);
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
 
   const { data: myPlayerId } = useQuery({
@@ -139,7 +141,12 @@ function RostersPage() {
         >
           <span className="flex min-w-0 items-center gap-3">
             {myPlayer && myTeam ? (
-              <Monogram name={myPlayer.name} teamSlug={myTeam.slug} size="sm" />
+              <Avatar
+                name={myPlayer.name}
+                teamSlug={myTeam.slug}
+                src={avatars.data?.byPlayerId.get(myPlayer.id)?.url}
+                size="sm"
+              />
             ) : null}
             <span className="t-body font-medium text-foreground">
               {myPlayerId ? "Your hub" : "Claim your spot"}
@@ -197,9 +204,10 @@ function RostersPage() {
                         className="press flex items-center justify-between gap-3 px-4 py-3.5"
                       >
                         <span className="flex min-w-0 flex-1 items-center gap-3">
-                          <Monogram
+                          <Avatar
                             name={player.name}
                             teamSlug={selected.slug}
+                            src={avatars.data?.byPlayerId.get(player.id)?.url}
                             size="sm"
                           />
                           <span className="min-w-0 flex-1">

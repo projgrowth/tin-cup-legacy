@@ -28,7 +28,9 @@ export function useProfile() {
     queryFn: async () => {
       const data = await graphqlRequest<{ profiles_by_pk: Profile | null }, { id: string }>(
         `query MyProfile($id: uuid!) {
-          profiles_by_pk(id: $id) { id display_name player_id created_at updated_at }
+          profiles_by_pk(id: $id) {
+            id display_name player_id avatar_path created_at updated_at
+          }
         }`,
         { id: userId! },
       );
@@ -48,7 +50,9 @@ export function useProfile() {
   }, [userId, user?.email, query.isLoading, query.data, queryClient]);
 
   const save = useMutation({
-    mutationFn: async (patch: Partial<Pick<Profile, "display_name" | "player_id">>) => {
+    mutationFn: async (
+      patch: Partial<Pick<Profile, "display_name" | "player_id" | "avatar_path">>,
+    ) => {
       await graphqlRequest<
         { insert_profiles_one: { id: string } | null },
         { object: Record<string, unknown> }
@@ -58,15 +62,18 @@ export function useProfile() {
             object: $object,
             on_conflict: {
               constraint: profiles_pkey,
-              update_columns: [display_name, player_id]
+              update_columns: [display_name, player_id, avatar_path]
             }
           ) { id }
         }`,
-        { object: { display_name: patch.display_name ?? "", ...patch } },
+        { object: { display_name: patch.display_name ?? query.data?.display_name ?? "", ...patch } },
       );
       return { saved: true as const };
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["profile", userId] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+      void queryClient.invalidateQueries({ queryKey: ["player-avatars"] });
+    },
   });
 
   return { profile: query.data ?? null, loading: query.isLoading, save };

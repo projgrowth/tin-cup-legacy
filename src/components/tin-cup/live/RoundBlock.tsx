@@ -1,6 +1,8 @@
 import { useState } from "react";
 
+import { AvatarPair } from "@/components/tin-cup/Avatar";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
+import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { roundStatus, roundTally } from "@/lib/scoring";
 import { MatchPairingEditor, MatchResultButtons } from "./MatchControls";
 
@@ -28,6 +30,7 @@ export function RoundBlock({
     status === "complete" ||
     (rows.length > 0 && rows.every((m) => m.result !== "pending") && !pendingOnly);
   const [open, setOpen] = useState(status === "live" || !allDone);
+  const avatars = usePlayerAvatars(players, teams);
 
   if (rows.length === 0 && pendingOnly) return null;
 
@@ -63,17 +66,38 @@ export function RoundBlock({
               {rows.map((match) => (
                 <li key={match.id} className="py-3">
                   <div className="flex items-start justify-between gap-2">
-                    <span className="min-w-0">
-                      <span className="t-body block truncate font-medium text-foreground">
-                        {match.side_a || match.side_b
-                          ? `${match.side_a ?? "TBD"} vs ${match.side_b ?? "TBD"}`
-                          : match.label}
-                      </span>
+                    <span className="flex min-w-0 flex-1 items-center gap-2.5">
                       {(match.side_a || match.side_b) && (
-                        <span className="t-micro block truncate text-muted-foreground">
-                          {match.label} · {match.points}pt
+                        <span className="flex shrink-0 items-center gap-1">
+                          <AvatarPair
+                            people={(avatars.data?.forSide(match.side_a) ?? []).map((e) => ({
+                              name: e.name,
+                              teamSlug: e.teamSlug,
+                              src: e.url,
+                            }))}
+                          />
+                          <span className="t-micro text-muted-foreground">vs</span>
+                          <AvatarPair
+                            people={(avatars.data?.forSide(match.side_b) ?? []).map((e) => ({
+                              name: e.name,
+                              teamSlug: e.teamSlug,
+                              src: e.url,
+                            }))}
+                          />
                         </span>
                       )}
+                      <span className="min-w-0">
+                        <span className="t-body block truncate font-medium text-foreground">
+                          {match.side_a || match.side_b
+                            ? `${match.side_a ?? "TBD"} vs ${match.side_b ?? "TBD"}`
+                            : match.label}
+                        </span>
+                        {(match.side_a || match.side_b) && (
+                          <span className="t-micro block truncate text-muted-foreground">
+                            {match.label} · {match.points}pt
+                          </span>
+                        )}
+                      </span>
                     </span>
                     <span
                       className={`t-body shrink-0 pt-0.5 tabular-nums ${

@@ -3,6 +3,12 @@
 -- Safe: only updates match pairings + side pot amounts; no DDL on auth/profiles.
 
 -- ---------------------------------------------------------------------------
+-- 0) Avatar column (idempotent) — also apply Hasura metadata for profiles
+-- ---------------------------------------------------------------------------
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS avatar_path text;
+
+-- ---------------------------------------------------------------------------
 -- 1) Confirm field (expect 2 teams, 16 players, 3 rounds)
 -- ---------------------------------------------------------------------------
 -- SELECT (SELECT count(*) FROM teams) AS teams,

@@ -2,9 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
 
-import { Monogram } from "@/components/tin-cup/Monogram";
+import { Avatar } from "@/components/tin-cup/Avatar";
 import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { graphqlRequest } from "@/integrations/nhost/graphql";
 import { useTournament } from "@/hooks/useTournament";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
@@ -65,6 +66,8 @@ function PlayerPage() {
   const matches = data?.matches ?? [];
   const rounds = data?.rounds ?? [];
   const isYou = Boolean(myPlayerId && myPlayerId === playerId);
+  const avatars = usePlayerAvatars(data?.players ?? [], data?.teams ?? []);
+  const face = avatars.data?.byPlayerId.get(playerId);
 
   if (isPending && !data) {
     return (
@@ -111,7 +114,12 @@ function PlayerPage() {
 
       <header className={`surface ${teamRailClass(team.slug)} p-5`}>
         <div className="flex items-start gap-3">
-          <Monogram name={player.name} teamSlug={team.slug} size="lg" />
+          <Avatar
+            name={player.name}
+            teamSlug={team.slug}
+            src={face?.url}
+            size="lg"
+          />
           <div className="min-w-0 flex-1">
             <p className="t-eyebrow">{team.name}</p>
             <h1 className="t-display mt-1 text-foreground">{player.name}</h1>

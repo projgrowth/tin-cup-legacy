@@ -1,16 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ChevronRight, LogOut } from "lucide-react";
+import { Camera, ChevronRight, Loader2, LogOut } from "lucide-react";
 
 import { AuthCard } from "@/components/tin-cup/AuthCard";
-import { Monogram } from "@/components/tin-cup/Monogram";
+import { Avatar } from "@/components/tin-cup/Avatar";
 import { LoadingForm, LoadingRows, PageHeading, Shell } from "@/components/tin-cup/Shell";
 import { WhatsAppGroupButton } from "@/components/tin-cup/WhatsAppLinks";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useRoundPlan } from "@/hooks/useJournal";
+import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { useTournament } from "@/hooks/useTournament";
-import { signOut } from "@/integrations/nhost/client";
+import { nhost, signOut } from "@/integrations/nhost/client";
 import { COURSE_LABEL, ROUND_COURSE, type CourseId } from "@/lib/courses";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { clearGuestNotes, countGuestNotes, listGuestNotes } from "@/lib/guest-notes";
@@ -178,22 +179,111 @@ function MyHubCard({
   matches: Parameters<typeof playerRecord>[0];
   sideBets: Array<{ player_name: string | null; amount: number | string }>;
 }) {
+  const { profile, save } = useProfile();
+  const { data: tournament } = useTournament();
+  const avatars = usePlayerAvatars(tournament?.players ?? [], tournament?.teams ?? []);
+  const face = avatars.data?.byPlayerId.get(player.id);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [localUrl, setLocalUrl] = useState<string | null>(null);
+
   const d1 = day1GroupForPlayer(player.name);
   const record = playerRecord(matches, player.name, teamSlug);
   const shorthand = formatRecord(record);
   const cash = sideBets
     .filter((b) => b.player_name === player.name)
     .reduce((sum, c) => sum + Number(c.amount), 0);
+
+  async function onPick(file: File | undefined) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Choose an image");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Keep photos under 5MB");
+      return;
+    }
+    setUploading(true);
+    try {
+      const user = nhost.getUserSession()?.user;
+      if (!user) throw new Error("Sign in again");
+      const uploaded = await nhost.storage.uploadFiles({
+        "bucket-id": "default",
+        "file[]": [file],
+        "metadata[]": [{ name: `avatars/${user.id}-${crypto.randomUUID()}` }],
+      });
+      const stored = uploaded.body.processedFiles[0];
+      if (!stored?.id) throw new Error("Upload failed");
+      await new Promise<void>((resolve, reject) => {
+        save.mutate(
+          {
+            display_name: profile?.display_name || player.name,
+            player_id: player.id,
+            avatar_path: stored.id,
+          },
+          {
+            onSuccess: () => resolve(),
+            onError: (e) => reject(e),
+          },
+        );
+      });
+      const signed = await nhost.storage.getFilePresignedURL(stored.id);
+      setLocalUrl(signed?.body?.url ?? null);
+      toast.success("Photo updated");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not upload photo");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  const src = localUrl || face?.url || null;
+
   return (
-    <section className={`surface p-4 ${teamRailClass(teamSlug)}`}>
+    <section className={`surface-raised p-4 ${teamRailClass(teamSlug)}`}>
       <div className="flex items-start gap-3">
-        <Monogram name={player.name} teamSlug={teamSlug} size="lg" />
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="press relative shrink-0"
+          aria-label="Upload profile photo"
+        >
+          <Avatar name={player.name} teamSlug={teamSlug} src={src} size="lg" />
+          <span className="absolute -bottom-0.5 -right-0.5 flex size-6 items-center justify-center rounded-full border border-border bg-background text-muted-foreground">
+            {uploading ? (
+              <Loader2 className="size-3 animate-spin" />
+            ) : (
+              <Camera className="size-3" strokeWidth={1.8} />
+            )}
+          </span>
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          capture="user"
+          className="hidden"
+          onChange={(e) => {
+            void onPick(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
         <div className="min-w-0 flex-1">
           <p className="t-micro text-muted-foreground">{teamName}</p>
           <h2 className="t-title mt-0.5 text-foreground">{player.name}</h2>
           {player.is_captain && (
             <span className="t-micro text-muted-foreground">Captain</span>
           )}
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+            className="press t-micro mt-1 text-muted-foreground underline-offset-2 hover:underline"
+          >
+            {src ? "Change photo" : "Add photo"}
+          </button>
           {d1 && (
             <p className="t-micro mt-2 text-muted-foreground">
               Day 1 · w/ {d1.partner.split(" ")[0]} · vs {d1.opponents}

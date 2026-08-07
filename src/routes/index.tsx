@@ -135,6 +135,8 @@ function Index() {
             <PreTournamentPanel
               rounds={data?.rounds ?? []}
               matches={data?.matches ?? []}
+              players={data?.players ?? []}
+              teams={data?.teams ?? []}
               canUpload={Boolean(user)}
               signedIn={Boolean(user)}
               claimedName={claimedPlayer?.name ?? null}

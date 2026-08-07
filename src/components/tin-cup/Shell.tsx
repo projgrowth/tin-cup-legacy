@@ -4,7 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { AlertTriangle, CloudOff } from "lucide-react";
 
 import { BottomNav } from "./BottomNav";
-import { Monogram } from "./Monogram";
+import { Avatar } from "./Avatar";
 import { useAuth } from "@/hooks/useAuth";
 import {
   usePendingWrites,
@@ -12,6 +12,7 @@ import {
   useWriteConflicts,
   useTournament,
 } from "@/hooks/useTournament";
+import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { graphqlRequest } from "@/integrations/nhost/graphql";
 import { retryFailed } from "@/lib/write-queue";
 import { playerInitials } from "@/lib/team-styles";
@@ -50,6 +51,8 @@ export function Shell({
   const claimedTeam = claimed
     ? tournament?.teams.find((t) => t.id === claimed.team_id)
     : undefined;
+  const avatars = usePlayerAvatars(tournament?.players ?? [], tournament?.teams ?? []);
+  const face = claimed ? avatars.data?.byPlayerId.get(claimed.id) : undefined;
 
   useEffect(() => {
     setOnline(navigator.onLine);
@@ -97,7 +100,12 @@ export function Shell({
             className="press relative shrink-0"
           >
             {claimed ? (
-              <Monogram name={claimed.name} teamSlug={claimedTeam?.slug} size="md" />
+              <Avatar
+                name={claimed.name}
+                teamSlug={claimedTeam?.slug}
+                src={face?.url}
+                size="md"
+              />
             ) : (
               <span
                 className={`flex size-10 items-center justify-center rounded-full border text-sm font-semibold uppercase ${

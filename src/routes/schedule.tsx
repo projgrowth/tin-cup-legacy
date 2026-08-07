@@ -2,8 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { CalendarPlus, ChevronDown } from "lucide-react";
 
+import { AvatarPair } from "@/components/tin-cup/Avatar";
 import { ErrorState, LoadingRows, PageHeading, Shell } from "@/components/tin-cup/Shell";
 import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
+import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { useTournament } from "@/hooks/useTournament";
 import { roundStart, roundStatus, roundTally } from "@/lib/scoring";
 import { downloadWeekendIcs } from "@/lib/calendar";
@@ -56,6 +58,7 @@ const STATUS_PILL: Record<string, string> = {
 
 function SchedulePage() {
   const { data, isPending, isError, refetch, isFetching } = useTournament();
+  const avatars = usePlayerAvatars(data?.players ?? [], data?.teams ?? []);
   const now = useNow();
   const rounds = useMemo(() => {
     const list = [...(data?.rounds ?? [])];
@@ -95,6 +98,13 @@ function SchedulePage() {
             {DAY1_PAIRINGS.map((p) => (
               <li key={p.matchIndex} className="flex items-center gap-2 px-3.5 py-3.5">
                 <span className="t-micro w-4 shrink-0 text-muted-foreground">{p.matchIndex}</span>
+                <AvatarPair
+                  people={p.playersA.map((name) => ({
+                    name,
+                    teamSlug: "strong-mental",
+                    src: avatars.data?.getByName(name)?.url,
+                  }))}
+                />
                 <span className="t-body min-w-0 flex-1 truncate font-medium text-foreground">
                   {p.sideA}
                 </span>
@@ -102,6 +112,13 @@ function SchedulePage() {
                 <span className="t-body min-w-0 flex-1 truncate text-right font-medium text-foreground">
                   {p.sideB}
                 </span>
+                <AvatarPair
+                  people={p.playersB.map((name) => ({
+                    name,
+                    teamSlug: "grass-roots",
+                    src: avatars.data?.getByName(name)?.url,
+                  }))}
+                />
               </li>
             ))}
           </ul>
