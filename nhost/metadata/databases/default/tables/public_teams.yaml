@@ -1,0 +1,10 @@
+table:
+  name: teams
+  schema: public
+select_permissions:
+  - role: public
+    permission: &teams_read
+      columns: [id, slug, name, captain_name, sort_order]
+      filter: {}
+  - role: user
+    permission: *teams_read

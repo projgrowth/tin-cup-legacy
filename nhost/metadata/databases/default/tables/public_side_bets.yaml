@@ -1,0 +1,25 @@
+table:
+  name: side_bets
+  schema: public
+object_relationships:
+  - name: round
+    using:
+      foreign_key_constraint_on: round_id
+select_permissions:
+  - role: public
+    permission: &side_bets_read
+      columns: [id, kind, label, round_id, hole, amount, player_name, team_slug, distance, sort_order, revision, updated_at]
+      filter: {}
+  - role: user
+    permission: *side_bets_read
+update_permissions:
+  - role: user
+    permission:
+      columns: [player_name, team_slug, distance]
+      filter: &scorekeeper_filter
+        _exists:
+          _table: {schema: public, name: user_roles}
+          _where:
+            user_id: {_eq: X-Hasura-User-Id}
+            role: {_in: [admin, captain]}
+      check: *scorekeeper_filter

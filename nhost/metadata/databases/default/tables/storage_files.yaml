@@ -1,0 +1,52 @@
+table:
+  name: files
+  schema: storage
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - name
+        - size
+        - bucket_id
+        - etag
+        - created_at
+        - updated_at
+        - is_uploaded
+        - mime_type
+        - uploaded_by_user_id
+        - metadata
+      filter:
+        bucket_id: {_eq: default}
+      limit: 100
+insert_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - name
+        - size
+        - bucket_id
+        - etag
+        - created_at
+        - updated_at
+        - is_uploaded
+        - mime_type
+        - metadata
+      check:
+        bucket_id: {_eq: default}
+      set:
+        uploaded_by_user_id: X-Hasura-User-Id
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        _and:
+          - bucket_id: {_eq: default}
+          - _or:
+              - uploaded_by_user_id: {_eq: X-Hasura-User-Id}
+              - _exists:
+                  _table: {schema: public, name: user_roles}
+                  _where:
+                    user_id: {_eq: X-Hasura-User-Id}
+                    role: {_in: [admin, captain]}

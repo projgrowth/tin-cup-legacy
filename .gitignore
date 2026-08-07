@@ -1,0 +1,16 @@
+.nhost
+.secrets
+.env.local
+.vercel
+.env*
+
+# deps & build
+node_modules
+dist
+.output
+.vinxi
+.turbo
+test-results
+playwright-report
+*.log
+.DS_Store

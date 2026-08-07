@@ -1,0 +1,21 @@
+table:
+  name: trophies
+  schema: public
+select_permissions:
+  - role: public
+    permission: &trophies_read
+      columns: [id, slug, name, description, winner_name, winner_note, sort_order, revision, created_at, updated_at]
+      filter: {}
+  - role: user
+    permission: *trophies_read
+update_permissions:
+  - role: user
+    permission:
+      columns: [winner_name, winner_note]
+      filter: &scorekeeper_filter
+        _exists:
+          _table: {schema: public, name: user_roles}
+          _where:
+            user_id: {_eq: X-Hasura-User-Id}
+            role: {_in: [admin, captain]}
+      check: *scorekeeper_filter

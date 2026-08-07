@@ -1,0 +1,9 @@
+table:
+  name: user_roles
+  schema: public
+select_permissions:
+  - role: user
+    permission:
+      columns: [id, user_id, role, created_at]
+      filter:
+        user_id: {_eq: X-Hasura-User-Id}

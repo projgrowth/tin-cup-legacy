@@ -1,0 +1,362 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { LogOut } from "lucide-react";
+
+import { AuthCard } from "@/components/tin-cup/AuthCard";
+import { LoadingForm, LoadingRows, PageHeading, Shell } from "@/components/tin-cup/Shell";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile, useRoundPlan } from "@/hooks/useJournal";
+import { useTournament } from "@/hooks/useTournament";
+import { signOut } from "@/integrations/nhost/client";
+import { COURSE_LABEL, ROUND_COURSE, type CourseId } from "@/lib/courses";
+import { clearGuestNotes, countGuestNotes, listGuestNotes } from "@/lib/guest-notes";
+
+export const Route = createFileRoute("/profile")({
+  head: () => ({
+    meta: [
+      { title: "Account — Tin Cup Invitational" },
+      {
+        name: "description",
+        content:
+          "Sign in, claim your roster spot, and keep private course notes for the Tin Cup Invitational.",
+      },
+      { property: "og:title", content: "Account — Tin Cup Invitational" },
+      {
+        property: "og:description",
+        content: "Your account for roster identity and private notes.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: ProfilePage,
+});
+
+function ProfilePage() {
+  const { user, loading, canScore, isAdmin, rolesError, rolesLoading, refreshRoles } = useAuth();
+
+  return (
+    <Shell>
+      <PageHeading eyebrow="Account" title={user ? "You" : "Sign in"} />
+      {user && rolesError && (
+        <div role="alert" className="surface mb-4 flex items-center justify-between gap-3 p-4">
+          <p className="t-micro">Your access level could not be refreshed.</p>
+          <button
+            type="button"
+            disabled={rolesLoading}
+            onClick={() => void refreshRoles()}
+            className="press btn-quiet t-body min-h-11"
+          >
+            {rolesLoading ? "Retrying…" : "Retry"}
+          </button>
+        </div>
+      )}
+      {loading ? (
+        <LoadingForm fields={3} />
+      ) : !user ? (
+        <div className="space-y-6">
+          <AuthCard blurb="Claim your name and sync private hole notes." />
+          <p className="t-micro text-muted-foreground">
+            Sign in → pick your roster name → optional Map notes.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          <Identity email={user.email ?? ""} canScore={canScore} isAdmin={isAdmin} />
+          <GuestNotesMerge />
+          {canScore && (
+            <Link to="/" className="press btn-quiet t-body flex w-full justify-center">
+              Open Live board →
+            </Link>
+          )}
+          <RoundPlans />
+          <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
+            <Link to="/scout" className="press t-micro text-muted-foreground">
+              Course notes
+            </Link>
+            {canScore && (
+              <Link to="/ops" className="press t-micro text-muted-foreground">
+                Ops
+              </Link>
+            )}
+            {isAdmin && (
+              <Link to="/admin" className="press t-micro text-muted-foreground">
+                Admin
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              className="press btn-quiet t-micro ml-auto"
+            >
+              <LogOut className="size-3.5" strokeWidth={1.6} /> Sign out
+            </button>
+          </div>
+        </div>
+      )}
+    </Shell>
+  );
+}
+
+/** One-time merge of guest (on-device) notes after sign-in. */
+function GuestNotesMerge() {
+  const [count, setCount] = useState(0);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setCount(countGuestNotes());
+  }, []);
+
+  if (count === 0) return null;
+
+  async function merge() {
+    setBusy(true);
+    try {
+      const notes = listGuestNotes();
+      for (const { courseId, hole, draft } of notes) {
+        await saveForCourse(courseId, hole, draft);
+      }
+      clearGuestNotes();
+      setCount(0);
+      toast.success(`Moved ${notes.length} hole note${notes.length === 1 ? "" : "s"} to your account`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not merge notes");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="surface flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0">
+        <p className="t-title text-foreground">On-device notes found</p>
+        <p className="t-micro mt-0.5 text-muted-foreground">
+          {count} guest note{count === 1 ? "" : "s"} on this phone. Move them into your account?
+        </p>
+      </div>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void merge()}
+          className="press btn-gold t-body"
+        >
+          {busy ? "Moving…" : "Save to account"}
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => {
+            clearGuestNotes();
+            setCount(0);
+            toast.message("Guest notes discarded");
+          }}
+          className="press btn-quiet t-body"
+        >
+          Discard
+        </button>
+      </div>
+    </div>
+  );
+}
+
+async function saveForCourse(
+  courseId: CourseId,
+  hole: number,
+  draft: {
+    tee_club?: string | null;
+    target_line?: string | null;
+    green_note?: string | null;
+    target_score?: number | null;
+    notes?: string | null;
+  },
+) {
+  const { graphqlRequest } = await import("@/integrations/nhost/graphql");
+  await graphqlRequest(
+    `mutation SaveHoleNote($object: hole_notes_insert_input!) {
+      insert_hole_notes_one(
+        object: $object,
+        on_conflict: {
+          constraint: hole_notes_user_id_course_id_hole_key,
+          update_columns: [tee_club, target_line, green_note, target_score, notes]
+        }
+      ) { id }
+    }`,
+    { object: { course_id: courseId, hole, ...draft } },
+  );
+}
+
+function Identity({
+  email,
+  canScore,
+  isAdmin,
+}: {
+  email: string;
+  canScore: boolean;
+  isAdmin: boolean;
+}) {
+  const { profile, save } = useProfile();
+  const { data } = useTournament();
+  const players = data?.players ?? [];
+  const teams = data?.teams ?? [];
+  const [name, setName] = useState("");
+  const [playerId, setPlayerId] = useState("");
+
+  useEffect(() => {
+    setName(profile?.display_name ?? "");
+    setPlayerId(profile?.player_id ?? "");
+  }, [profile]);
+
+  const roleLabel = isAdmin ? "Admin" : canScore ? "Captain" : "Player";
+
+  const needsClaim = !playerId;
+
+  return (
+    <section>
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <h2 className="t-section text-foreground">
+          {needsClaim ? "Claim your name" : "Identity"}
+        </h2>
+        <span className="pill t-micro text-muted-foreground">{roleLabel}</span>
+      </div>
+      <div className={`space-y-3 p-4 ${needsClaim ? "surface-emphasized" : "surface"}`}>
+        <p className="t-micro truncate text-muted-foreground">{email}</p>
+        <select
+          value={playerId}
+          onChange={(e) => setPlayerId(e.target.value)}
+          className="control t-body w-full"
+          aria-label="Roster name"
+        >
+          <option value="">Select your name…</option>
+          {players.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+              {p.is_captain ? " (Captain)" : ""} —{" "}
+              {teams.find((t) => t.id === p.team_id)?.name ?? "Team"}
+            </option>
+          ))}
+        </select>
+        {!needsClaim && (
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={60}
+            placeholder="Display name (optional)"
+            className="control t-body w-full"
+          />
+        )}
+        <button
+          type="button"
+          disabled={save.isPending}
+          onClick={() =>
+            save.mutate(
+              {
+                display_name:
+                  name.trim() ||
+                  players.find((p) => p.id === playerId)?.name ||
+                  email.split("@")[0] ||
+                  "",
+                player_id: playerId || null,
+              },
+              {
+                onSuccess: () => toast.success("Profile saved"),
+                onError: (error) => toast.error(error.message),
+              },
+            )
+          }
+          className="press btn-gold t-body w-full"
+        >
+          {save.isPending ? "Saving…" : needsClaim ? "Save my name" : "Save profile"}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function RoundPlans() {
+  const { data, isPending } = useTournament();
+  const rounds = data?.rounds ?? [];
+  return (
+    <section>
+      <h2 className="t-eyebrow mb-3">Round game plans</h2>
+      {isPending && rounds.length === 0 ? (
+        <LoadingRows rows={3} height={78} />
+      ) : (
+        <div className="space-y-3">
+          {rounds.map((round) => (
+            <PlanCard
+              key={round.slug}
+              slug={round.slug}
+              label={`${round.day_label} · ${round.course}`}
+              format={round.format}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function PlanCard({ slug, label, format }: { slug: string; label: string; format: string }) {
+  const { plan, save } = useRoundPlan(slug);
+  const [draft, setDraft] = useState("");
+  const [open, setOpen] = useState(false);
+  const course = ROUND_COURSE[slug];
+
+  useEffect(() => setDraft(plan), [plan]);
+
+  return (
+    <div className="surface p-4">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-baseline justify-between gap-3 text-left"
+      >
+        <span className="min-w-0">
+          <span className="t-body block truncate text-foreground">{label}</span>
+          <span className="t-micro mt-0.5 block text-muted-foreground">{format}</span>
+        </span>
+        <span className="t-micro shrink-0 text-muted-foreground">
+          {plan ? "Edit" : open ? "Close" : "Add plan"}
+        </span>
+      </button>
+      {open ? (
+        <div className="mt-3 space-y-3">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={4}
+            maxLength={1200}
+            placeholder="Strategy, pairing thoughts, clubs to lean on, holes to attack…"
+            className="control t-body w-full resize-none"
+          />
+          <div className="flex items-center justify-between gap-3">
+            {course ? (
+              <Link to="/scout" className="t-micro text-muted-foreground">
+                Scout {COURSE_LABEL[course]} →
+              </Link>
+            ) : (
+              <span />
+            )}
+            <button
+              type="button"
+              disabled={save.isPending}
+              onClick={() =>
+                save.mutate(draft.trim(), {
+                  onSuccess: () => toast.success("Plan saved"),
+                  onError: (error) => toast.error(error.message),
+                })
+              }
+              className="press btn-gold t-body"
+            >
+              {save.isPending ? "Saving…" : "Save plan"}
+            </button>
+          </div>
+        </div>
+      ) : plan ? (
+        <p className="t-micro mt-2 line-clamp-2 text-muted-foreground">{plan}</p>
+      ) : null}
+    </div>
+  );
+}

@@ -1,0 +1,15 @@
+DROP TABLE IF EXISTS public.photos CASCADE;
+DROP TABLE IF EXISTS public.round_plans CASCADE;
+DROP TABLE IF EXISTS public.hole_notes CASCADE;
+DROP TABLE IF EXISTS public.profiles CASCADE;
+DROP TABLE IF EXISTS public.user_roles CASCADE;
+DROP TABLE IF EXISTS public.trophies CASCADE;
+DROP TABLE IF EXISTS public.side_bets CASCADE;
+DROP TABLE IF EXISTS public.matches CASCADE;
+DROP TABLE IF EXISTS public.rounds CASCADE;
+DROP TABLE IF EXISTS public.players CASCADE;
+DROP TABLE IF EXISTS public.teams CASCADE;
+DROP FUNCTION IF EXISTS public.grant_captain_on_roster_claim();
+DROP FUNCTION IF EXISTS public.increment_live_revision();
+DROP FUNCTION IF EXISTS public.touch_updated_at();
+DROP TYPE IF EXISTS public.app_role;

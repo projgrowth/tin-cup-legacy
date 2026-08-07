@@ -1,0 +1,17 @@
+{
+  "name": "Tin Cup Invitational 2026",
+  "short_name": "Tin Cup",
+  "description": "The 4th Annual Tin Cup Invitational at Innisbrook Golf Resort.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c1412",
+  "theme_color": "#0c1412",
+  "icons": [
+    {
+      "src": "/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

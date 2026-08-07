@@ -1,0 +1,487 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Tin Cup Invitational design system — quiet tournament command.
+ * Cool near-black emerald base; gold is scarce (team + primary CTA only).
+ * Plus Jakarta Sans. Flat elevated surfaces — no chrome gradients.
+ */
+
+@theme inline {
+  --font-sans:
+    "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-copper: var(--copper);
+  --color-glass: var(--glass);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: oklch(0.13 0.018 165);
+  --foreground: oklch(0.97 0.008 100);
+  --card: oklch(0.17 0.018 165);
+  --card-foreground: oklch(0.97 0.008 100);
+  --popover: oklch(0.17 0.018 165);
+  --popover-foreground: oklch(0.97 0.008 100);
+  --primary: oklch(0.84 0.085 92);
+  --primary-foreground: oklch(0.16 0.02 165);
+  --secondary: oklch(0.2 0.018 165);
+  --secondary-foreground: oklch(0.94 0.01 100);
+  --muted: oklch(0.19 0.016 165);
+  --muted-foreground: oklch(0.72 0.012 150);
+  --accent: oklch(0.64 0.1 55);
+  --accent-foreground: oklch(0.98 0.008 100);
+  --destructive: oklch(0.6 0.19 25);
+  --destructive-foreground: oklch(0.98 0.008 100);
+  --border: oklch(0.92 0.01 150 / 8%);
+  --input: oklch(0.92 0.01 150 / 10%);
+  --ring: oklch(0.84 0.085 92 / 40%);
+  --gold: oklch(0.84 0.085 92);
+  --gold-light: oklch(0.9 0.06 95);
+  --copper: oklch(0.66 0.09 55);
+  --glass: oklch(0.14 0.016 165 / 88%);
+  --status-live: oklch(0.72 0.12 155);
+  --track: oklch(1 0 0 / 6%);
+  --scrim: oklch(0.08 0.015 165 / 94%);
+  --team-a: var(--gold);
+  --team-b: var(--copper);
+  --chart-1: oklch(0.82 0.1 92);
+  --chart-2: oklch(0.64 0.1 55);
+  --chart-3: oklch(0.92 0.07 95);
+  --chart-4: oklch(0.62 0.1 165);
+  --chart-5: oklch(0.48 0.06 160);
+  --sidebar: oklch(0.16 0.018 165);
+  --sidebar-foreground: oklch(0.97 0.008 100);
+  --sidebar-primary: oklch(0.82 0.1 92);
+  --sidebar-primary-foreground: oklch(0.16 0.02 165);
+  --sidebar-accent: oklch(0.24 0.022 165);
+  --sidebar-accent-foreground: oklch(0.94 0.01 100);
+  --sidebar-border: oklch(0.82 0.1 92 / 18%);
+  --sidebar-ring: oklch(0.82 0.1 92 / 50%);
+}
+
+/* ---- Course map (OSM geometry · scorecard yards separate) ---- */
+:root {
+  --turf-rough: oklch(0.22 0.03 160);
+  --turf-fairway: oklch(0.38 0.07 155);
+  --turf-green: oklch(0.52 0.1 150);
+  --turf-tee: oklch(0.44 0.05 155);
+  --turf-bunker: oklch(0.88 0.05 90);
+  --turf-water: oklch(0.48 0.08 230);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    background-image: radial-gradient(
+      80% 40% at 50% -12%,
+      oklch(0.24 0.03 165 / 40%) 0%,
+      transparent 60%
+    );
+    background-attachment: fixed;
+    -webkit-tap-highlight-color: transparent;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-weight: 650;
+    letter-spacing: -0.03em;
+  }
+}
+
+/* ---- Type scale — one family, differentiated by weight and tracking ---- */
+
+@utility t-display {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 6.5vw, 2.125rem);
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+@utility t-hero {
+  font-size: clamp(2.35rem, 9vw, 2.75rem);
+  line-height: 0.98;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility t-title {
+  font-size: 1.0625rem;
+  line-height: 1.28;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+@utility t-section {
+  font-size: 0.875rem;
+  line-height: 1.25;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+@utility t-body {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: oklch(from var(--foreground) l c h / 82%);
+}
+
+@utility t-micro {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+@utility t-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted-foreground);
+}
+
+@utility t-numeral {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+/* ---- Surfaces: flat elevation (no gold washes) ---- */
+
+@utility surface {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+@utility surface-hero {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px);
+}
+
+@utility surface-emphasized {
+  background-color: var(--card);
+  border: 1px solid oklch(from var(--gold) l c h / 22%);
+  border-radius: calc(var(--radius) + 2px);
+}
+
+@utility hairline {
+  border-top: 1px solid var(--border);
+}
+
+/* ---- Skeletons: one shimmer for every loading surface ---- */
+
+@keyframes tc-shimmer {
+  0% {
+    background-position: -140% 0;
+  }
+  100% {
+    background-position: 240% 0;
+  }
+}
+
+@utility skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background-color: oklch(1 0 0 / 4%);
+  background-image: linear-gradient(
+    100deg,
+    transparent 20%,
+    oklch(1 0 0 / 6%) 42%,
+    oklch(1 0 0 / 10%) 50%,
+    oklch(1 0 0 / 6%) 58%,
+    transparent 80%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: tc-shimmer 1.9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background-image: none;
+  }
+}
+
+/* ---- Controls: one radius, two button roles, one field ---- */
+
+@utility control {
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid var(--border);
+  background-color: oklch(from var(--secondary) l c h / 40%);
+  padding: 0.625rem 0.75rem;
+  outline: none;
+  color: var(--foreground);
+  &::placeholder {
+    color: var(--muted-foreground);
+  }
+  &:focus {
+    border-color: oklch(from var(--gold) l c h / 50%);
+  }
+}
+
+@utility btn-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: calc(var(--radius) - 2px);
+  background-color: var(--gold);
+  color: var(--primary-foreground);
+  font-weight: 600;
+  padding: 0.75rem 1.05rem;
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+@utility btn-quiet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid var(--border);
+  background-color: transparent;
+  color: oklch(from var(--foreground) l c h / 88%);
+  font-weight: 550;
+  padding: 0.75rem 1.05rem;
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+@utility btn-outline-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid oklch(from var(--gold) l c h / 30%);
+  background-color: transparent;
+  color: var(--foreground);
+  font-weight: 550;
+  padding: 0.75rem 1.05rem;
+}
+
+@utility pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  padding: 0.125rem 0.5rem;
+}
+
+/* Team accent rails */
+@utility rail-gold {
+  border-left: 2px solid oklch(from var(--gold) l c h / 55%);
+}
+
+@utility rail-copper {
+  border-left: 2px solid oklch(from var(--copper) l c h / 55%);
+}
+
+@utility glass {
+  background-color: oklch(from var(--background) l c h / 90%);
+  backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 4px);
+}
+
+@utility gold-text {
+  color: var(--gold-light);
+}
+
+/* Prefer solid primary controls over glow chrome */
+@utility gold-glow {
+  box-shadow: 0 4px 16px -8px oklch(0 0 0 / 50%);
+}
+
+@utility press {
+  transition:
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  &:active {
+    transform: scale(0.97);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ---- Cinematic intro ---- */
+
+@keyframes intro-emerge {
+  from {
+    opacity: 0;
+    transform: scale(1.1);
+    filter: blur(16px) brightness(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0) brightness(1);
+  }
+}
+
+@utility intro-emerge {
+  opacity: 0;
+  animation: intro-emerge 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: opacity, transform, filter;
+  contain: paint;
+}
+
+/* Lite path: no filter animation at all — opacity + transform composite on the GPU. */
+@keyframes intro-emerge-lite {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@utility intro-emerge-lite {
+  opacity: 0;
+  animation: intro-emerge-lite 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: opacity, transform;
+  contain: paint;
+}
+
+/* Animation is one-shot: release the compositor texture once it has settled. */
+.intro-emerge,
+.intro-emerge-lite {
+  animation-fill-mode: forwards;
+}
+.intro-settled {
+  will-change: auto;
+}
+
+/* The trophy film is mobile portrait artwork. Its embedded shield sits near
+   50% x / 56% y, so the closing mark starts there instead of appearing as a
+   second unrelated logo. Only transform and opacity animate. */
+@keyframes intro-mark-from-shield {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.24);
+  }
+  38% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, calc(-50% - 4svh)) scale(1);
+  }
+}
+
+.intro-mark-anchor {
+  position: absolute;
+  left: 50%;
+  top: 56svh;
+  z-index: 5;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.24);
+}
+
+.intro-mark-visible {
+  animation: intro-mark-from-shield 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: opacity, transform;
+}
+
+@utility intro-grain {
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+  mix-blend-mode: overlay;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-emerge {
+    animation: none;
+    opacity: 1;
+  }
+  .intro-mark-visible {
+    animation: none;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

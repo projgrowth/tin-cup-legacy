@@ -1,0 +1,25 @@
+table:
+  name: matches
+  schema: public
+object_relationships:
+  - name: round
+    using:
+      foreign_key_constraint_on: round_id
+select_permissions:
+  - role: public
+    permission: &matches_read
+      columns: [id, round_id, label, points, result, side_a, side_b, sort_order, revision, updated_at]
+      filter: {}
+  - role: user
+    permission: *matches_read
+update_permissions:
+  - role: user
+    permission:
+      columns: [result, side_a, side_b]
+      filter: &scorekeeper_filter
+        _exists:
+          _table: {schema: public, name: user_roles}
+          _where:
+            user_id: {_eq: X-Hasura-User-Id}
+            role: {_in: [admin, captain]}
+      check: *scorekeeper_filter

@@ -1,0 +1,29 @@
+table:
+  name: photos
+  schema: public
+select_permissions:
+  - role: public
+    permission: &photos_read
+      columns: [id, storage_path, caption, uploaded_by, created_at]
+      filter: {}
+  - role: user
+    permission: *photos_read
+insert_permissions:
+  - role: user
+    permission:
+      columns: [storage_path, caption]
+      check:
+        uploaded_by: {_eq: X-Hasura-User-Id}
+      set:
+        uploaded_by: X-Hasura-User-Id
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        _or:
+          - uploaded_by: {_eq: X-Hasura-User-Id}
+          - _exists:
+              _table: {schema: public, name: user_roles}
+              _where:
+                user_id: {_eq: X-Hasura-User-Id}
+                role: {_in: [admin, captain]}

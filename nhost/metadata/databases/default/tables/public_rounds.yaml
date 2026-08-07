@@ -1,0 +1,10 @@
+table:
+  name: rounds
+  schema: public
+select_permissions:
+  - role: public
+    permission: &rounds_read
+      columns: [id, slug, day_label, play_date, course, tee_window, format, format_detail, points, meal, sort_order]
+      filter: {}
+  - role: user
+    permission: *rounds_read
