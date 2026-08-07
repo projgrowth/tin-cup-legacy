@@ -19,7 +19,7 @@ import {
   venmoUrl,
 } from "@/lib/tin-cup";
 import type { Match, Round } from "@/hooks/useTournament";
-import { DAY1_META, DAY1_PAIRINGS } from "@/lib/day1-pairings";
+import { DAY1_META, DAY1_PAIRINGS, day1GroupForPlayer } from "@/lib/day1-pairings";
 import { tallyStandings } from "@/lib/scoring";
 
 export function PreTournamentPanel({
@@ -43,6 +43,7 @@ export function PreTournamentPanel({
   const standings = tallyStandings(matches);
   const firstName = claimedName?.trim().split(/\s+/)[0] ?? null;
   const isClaimed = signedIn && Boolean(claimedName) && !needsClaim;
+  const myDay1 = claimedName ? day1GroupForPlayer(claimedName) : null;
 
   return (
     <div className="stack-page pb-2">
@@ -131,7 +132,27 @@ export function PreTournamentPanel({
         )}
       </section>
 
-      {nextRound && (
+      {isClaimed && myDay1 && (
+        <section className="surface-raised p-4">
+          <p className="t-eyebrow">Next up for you</p>
+          <p className="t-title mt-1.5 text-foreground">
+            Day 1 · Match {myDay1.pairing.matchIndex}
+          </p>
+          <p className="t-body mt-2 font-medium text-foreground">
+            w/ {myDay1.partner.split(" ")[0]}
+            <span className="t-micro mx-1.5 font-normal text-muted-foreground">vs</span>
+            {myDay1.opponents}
+          </p>
+          <p className="t-micro mt-1.5 text-muted-foreground">
+            {DAY1_META.course} · {DAY1_META.tee} · {DAY1_META.formats}
+          </p>
+          <Link to="/schedule" className="press t-micro mt-3 inline-block text-muted-foreground">
+            Full weekend →
+          </Link>
+        </section>
+      )}
+
+      {nextRound && !myDay1 && (
         <Link
           to="/schedule"
           className="press surface-inset flex items-center justify-between gap-3 px-4 py-3.5"
@@ -156,17 +177,25 @@ export function PreTournamentPanel({
           </Link>
         </div>
         <ul className="surface-inset divide-y divide-border overflow-hidden">
-          {DAY1_PAIRINGS.map((p) => (
-            <li
-              key={p.matchIndex}
-              className="flex items-center gap-2 px-3.5 py-3.5 t-body text-foreground"
-            >
-              <span className="t-micro w-4 shrink-0 text-muted-foreground">{p.matchIndex}</span>
-              <span className="min-w-0 flex-1 truncate font-medium">{p.sideA}</span>
-              <span className="t-micro shrink-0 text-muted-foreground">vs</span>
-              <span className="min-w-0 flex-1 truncate text-right font-medium">{p.sideB}</span>
-            </li>
-          ))}
+          {DAY1_PAIRINGS.map((p) => {
+            const mine = myDay1?.pairing.matchIndex === p.matchIndex;
+            return (
+              <li
+                key={p.matchIndex}
+                className={`flex items-center gap-2 px-3.5 py-3.5 t-body text-foreground ${
+                  mine ? "bg-secondary/50" : ""
+                }`}
+              >
+                <span className="t-micro w-4 shrink-0 text-muted-foreground">{p.matchIndex}</span>
+                <span className="min-w-0 flex-1 truncate font-medium">{p.sideA}</span>
+                <span className="t-micro shrink-0 text-muted-foreground">vs</span>
+                <span className="min-w-0 flex-1 truncate text-right font-medium">{p.sideB}</span>
+                {mine && (
+                  <span className="t-micro shrink-0 text-muted-foreground">You</span>
+                )}
+              </li>
+            );
+          })}
         </ul>
         <p className="t-micro mt-2 text-muted-foreground">
           {DAY1_META.course} · {DAY1_META.tee}

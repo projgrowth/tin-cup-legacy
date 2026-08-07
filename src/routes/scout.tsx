@@ -123,15 +123,15 @@ function ScoutPage() {
       <PageHeading eyebrow="Courses" title="On the ground" />
 
       {isToday && (
-        <p className="t-micro mb-4 rounded-xl border border-border bg-secondary/50 px-3.5 py-2.5 text-muted-foreground">
+        <p className="t-micro mb-5 rounded-lg border border-border px-3.5 py-2 text-muted-foreground">
           Playing today · {COURSE_LABEL[todayCourse]}
         </p>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.65fr)] lg:items-start">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.65fr)] lg:items-start">
         <div className="min-w-0">
           <div
-            className="mb-4 flex gap-1 rounded-2xl border border-border bg-secondary/40 p-1"
+            className="mb-5 flex gap-1 rounded-xl border border-border bg-secondary/30 p-1"
             role="tablist"
             aria-label="Course"
           >
@@ -144,7 +144,7 @@ function ScoutPage() {
                 onClick={() => setSelection({ course: id, hole: 1 })}
                 className={`press t-body min-h-11 flex-1 rounded-lg px-2 py-2 text-center font-semibold tracking-tight ${
                   id === courseId
-                    ? "bg-secondary text-foreground"
+                    ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground"
                 }`}
               >
@@ -158,7 +158,7 @@ function ScoutPage() {
             ))}
           </div>
 
-          <div className="relative mb-4">
+          <div className="relative mb-5">
             <div className="no-scrollbar flex snap-x snap-mandatory gap-1.5 overflow-x-auto px-1 scroll-px-1">
               {course.holes.map((h) => (
                 <button
@@ -168,7 +168,7 @@ function ScoutPage() {
                   aria-label={`Hole ${h.h}${hasNote(h.h) ? " — has notes" : ""}`}
                   className={`press t-micro relative size-10 shrink-0 snap-start rounded-full border font-semibold tabular-nums ${
                     h.h === current.h
-                      ? "border-foreground/40 bg-secondary text-foreground"
+                      ? "border-foreground/35 bg-foreground text-background"
                       : courseId === "copperhead" && SNAKE_PIT.includes(h.h)
                         ? "border-copper/40 text-copper"
                         : "border-border text-muted-foreground"
@@ -194,7 +194,7 @@ function ScoutPage() {
             />
           </div>
 
-          <div className="mb-3 flex items-end justify-between gap-3 px-0.5">
+          <div className="mb-4 flex items-end justify-between gap-3 px-0.5">
             <div className="min-w-0">
               <p className="t-hero text-foreground">{current.h}</p>
               {current.name ? (
@@ -202,7 +202,7 @@ function ScoutPage() {
               ) : (
                 <p className="t-title mt-1 text-muted-foreground">Hole {current.h}</p>
               )}
-              <p className="t-micro mt-1">
+              <p className="t-micro mt-1 text-muted-foreground">
                 {COURSE_LABEL[courseId]}
                 {isSnake ? " · Snake Pit" : ""}
               </p>
@@ -216,7 +216,7 @@ function ScoutPage() {
           </div>
 
           <section
-            className={`surface relative overflow-hidden ${isSnake ? "ring-1 ring-copper/40" : ""}`}
+            className={`surface-raised relative overflow-hidden ${isSnake ? "ring-1 ring-copper/40" : ""}`}
           >
             <span className="pointer-events-none absolute left-3 top-3 z-10 rounded-full border border-border bg-background/80 px-2 py-1 t-micro text-muted-foreground backdrop-blur-sm">
               Map · orientation only
@@ -302,7 +302,7 @@ function ScoutPage() {
         </div>
 
         <aside className="min-w-0 lg:sticky lg:top-24">
-          <details className="surface mb-4 group">
+          <details className="surface-inset mb-4 group">
             <summary className="press cursor-pointer list-none px-4 py-3.5 [&::-webkit-details-marker]:hidden">
               <span className="flex items-center justify-between gap-3">
                 <span className="min-w-0">

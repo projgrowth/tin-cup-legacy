@@ -26,33 +26,45 @@ async function loadPhotos(): Promise<VaultItem[]> {
       uploaded_by: string | null;
       created_at: string;
     }>;
-    profiles?: Array<{ id: string; display_name: string }>;
+    profiles?: Array<{ id: string; display_name: string; player_id: string | null }>;
+    players?: Array<{ id: string; name: string }>;
   }>(`query PhotoVault {
     photos(order_by: {created_at: desc}, limit: 60) {
       id caption storage_path uploaded_by created_at
     }
-    profiles { id display_name }
+    profiles { id display_name player_id }
+    players { id name }
   }`);
   const rows = result.photos;
   if (rows.length === 0) return [];
 
-  const names = new Map(
-    (result.profiles ?? []).map((p) => [p.id, p.display_name.trim()] as const),
+  const rosterByPlayerId = new Map(
+    (result.players ?? []).map((p) => [p.id, p.name.trim()] as const),
   );
+  /** Prefer roster name when profile is claimed; else display_name */
+  const authorByUserId = new Map<string, string>();
+  for (const p of result.profiles ?? []) {
+    const roster =
+      p.player_id && rosterByPlayerId.get(p.player_id)
+        ? rosterByPlayerId.get(p.player_id)!
+        : null;
+    const label = roster || p.display_name.trim();
+    if (label) authorByUserId.set(p.id, label);
+  }
 
   const signed = await Promise.all(
     rows.map((row) => nhost.storage.getFilePresignedURL(row.storage_path)),
   );
 
   return rows.map((row, i) => {
-    const fromProfile = row.uploaded_by ? names.get(row.uploaded_by) : null;
+    const authorName = row.uploaded_by ? authorByUserId.get(row.uploaded_by) ?? null : null;
     return {
       id: row.id,
       caption: row.caption,
       url: signed[i]?.body.url ?? "",
       storagePath: row.storage_path,
       uploadedBy: row.uploaded_by,
-      authorName: fromProfile || null,
+      authorName,
       createdAt: row.created_at ?? null,
     };
   });
