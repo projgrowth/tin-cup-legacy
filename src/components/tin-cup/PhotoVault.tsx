@@ -73,10 +73,13 @@ async function loadPhotos(): Promise<VaultItem[]> {
 export function PhotoVault({
   canUpload,
   variant = "vault",
+  hideWhenEmpty = false,
 }: {
   canUpload: boolean;
   /** `pulse` = compact horizontal strip for Live; `vault` = full masonry gallery */
   variant?: "vault" | "pulse";
+  /** When true, render nothing if there are no photos (and not uploading). */
+  hideWhenEmpty?: boolean;
 }) {
   const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -248,6 +251,10 @@ export function PhotoVault({
 
   if (variant === "pulse") {
     const strip = photos?.slice(0, 16) ?? [];
+    const empty =
+      !isPending && !isError && strip.length === 0 && !upload.isPending && !pendingFile;
+    if (hideWhenEmpty && empty) return null;
+
     return (
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
@@ -266,11 +273,7 @@ export function PhotoVault({
               )}
               {upload.isPending ? `${progress}%` : "Add photo"}
             </button>
-          ) : (
-            <Link to="/profile" className="press t-micro text-muted-foreground">
-              Sign in to add
-            </Link>
-          )}
+          ) : null}
         </div>
         {fileInput}
         {captionComposer}
@@ -304,12 +307,8 @@ export function PhotoVault({
             Pulse didn&apos;t load · Retry
           </button>
         )}
-        {!isPending && !isError && strip.length === 0 && (
-          <p className="t-micro text-muted-foreground">
-            {canUpload
-              ? "No photos yet — drop the first weekend shot."
-              : "No photos yet. Sign in from Account to add."}
-          </p>
+        {!isPending && !isError && strip.length === 0 && canUpload && (
+          <p className="t-micro text-muted-foreground">First photo of the weekend?</p>
         )}
         {strip.length > 0 && (
           <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">

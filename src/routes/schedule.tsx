@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { CalendarPlus, ChevronDown } from "lucide-react";
 
-import { AvatarPair } from "@/components/tin-cup/Avatar";
+import { FormatSheet } from "@/components/tin-cup/FormatSheet";
+import { PairingRow } from "@/components/tin-cup/PairingRow";
 import { ErrorState, LoadingRows, PageHeading, Shell } from "@/components/tin-cup/Shell";
 import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
@@ -96,32 +97,27 @@ function SchedulePage() {
           </div>
           <ul className="surface-inset divide-y divide-border overflow-hidden">
             {DAY1_PAIRINGS.map((p) => (
-              <li key={p.matchIndex} className="flex items-center gap-2 px-3.5 py-3.5">
-                <span className="t-micro w-4 shrink-0 text-muted-foreground">{p.matchIndex}</span>
-                <AvatarPair
-                  people={p.playersA.map((name) => ({
-                    name,
-                    teamSlug: "strong-mental",
-                    src: avatars.data?.getByName(name)?.url,
-                  }))}
-                />
-                <span className="t-body min-w-0 flex-1 truncate font-medium text-foreground">
-                  {p.sideA}
-                </span>
-                <span className="t-micro shrink-0 text-muted-foreground">vs</span>
-                <span className="t-body min-w-0 flex-1 truncate text-right font-medium text-foreground">
-                  {p.sideB}
-                </span>
-                <AvatarPair
-                  people={p.playersB.map((name) => ({
-                    name,
-                    teamSlug: "grass-roots",
-                    src: avatars.data?.getByName(name)?.url,
-                  }))}
-                />
-              </li>
+              <PairingRow
+                key={p.matchIndex}
+                index={p.matchIndex}
+                sideALabel={p.sideA}
+                sideBLabel={p.sideB}
+                sideAPeople={p.playersA.map((name) => ({
+                  name,
+                  teamSlug: "strong-mental",
+                  src: avatars.data?.getByName(name)?.url,
+                }))}
+                sideBPeople={p.playersB.map((name) => ({
+                  name,
+                  teamSlug: "grass-roots",
+                  src: avatars.data?.getByName(name)?.url,
+                }))}
+              />
             ))}
           </ul>
+          <div className="mt-3">
+            <FormatSheet />
+          </div>
         </section>
 
         {isPending && !data && <LoadingRows rows={3} height={88} />}
@@ -193,11 +189,18 @@ function SchedulePage() {
           <h2 className="t-section mb-3 text-foreground">Social</h2>
           <ul className="surface-inset divide-y divide-border overflow-hidden">
             {WEEKEND_SOCIAL.map((row) => (
-              <li key={row.day} className="px-4 py-3.5">
-                <p className="t-body font-medium text-foreground">
-                  {row.day} · {row.title}
-                </p>
-                <p className="t-micro mt-0.5 text-muted-foreground">{row.detail}</p>
+              <li key={row.day}>
+                <details className="group">
+                  <summary className="press flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 [&::-webkit-details-marker]:hidden">
+                    <span className="t-body font-medium text-foreground">
+                      {row.day} · {row.title}
+                    </span>
+                    <span className="t-micro text-muted-foreground group-open:hidden">More</span>
+                  </summary>
+                  <p className="t-micro border-t border-border px-4 py-3 text-muted-foreground">
+                    {row.detail}
+                  </p>
+                </details>
               </li>
             ))}
           </ul>
