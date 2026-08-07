@@ -56,12 +56,13 @@ function ProfilePage() {
         <LoadingForm fields={3} />
       ) : !user ? (
         <div className="space-y-6">
-          <AuthCard blurb="Claim your name and sync private hole notes." />
+          <AuthCard blurb="Join the field: claim your roster name, private notes, and photo credits." />
           <p className="t-micro text-muted-foreground">
-            Optional. Scores, schedule, and pay work without an account.
+            Everyone in the tournament should sign in and claim their name. Guests can still open the
+            Live board to follow the cup score without an account.
           </p>
           <p className="t-micro text-muted-foreground">
-            Sign in → pick your roster name → optional Map notes & photos.
+            After you sign in: pick your name on the roster → Map notes & photos sync to you.
           </p>
         </div>
       ) : (

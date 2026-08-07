@@ -69,7 +69,9 @@ export function LivePanel({
           <div className="min-w-0">
             <h2 className="t-section text-foreground">Matches</h2>
             {!canScore && (
-              <p className="t-micro mt-0.5 text-muted-foreground">Scores posted by captains</p>
+              <p className="t-micro mt-0.5 text-muted-foreground">
+                Live cup · scores posted by captains
+              </p>
             )}
           </div>
           {canScore && (

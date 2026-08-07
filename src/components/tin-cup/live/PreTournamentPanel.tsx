@@ -51,7 +51,8 @@ export function PreTournamentPanel({
           {EVENT.dates} · {EVENT.location}
         </p>
         <p className="t-micro mx-auto mt-2 max-w-sm text-muted-foreground">
-          No account needed to browse. Sign in only to claim your name, notes, or photos.
+          Sign in to join the field — claim your name, notes, and photos. Guests can still follow the
+          live cup scoreboard.
         </p>
         <div className="mt-5">
           <Countdown />
@@ -60,6 +61,9 @@ export function PreTournamentPanel({
 
       {/* Primary CTA */}
       <section className="space-y-2">
+        <Link to="/profile" className="press btn-outline-gold t-body flex w-full justify-center">
+          Sign in · claim your spot
+        </Link>
         <a
           href={venmoUrl}
           target="_blank"
@@ -165,8 +169,7 @@ export function PreTournamentPanel({
       </details>
 
       <p className="t-micro text-center text-muted-foreground">
-        Live scoring goes live the weekend · captains post results. Issues? Message Kevin in the
-        group.
+        Captains post live scores. Guests can watch the board anytime. Issues? Message Kevin.
       </p>
     </div>
   );

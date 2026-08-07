@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, ImagePlus, Loader2, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -254,7 +255,9 @@ export function PhotoVault({
               {upload.isPending ? `${progress}%` : "Add photo"}
             </button>
           ) : (
-            <span className="t-micro text-muted-foreground">Sign in to add</span>
+            <Link to="/profile" className="press t-micro text-muted-foreground">
+              Sign in to add
+            </Link>
           )}
         </div>
         {fileInput}
