@@ -1,8 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
 
+import { Monogram } from "@/components/tin-cup/Monogram";
 import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
+import { useAuth } from "@/hooks/useAuth";
+import { graphqlRequest } from "@/integrations/nhost/graphql";
 import { useTournament } from "@/hooks/useTournament";
+import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { formatRecord, pairingIncludes, playerRecord, roundStatus } from "@/lib/scoring";
 import { teamRailClass } from "@/lib/team-styles";
 import { formatPayout } from "@/lib/purse";
@@ -39,11 +44,27 @@ const RESULT_LABEL: Record<string, string> = {
 function PlayerPage() {
   const { playerId } = Route.useParams();
   const { data, isPending, isError, refetch, isFetching } = useTournament();
+  const { user } = useAuth();
+
+  const { data: myPlayerId } = useQuery({
+    queryKey: ["my-player", user?.id],
+    enabled: Boolean(user),
+    queryFn: async () => {
+      const res = await graphqlRequest<
+        { profiles_by_pk: { player_id: string | null } | null },
+        { id: string }
+      >(`query MyRosterSpot($id: uuid!) { profiles_by_pk(id: $id) { player_id } }`, {
+        id: user!.id,
+      });
+      return res.profiles_by_pk?.player_id ?? null;
+    },
+  });
 
   const player = (data?.players ?? []).find((p) => p.id === playerId);
   const team = (data?.teams ?? []).find((t) => t.id === player?.team_id);
   const matches = data?.matches ?? [];
   const rounds = data?.rounds ?? [];
+  const isYou = Boolean(myPlayerId && myPlayerId === playerId);
 
   if (isPending && !data) {
     return (
@@ -77,6 +98,7 @@ function PlayerPage() {
   );
   const claims = (data?.sideBets ?? []).filter((b) => b.player_name === player.name);
   const cash = claims.reduce((sum, c) => sum + Number(c.amount), 0);
+  const d1 = day1GroupForPlayer(player.name);
 
   return (
     <Shell>
@@ -84,15 +106,30 @@ function PlayerPage() {
         to="/rosters"
         className="press t-micro mb-4 inline-flex items-center gap-1 text-muted-foreground"
       >
-        <ChevronLeft className="size-4" strokeWidth={1.7} /> Rosters
+        <ChevronLeft className="size-4" strokeWidth={1.7} /> Team hub
       </Link>
 
-      <header className={`surface ${teamRailClass(team.slug)} pl-4 p-5`}>
-        <p className="t-eyebrow">{team.name}</p>
-        <h1 className="t-display mt-1 text-foreground">{player.name}</h1>
-        {player.is_captain && (
-          <span className="pill mt-2 border-border text-muted-foreground">Captain</span>
-        )}
+      <header className={`surface ${teamRailClass(team.slug)} p-5`}>
+        <div className="flex items-start gap-3">
+          <Monogram name={player.name} teamSlug={team.slug} size="lg" />
+          <div className="min-w-0 flex-1">
+            <p className="t-eyebrow">{team.name}</p>
+            <h1 className="t-display mt-1 text-foreground">{player.name}</h1>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {player.is_captain && (
+                <span className="pill border-border text-muted-foreground">Captain</span>
+              )}
+              {isYou && (
+                <span className="pill border-border bg-secondary text-foreground">It&apos;s you</span>
+              )}
+            </div>
+            {d1 && (
+              <p className="t-micro mt-2 text-muted-foreground">
+                Day 1 · w/ {d1.partner.split(" ")[0]} · vs {d1.opponents}
+              </p>
+            )}
+          </div>
+        </div>
         <p className="t-hero mt-4 text-foreground">
           {record.points}
           <span className="t-micro ml-2 font-normal">pts won</span>

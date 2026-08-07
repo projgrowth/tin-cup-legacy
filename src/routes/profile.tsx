@@ -1,16 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { LogOut } from "lucide-react";
+import { ChevronRight, LogOut } from "lucide-react";
 
 import { AuthCard } from "@/components/tin-cup/AuthCard";
+import { Monogram } from "@/components/tin-cup/Monogram";
 import { LoadingForm, LoadingRows, PageHeading, Shell } from "@/components/tin-cup/Shell";
+import { WhatsAppGroupButton } from "@/components/tin-cup/WhatsAppLinks";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useRoundPlan } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
 import { signOut } from "@/integrations/nhost/client";
 import { COURSE_LABEL, ROUND_COURSE, type CourseId } from "@/lib/courses";
+import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { clearGuestNotes, countGuestNotes, listGuestNotes } from "@/lib/guest-notes";
+import { formatPayout } from "@/lib/purse";
+import { formatRecord, playerRecord } from "@/lib/scoring";
+import { teamRailClass } from "@/lib/team-styles";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -35,10 +41,24 @@ export const Route = createFileRoute("/profile")({
 
 function ProfilePage() {
   const { user, loading, canScore, isAdmin, rolesError, rolesLoading, refreshRoles } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
+  const { data: tournament } = useTournament();
+  const claimedPlayer = useMemo(() => {
+    if (!profile?.player_id) return null;
+    return (tournament?.players ?? []).find((p) => p.id === profile.player_id) ?? null;
+  }, [profile?.player_id, tournament?.players]);
+  const claimedTeam = useMemo(() => {
+    if (!claimedPlayer) return null;
+    return (tournament?.teams ?? []).find((t) => t.id === claimedPlayer.team_id) ?? null;
+  }, [claimedPlayer, tournament?.teams]);
+  const firstName = claimedPlayer?.name.split(" ")[0] ?? null;
 
   return (
     <Shell>
-      <PageHeading eyebrow="Account" title={user ? "You" : "Sign in"} />
+      <PageHeading
+        eyebrow={claimedPlayer ? claimedTeam?.name.replace("Team ", "") ?? "My hub" : "Account"}
+        title={user ? (firstName ? firstName : "You") : "Sign in"}
+      />
       {user && rolesError && (
         <div role="alert" className="surface mb-4 flex items-center justify-between gap-3 p-4">
           <p className="t-micro">Your access level could not be refreshed.</p>
@@ -52,40 +72,72 @@ function ProfilePage() {
           </button>
         </div>
       )}
-      {loading ? (
+      {loading || (user && profileLoading && !profile) ? (
         <LoadingForm fields={3} />
       ) : !user ? (
         <div className="space-y-6">
           <AuthCard blurb="Join the field: claim your roster name, private notes, and photo credits." />
           <p className="t-micro text-muted-foreground">
-            Everyone in the tournament should sign in and claim their name. Guests can still open the
-            Live board to follow the cup score without an account.
-          </p>
-          <p className="t-micro text-muted-foreground">
-            After you sign in: pick your name on the roster → Map notes & photos sync to you.
+            Players should sign in and claim their name. Guests can still follow the live cup on the
+            board without an account.
           </p>
         </div>
       ) : (
         <div className="space-y-8">
+          {claimedPlayer && claimedTeam && (
+            <MyHubCard
+              player={claimedPlayer}
+              teamSlug={claimedTeam.slug}
+              teamName={claimedTeam.name}
+              matches={tournament?.matches ?? []}
+              sideBets={tournament?.sideBets ?? []}
+            />
+          )}
           <Identity email={user.email ?? ""} canScore={canScore} isAdmin={isAdmin} />
           <GuestNotesMerge />
-          {canScore && (
-            <Link to="/" className="press btn-quiet t-body flex w-full justify-center">
-              Open Live board →
+          <div className="grid gap-2 sm:grid-cols-2">
+            {claimedPlayer && (
+              <Link
+                to="/player/$playerId"
+                params={{ playerId: claimedPlayer.id }}
+                className="press surface flex items-center justify-between gap-2 px-4 py-3.5"
+              >
+                <span className="t-body font-medium text-foreground">Your player card</span>
+                <ChevronRight className="size-4 text-muted-foreground" />
+              </Link>
+            )}
+            <Link
+              to="/rosters"
+              className="press surface flex items-center justify-between gap-2 px-4 py-3.5"
+            >
+              <span className="t-body font-medium text-foreground">
+                {claimedTeam ? "Your team hub" : "Teams"}
+              </span>
+              <ChevronRight className="size-4 text-muted-foreground" />
             </Link>
-          )}
+            <Link
+              to="/scout"
+              className="press surface flex items-center justify-between gap-2 px-4 py-3.5"
+            >
+              <span className="t-body font-medium text-foreground">Course notes</span>
+              <ChevronRight className="size-4 text-muted-foreground" />
+            </Link>
+            {canScore && (
+              <Link to="/" className="press surface flex items-center justify-between gap-2 px-4 py-3.5">
+                <span className="t-body font-medium text-foreground">Live board · score</span>
+                <ChevronRight className="size-4 text-muted-foreground" />
+              </Link>
+            )}
+          </div>
+          <WhatsAppGroupButton className="w-full" />
           <RoundPlans />
           <section className="surface p-4">
             <p className="t-section text-foreground">Add to Home Screen</p>
             <p className="t-micro mt-1.5 text-muted-foreground">
-              iPhone: Share → Add to Home Screen. Android: browser menu → Install app. Best for
-              captains on the course.
+              iPhone: Share → Add to Home Screen. Android: browser menu → Install app.
             </p>
           </section>
           <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
-            <Link to="/scout" className="press t-micro text-muted-foreground">
-              Course notes
-            </Link>
             {canScore && (
               <Link to="/ops" className="press t-micro text-muted-foreground">
                 Ops
@@ -105,11 +157,55 @@ function ProfilePage() {
             </button>
           </div>
           <p className="t-micro text-center text-muted-foreground">
-            Issues? Message Kevin in the group chat.
+            Chat lives in WhatsApp · issues → message Kevin
           </p>
         </div>
       )}
     </Shell>
+  );
+}
+
+function MyHubCard({
+  player,
+  teamSlug,
+  teamName,
+  matches,
+  sideBets,
+}: {
+  player: { id: string; name: string; is_captain: boolean };
+  teamSlug: string;
+  teamName: string;
+  matches: Parameters<typeof playerRecord>[0];
+  sideBets: Array<{ player_name: string | null; amount: number | string }>;
+}) {
+  const d1 = day1GroupForPlayer(player.name);
+  const record = playerRecord(matches, player.name, teamSlug);
+  const shorthand = formatRecord(record);
+  const cash = sideBets
+    .filter((b) => b.player_name === player.name)
+    .reduce((sum, c) => sum + Number(c.amount), 0);
+  return (
+    <section className={`surface p-4 ${teamRailClass(teamSlug)}`}>
+      <div className="flex items-start gap-3">
+        <Monogram name={player.name} teamSlug={teamSlug} size="lg" />
+        <div className="min-w-0 flex-1">
+          <p className="t-micro text-muted-foreground">{teamName}</p>
+          <h2 className="t-title mt-0.5 text-foreground">{player.name}</h2>
+          {player.is_captain && (
+            <span className="t-micro text-muted-foreground">Captain</span>
+          )}
+          {d1 && (
+            <p className="t-micro mt-2 text-muted-foreground">
+              Day 1 · w/ {d1.partner.split(" ")[0]} · vs {d1.opponents}
+            </p>
+          )}
+          <p className="t-micro mt-1 text-muted-foreground">
+            {shorthand ? `${shorthand} · ${record.points} pts` : "No results yet"}
+            {cash > 0 ? ` · ${formatPayout(cash)} side` : ""}
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 

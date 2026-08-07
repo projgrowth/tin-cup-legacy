@@ -1,11 +1,20 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { AlertTriangle, CloudOff } from "lucide-react";
 
 import { BottomNav } from "./BottomNav";
+import { Monogram } from "./Monogram";
 import { useAuth } from "@/hooks/useAuth";
-import { usePendingWrites, useFailedWrites, useWriteConflicts } from "@/hooks/useTournament";
+import {
+  usePendingWrites,
+  useFailedWrites,
+  useWriteConflicts,
+  useTournament,
+} from "@/hooks/useTournament";
+import { graphqlRequest } from "@/integrations/nhost/graphql";
 import { retryFailed } from "@/lib/write-queue";
+import { playerInitials } from "@/lib/team-styles";
 
 type ShellVariant = "compact" | "content" | "dashboard";
 
@@ -17,10 +26,31 @@ export function Shell({
   variant?: ShellVariant;
 }) {
   const { user, canScore, isAdmin } = useAuth();
+  const { data: tournament } = useTournament();
   const pending = usePendingWrites();
   const failed = useFailedWrites();
   const conflicts = useWriteConflicts();
   const [online, setOnline] = useState(true);
+
+  const { data: myPlayerId } = useQuery({
+    queryKey: ["my-player", user?.id],
+    enabled: Boolean(user),
+    queryFn: async () => {
+      const res = await graphqlRequest<
+        { profiles_by_pk: { player_id: string | null } | null },
+        { id: string }
+      >(`query MyRosterSpot($id: uuid!) { profiles_by_pk(id: $id) { player_id } }`, {
+        id: user!.id,
+      });
+      return res.profiles_by_pk?.player_id ?? null;
+    },
+  });
+
+  const claimed = tournament?.players.find((p) => p.id === myPlayerId);
+  const claimedTeam = claimed
+    ? tournament?.teams.find((t) => t.id === claimed.team_id)
+    : undefined;
+
   useEffect(() => {
     setOnline(navigator.onLine);
     const connected = () => setOnline(true);
@@ -63,14 +93,24 @@ export function Shell({
           </Link>
           <Link
             to="/profile"
-            aria-label={user ? "Your account" : "Sign in"}
-            className={`press relative flex size-10 shrink-0 items-center justify-center rounded-full border text-sm font-semibold uppercase transition-colors ${
-              user
-                ? "border-border bg-secondary text-foreground"
-                : "border-border text-muted-foreground"
-            }`}
+            aria-label={user ? "Your hub" : "Sign in"}
+            className="press relative shrink-0"
           >
-            {user ? user.email?.trim().charAt(0) || "P" : "?"}
+            {claimed ? (
+              <Monogram name={claimed.name} teamSlug={claimedTeam?.slug} size="md" />
+            ) : (
+              <span
+                className={`flex size-10 items-center justify-center rounded-full border text-sm font-semibold uppercase ${
+                  user
+                    ? "border-border bg-secondary text-foreground"
+                    : "border-border text-muted-foreground"
+                }`}
+              >
+                {user
+                  ? playerInitials(user.email?.split("@")[0] || "P")
+                  : "?"}
+              </span>
+            )}
             {user && canScore && (
               <span
                 aria-label={isAdmin ? "Admin account" : "Captain account"}

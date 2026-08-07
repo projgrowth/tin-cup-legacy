@@ -147,6 +147,11 @@ export function PreTournamentPanel({
         <WhatsAppGroupButton className="w-full" />
         <ShareBoardButton className="w-full" />
       </div>
+      {WHATSAPP_GROUP_CONFIGURED && (
+        <p className="t-micro -mt-4 text-center text-muted-foreground">
+          Group chat is on WhatsApp · scores live here
+        </p>
+      )}
       <InstallHint />
 
       {/* Fee breakdown — collapsed */}
