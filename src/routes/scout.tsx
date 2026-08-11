@@ -1,12 +1,23 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, ExternalLink, List } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  List,
+  Printer,
+  Share2,
+  Target,
+} from "lucide-react";
+import { toast } from "sonner";
 
 import { HoleMap } from "@/components/tin-cup/HoleMap";
-import { LoadingForm, PageHeading, Shell } from "@/components/tin-cup/Shell";
+import { LoadingForm, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
-import { useHoleNotes, type HoleNote, type HoleNoteDraft } from "@/hooks/useJournal";
+import { useHoleNotes, useRoundPlan, type HoleNote, type HoleNoteDraft } from "@/hooks/useJournal";
+import { useTournament } from "@/hooks/useTournament";
 import { SNAKE_PIT as SNAKE_PIT_TIPS } from "@/lib/tin-cup";
+import { isCtp, isLongDrive } from "@/lib/side-bets";
 import {
   COURSE_LABEL,
   COURSE_DETAILS,
@@ -15,13 +26,20 @@ import {
   clampHole,
   coursePar,
   defaultCourseId,
-  formatBlackYardChip,
-  formatScorecardYards,
+  formatTeeYardChip,
   getCourse,
   isCourseId,
+  roundSlugForCourse,
   type CourseId,
 } from "@/lib/courses";
 import { getGuestNote, guestNoteHoles, setGuestNote } from "@/lib/guest-notes";
+import {
+  buildPlanLines,
+  countPlanned,
+  hasPlanContent,
+  printRoundSheet,
+  shareRoundSheet,
+} from "@/lib/round-sheet";
 
 type ScoutSearch = {
   course?: CourseId;
@@ -44,13 +62,13 @@ export const Route = createFileRoute("/scout")({
   },
   head: () => ({
     meta: [
-      { title: "Course Scout & Journal — Tin Cup Invitational" },
+      { title: "Course Planner — Tin Cup Invitational" },
       {
         name: "description",
         content:
-          "Hole-by-hole overhead maps of Innisbrook's Copperhead, Island and South courses, with a private journal for your club, target line and green notes.",
+          "Hole-by-hole game plans for Innisbrook's Copperhead, Island and South courses — maps, yardages, and private notes for Tin Cup 2026.",
       },
-      { property: "og:title", content: "Course Scout & Journal — Tin Cup Invitational" },
+      { property: "og:title", content: "Course Planner — Tin Cup Invitational" },
       {
         property: "og:description",
         content:
@@ -70,10 +88,34 @@ const MISS_SIDES = [
   { id: "right", label: "Miss R" },
 ] as const;
 
+const QUICK_PRESETS: Array<{ label: string; draft: HoleNoteDraft }> = [
+  {
+    label: "Driver · Miss L",
+    draft: { tee_club: "Driver", green_note: "Miss L", target_line: null, target_score: null, notes: null },
+  },
+  {
+    label: "Driver · Miss R",
+    draft: { tee_club: "Driver", green_note: "Miss R", target_line: null, target_score: null, notes: null },
+  },
+  {
+    label: "Hybrid center",
+    draft: { tee_club: "Hybrid", green_note: "Center", target_line: "Center fairway", target_score: null, notes: null },
+  },
+  {
+    label: "Layup",
+    draft: { tee_club: "Iron", target_line: "Layup short of trouble", green_note: null, target_score: null, notes: "Layup" },
+  },
+  {
+    label: "Attack pin",
+    draft: { tee_club: null, target_line: "Attack pin", green_note: "Center", target_score: null, notes: "Aggressive" },
+  },
+];
+
 function ScoutPage() {
   const navigate = useNavigate({ from: "/scout" });
   const search = Route.useSearch();
   const { user, loading: authLoading } = useAuth();
+  const { data: tournament } = useTournament();
 
   const courseId: CourseId = search.course ?? defaultCourseId();
   const course = getCourse(courseId);
@@ -97,6 +139,7 @@ function ScoutPage() {
     [course, hole],
   );
   const journal = useHoleNotes(courseId);
+  const roundPlan = useRoundPlan(roundSlugForCourse(courseId));
   const [guestTick, setGuestTick] = useState(0);
   const guestHoles = useMemo(() => {
     void guestTick;
@@ -114,60 +157,198 @@ function ScoutPage() {
   const todayCourse = defaultCourseId();
   const isToday = courseId === todayCourse;
 
-  const hasNote = (h: number) => Boolean(journal.noteFor(h)) || guestHoles.has(h);
+  const contestByHole = useMemo(() => {
+    const map = new Map<number, Array<"ctp" | "ld">>();
+    const roundId = tournament?.rounds.find((r) => r.slug === details.roundSlug)?.id;
+    for (const bet of tournament?.sideBets ?? []) {
+      if (bet.hole == null) continue;
+      if (roundId && bet.round_id && bet.round_id !== roundId) continue;
+      const kind = isLongDrive(bet.kind) ? "ld" : isCtp(bet.kind) ? "ctp" : null;
+      if (!kind) continue;
+      const list = map.get(bet.hole) ?? [];
+      if (!list.includes(kind)) list.push(kind);
+      map.set(bet.hole, list);
+    }
+    return map;
+  }, [tournament?.sideBets, tournament?.rounds, details.roundSlug]);
+
+  const currentContests = contestByHole.get(current.h) ?? [];
+
+  const noteForDraft = (h: number): HoleNoteDraft | null => {
+    if (user) {
+      const n = journal.noteFor(h);
+      if (!n) return null;
+      return {
+        tee_club: n.tee_club,
+        target_line: n.target_line,
+        green_note: n.green_note,
+        target_score: n.target_score,
+        notes: n.notes,
+      };
+    }
+    return getGuestNote(courseId, h);
+  };
+
+  const hasNote = (h: number) => hasPlanContent(noteForDraft(h));
+
+  const planLines = useMemo(() => {
+    void guestTick;
+    void journal.notes;
+    return buildPlanLines(courseId, noteForDraft);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- rebuild when notes / guest / course change
+  }, [courseId, guestTick, journal.notes, user]);
+
+  const plannedCount = countPlanned(planLines);
+  const planPct = Math.round((plannedCount / 18) * 100);
 
   const [overviewOpen, setOverviewOpen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [dayPlanOpen, setDayPlanOpen] = useState(false);
+
+  // Lock body scroll in fullscreen
+  useEffect(() => {
+    if (!fullscreen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [fullscreen]);
+
+  async function onSharePlan() {
+    const result = await shareRoundSheet(courseId, planLines);
+    if (result === "shared") toast.success("Plan shared");
+    else if (result === "copied") toast.success("Plan copied to clipboard");
+    else toast.error("Could not share plan");
+  }
+
+  function onPrintPlan() {
+    if (!printRoundSheet(courseId, planLines)) {
+      toast.error("Allow pop-ups to print your plan");
+    }
+  }
+
+  const accentRing =
+    courseId === "copperhead"
+      ? "ring-copper/35"
+      : courseId === "island"
+        ? "ring-[oklch(0.55_0.08_230/40%)]"
+        : "ring-foreground/10";
 
   return (
     <Shell variant="dashboard">
-      <PageHeading eyebrow="Courses" title="On the ground" />
-
-      {isToday && (
-        <p className="t-micro mb-5 rounded-lg border border-border px-3.5 py-2 text-muted-foreground">
-          Playing today · {COURSE_LABEL[todayCourse]}
+      <header className="mb-6 sm:mb-8">
+        <p className="t-eyebrow">Course planner</p>
+        <h1 className="t-display mt-2 text-foreground">Game plan</h1>
+        <p className="t-body mt-2 text-muted-foreground">
+          {details.dayLabel} · {details.format}
         </p>
-      )}
+      </header>
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.65fr)] lg:items-start">
-        <div className="min-w-0">
-          <div
-            className="mb-5 flex gap-1 rounded-xl border border-border bg-secondary/30 p-1"
-            role="tablist"
-            aria-label="Course"
-          >
-            {COURSE_ORDER.map((id) => (
-              <button
-                key={id}
-                type="button"
-                role="tab"
-                aria-selected={id === courseId}
-                onClick={() => setSelection({ course: id, hole: 1 })}
-                className={`press t-body min-h-11 flex-1 rounded-lg px-2 py-2 text-center font-semibold tracking-tight ${
-                  id === courseId
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground"
-                }`}
-              >
-                {COURSE_LABEL[id]}
-                {id === todayCourse ? (
-                  <span className="mt-0.5 block text-[0.62rem] font-semibold uppercase tracking-[0.08em] opacity-80">
-                    today
-                  </span>
-                ) : null}
-              </button>
-            ))}
+      {/* Sticky on-course chrome */}
+      <div className="sticky top-[3.25rem] z-20 -mx-4 mb-5 border-b border-border/80 bg-background/92 px-4 pb-3 pt-1 backdrop-blur-md sm:-mx-5 sm:px-5">
+        {isToday && (
+          <p className="t-micro mb-2.5 rounded-lg border border-border bg-secondary/40 px-3 py-2 font-medium text-foreground">
+            Playing today · {COURSE_LABEL[todayCourse]} · first tee {details.firstTee}
+          </p>
+        )}
+
+        <div
+          className="mb-3 flex gap-1 rounded-xl border border-border bg-secondary/30 p-1"
+          role="tablist"
+          aria-label="Course"
+        >
+          {COURSE_ORDER.map((id) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={id === courseId}
+              onClick={() => setSelection({ course: id, hole: 1 })}
+              className={`press t-body min-h-11 flex-1 rounded-lg px-2 py-2 text-center font-semibold tracking-tight ${
+                id === courseId
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {COURSE_LABEL[id]}
+              {id === todayCourse ? (
+                <span className="mt-0.5 block text-[0.65rem] font-semibold uppercase tracking-[0.08em] opacity-80">
+                  today
+                </span>
+              ) : null}
+            </button>
+          ))}
+        </div>
+
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="t-micro font-medium text-foreground">
+            {plannedCount}
+            <span className="text-muted-foreground">/18 planned</span>
+          </p>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setOverviewOpen((v) => !v)}
+              className={`press t-micro inline-flex min-h-10 items-center gap-1.5 rounded-lg border px-2.5 ${
+                overviewOpen
+                  ? "border-foreground/25 bg-secondary text-foreground"
+                  : "border-border text-muted-foreground"
+              }`}
+            >
+              <List className="size-3.5" />
+              Grid
+            </button>
+            <button
+              type="button"
+              onClick={() => void onSharePlan()}
+              className="press t-micro inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border px-2.5 text-muted-foreground"
+            >
+              <Share2 className="size-3.5" />
+              Share
+            </button>
+            <button
+              type="button"
+              onClick={onPrintPlan}
+              className="press t-micro inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border px-2.5 text-muted-foreground"
+              aria-label="Print round sheet"
+            >
+              <Printer className="size-3.5" />
+            </button>
           </div>
+        </div>
 
-          <div className="relative mb-5">
-            <div className="no-scrollbar flex snap-x snap-mandatory gap-1.5 overflow-x-auto px-1 scroll-px-1">
-              {course.holes.map((h) => (
+        {/* Progress bar */}
+        <div
+          className="mb-3 h-1.5 overflow-hidden rounded-full bg-track"
+          role="progressbar"
+          aria-valuenow={plannedCount}
+          aria-valuemin={0}
+          aria-valuemax={18}
+          aria-label="Holes with a game plan"
+        >
+          <div
+            className="h-full rounded-full bg-gold/80 transition-[width] duration-300"
+            style={{ width: `${planPct}%` }}
+          />
+        </div>
+
+        {overviewOpen ? (
+          <div className="mb-3 grid grid-cols-6 gap-1.5 sm:grid-cols-9">
+            {course.holes.map((h) => {
+              const contests = contestByHole.get(h.h) ?? [];
+              const active = h.h === current.h;
+              return (
                 <button
                   key={h.h}
                   type="button"
-                  onClick={() => setSelection({ hole: h.h })}
-                  aria-label={`Hole ${h.h}${hasNote(h.h) ? " — has notes" : ""}`}
-                  className={`press t-micro relative size-10 shrink-0 snap-start rounded-full border font-semibold tabular-nums ${
-                    h.h === current.h
+                  onClick={() => {
+                    setSelection({ hole: h.h });
+                    setOverviewOpen(false);
+                  }}
+                  aria-label={`Hole ${h.h}${hasNote(h.h) ? ", planned" : ""}${contests.length ? `, ${contests.join(" ")}` : ""}`}
+                  className={`press relative flex min-h-11 flex-col items-center justify-center rounded-lg border text-sm font-semibold tabular-nums ${
+                    active
                       ? "border-foreground/35 bg-foreground text-background"
                       : courseId === "copperhead" && SNAKE_PIT.includes(h.h)
                         ? "border-copper/40 text-copper"
@@ -175,14 +356,61 @@ function ScoutPage() {
                   }`}
                 >
                   {h.h}
-                  {hasNote(h.h) && h.h !== current.h && (
+                  {hasNote(h.h) && !active ? (
                     <span
                       aria-hidden
-                      className="absolute bottom-1 left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-foreground/70"
+                      className="absolute bottom-1 left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-gold"
                     />
-                  )}
+                  ) : null}
+                  {contests.length > 0 ? (
+                    <span
+                      aria-hidden
+                      className={`absolute right-1 top-1 size-1.5 rounded-full ${
+                        contests.includes("ld") ? "bg-copper" : "bg-gold-light"
+                      }`}
+                    />
+                  ) : null}
                 </button>
-              ))}
+              );
+            })}
+          </div>
+        ) : (
+          <div className="relative">
+            <div className="no-scrollbar flex snap-x snap-mandatory gap-1.5 overflow-x-auto px-0.5 scroll-px-1">
+              {course.holes.map((h) => {
+                const contests = contestByHole.get(h.h) ?? [];
+                return (
+                  <button
+                    key={h.h}
+                    type="button"
+                    onClick={() => setSelection({ hole: h.h })}
+                    aria-label={`Hole ${h.h}${hasNote(h.h) ? " — has notes" : ""}`}
+                    className={`press t-micro relative size-11 shrink-0 snap-start rounded-full border font-semibold tabular-nums ${
+                      h.h === current.h
+                        ? "border-foreground/35 bg-foreground text-background"
+                        : courseId === "copperhead" && SNAKE_PIT.includes(h.h)
+                          ? "border-copper/40 text-copper"
+                          : "border-border text-muted-foreground"
+                    }`}
+                  >
+                    {h.h}
+                    {hasNote(h.h) && h.h !== current.h && (
+                      <span
+                        aria-hidden
+                        className="absolute bottom-1 left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-gold"
+                      />
+                    )}
+                    {contests.length > 0 && h.h !== current.h ? (
+                      <span
+                        aria-hidden
+                        className={`absolute right-0.5 top-0.5 size-1.5 rounded-full ${
+                          contests.includes("ld") ? "bg-copper" : "bg-gold-light"
+                        }`}
+                      />
+                    ) : null}
+                  </button>
+                );
+              })}
             </div>
             <div
               aria-hidden
@@ -193,6 +421,43 @@ function ScoutPage() {
               className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-background to-transparent"
             />
           </div>
+        )}
+      </div>
+
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.65fr)] lg:items-start">
+        <div className="min-w-0">
+          {/* Day strategy */}
+          <section className="surface-inset mb-5 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setDayPlanOpen((v) => !v)}
+              className="press flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left"
+            >
+              <span className="min-w-0">
+                <span className="t-section block text-foreground">
+                  {details.dayLabel} strategy
+                </span>
+                <span className="t-micro mt-0.5 block text-muted-foreground">
+                  {details.format} · tee {details.firstTee}
+                </span>
+              </span>
+              <span className="t-micro shrink-0 text-muted-foreground">
+                {dayPlanOpen ? "Hide" : roundPlan.plan || !user ? "Add" : "Edit"}
+              </span>
+            </button>
+            {dayPlanOpen && (
+              <div className="space-y-3 border-t border-border px-4 py-3">
+                <p className="t-micro text-muted-foreground">{details.formatTip}</p>
+                <DayPlanEditor
+                  user={user}
+                  authLoading={authLoading}
+                  plan={roundPlan.plan}
+                  loading={roundPlan.loading}
+                  save={roundPlan.save}
+                />
+              </div>
+            )}
+          </section>
 
           <div className="mb-4 flex items-end justify-between gap-3 px-0.5">
             <div className="min-w-0">
@@ -210,45 +475,66 @@ function ScoutPage() {
             <div className="flex shrink-0 flex-col items-end gap-1.5">
               <span className="t-numeral text-2xl text-foreground">Par {current.par}</span>
               <span className="rounded-full border border-border px-2.5 py-1 t-micro font-semibold tabular-nums text-muted-foreground">
-                {formatBlackYardChip(current.yards)}
+                {formatTeeYardChip(current.yards, "black")}
               </span>
             </div>
           </div>
 
+          {currentContests.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {currentContests.map((c) => (
+                <span
+                  key={c}
+                  className={`inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 t-micro font-semibold ${
+                    c === "ld"
+                      ? "border-copper/40 bg-copper/10 text-copper"
+                      : "border-gold/35 bg-gold/10 text-gold-light"
+                  }`}
+                >
+                  <Target className="size-3.5" />
+                  {c === "ld" ? "Long drive · fairway counts" : "Closest to the pin"}
+                </span>
+              ))}
+            </div>
+          )}
+
           <section
-            className={`surface-raised relative overflow-hidden ${isSnake ? "ring-1 ring-copper/40" : ""}`}
+            className={`surface-raised relative overflow-hidden ring-1 ${accentRing} ${isSnake ? "ring-copper/45" : ""}`}
           >
-            <span className="pointer-events-none absolute left-3 top-3 z-10 rounded-full border border-border bg-background/80 px-2 py-1 t-micro text-muted-foreground backdrop-blur-sm">
+            <span className="pointer-events-none absolute left-3 top-3 z-10 rounded-full border border-border bg-background/85 px-2.5 py-1 t-micro font-medium text-muted-foreground backdrop-blur-sm">
               Map · orientation only
             </span>
             <HoleMap
               hole={current}
-              className="block h-[min(52vh,380px)] w-full bg-transparent sm:h-[340px]"
+              className="block h-[min(52vh,400px)] w-full bg-transparent sm:h-[360px] lg:h-[420px]"
+              fullscreen={fullscreen}
+              onToggleFullscreen={() => setFullscreen((v) => !v)}
+              onSwipeHole={(delta) => step(delta)}
             />
-            <div className="flex items-center justify-between gap-3 border-t border-border px-3 py-2">
+            <div className="flex items-center justify-between gap-3 border-t border-border px-2 py-1.5">
               <button
                 type="button"
                 onClick={() => step(-1)}
                 disabled={index <= 0}
-                className="press t-body inline-flex min-h-11 items-center gap-1 rounded-lg px-2.5 py-1.5 text-muted-foreground disabled:opacity-30"
+                className="press t-body inline-flex min-h-12 min-w-[5.5rem] items-center justify-center gap-1 rounded-lg px-3 text-muted-foreground disabled:opacity-30"
               >
-                <ChevronLeft className="size-4" /> Prev
+                <ChevronLeft className="size-5" /> Prev
               </button>
               <button
                 type="button"
                 onClick={() => setOverviewOpen((v) => !v)}
-                className="press t-micro inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-muted-foreground"
+                className="press t-micro inline-flex min-h-12 items-center gap-1.5 rounded-lg px-3 text-muted-foreground"
               >
-                <List className="size-3.5" />
+                <List className="size-4" />
                 {index + 1} of {course.holes.length}
               </button>
               <button
                 type="button"
                 onClick={() => step(1)}
                 disabled={index >= course.holes.length - 1}
-                className="press t-body inline-flex min-h-11 items-center gap-1 rounded-lg px-2.5 py-1.5 text-muted-foreground disabled:opacity-30"
+                className="press t-body inline-flex min-h-12 min-w-[5.5rem] items-center justify-center gap-1 rounded-lg px-3 text-muted-foreground disabled:opacity-30"
               >
-                Next <ChevronRight className="size-4" />
+                Next <ChevronRight className="size-5" />
               </button>
             </div>
           </section>
@@ -256,7 +542,8 @@ function ScoutPage() {
           <details className="mt-2 px-1">
             <summary className="t-micro cursor-pointer text-muted-foreground">Map notes</summary>
             <p className="t-micro mt-1.5 text-muted-foreground">
-              Yardages = official Black tees. Day tees may differ. Map is orientation only.
+              Yardages = official Black tees (scorecard). Day tees may differ — confirm at the
+              starter. Map geometry is OSM-derived for orientation only.
             </p>
             <div className="mt-2">
               <Legend />
@@ -270,16 +557,11 @@ function ScoutPage() {
               current={current.h}
               hasNote={hasNote}
               noteSnippet={(h) => {
-                const saved = journal.noteFor(h);
-                if (saved?.tee_club || saved?.target_line || saved?.notes) {
-                  return [saved.tee_club, saved.target_line, saved.notes]
-                    .filter(Boolean)
-                    .join(" · ");
-                }
-                const g = getGuestNote(courseId, h);
-                if (!g) return null;
-                return [g.tee_club, g.target_line, g.notes].filter(Boolean).join(" · ") || null;
+                const d = noteForDraft(h);
+                if (!d) return null;
+                return [d.tee_club, d.target_line, d.notes].filter(Boolean).join(" · ") || null;
               }}
+              contestByHole={contestByHole}
               onJump={(h) => {
                 setSelection({ hole: h });
                 setOverviewOpen(false);
@@ -287,7 +569,6 @@ function ScoutPage() {
             />
           )}
 
-          {/* Journal under map on mobile; sticky column on lg */}
           <div className="mt-6 lg:hidden">
             <JournalSection
               courseId={courseId}
@@ -301,7 +582,7 @@ function ScoutPage() {
           </div>
         </div>
 
-        <aside className="min-w-0 lg:sticky lg:top-24">
+        <aside className="min-w-0 lg:sticky lg:top-28">
           <details className="surface-inset mb-4 group">
             <summary className="press cursor-pointer list-none px-4 py-3.5 [&::-webkit-details-marker]:hidden">
               <span className="flex items-center justify-between gap-3">
@@ -321,7 +602,7 @@ function ScoutPage() {
                   href={details.scorecardUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="press t-micro inline-flex items-center gap-1.5 text-muted-foreground"
+                  className="press t-micro inline-flex min-h-10 items-center gap-1.5 text-muted-foreground"
                 >
                   Scorecard <ExternalLink className="size-3" />
                 </a>
@@ -329,7 +610,7 @@ function ScoutPage() {
                   href={details.officialUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="press t-micro inline-flex items-center gap-1.5 text-muted-foreground"
+                  className="press t-micro inline-flex min-h-10 items-center gap-1.5 text-muted-foreground"
                 >
                   Course page <ExternalLink className="size-3" />
                 </a>
@@ -358,6 +639,69 @@ function ScoutPage() {
         </aside>
       </div>
     </Shell>
+  );
+}
+
+function DayPlanEditor({
+  user,
+  authLoading,
+  plan,
+  loading,
+  save,
+}: {
+  user: ReturnType<typeof useAuth>["user"];
+  authLoading: boolean;
+  plan: string;
+  loading: boolean;
+  save: ReturnType<typeof useRoundPlan>["save"];
+}) {
+  const [draft, setDraft] = useState(plan);
+  useEffect(() => setDraft(plan), [plan]);
+
+  if (authLoading) return <LoadingForm fields={2} />;
+
+  if (!user) {
+    return (
+      <p className="t-micro text-muted-foreground">
+        <Link to="/profile" className="text-foreground underline underline-offset-2">
+          Sign in
+        </Link>{" "}
+        to save a day-level strategy across devices. Hole notes still work on this phone as a
+        guest.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <textarea
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        rows={3}
+        maxLength={800}
+        placeholder="Pairing thoughts, clubs to lean on, holes to attack…"
+        className="control t-body w-full resize-none"
+        aria-label="Day strategy"
+      />
+      <div className="flex items-center justify-between gap-2">
+        <span className="t-micro text-muted-foreground">
+          {loading ? "Loading…" : save.isPending ? "Saving…" : "Private · only you"}
+        </span>
+        <button
+          type="button"
+          disabled={save.isPending || draft === plan}
+          onClick={() =>
+            save.mutate(draft, {
+              onSuccess: () => toast.success("Day plan saved"),
+              onError: () => toast.error("Could not save"),
+            })
+          }
+          className="press btn-gold t-body !min-h-10 !px-4 disabled:opacity-40"
+        >
+          Save
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -406,6 +750,7 @@ function RoundOverview({
   current,
   hasNote,
   noteSnippet,
+  contestByHole,
   onJump,
 }: {
   courseId: CourseId;
@@ -413,6 +758,7 @@ function RoundOverview({
   current: number;
   hasNote: (h: number) => boolean;
   noteSnippet: (h: number) => string | null;
+  contestByHole: Map<number, Array<"ctp" | "ld">>;
   onJump: (h: number) => void;
 }) {
   return (
@@ -424,12 +770,13 @@ function RoundOverview({
       <ul className="divide-y divide-border">
         {holes.map((h) => {
           const snippet = noteSnippet(h.h);
+          const contests = contestByHole.get(h.h) ?? [];
           return (
             <li key={h.h}>
               <button
                 type="button"
                 onClick={() => onJump(h.h)}
-                className={`press flex w-full items-center gap-3 px-4 py-2.5 text-left ${
+                className={`press flex w-full items-center gap-3 px-4 py-3 text-left ${
                   h.h === current ? "bg-secondary/50" : ""
                 }`}
               >
@@ -444,6 +791,11 @@ function RoundOverview({
                 <span className="t-micro min-w-0 flex-1 truncate text-muted-foreground">
                   {snippet || "—"}
                 </span>
+                {contests.length > 0 ? (
+                  <span className="t-micro shrink-0 font-semibold text-gold-light">
+                    {contests.map((c) => (c === "ld" ? "LD" : "CTP")).join(" · ")}
+                  </span>
+                ) : null}
               </button>
             </li>
           );
@@ -612,7 +964,7 @@ function HoleJournal({
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="press btn-quiet t-micro shrink-0 !min-h-9 !px-3"
+            className="press btn-quiet t-micro shrink-0 !min-h-10 !px-3"
           >
             Edit
           </button>
@@ -670,6 +1022,27 @@ function HoleJournal({
         </span>
       </div>
 
+      {/* Quick presets */}
+      <div className="no-scrollbar flex gap-1.5 overflow-x-auto pb-0.5">
+        {QUICK_PRESETS.map((p) => (
+          <button
+            key={p.label}
+            type="button"
+            onClick={() => {
+              dirty.current = true;
+              if (p.draft.tee_club) setClub(p.draft.tee_club);
+              if (p.draft.target_line) setLine(p.draft.target_line);
+              if (p.draft.green_note) setGreen(p.draft.green_note);
+              if (p.draft.notes) setNotes(p.draft.notes);
+              setEditing(true);
+            }}
+            className="press t-micro shrink-0 min-h-10 rounded-full border border-border px-3 text-muted-foreground"
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
       <div className="surface-inset space-y-4 p-3.5">
         <div>
           <p className="t-micro mb-1.5 text-muted-foreground">Club off the tee</p>
@@ -679,7 +1052,7 @@ function HoleJournal({
                 key={c}
                 type="button"
                 onClick={() => touch(setClub)(c === "Other" ? "" : c)}
-                className={`press t-micro min-h-10 rounded-full border px-3 ${
+                className={`press t-micro min-h-11 rounded-full border px-3 ${
                   club === c ||
                   (c === "Other" &&
                     club &&
@@ -722,7 +1095,7 @@ function HoleJournal({
                 key={side.id}
                 type="button"
                 onClick={() => touch(setGreen)(side.label)}
-                className={`press t-micro min-h-10 rounded-full border px-3 ${
+                className={`press t-micro min-h-11 rounded-full border px-3 ${
                   green === side.label
                     ? "border-foreground/30 bg-secondary text-foreground"
                     : "border-border text-muted-foreground"
@@ -750,7 +1123,7 @@ function HoleJournal({
                 key={n}
                 type="button"
                 onClick={() => touch(setScore)(String(n))}
-                className={`press t-micro min-h-10 min-w-11 rounded-full border px-3 tabular-nums ${
+                className={`press t-micro min-h-11 min-w-11 rounded-full border px-3 tabular-nums ${
                   score === String(n)
                     ? "border-foreground/30 bg-secondary text-foreground"
                     : "border-border text-muted-foreground"
@@ -806,7 +1179,7 @@ function HoleJournal({
               type="button"
               onClick={() => setEditing(false)}
               disabled={status === "saving"}
-              className="press btn-gold t-body !min-h-10 !px-4"
+              className="press btn-gold t-body !min-h-11 !px-4"
             >
               Done
             </button>

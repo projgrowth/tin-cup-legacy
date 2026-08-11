@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AuthCard } from "@/components/tin-cup/AuthCard";
 import { LoadingForm, PageHeading, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
-import { signOut } from "@/integrations/nhost/client";
+import { signOut } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/captain")({
   head: () => ({

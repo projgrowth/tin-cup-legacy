@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Mail } from "lucide-react";
 
-import { nhost } from "@/integrations/nhost/client";
+import { supabase } from "@/integrations/supabase/client";
 
 type AuthCardProps = {
   blurb: string;
@@ -39,14 +39,15 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
     setBusy(true);
     setSentTo(null);
     try {
-      await nhost.auth.signInPasswordlessEmail({
+      const { error } = await supabase.auth.signInWithOtp({
         email: trimmed,
-        options: { redirectTo },
+        options: { emailRedirectTo: redirectTo },
       });
+      if (error) throw error;
       setSentTo(trimmed);
       toast.success("Check your email for a sign-in link.");
     } catch (error) {
-      // Endpoint may be disabled in Nhost — fall through to password with a clear message.
+      // If passwordless email is disabled, fall through to password with a clear message.
       const message = error instanceof Error ? error.message : "Could not send link";
       if (/disabled|not enabled|forbidden|invalid-request/i.test(message)) {
         toast.message("Magic link isn’t enabled — use a password below.");
@@ -69,14 +70,16 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
     setSentTo(null);
     try {
       if (mode === "password-in") {
-        await nhost.auth.signInEmailPassword({ email: trimmed, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: trimmed, password });
+        if (error) throw error;
         toast.success("Signed in");
       } else {
-        await nhost.auth.signUpEmailPassword({
+        const { error } = await supabase.auth.signUp({
           email: trimmed,
           password,
-          options: { redirectTo },
+          options: { emailRedirectTo: redirectTo },
         });
+        if (error) throw error;
         setSentTo(trimmed);
         toast.success("Account created — confirm email if asked, then sign in.");
         setMode("password-in");
@@ -96,10 +99,8 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
     }
     setBusy(true);
     try {
-      await nhost.auth.sendPasswordResetEmail({
-        email: trimmed,
-        options: { redirectTo },
-      });
+      const { error } = await supabase.auth.resetPasswordForEmail(trimmed, { redirectTo });
+      if (error) throw error;
       setSentTo(trimmed);
       toast.success("Password reset email sent (if that account exists).");
     } catch (error) {

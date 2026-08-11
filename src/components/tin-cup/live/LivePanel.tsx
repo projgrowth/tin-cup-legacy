@@ -1,13 +1,32 @@
 import { useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { Map } from "lucide-react";
+
 import type { Match, Player, Round, SideBet, Team } from "@/hooks/useTournament";
 import { LiveWireTicker } from "@/components/tin-cup/LiveWireTicker";
 import { PhotoVault } from "@/components/tin-cup/PhotoVault";
 import { roundStatus } from "@/lib/scoring";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { formatPayout } from "@/lib/purse";
+import { contestHoleLabel } from "@/lib/tin-cup";
+import {
+  COURSE_LABEL,
+  ROUND_COURSE,
+  defaultCourseId,
+  type CourseId,
+} from "@/lib/courses";
 import { BetClaim } from "./MatchControls";
 import { LiveHero, RoundStrip, StatusLine, StickyCupBar } from "./ScoreBoard";
 import { RoundBlock } from "./RoundBlock";
+
+function courseIdFromRound(round: Round): CourseId {
+  if (ROUND_COURSE[round.slug]) return ROUND_COURSE[round.slug];
+  const c = round.course.toLowerCase();
+  if (c.includes("copperhead")) return "copperhead";
+  if (c.includes("island")) return "island";
+  if (c.includes("south")) return "south";
+  return defaultCourseId();
+}
 
 export function LivePanel({
   rounds,
@@ -43,7 +62,8 @@ export function LivePanel({
   const claimedPots = sideBets.filter((b) => Boolean(b.player_name?.trim())).length;
   const decided = matches.some((m) => m.result !== "pending");
   const [needsResultOnly, setNeedsResultOnly] = useState(initialOpenOnly);
-  const [sideOpen, setSideOpen] = useState(false);
+  // Open side cash when captains are scoring or any pot is claimed — outdoor glance.
+  const [sideOpen, setSideOpen] = useState(canScore || claimedPots > 0);
   const orderedRounds = useMemo(() => {
     const weight: Record<string, number> = { live: 0, upcoming: 1, complete: 2 };
     return [...rounds].sort(
@@ -51,11 +71,35 @@ export function LivePanel({
     );
   }, [rounds]);
 
+  const liveRound =
+    orderedRounds.find((r) => roundStatus(r) === "live") ??
+    orderedRounds.find((r) => roundStatus(r) === "upcoming") ??
+    orderedRounds[0];
+  const planCourse = liveRound ? courseIdFromRound(liveRound) : defaultCourseId();
+
   return (
     <div className="stack-page">
       <LiveHero rounds={rounds} matches={matches} teams={teams} />
       {decided && <StickyCupBar matches={matches} />}
       {decided && <RoundStrip rounds={rounds} matches={matches} />}
+
+      {/* On-course shortcut while the cup is live */}
+      <Link
+        to="/scout"
+        search={{ course: planCourse, hole: 1 }}
+        className="press surface-inset flex min-h-12 items-center justify-between gap-3 px-4 py-3"
+      >
+        <span className="min-w-0">
+          <span className="t-body flex items-center gap-2 font-medium text-foreground">
+            <Map className="size-4 shrink-0 opacity-70" />
+            {COURSE_LABEL[planCourse]} planner
+          </span>
+          <span className="t-micro mt-0.5 block text-muted-foreground">
+            Maps · notes · contest holes
+          </span>
+        </span>
+        <span className="t-micro shrink-0 text-muted-foreground">Open →</span>
+      </Link>
 
       {/* PGA-style wire: score changes, side cash, social — before the board */}
       <LiveWireTicker
@@ -90,7 +134,7 @@ export function LivePanel({
               type="button"
               aria-pressed={needsResultOnly}
               onClick={() => setNeedsResultOnly((value) => !value)}
-              className={`press min-h-10 rounded-full border px-3 t-micro font-semibold ${
+              className={`press min-h-11 rounded-full border px-3 t-micro font-semibold ${
                 needsResultOnly
                   ? "border-foreground/25 bg-secondary text-foreground"
                   : "border-border text-muted-foreground"
@@ -143,8 +187,14 @@ export function LivePanel({
                     {group.rows.map((bet) => (
                       <li key={bet.id} className="py-3">
                         <div className="flex items-center justify-between gap-3">
-                          <span className="t-body min-w-0 truncate text-foreground">
-                            {bet.label}
+                          <span className="min-w-0">
+                            <span className="t-body block truncate text-foreground">
+                              {bet.label}
+                            </span>
+                            <span className="t-micro text-muted-foreground">
+                              {contestHoleLabel(bet.hole)}
+                              {bet.distance != null ? ` · ${bet.distance}` : ""}
+                            </span>
                           </span>
                           <span className="t-body shrink-0 text-right text-foreground">
                             {bet.player_name ?? "Open"}

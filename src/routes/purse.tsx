@@ -107,8 +107,7 @@ function PursePage() {
                       {bet.label}
                     </span>
                     <span className="t-micro text-muted-foreground">
-                      {bet.player_name ?? "Open"}
-                      {bet.hole != null ? ` · ${contestHoleLabel(bet.hole)}` : ""}
+                      {bet.player_name ?? "Open"} · {contestHoleLabel(bet.hole)}
                     </span>
                   </span>
                   <span className="t-numeral shrink-0 text-foreground">

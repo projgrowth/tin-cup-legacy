@@ -20,7 +20,7 @@ test("home loads its local brand and command center", async ({ page }) => {
     response.url().endsWith("/tin-cup-logo.png"),
   );
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "The weekend starts here" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tin Cup 2026" })).toBeVisible();
   await expect(page.getByText("Today at Tin Cup")).toHaveCount(0);
   expect((await logoRequest).ok()).toBe(true);
   await expect(page.getByRole("button", { name: "Captain score input" })).toHaveCount(0);
@@ -32,7 +32,7 @@ test("home loads its local brand and command center", async ({ page }) => {
 test("weekend, scout and purse retain confirmed source-of-truth details", async ({ page }) => {
   await page.goto("/schedule");
   await expect(page.getByRole("heading", { name: "Weekend" })).toBeVisible();
-  await expect(page.getByText("Day 1 locked")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Day 1 pairings" })).toBeVisible();
   await expect(page.getByText("Zack / Chris")).toBeVisible();
   await expect(page.getByText("Charles / Blake")).toBeVisible();
   await expectNoHorizontalOverflow(page);
@@ -41,6 +41,7 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   // South Black H1 = 335 (not the old OSM-junk 258).
   await page.getByRole("tab", { name: /South/i }).click();
   await expect(page.getByText(/Black · 335/)).toBeVisible();
+  await page.getByText("Map notes", { exact: true }).click();
   await expect(page.getByText(/Black tees/i).first()).toBeVisible();
   await expect(page.getByText(/orientation only/i).first()).toBeVisible();
   await page.getByRole("tab", { name: /Copperhead/i }).click();
@@ -54,7 +55,7 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(payment).toHaveAttribute("href", /https:\/\/venmo\.com\/Kmaher.*amount=150/);
   await expect(page.getByText("$800").first()).toBeVisible();
   // Kevin admin: CTP $100, LD $100; contest holes stay TBD (captains set pairings only).
-  await expect(page.getByText("$100").first()).toBeVisible();
+  await expect(page.getByText("$100", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Hole TBD").first()).toBeVisible();
   await expect(page.locator("main")).not.toContainText("$93");
   await expect(page.locator("main")).not.toContainText("$120");

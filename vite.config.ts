@@ -31,10 +31,17 @@ export default defineConfig({
         manifest: false,
         devOptions: { enabled: false },
         workbox: {
-          globPatterns: ["**/*.{js,css,woff2,png,jpg,jpeg,svg,ico}"],
+          // Include JSON (course data chunks), fonts, icons — enough for Scout offline.
+          globPatterns: [
+            "**/*.{js,css,html,json,woff2,png,jpg,jpeg,svg,ico,webmanifest}",
+          ],
+          // Don't precache the cinematic intro video (large; not required offline).
+          globIgnores: ["**/tin-cup-intro.mp4", "**/tin-cup-intro-720*"],
           navigateFallback: "/",
           navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /^\/_serverFn\//],
           cleanupOutdatedCaches: true,
+          // Fail the build if the precache is empty (event-day offline depends on it).
+          maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
           runtimeCaching: [
             {
               urlPattern: ({ request }) => request.mode === "navigate",
@@ -43,11 +50,28 @@ export default defineConfig({
             },
             {
               urlPattern: ({ url, sameOrigin }) =>
-                sameOrigin && url.pathname.startsWith("/assets/"),
+                sameOrigin &&
+                (url.pathname.startsWith("/assets/") ||
+                  url.pathname.endsWith(".json") ||
+                  url.pathname === "/tin-cup-logo.png" ||
+                  url.pathname === "/app-icon-512.png" ||
+                  url.pathname === "/favicon.png"),
               handler: "CacheFirst",
               options: {
                 cacheName: "tin-cup-assets",
-                expiration: { maxEntries: 160, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              },
+            },
+            {
+              // Supabase GraphQL — prefer network, fall back to last good board/notes.
+              urlPattern: ({ url }) =>
+                url.hostname.includes("supabase") &&
+                (url.pathname.includes("/graphql") || url.pathname.includes("/rest/")),
+              handler: "NetworkFirst",
+              options: {
+                cacheName: "tin-cup-api",
+                networkTimeoutSeconds: 5,
+                expiration: { maxEntries: 40, maxAgeSeconds: 60 * 60 * 6 },
               },
             },
           ],

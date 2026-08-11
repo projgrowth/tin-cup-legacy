@@ -11,7 +11,7 @@
  *   the retry budget they move to a persisted `failed` list that the UI surfaces
  *   with a manual retry, so a lost result is always visible to the captain.
  */
-import { graphqlRequest } from "@/integrations/nhost/graphql";
+import { graphqlRequest } from "@/integrations/supabase/graphql";
 
 export type QueueTable = "matches" | "side_bets" | "trophies";
 

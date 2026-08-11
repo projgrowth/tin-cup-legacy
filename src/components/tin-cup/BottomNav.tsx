@@ -4,7 +4,7 @@ import { BarChart3, CalendarDays, Map, Users, Wallet } from "lucide-react";
 const items = [
   { to: "/", label: "Live", icon: BarChart3, exact: true },
   { to: "/schedule", label: "Day", icon: CalendarDays, exact: false },
-  { to: "/scout", label: "Map", icon: Map, exact: false },
+  { to: "/scout", label: "Plan", icon: Map, exact: false },
   { to: "/rosters", label: "Teams", icon: Users, exact: false },
   { to: "/purse", label: "Pay", icon: Wallet, exact: false },
 ] as const;

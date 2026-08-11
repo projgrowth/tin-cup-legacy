@@ -103,19 +103,20 @@ Include a top status segmented control to toggle app focus:
 
 ## Backend
 
-The app uses [Nhost](https://nhost.io/) for Postgres, GraphQL, authentication,
-storage, and role-based permissions. The database schema and seed data live in
-`nhost/migrations`; the checked-in Hasura metadata defines table tracking,
-relationships, and permissions.
+The active backend is Supabase for Postgres, Auth, Realtime, Storage, and
+row-level security. Timestamped schema and security changes live in
+`supabase/migrations`.
 
-For a new Nhost project:
+For a new Supabase project:
 
-1. Copy `.env.example` to `.env.local` and set the public project subdomain and region.
-2. Apply `nhost/migrations/default/20260803170000_tin_cup_schema/up.sql` in the Nhost SQL editor with **Track this** enabled.
-3. Set `NHOST_ADMIN_SECRET` only in your local shell or deployment secret store, then run `node scripts/apply-nhost-metadata.mjs`.
-4. Configure the Nhost Auth client URL and allowed redirects for the deployed domain.
+1. Copy `.env.example` to `.env.local` and set the public URL and publishable key.
+2. Apply every file in `supabase/migrations` in timestamp order.
+3. Set `SUPABASE_SERVICE_ROLE_KEY` only in the server deployment environment.
+4. Configure Supabase Site URL and allowed redirects for apex, `www`, and preview callbacks.
 
-Never expose the Nhost admin secret in a `VITE_` variable or commit it to the repository.
+Never expose a Supabase secret/service-role key in a `VITE_` variable or commit it.
+The old Nhost adapter, package, migrations, and production variables remain only
+for rollback until the 14-day soak and final recoverable backup are complete.
 
 ## Event-day ops
 
@@ -134,7 +135,7 @@ Prefer working locally? You need Node.js and npm — [install with nvm](https://
 git clone <this-repository-url>
 cd <repository-name>
 npm i
-# copy .env.example → .env.local and set Nhost + VITE_VENMO_HANDLE
+# copy .env.example → .env.local and set Supabase + VITE_VENMO_HANDLE
 npm run dev
 ```
 

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { graphqlRequest } from "@/integrations/nhost/graphql";
+import { graphqlRequest } from "@/integrations/supabase/graphql";
 import type { Player, Team } from "@/hooks/useTournament";
 
 export type ActivityItem = {

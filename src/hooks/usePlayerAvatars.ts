@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { nhost } from "@/integrations/nhost/client";
-import { graphqlRequest } from "@/integrations/nhost/graphql";
+import { signedVaultUrl } from "@/integrations/supabase/storage";
+import { graphqlRequest } from "@/integrations/supabase/graphql";
 import type { Player, Team } from "@/hooks/useTournament";
 
 export type AvatarEntry = {
@@ -100,8 +100,7 @@ async function loadAvatarIndex(
   await Promise.all(
     paths.map(async ({ playerId, path }) => {
       try {
-        const signed = await nhost.storage.getFilePresignedURL(path);
-        const url = signed?.body?.url ?? null;
+        const url = await signedVaultUrl(path);
         const entry = byPlayerId.get(playerId);
         if (entry && url) entry.url = url;
       } catch {

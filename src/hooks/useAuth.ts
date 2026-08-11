@@ -7,14 +7,13 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { StoredSession } from "@nhost/nhost-js";
-import type { User } from "@nhost/nhost-js/auth";
+import type { Session, User } from "@supabase/supabase-js";
 
-import { nhost } from "@/integrations/nhost/client";
-import { graphqlRequest } from "@/integrations/nhost/graphql";
+import { supabase } from "@/integrations/supabase/client";
+import { graphqlRequest } from "@/integrations/supabase/graphql";
 
 export type AuthState = {
-  session: StoredSession | null;
+  session: Session | null;
   user: User | null;
   loading: boolean;
   canScore: boolean;
@@ -82,7 +81,7 @@ async function loadRoles(userId: string): Promise<{ canScore: boolean; isAdmin: 
 }
 
 function useAuthState(): AuthState {
-  const [session, setSession] = useState<StoredSession | null>(() => nhost.getUserSession());
+  const [session, setSession] = useState<Session | null>(null);
   const initialRoles = readRoleCache(session?.user?.id);
   const [loading, setLoading] = useState(true);
   const [canScore, setCanScore] = useState(initialRoles.canScore);
@@ -91,8 +90,21 @@ function useAuthState(): AuthState {
   const [rolesError, setRolesError] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoading(false);
-    return nhost.sessionStorage.onChange((next) => setSession(next));
+    let mounted = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (mounted) {
+        setSession(data.session);
+        setLoading(false);
+      }
+    });
+    const { data } = supabase.auth.onAuthStateChange((_event, next) => {
+      setSession(next);
+      setLoading(false);
+    });
+    return () => {
+      mounted = false;
+      data.subscription.unsubscribe();
+    };
   }, []);
 
   const refreshRoles = useCallback(async () => {

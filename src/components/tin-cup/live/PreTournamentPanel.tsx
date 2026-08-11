@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { Map, CalendarDays } from "lucide-react";
 
 import { AvatarPair } from "@/components/tin-cup/Avatar";
 import { Countdown } from "@/components/tin-cup/Countdown";
@@ -18,11 +19,13 @@ import {
   TOURNAMENT_BANK,
   VENMO_HANDLE,
   VENMO_IS_PLACEHOLDER,
+  WEEKEND_SOCIAL,
   WHATSAPP_GROUP_CONFIGURED,
   venmoUrl,
 } from "@/lib/tin-cup";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { DAY1_META, DAY1_PAIRINGS, day1GroupForPlayer } from "@/lib/day1-pairings";
+import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
 import { tallyStandings } from "@/lib/scoring";
 
 export function PreTournamentPanel({
@@ -49,6 +52,9 @@ export function PreTournamentPanel({
   const isClaimed = signedIn && Boolean(claimedName) && !needsClaim;
   const myDay1 = claimedName ? day1GroupForPlayer(claimedName) : null;
   const avatars = usePlayerAvatars(players, teams);
+  const nextCourseId = defaultCourseId() as CourseId;
+  const nextDetails = COURSE_DETAILS[nextCourseId];
+  const fridaySocial = WEEKEND_SOCIAL[0];
 
   return (
     <div className="stack-page pb-2">
@@ -82,6 +88,60 @@ export function PreTournamentPanel({
         </div>
       </div>
 
+      {/* Weekend command strip — next up */}
+      <section className="surface-raised overflow-hidden">
+        <div className="border-b border-border px-4 py-3">
+          <p className="t-eyebrow">Next up</p>
+          <p className="t-title mt-1.5 text-foreground">
+            {nextDetails.dayLabel} · {COURSE_LABEL[nextCourseId]}
+          </p>
+          <p className="t-micro mt-1 text-muted-foreground">
+            First tee {nextDetails.firstTee} · {nextDetails.format}
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
+          <Link
+            to="/scout"
+            search={{ course: nextCourseId, hole: 1 }}
+            className="press flex min-h-14 flex-col items-start justify-center gap-0.5 bg-card px-4 py-3"
+          >
+            <span className="inline-flex items-center gap-1.5 t-micro font-semibold text-foreground">
+              <Map className="size-3.5 opacity-70" /> Game plan
+            </span>
+            <span className="t-micro text-muted-foreground">Maps & notes</span>
+          </Link>
+          <Link
+            to="/schedule"
+            className="press flex min-h-14 flex-col items-start justify-center gap-0.5 bg-card px-4 py-3"
+          >
+            <span className="inline-flex items-center gap-1.5 t-micro font-semibold text-foreground">
+              <CalendarDays className="size-3.5 opacity-70" /> Weekend
+            </span>
+            <span className="t-micro text-muted-foreground">Tees & dinners</span>
+          </Link>
+          <Link
+            to="/rosters"
+            className="press flex min-h-14 flex-col items-start justify-center gap-0.5 bg-card px-4 py-3"
+          >
+            <span className="t-micro font-semibold text-foreground">Teams</span>
+            <span className="t-micro text-muted-foreground">Rosters</span>
+          </Link>
+          <div className="flex min-h-14 flex-col items-start justify-center gap-0.5 bg-card px-4 py-3">
+            <WhatsAppGroupButton className="!min-h-0 !border-0 !bg-transparent !px-0 !py-0 t-micro font-semibold text-foreground" />
+            <span className="t-micro text-muted-foreground">
+              {WHATSAPP_GROUP_CONFIGURED ? "Group chat" : "Scores live here"}
+            </span>
+          </div>
+        </div>
+        {fridaySocial && (
+          <p className="border-t border-border px-4 py-2.5 t-micro text-muted-foreground">
+            <span className="font-medium text-foreground/90">{fridaySocial.day}</span>
+            {" · "}
+            {fridaySocial.title}
+          </p>
+        )}
+      </section>
+
       {/* For you — claimed only */}
       {isClaimed && myDay1 && (
         <section className="surface-raised p-4">
@@ -112,7 +172,14 @@ export function PreTournamentPanel({
               </p>
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+            <Link
+              to="/scout"
+              search={{ course: "south", hole: 1 }}
+              className="press t-micro font-semibold text-foreground underline-offset-2 hover:underline"
+            >
+              Plan South →
+            </Link>
             <Link to="/profile" className="press t-micro text-muted-foreground underline-offset-2 hover:underline">
               My hub
             </Link>
@@ -194,6 +261,13 @@ export function PreTournamentPanel({
         </ul>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <FormatSheet />
+          <Link
+            to="/scout"
+            search={{ course: "south", hole: 1 }}
+            className="press t-micro text-muted-foreground underline-offset-2 hover:underline"
+          >
+            South planner
+          </Link>
           <Link to="/purse" className="press t-micro text-muted-foreground underline-offset-2 hover:underline">
             Money details
           </Link>
@@ -222,7 +296,7 @@ export function PreTournamentPanel({
           Teams
         </Link>
         <Link to="/scout" className="press t-micro text-muted-foreground">
-          Map
+          Plan
         </Link>
         <WhatsAppGroupButton className="!min-h-0 !border-0 !bg-transparent !px-0 !py-0 t-micro text-muted-foreground" />
         <ShareBoardButton className="!min-h-0 !border-0 !bg-transparent !px-0 !py-0 t-micro text-muted-foreground" />

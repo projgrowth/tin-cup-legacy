@@ -74,7 +74,8 @@
   --secondary: oklch(0.2 0.018 165);
   --secondary-foreground: oklch(0.94 0.01 100);
   --muted: oklch(0.19 0.016 165);
-  --muted-foreground: oklch(0.72 0.012 150);
+  /* Slightly brighter for outdoor / sunlight legibility */
+  --muted-foreground: oklch(0.76 0.012 150);
   --accent: oklch(0.64 0.1 55);
   --accent-foreground: oklch(0.98 0.008 100);
   --destructive: oklch(0.6 0.19 25);
@@ -186,6 +187,14 @@
 @utility t-micro {
   font-size: 0.8125rem;
   line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+/* Slightly larger micro for outdoor status chips when needed */
+@utility t-micro-strong {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  font-weight: 600;
   color: var(--muted-foreground);
 }
 

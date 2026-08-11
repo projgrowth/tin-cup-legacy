@@ -273,9 +273,9 @@ function TodayAtTinCup({
           <Link
             to="/scout"
             search={{ course: todayCourse, hole: 1 }}
-            className="press btn-quiet t-micro min-h-10 px-3 py-2"
+            className="press btn-quiet t-micro min-h-11 px-3 py-2 font-semibold"
           >
-            {COURSE_LABEL[todayCourse]}
+            {COURSE_LABEL[todayCourse]} plan
           </Link>
           <ShareBoardButton
             scoreLine={`${standings.strongMental}–${standings.grassRoots}`}

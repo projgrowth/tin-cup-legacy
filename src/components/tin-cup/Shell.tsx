@@ -13,7 +13,7 @@ import {
   useTournament,
 } from "@/hooks/useTournament";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
-import { graphqlRequest } from "@/integrations/nhost/graphql";
+import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { tallyStandings } from "@/lib/scoring";
 import { retryFailed } from "@/lib/write-queue";
 import { playerInitials } from "@/lib/team-styles";

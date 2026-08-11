@@ -8,7 +8,7 @@ import { ErrorState, LoadingRows, PageHeading, Shell } from "@/components/tin-cu
 import { WhatsAppGroupButton } from "@/components/tin-cup/WhatsAppLinks";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
-import { graphqlRequest } from "@/integrations/nhost/graphql";
+import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { formatRecord, playerRecord, tallyStandings } from "@/lib/scoring";

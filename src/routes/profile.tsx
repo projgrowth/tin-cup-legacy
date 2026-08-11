@@ -13,7 +13,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useRoundPlan } from "@/hooks/useJournal";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { useTournament } from "@/hooks/useTournament";
-import { nhost, signOut } from "@/integrations/nhost/client";
+import { signOut } from "@/integrations/supabase/client";
+import { signedVaultUrl, uploadVaultImage } from "@/integrations/supabase/storage";
 import { COURSE_LABEL, ROUND_COURSE, type CourseId } from "@/lib/courses";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { clearGuestNotes, countGuestNotes, listGuestNotes } from "@/lib/guest-notes";
@@ -211,21 +212,13 @@ function MyHubCard({
     }
     setUploading(true);
     try {
-      const user = nhost.getUserSession()?.user;
-      if (!user) throw new Error("Sign in again");
-      const uploaded = await nhost.storage.uploadFiles({
-        "bucket-id": "default",
-        "file[]": [file],
-        "metadata[]": [{ name: `avatars/${user.id}-${crypto.randomUUID()}` }],
-      });
-      const stored = uploaded.body.processedFiles[0];
-      if (!stored?.id) throw new Error("Upload failed");
+      const storagePath = await uploadVaultImage(file, "avatars");
       await new Promise<void>((resolve, reject) => {
         save.mutate(
           {
             display_name: profile?.display_name || player.name,
             player_id: player.id,
-            avatar_path: stored.id,
+            avatar_path: storagePath,
           },
           {
             onSuccess: () => resolve(),
@@ -233,8 +226,7 @@ function MyHubCard({
           },
         );
       });
-      const signed = await nhost.storage.getFilePresignedURL(stored.id);
-      setLocalUrl(signed?.body?.url ?? null);
+      setLocalUrl(await signedVaultUrl(storagePath));
       setShowPicker(false);
       void queryClient.invalidateQueries({ queryKey: ["player-avatars"] });
       void queryClient.invalidateQueries({ queryKey: ["activity-feed"] });
@@ -381,7 +373,7 @@ async function saveForCourse(
     notes?: string | null;
   },
 ) {
-  const { graphqlRequest } = await import("@/integrations/nhost/graphql");
+  const { graphqlRequest } = await import("@/integrations/supabase/graphql");
   await graphqlRequest(
     `mutation SaveHoleNote($object: hole_notes_insert_input!) {
       insert_hole_notes_one(
@@ -542,8 +534,12 @@ function PlanCard({ slug, label, format }: { slug: string; label: string; format
           />
           <div className="flex items-center justify-between gap-3">
             {course ? (
-              <Link to="/scout" className="t-micro text-muted-foreground">
-                Scout {COURSE_LABEL[course]} →
+              <Link
+                to="/scout"
+                search={{ course, hole: 1 }}
+                className="t-micro text-muted-foreground"
+              >
+                Open {COURSE_LABEL[course]} planner →
               </Link>
             ) : (
               <span />

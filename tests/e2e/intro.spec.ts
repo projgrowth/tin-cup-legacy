@@ -48,5 +48,5 @@ test("intro does not replay after skip (localStorage)", async ({ page }, testInf
 
   await page.reload();
   await expect(page.getByLabel("Tin Cup Invitational film intro")).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "The weekend starts here" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tin Cup 2026" })).toBeVisible();
 });
