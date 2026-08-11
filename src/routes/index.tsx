@@ -5,6 +5,7 @@ import { CinematicIntro } from "@/components/tin-cup/CinematicIntro";
 import { ScoreModal } from "@/components/tin-cup/ScoreModal";
 import { Shell, SkeletonBlock } from "@/components/tin-cup/Shell";
 import { ShareBoardButton } from "@/components/tin-cup/WhatsAppLinks";
+import { DisplayBoard } from "@/components/tin-cup/live/DisplayBoard";
 import { HallOfFamePanel, LivePanel, PreTournamentPanel } from "@/components/tin-cup/panels";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
@@ -23,7 +24,15 @@ const MODES: Array<{ key: BoardMode; label: string }> = [
 
 const PHASE_OVERRIDE_KEY = "tin-cup-phase-override-v1";
 
+type HomeSearch = {
+  /** Clubhouse / TV large-type board */
+  board?: boolean;
+};
+
 export const Route = createFileRoute("/")({
+  validateSearch: (raw: Record<string, unknown>): HomeSearch => ({
+    board: raw.board === true || raw.board === "1" || raw.board === 1,
+  }),
   head: () => ({
     links: [{ rel: "preload", as: "image", href: "/tin-cup-intro-poster.jpg" }],
     meta: [
@@ -45,6 +54,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const { board: displayMode } = Route.useSearch();
   const [autoMode, setAutoMode] = useState<BoardMode>("pre");
   const [override, setOverride] = useState<BoardMode | null>(null);
   const [introDone, setIntroDone] = useState(true);
@@ -99,6 +109,26 @@ function Index() {
   const claimedPlayer = profile?.player_id
     ? (data?.players ?? []).find((p) => p.id === profile.player_id)
     : undefined;
+
+  // Clubhouse / TV large-type mode — no shell chrome
+  if (displayMode) {
+    if (isPending && !data) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <p className="t-body text-muted-foreground">Loading board…</p>
+        </div>
+      );
+    }
+    return (
+      <DisplayBoard
+        rounds={data?.rounds ?? []}
+        matches={data?.matches ?? []}
+        teams={data?.teams ?? []}
+        sideBets={data?.sideBets ?? []}
+        syncedAt={data?.syncedAt}
+      />
+    );
+  }
 
   return (
     <>

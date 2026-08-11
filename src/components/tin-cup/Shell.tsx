@@ -28,11 +28,12 @@ export function Shell({
   variant?: ShellVariant;
 }) {
   const { user, canScore, isAdmin } = useAuth();
-  const { data: tournament } = useTournament();
+  const { data: tournament, isError: tournamentError, isFetching } = useTournament();
   const pending = usePendingWrites();
   const failed = useFailedWrites();
   const conflicts = useWriteConflicts();
   const [online, setOnline] = useState(true);
+  const staleBoard = tournamentError && Boolean(tournament);
 
   const { data: myPlayerId } = useQuery({
     queryKey: ["my-player", user?.id],
@@ -161,6 +162,9 @@ export function Shell({
         failed={failed.length}
         conflicts={conflicts.length}
         online={online}
+        stale={staleBoard}
+        syncing={isFetching && !tournamentError}
+        syncedAt={tournament?.syncedAt}
       />
       <main id="main-content" className={`mx-auto w-full ${width} px-4 pt-3.5 sm:px-5 sm:pt-5`}>
         {children}
@@ -170,26 +174,39 @@ export function Shell({
   );
 }
 
+function formatSyncTime(syncedAt?: number) {
+  if (!syncedAt) return null;
+  return new Date(syncedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
 function GlobalSyncStatus({
   pending,
   failed,
   conflicts,
   online,
+  stale,
+  syncing,
+  syncedAt,
 }: {
   pending: number;
   failed: number;
   conflicts: number;
   online: boolean;
+  stale?: boolean;
+  syncing?: boolean;
+  syncedAt?: number;
 }) {
+  const when = formatSyncTime(syncedAt);
+  const banner =
+    "sticky top-[3.25rem] z-20 mx-auto mt-0 flex w-full max-w-6xl items-center gap-2 border-b px-4 py-2.5 sm:px-5";
+
   if (conflicts > 0) {
     return (
-      <div
-        role="alert"
-        className="mx-auto mt-2 flex w-[calc(100%-2.5rem)] max-w-6xl items-center gap-2 rounded-xl border border-copper/40 bg-copper/10 px-3 py-2 text-copper"
-      >
+      <div role="alert" className={`${banner} border-copper/40 bg-copper/15 text-copper`}>
         <AlertTriangle className="size-4 shrink-0" />
-        <span className="t-micro flex-1 text-copper">
-          {conflicts} update{conflicts === 1 ? "" : "s"} conflicted. Refresh before retrying.
+        <span className="t-micro-strong flex-1 text-copper">
+          {conflicts} scoring conflict{conflicts === 1 ? "" : "s"} — open Live and resolve before
+          posting more results.
         </span>
         <Link
           to="/"
@@ -202,13 +219,11 @@ function GlobalSyncStatus({
   }
   if (failed > 0) {
     return (
-      <div
-        role="alert"
-        className="mx-auto mt-2 flex w-[calc(100%-2.5rem)] max-w-6xl items-center gap-2 rounded-xl border border-copper/40 bg-copper/10 px-3 py-2 text-copper"
-      >
+      <div role="alert" className={`${banner} border-copper/40 bg-copper/15 text-copper`}>
         <AlertTriangle className="size-4 shrink-0" />
-        <span className="t-micro flex-1 text-copper">
-          {failed} update{failed === 1 ? "" : "s"} failed to save. Open Live to retry.
+        <span className="t-micro-strong flex-1 text-copper">
+          {failed} update{failed === 1 ? "" : "s"} failed to save
+          {when ? ` · last good ${when}` : ""}.
         </span>
         <button
           type="button"
@@ -224,11 +239,12 @@ function GlobalSyncStatus({
     return (
       <div
         aria-live="polite"
-        className="mx-auto mt-2 flex w-[calc(100%-2.5rem)] max-w-6xl items-center gap-2 rounded-xl border border-border bg-secondary/80 px-3 py-2 text-muted-foreground"
+        className={`${banner} border-border bg-secondary/95 text-muted-foreground backdrop-blur-md`}
       >
         <CloudOff className="size-4 shrink-0" />
-        <span className="t-micro text-muted-foreground">
-          {pending} update{pending === 1 ? "" : "s"} saved offline and waiting to sync.
+        <span className="t-micro-strong flex-1">
+          {pending} offline update{pending === 1 ? "" : "s"} waiting to sync
+          {!online ? " · still offline" : online && syncing ? " · reconnecting…" : ""}.
         </span>
       </div>
     );
@@ -237,10 +253,25 @@ function GlobalSyncStatus({
     return (
       <div
         aria-live="polite"
-        className="mx-auto mt-2 flex w-[calc(100%-2.5rem)] max-w-6xl items-center gap-2 rounded-xl border border-border bg-secondary/70 px-3 py-2"
+        className={`${banner} border-border bg-secondary/95 backdrop-blur-md`}
       >
         <CloudOff className="size-4 shrink-0 text-muted-foreground" />
-        <span className="t-micro">Offline — showing saved tournament data.</span>
+        <span className="t-micro-strong flex-1 text-foreground">
+          Offline — showing saved data{when ? ` · synced ${when}` : ""}.
+        </span>
+      </div>
+    );
+  }
+  if (stale) {
+    return (
+      <div
+        role="status"
+        className={`${banner} border-border bg-secondary/90 backdrop-blur-md`}
+      >
+        <AlertTriangle className="size-4 shrink-0 text-muted-foreground" />
+        <span className="t-micro-strong flex-1 text-muted-foreground">
+          Showing cached board{when ? ` · last synced ${when}` : ""}. Pull to refresh when online.
+        </span>
       </div>
     );
   }
