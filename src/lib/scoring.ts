@@ -160,6 +160,41 @@ export function pairingIncludes(side: string | null, name: string): boolean {
 }
 
 /**
+ * Pairing match for Live “My match” / highlight — accepts full names and short
+ * Day-1 labels (`Zack / Chris` for `Zack Smith`) via first-name tokens.
+ */
+export function pairingIncludesLoose(side: string | null, name: string): boolean {
+  if (pairingIncludes(side, name)) return true;
+  if (!side) return false;
+  const first = name.trim().split(/\s+/)[0]?.toLowerCase();
+  if (!first || first.length < 2) return false;
+  return side
+    .split(/[/,&+]|\band\b/i)
+    .map((part) => part.trim().toLowerCase())
+    .some((part) => {
+      if (!part) return false;
+      if (part === first) return true;
+      return part.split(/\s+/)[0] === first;
+    });
+}
+
+export function playerInMatch(
+  match: { side_a: string | null; side_b: string | null },
+  name: string,
+): boolean {
+  return pairingIncludesLoose(match.side_a, name) || pairingIncludesLoose(match.side_b, name);
+}
+
+/** Short format chip from match labels like "Scramble Match 1" / "Stableford Front 9". */
+export function matchFormatChip(label: string): string {
+  const matchNum = label.match(/^(.+?)\s+Match\s+\d+\s*$/i);
+  if (matchNum) return matchNum[1]!.trim();
+  const stableford = label.match(/^Stableford\s+(.+)$/i);
+  if (stableford) return stableford[1]!.trim();
+  return label.trim();
+}
+
+/**
  * A player's win/loss/halve record from the pairings written on each match.
  * Points credited are the match's full points on a win, half on a halve.
  */

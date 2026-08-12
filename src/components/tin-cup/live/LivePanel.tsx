@@ -16,6 +16,7 @@ import {
   type CourseId,
 } from "@/lib/courses";
 import { BetClaim } from "./MatchControls";
+import { MyMatchCard } from "./MyMatchCard";
 import { LiveHero, RoundStrip, StatusLine, StickyCupBar } from "./ScoreBoard";
 import { RoundBlock } from "./RoundBlock";
 
@@ -42,6 +43,7 @@ export function LivePanel({
   canScore = false,
   canUpload = false,
   initialOpenOnly = false,
+  claimedName = null,
 }: {
   rounds: Round[];
   matches: Match[];
@@ -56,6 +58,7 @@ export function LivePanel({
   canScore?: boolean;
   canUpload?: boolean;
   initialOpenOnly?: boolean;
+  claimedName?: string | null;
 }) {
   const ctp = sideBets.filter((b) => isCtp(b.kind));
   const ld = sideBets.filter((b) => isLongDrive(b.kind));
@@ -83,6 +86,17 @@ export function LivePanel({
       {/* Always show race sticky — remaining points matter before any result posts */}
       <StickyCupBar matches={matches} />
       {decided && <RoundStrip rounds={rounds} matches={matches} />}
+
+      {/* Claimed player: who you play right now */}
+      {claimedName && (
+        <MyMatchCard
+          claimedName={claimedName}
+          rounds={rounds}
+          matches={matches}
+          players={players}
+          teams={teams}
+        />
+      )}
 
       {/* On-course shortcut while the cup is live */}
       <Link
@@ -154,6 +168,7 @@ export function LivePanel({
             players={players}
             canScore={canScore}
             pendingOnly={needsResultOnly}
+            claimedName={claimedName}
           />
         ))}
       </section>

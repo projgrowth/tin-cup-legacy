@@ -193,6 +193,7 @@ function Index() {
                 canScore={canScore}
                 canUpload={Boolean(user)}
                 initialOpenOnly={canScore}
+                claimedName={claimedPlayer?.name ?? null}
               />
             ))}
           {mode === "post" && (

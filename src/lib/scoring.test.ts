@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   clinchSummary,
   formatRecord,
+  matchFormatChip,
   pairingIncludes,
+  pairingIncludesLoose,
+  playerInMatch,
   playerRecord,
   raceLine,
   roundStatus,
@@ -244,5 +247,45 @@ describe("playerRecord", () => {
   it("formats shorthand and returns null before any match is played", () => {
     expect(formatRecord(playerRecord(matches, "Zack Smith", "strong-mental"))).toBe("1-1-1");
     expect(formatRecord(playerRecord(matches, "Seth Beaver", "strong-mental"))).toBeNull();
+  });
+});
+
+describe("pairingIncludesLoose / playerInMatch", () => {
+  it("matches short Day-1 labels via first name", () => {
+    expect(pairingIncludesLoose("Zack / Chris", "Zack Smith")).toBe(true);
+    expect(pairingIncludesLoose("Charles / Blake", "Blake Weeks")).toBe(true);
+    expect(pairingIncludesLoose("Zack / Chris", "Mike Maher")).toBe(false);
+  });
+
+  it("still rejects last-name-only fragments", () => {
+    expect(pairingIncludesLoose("Mike Maher / Barry Rigby", "Maher")).toBe(false);
+  });
+
+  it("detects a player on either side of a match", () => {
+    expect(
+      playerInMatch(
+        { side_a: "Zack / Chris", side_b: "Charles / Blake" },
+        "Chris Maher",
+      ),
+    ).toBe(true);
+    expect(
+      playerInMatch(
+        { side_a: "Zack / Chris", side_b: "Charles / Blake" },
+        "Seth Beaver",
+      ),
+    ).toBe(false);
+  });
+});
+
+describe("matchFormatChip", () => {
+  it("pulls format from numbered match labels", () => {
+    expect(matchFormatChip("Scramble Match 1")).toBe("Scramble");
+    expect(matchFormatChip("Alt Shot Match 4")).toBe("Alt Shot");
+    expect(matchFormatChip("Singles Match 8")).toBe("Singles");
+  });
+
+  it("shortens Stableford session labels", () => {
+    expect(matchFormatChip("Stableford Front 9")).toBe("Front 9");
+    expect(matchFormatChip("Stableford Overall")).toBe("Overall");
   });
 });

@@ -3,8 +3,23 @@ import { useState } from "react";
 import { AvatarPair } from "@/components/tin-cup/Avatar";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
-import { roundStatus, roundTally } from "@/lib/scoring";
+import { matchFormatChip, playerInMatch, roundStatus, roundTally } from "@/lib/scoring";
 import { MatchPairingEditor, MatchResultButtons } from "./MatchControls";
+
+function resultTone(result: string): string {
+  if (result === "pending") return "text-muted-foreground";
+  if (result === "strong-mental") return "text-gold-light";
+  if (result === "grass-roots") return "text-copper";
+  return "text-foreground";
+}
+
+function resultText(result: string, points: number): string {
+  if (result === "pending") return `${points}pt`;
+  if (result === "halved") return "½";
+  if (result === "strong-mental") return "SM";
+  if (result === "grass-roots") return "GR";
+  return result;
+}
 
 export function RoundBlock({
   round,
@@ -13,6 +28,7 @@ export function RoundBlock({
   players = [],
   canScore = false,
   pendingOnly = false,
+  claimedName = null,
 }: {
   round: Round;
   matches: Match[];
@@ -20,6 +36,7 @@ export function RoundBlock({
   players?: Player[];
   canScore?: boolean;
   pendingOnly?: boolean;
+  claimedName?: string | null;
 }) {
   const status = roundStatus(round);
   const rows = matches.filter(
@@ -47,13 +64,16 @@ export function RoundBlock({
           <h3 className="t-title truncate text-foreground">
             {round.day_label}
             {status === "live" && (
-              <span className="t-micro ml-2 font-normal text-muted-foreground">Live</span>
+              <span className="t-micro ml-2 font-normal text-copper">Live</span>
             )}
             {allDone && status !== "live" && (
               <span className="t-micro ml-2 font-normal text-muted-foreground">Final</span>
             )}
           </h3>
-          <p className="t-micro mt-0.5 truncate text-muted-foreground">{round.course}</p>
+          <p className="t-micro mt-0.5 truncate text-muted-foreground">
+            {round.course}
+            {round.format ? ` · ${round.format}` : ""}
+          </p>
         </div>
         <span className="t-numeral shrink-0 text-foreground">
           {tally.strongMental}–{tally.grassRoots}
@@ -61,76 +81,106 @@ export function RoundBlock({
       </button>
 
       {open && (
-        <div className="border-t border-border px-4 pb-3.5 pt-1">
+        <div className="border-t border-border px-3 pb-3 pt-1 sm:px-4">
           {rows.length > 0 ? (
-            <ul className="divide-y divide-border">
-              {rows.map((match) => (
-                <li key={match.id} className="py-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="flex min-w-0 flex-1 items-center gap-2.5">
-                      {(match.side_a || match.side_b) && (
-                        <span className="flex shrink-0 items-center gap-1">
-                          <AvatarPair
-                            people={(avatars.data?.forSide(match.side_a) ?? []).map((e) => ({
-                              name: e.name,
-                              teamSlug: e.teamSlug,
-                              src: e.url,
-                            }))}
-                          />
-                          <span className="t-micro text-muted-foreground">vs</span>
-                          <AvatarPair
-                            people={(avatars.data?.forSide(match.side_b) ?? []).map((e) => ({
-                              name: e.name,
-                              teamSlug: e.teamSlug,
-                              src: e.url,
-                            }))}
-                          />
-                        </span>
-                      )}
-                      <span className="min-w-0">
-                        <span className="t-body block truncate font-medium text-foreground">
-                          {match.side_a || match.side_b
-                            ? `${match.side_a ?? "TBD"} vs ${match.side_b ?? "TBD"}`
-                            : match.label}
-                        </span>
+            <ul className="space-y-2 pt-2">
+              {rows.map((match) => {
+                const mine =
+                  Boolean(claimedName) && playerInMatch(match, claimedName!);
+                const format = matchFormatChip(match.label);
+                const liveOpen = status === "live" && match.result === "pending";
+                return (
+                  <li
+                    key={match.id}
+                    className={`rounded-xl border px-3 py-3 ${
+                      mine
+                        ? "border-gold/35 bg-gold/8"
+                        : liveOpen
+                          ? "border-[var(--hud-border)] bg-[var(--hud-bg)]"
+                          : "border-border/70 bg-background/40"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="flex min-w-0 flex-1 items-center gap-2.5">
                         {(match.side_a || match.side_b) && (
-                          <span className="t-micro block truncate text-muted-foreground">
-                            {match.label} · {match.points}pt
+                          <span className="flex shrink-0 items-center gap-1">
+                            <AvatarPair
+                              people={(avatars.data?.forSide(match.side_a) ?? []).map(
+                                (e) => ({
+                                  name: e.name,
+                                  teamSlug: e.teamSlug,
+                                  src: e.url,
+                                }),
+                              )}
+                            />
+                            <span className="t-micro text-muted-foreground">vs</span>
+                            <AvatarPair
+                              people={(avatars.data?.forSide(match.side_b) ?? []).map(
+                                (e) => ({
+                                  name: e.name,
+                                  teamSlug: e.teamSlug,
+                                  src: e.url,
+                                }),
+                              )}
+                            />
                           </span>
                         )}
+                        <span className="min-w-0">
+                          <span className="t-body block truncate font-medium text-foreground">
+                            {match.side_a || match.side_b
+                              ? `${match.side_a ?? "TBD"} vs ${match.side_b ?? "TBD"}`
+                              : match.label}
+                          </span>
+                          <span className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <span
+                              className={`rounded-full border px-2 py-0.5 t-micro font-semibold ${
+                                mine
+                                  ? "border-gold/40 bg-gold/15 text-gold-light"
+                                  : "border-[var(--hud-border)] bg-black/20 text-[var(--hud-muted)]"
+                              }`}
+                            >
+                              {format}
+                            </span>
+                            <span className="rounded-full border border-border/80 px-2 py-0.5 t-micro font-semibold tabular-nums text-muted-foreground">
+                              {match.points}pt
+                            </span>
+                            {mine && (
+                              <span className="rounded-full border border-gold/30 bg-gold/10 px-2 py-0.5 t-micro font-semibold text-gold-light">
+                                You
+                              </span>
+                            )}
+                            {liveOpen && (
+                              <span className="rounded-full border border-copper/35 bg-copper/10 px-2 py-0.5 t-micro font-semibold text-copper">
+                                Live
+                              </span>
+                            )}
+                          </span>
+                        </span>
                       </span>
-                    </span>
-                    <span
-                      className={`t-body shrink-0 pt-0.5 tabular-nums ${
-                        match.result === "pending"
-                          ? "text-muted-foreground"
-                          : match.result === "strong-mental"
-                            ? "text-gold-light"
-                            : match.result === "grass-roots"
-                              ? "text-copper"
-                              : "text-foreground"
-                      }`}
-                    >
-                      {match.result === "pending"
-                        ? `${match.points}pt`
-                        : match.result === "halved"
-                          ? "½"
-                          : match.result === "strong-mental"
-                            ? "SM"
-                            : "GR"}
-                    </span>
-                  </div>
-                  {canScore && (
-                    <>
-                      <MatchResultButtons match={match} teams={teams} />
-                      <MatchPairingEditor match={match} teams={teams} players={players} />
-                    </>
-                  )}
-                </li>
-              ))}
+                      <span
+                        className={`hud-num shrink-0 pt-0.5 text-base ${resultTone(match.result)}`}
+                      >
+                        {resultText(match.result, match.points)}
+                      </span>
+                    </div>
+                    {canScore && (
+                      <>
+                        <MatchResultButtons match={match} teams={teams} />
+                        <MatchPairingEditor
+                          match={match}
+                          teams={teams}
+                          players={players}
+                        />
+                      </>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           ) : (
-            <p className="t-micro mt-2 text-muted-foreground">No open matches in this filter.</p>
+            <p className="t-micro mt-2 text-muted-foreground">
+              No open matches in this filter.
+            </p>
           )}
         </div>
       )}
