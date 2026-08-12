@@ -134,11 +134,11 @@ function Index() {
     <>
       {!introDone && <CinematicIntro onDone={() => setIntroDone(true)} />}
       <Shell variant="dashboard">
-        {/* Pre home handles claim CTA; keep banner on live only */}
+        {/* Claim nudge on live; pre mode uses the raised card in PreTournamentPanel */}
         {needsClaim && mode === "live" && (
           <Link
             to="/profile"
-            className="press mb-4 flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3"
+            className="press mb-4 flex items-center justify-between gap-3 rounded-xl border border-gold/30 bg-secondary/40 px-4 py-3"
           >
             <span className="min-w-0">
               <span className="t-body block font-medium text-foreground">Claim your roster name</span>
@@ -146,7 +146,7 @@ function Index() {
                 Unlocks your player card, private notes, and photo credits
               </span>
             </span>
-            <span className="t-micro shrink-0 text-muted-foreground">Account →</span>
+            <span className="t-micro shrink-0 font-semibold text-gold-light">Account →</span>
           </Link>
         )}
         {mode === "live" && (

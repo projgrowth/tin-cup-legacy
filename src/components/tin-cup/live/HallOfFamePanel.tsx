@@ -97,23 +97,41 @@ export function HallOfFamePanel({
   trophies: Trophy[];
   canScore?: boolean;
 }) {
+  const awarded = trophies.filter((t) => Boolean(t.winner_name?.trim())).length;
+  const preEvent = awarded === 0 && trophies.length > 0;
+
   return (
     <div className="space-y-8">
       <section>
         <h2 className="t-eyebrow">Trophy Room</h2>
-        {trophies.map((trophy) => (
-          <article key={trophy.id} className="hairline mt-4 pt-4">
-            <div className="flex items-baseline justify-between gap-3">
-              <h3 className="t-title min-w-0 truncate text-foreground">{trophy.name}</h3>
-              <span className="t-body shrink-0 text-foreground">
-                {trophy.winner_name ?? "Open"}
-              </span>
-            </div>
-            <p className="t-micro mt-1">{trophy.description}</p>
-            {trophy.winner_note && <p className="t-micro mt-1 text-copper">{trophy.winner_note}</p>}
-            {canScore && <TrophyAward trophy={trophy} />}
-          </article>
-        ))}
+        {preEvent && (
+          <p className="t-body mt-2 rounded-xl border border-border bg-secondary/40 px-4 py-3 text-muted-foreground">
+            Awards are presented Sunday after Island. Winners post here once captains lock
+            them — this is a preview of the hardware, not a scoreboard yet.
+          </p>
+        )}
+        {trophies.map((trophy) => {
+          const hasWinner = Boolean(trophy.winner_name?.trim());
+          return (
+            <article key={trophy.id} className="hairline mt-4 pt-4">
+              <div className="flex items-baseline justify-between gap-3">
+                <h3 className="t-title min-w-0 truncate text-foreground">{trophy.name}</h3>
+                <span
+                  className={`t-body shrink-0 ${
+                    hasWinner ? "text-foreground" : "text-muted-foreground"
+                  }`}
+                >
+                  {hasWinner ? trophy.winner_name : preEvent ? "Sunday" : "Open"}
+                </span>
+              </div>
+              <p className="t-micro mt-1">{trophy.description}</p>
+              {trophy.winner_note && (
+                <p className="t-micro mt-1 text-copper">{trophy.winner_note}</p>
+              )}
+              {canScore && <TrophyAward trophy={trophy} />}
+            </article>
+          );
+        })}
         {trophies.length === 0 && (
           <p className="t-micro mt-4">Trophy room loads once the board syncs.</p>
         )}

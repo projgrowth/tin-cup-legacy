@@ -65,7 +65,7 @@ export function ShareBoardButton({
 const INSTALL_KEY = "tc-install-hint-dismissed";
 
 /** One-time install tip for home-screen (captains / power users). */
-export function InstallHint() {
+export function InstallHint({ prominent = false }: { prominent?: boolean }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -83,16 +83,23 @@ export function InstallHint() {
   if (!visible) return null;
 
   return (
-    <div className="surface flex items-start gap-3 p-3.5">
+    <div
+      className={`flex items-start gap-3 p-3.5 ${
+        prominent ? "surface-raised border border-gold/25" : "surface"
+      }`}
+    >
       <div className="min-w-0 flex-1">
         <p className="t-title text-foreground">Add to Home Screen</p>
-        <p className="t-micro mt-1">
-          On iPhone: Share → Add to Home Screen. Faster Live scoring with no browser chrome.
+        <p className="t-micro mt-1 text-muted-foreground">
+          <span className="font-medium text-foreground/90">iPhone:</span> Share → Add to Home
+          Screen.{" "}
+          <span className="font-medium text-foreground/90">Android:</span> menu → Install app /
+          Add to Home screen. Offline maps + one-tap Live board on the course.
         </p>
       </div>
       <button
         type="button"
-        className="press t-micro shrink-0 rounded-lg border border-border px-2.5 py-2 text-muted-foreground"
+        className="press t-micro min-h-11 shrink-0 rounded-lg border border-border px-3 py-2 text-muted-foreground"
         onClick={() => {
           try {
             window.localStorage.setItem(INSTALL_KEY, "1");

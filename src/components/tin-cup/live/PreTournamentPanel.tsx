@@ -193,19 +193,32 @@ export function PreTournamentPanel({
         </section>
       )}
 
+      {/* Claim / install — field onboarding */}
+      {signedIn && needsClaim && (
+        <Link
+          to="/profile"
+          className="press surface-raised flex items-center justify-between gap-3 border border-gold/30 p-4"
+        >
+          <span className="min-w-0">
+            <span className="t-title block text-foreground">Claim your roster name</span>
+            <span className="t-micro mt-1 block text-muted-foreground">
+              Unlocks pairing card, private notes, and photo credits
+            </span>
+          </span>
+          <span className="t-micro shrink-0 font-semibold text-gold-light">Account →</span>
+        </Link>
+      )}
+
+      <InstallHint prominent />
+
       {/* Primary CTA stack */}
       <section className="stack-tight">
         {!signedIn && (
-          <Link to="/profile" className="press t-micro text-center font-medium text-foreground underline-offset-4 hover:underline">
-            Sign in · claim your spot
-          </Link>
-        )}
-        {signedIn && needsClaim && (
           <Link
             to="/profile"
             className="press btn-quiet t-body flex w-full justify-center"
           >
-            Claim your roster name
+            Sign in · claim your spot
           </Link>
         )}
         <a
@@ -306,7 +319,13 @@ export function PreTournamentPanel({
           Chat on WhatsApp · scores here
         </p>
       )}
-      <InstallHint />
+      <Link
+        to="/"
+        search={{ board: true }}
+        className="press t-micro text-center text-muted-foreground underline-offset-2 hover:underline"
+      >
+        Clubhouse display board
+      </Link>
     </div>
   );
 }
