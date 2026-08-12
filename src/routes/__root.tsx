@@ -18,18 +18,15 @@ import { AuthProvider } from "@/hooks/useAuth";
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
+      <div className="panel fade-up w-full max-w-md px-6 py-10 text-center">
+        <p className="t-eyebrow">404</p>
+        <h1 className="t-display mt-2 text-foreground">Page not found</h1>
         <p className="t-body mt-2 text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+          That link doesn&apos;t match anything in the weekend hub.
         </p>
         <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 t-body font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Go home
+          <Link to="/" className="press btn-gold t-body inline-flex min-h-11 px-5">
+            Back to Live
           </Link>
         </div>
       </div>
@@ -46,29 +43,25 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
+      <div className="panel fade-up w-full max-w-md px-6 py-10 text-center">
+        <h1 className="t-title text-foreground">This page didn&apos;t load</h1>
         <p className="t-body mt-2 text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          Something went wrong on our end. Try again or head back to Live.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
+            type="button"
+            className="press btn-gold t-body min-h-11 px-5"
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 t-body font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Try again
           </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 t-body font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            Go home
-          </a>
+          <Link to="/" className="press btn-quiet t-body min-h-11 px-5">
+            Back to Live
+          </Link>
         </div>
       </div>
     </div>

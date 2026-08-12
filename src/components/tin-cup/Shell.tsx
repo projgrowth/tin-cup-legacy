@@ -193,7 +193,10 @@ export function Shell({
         syncing={isFetching && !tournamentError}
         syncedAt={tournament?.syncedAt}
       />
-      <main id="main-content" className={`mx-auto w-full ${width} px-4 pt-3.5 sm:px-5 sm:pt-5`}>
+      <main
+        id="main-content"
+        className={`fade-up mx-auto w-full ${width} px-4 pt-3.5 sm:px-5 sm:pt-5`}
+      >
         {children}
       </main>
       <BottomNav />
@@ -375,15 +378,15 @@ export function ErrorState({
   busy?: boolean;
 }) {
   return (
-    <div className="panel p-6 text-center" role="alert">
+    <div className="panel fade-up px-5 py-8 text-center" role="alert">
       <p className="t-title text-foreground">{title}</p>
-      <p className="t-micro mt-1.5">{detail}</p>
+      <p className="t-micro mt-1.5 max-w-sm mx-auto text-muted-foreground">{detail}</p>
       {onRetry && (
         <button
           type="button"
           onClick={onRetry}
           disabled={busy}
-          className="press btn-quiet t-body mt-4"
+          className="press btn-quiet t-body mt-4 min-h-11 px-5"
         >
           {busy ? "Retrying…" : "Try again"}
         </button>

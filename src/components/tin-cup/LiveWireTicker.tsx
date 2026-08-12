@@ -103,16 +103,23 @@ export function LiveWireTicker({
       </div>
 
       {list.length === 0 ? (
-        <div className="surface-inset flex items-start gap-2.5 px-3.5 py-3.5">
-          <Radio className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" strokeWidth={1.7} />
-          <p className="t-body text-muted-foreground">
-            {variant === "live"
-              ? "Waiting for first result…"
-              : "Field is quiet — claim your name or post the first photo."}
-          </p>
+        <div className="panel flex items-start gap-3 px-4 py-4">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white/5">
+            <Radio className="size-3.5 text-muted-foreground" strokeWidth={1.7} />
+          </span>
+          <div className="min-w-0">
+            <p className="t-body font-medium text-foreground">
+              {variant === "live" ? "Waiting for the first score" : "Quiet so far"}
+            </p>
+            <p className="t-micro mt-0.5 text-muted-foreground">
+              {variant === "live"
+                ? "Results post here the moment captains score."
+                : "Claim your name or drop a photo — updates show up here."}
+            </p>
+          </div>
         </div>
       ) : (
-        <ul className="surface-inset divide-y divide-border overflow-hidden">
+        <ul className="panel divide-y divide-border/70 overflow-hidden">
           {(open ? full.slice(0, 20) : list).map((item) => (
             <WireRow key={item.id} item={item} />
           ))}

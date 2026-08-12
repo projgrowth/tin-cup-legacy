@@ -258,7 +258,10 @@ export function PhotoVault({
     return (
       <section className="space-y-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="t-section text-foreground">Pulse</h2>
+          <div>
+            <h2 className="t-section text-foreground">Pulse</h2>
+            <p className="t-micro mt-0.5 text-muted-foreground">Weekend photos</p>
+          </div>
           {picker}
         </div>
         {captionComposer}
@@ -416,11 +419,20 @@ export function PhotoVault({
           ))}
         </div>
       ) : !isPending && !isError ? (
-        <p className="panel t-body p-5 text-center text-muted-foreground">
-          {canUpload
-            ? "No photos yet. Add the first one."
-            : "No photos yet. Sign in to add the first one."}
-        </p>
+        <div className="panel flex flex-col items-center px-5 py-8 text-center">
+          <p className="t-title text-foreground">No photos yet</p>
+          <p className="t-micro mt-1.5 max-w-xs text-muted-foreground">
+            {canUpload
+              ? "Drop the first weekend shot — it shows up on Live and Pulse."
+              : "Sign in to post photos for the field."}
+          </p>
+          {canUpload && picker ? <div className="mt-4 w-full max-w-xs">{picker}</div> : null}
+          {!canUpload ? (
+            <Link to="/profile" className="press btn-quiet t-body mt-4 min-h-11 px-4">
+              Sign in
+            </Link>
+          ) : null}
+        </div>
       ) : null}
 
       {lightbox !== null && photos && photos[lightbox] && (
