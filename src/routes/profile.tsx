@@ -146,7 +146,10 @@ function ProfilePage() {
           </section>
           <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
             {canScore && (
-              <Link to="/ops" className="press t-micro text-muted-foreground">
+              <Link
+                to="/ops"
+                className="press t-micro font-semibold text-gold-light underline-offset-2 hover:underline"
+              >
                 Ops
               </Link>
             )}

@@ -27,9 +27,9 @@ export const Route = createFileRoute("/captain")({
 function RoleBadge({ canScore, isAdmin }: { canScore: boolean; isAdmin: boolean }) {
   const label = isAdmin ? "Admin" : canScore ? "Captain" : "No score access";
   const tone = canScore
-    ? "border-border bg-secondary text-foreground"
+    ? "border-[oklch(0.72_0.12_155/40%)] bg-[oklch(0.72_0.12_155/12%)] text-[oklch(0.82_0.1_155)]"
     : "border-border text-muted-foreground";
-  return <span className={`pill t-micro font-medium ${tone}`}>{label}</span>;
+  return <span className={`pill t-micro font-semibold ${tone}`}>{label}</span>;
 }
 
 function CaptainPage() {
@@ -48,7 +48,11 @@ function CaptainPage() {
   if (user) {
     return (
       <Shell>
-        <PageHeading eyebrow="Scorekeeping" title="Captain Access" />
+        <PageHeading
+          eyebrow="Scorekeeping"
+          title="Captain Access"
+          meta="Zack & Charles post results · Kevin is admin only"
+        />
         {rolesError && (
           <div role="alert" className="panel mb-4 flex items-center justify-between gap-3 p-4">
             <p className="t-micro">Scorekeeping access could not be refreshed.</p>
@@ -62,48 +66,60 @@ function CaptainPage() {
             </button>
           </div>
         )}
-        <div className="panel space-y-4 p-5">
-          <div className="flex items-center justify-between gap-3">
-            <p className="t-body min-w-0 truncate text-muted-foreground">
-              Signed in as <span className="text-foreground">{user.email}</span>
+        <div className="stack-page">
+          <div className="panel space-y-4 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <p className="t-body min-w-0 truncate text-muted-foreground">
+                Signed in as <span className="font-medium text-foreground">{user.email}</span>
+              </p>
+              <RoleBadge canScore={canScore} isAdmin={isAdmin} />
+            </div>
+            <p className="t-body text-muted-foreground">
+              {canScore
+                ? "You can set pairings, post match results, and log contest winners from Live."
+                : "This account does not have scorekeeping access yet. Kevin grants captain after you sign in once."}
             </p>
-            <RoleBadge canScore={canScore} isAdmin={isAdmin} />
-          </div>
-          <p className="t-body text-muted-foreground">
-            {canScore
-              ? "You can set pairings, post match results, and log contest winners from the Live tab."
-              : "This account does not have scorekeeping access yet. Ask the tournament admin to grant the captain role."}
-          </p>
-          <div className="space-y-2 rounded-[var(--radius)] border border-border bg-secondary/20 p-3">
-            <p className="t-eyebrow">Weekend setup</p>
-            <ol className="t-micro list-decimal space-y-1.5 pl-4 text-muted-foreground">
-              <li>Confirm the tournament owner has admin access</li>
-              <li>Zack and Charles sign in once</li>
-              <li>Admin grants each the captain role</li>
-              <li>Both captains smoke-test offline scoring on two phones</li>
-            </ol>
-          </div>
-          <Link to="/admin" className="press btn-quiet t-body w-full">
-            Manage scorekeeping access
-          </Link>
-          <Link to="/ops" className="press btn-quiet t-body w-full text-center">
-            Open event ops checklist
-          </Link>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => void navigate({ to: "/" })}
-              className="press btn-gold t-body flex-1"
-            >
-              Go to board
-            </button>
-            <button
-              type="button"
-              onClick={() => void signOut()}
-              className="press btn-quiet t-body"
-            >
-              Sign out
-            </button>
+
+            {canScore ? (
+              <ol className="t-micro list-decimal space-y-2 rounded-xl border border-border/60 bg-secondary/15 px-4 py-3 pl-8 text-muted-foreground">
+                <li>Open Live — gold scoring controls appear on matches.</li>
+                <li>Post a throwaway test result, confirm spectator phone updates, then Clear.</li>
+                <li>Prefer airplane-mode smoke once (EVENT_OPS dual-phone list).</li>
+                <li>Install Add to Home Screen before Friday.</li>
+              </ol>
+            ) : (
+              <ol className="t-micro list-decimal space-y-2 rounded-xl border border-border/60 bg-secondary/15 px-4 py-3 pl-8 text-muted-foreground">
+                <li>Stay signed in so you appear on Admin.</li>
+                <li>Kevin grants the captain role.</li>
+                <li>Reload Live — score buttons should appear.</li>
+                <li>Or use CAPTAIN_EMAILS + Sync on Event Ops.</li>
+              </ol>
+            )}
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => void navigate({ to: "/" })}
+                className="press btn-gold t-body min-h-11 w-full"
+              >
+                {canScore ? "Go score on Live" : "Open Live board"}
+              </button>
+              <Link to="/ops" className="press btn-quiet t-body flex min-h-11 items-center justify-center">
+                Event Ops checklist
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Link to="/admin" className="press btn-quiet t-body min-h-11 text-center">
+                Manage access
+              </Link>
+              <button
+                type="button"
+                onClick={() => void signOut()}
+                className="press btn-quiet t-body min-h-11"
+              >
+                Sign out
+              </button>
+            </div>
           </div>
         </div>
       </Shell>
@@ -112,17 +128,15 @@ function CaptainPage() {
 
   return (
     <Shell>
-      <PageHeading eyebrow="Scorekeeping" title="Captain sign-in" />
-      <p className="t-micro -mt-2 mb-4 text-muted-foreground">
-        Same account as everyone else. After you sign in, Kevin grants captain access.
-      </p>
+      <PageHeading
+        eyebrow="Scorekeeping"
+        title="Captain sign-in"
+        meta="Same account as everyone else. Kevin grants captain after first sign-in."
+      />
       <AuthCard
         redirectPath="/captain"
-        blurb="Sign in to unlock Live scoring once you have the captain role."
+        blurb="Zack and Charles: sign in here, then confirm Event Ops dual-phone dry run."
       />
-      <Link to="/profile" className="press t-body mt-4 block text-center text-muted-foreground">
-        Prefer the main Account page →
-      </Link>
     </Shell>
   );
 }
