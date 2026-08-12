@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { Tables } from "@/integrations/supabase/types";
-import { graphqlRequest } from "@/integrations/nhost/graphql";
+import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useAuth } from "@/hooks/useAuth";
 
 export type Profile = Tables<"profiles">;

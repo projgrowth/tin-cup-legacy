@@ -8,7 +8,7 @@ import {
 } from "@/hooks/useActivityFeed";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import type { Player, Team } from "@/hooks/useTournament";
-import { nhost } from "@/integrations/nhost/client";
+import { signedVaultUrl } from "@/integrations/supabase/storage";
 
 function ActivityRow({
   item,
@@ -70,8 +70,7 @@ export function ActivityFeed({
       await Promise.all(
         paths.map(async (path) => {
           try {
-            const signed = await nhost.storage.getFilePresignedURL(path);
-            const url = signed?.body?.url;
+            const url = await signedVaultUrl(path);
             if (url) next[path] = url;
           } catch {
             /* monogram */

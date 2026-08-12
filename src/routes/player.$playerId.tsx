@@ -6,7 +6,7 @@ import { Avatar } from "@/components/tin-cup/Avatar";
 import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
-import { graphqlRequest } from "@/integrations/nhost/graphql";
+import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { formatRecord, pairingIncludes, playerRecord, roundStatus } from "@/lib/scoring";

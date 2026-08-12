@@ -43,6 +43,14 @@ export const COURSE_LABEL: Record<CourseId, string> = {
   island: "Island",
 };
 
+/** Scorecard tee colors we surface. Hole-by-hole yards are confirmed for Black only. */
+export const TEE_ORDER = ["black"] as const;
+export type TeeColor = (typeof TEE_ORDER)[number];
+
+export const TEE_LABEL: Record<TeeColor, string> = {
+  black: "Black",
+};
+
 export const COURSE_DETAILS: Record<
   CourseId,
   {
@@ -52,6 +60,12 @@ export const COURSE_DETAILS: Record<
     character: string;
     dayLabel: string;
     blackTotal: number;
+    /** Course totals from published scorecards (not hole-by-hole except Black). */
+    teeTotals: Partial<Record<"black" | "green" | "white", number>>;
+    format: string;
+    formatTip: string;
+    firstTee: string;
+    roundSlug: string;
   }
 > = {
   south: {
@@ -62,6 +76,11 @@ export const COURSE_DETAILS: Record<
     officialUrl: "https://www.innisbrookgolfresort.com/golf/courses/south-course",
     scorecardUrl: "https://www.innisbrookgolfresort.com/pdf/southscorecard_remediated.pdf",
     blackTotal: 6620,
+    teeTotals: { black: 6620, green: 6340, white: 5900 },
+    format: "Scramble + Modified Alt Shot",
+    formatTip: "Scramble first nine mindset · pick the smart miss, not hero ball. Alt shot: talk every club.",
+    firstTee: "12:19 PM",
+    roundSlug: "friday",
   },
   copperhead: {
     character: "Championship · Saturday",
@@ -71,6 +90,11 @@ export const COURSE_DETAILS: Record<
     officialUrl: "https://www.innisbrookgolfresort.com/golf/courses/copperhead-course",
     scorecardUrl: "https://www.innisbrookgolfresort.com/pdf/copperheadscorecard_remediated.pdf",
     blackTotal: 7209,
+    teeTotals: { black: 7209 },
+    format: "Modified Stableford Match",
+    formatTip: "Stableford rewards aggression on birdie holes — protect the big numbers on Snake Pit.",
+    firstTee: "9:54 AM",
+    roundSlug: "saturday",
   },
   island: {
     character: "Water & elevation · Sunday",
@@ -80,8 +104,33 @@ export const COURSE_DETAILS: Record<
     officialUrl: "https://www.innisbrookgolfresort.com/golf/courses/island-course",
     scorecardUrl: "https://www.innisbrookgolfresort.com/pdf/islandscorecard_remediated.pdf",
     blackTotal: 7194,
+    teeTotals: { black: 7194 },
+    format: "Shamble + Singles",
+    formatTip: "Shamble: get one in play. Singles: play your game — points are on the board all day.",
+    firstTee: "9:54 AM",
+    roundSlug: "sunday",
   },
 };
+
+const TEE_PREF_KEY = "tc-scout-tee-v1";
+
+export function getStoredTee(_courseId: CourseId): TeeColor {
+  // Only Black has verified hole-by-hole yards today.
+  return "black";
+}
+
+export function setStoredTee(_courseId: CourseId, _tee: TeeColor) {
+  try {
+    window.localStorage.setItem(TEE_PREF_KEY, "black");
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Hole yardage for the selected tee. Black uses official scorecard yards in hole data. */
+export function holeYardsForTee(hole: Hole, _tee: TeeColor = "black"): number {
+  return hole.yards;
+}
 
 export function isCourseId(value: unknown): value is CourseId {
   return typeof value === "string" && (COURSE_ORDER as readonly string[]).includes(value);
@@ -111,6 +160,26 @@ export function formatScorecardYards(yards: number | null | undefined): string {
 export function formatBlackYardChip(yards: number | null | undefined): string {
   if (yards == null || !Number.isFinite(yards) || yards <= 0) return "Black · —";
   return `Black · ${Math.round(yards)}`;
+}
+
+export function formatTeeYardChip(
+  yards: number | null | undefined,
+  tee: TeeColor = "black",
+): string {
+  if (yards == null || !Number.isFinite(yards) || yards <= 0) return `${TEE_LABEL[tee]} · —`;
+  return `${TEE_LABEL[tee]} · ${Math.round(yards)}`;
+}
+
+/** Course id → calendar round slug used by round_plans. */
+export function roundSlugForCourse(courseId: CourseId): string {
+  return COURSE_DETAILS[courseId].roundSlug;
+}
+
+export function courseIdForRoundSlug(slug: string): CourseId | null {
+  for (const id of COURSE_ORDER) {
+    if (COURSE_DETAILS[id].roundSlug === slug) return id;
+  }
+  return null;
 }
 
 /** Eastern calendar date YYYY-MM-DD for tournament scheduling. */

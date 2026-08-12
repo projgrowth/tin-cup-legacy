@@ -11,7 +11,13 @@ import { useTournament } from "@/hooks/useTournament";
 import { evaluateReadiness, isEventReady, readinessScore } from "@/lib/ops-checks";
 import { getServiceWorkerStatus, type ServiceWorkerStatus } from "@/lib/register-sw";
 import { syncMyCaptainAccess } from "@/lib/roles.functions";
-import { EXPECTED_PLAYER_COUNT, VENMO_HANDLE, VENMO_IS_PLACEHOLDER, venmoUrl } from "@/lib/tin-cup";
+import {
+  EXPECTED_PLAYER_COUNT,
+  VENMO_HANDLE,
+  VENMO_IS_PLACEHOLDER,
+  WHATSAPP_GROUP_CONFIGURED,
+  venmoUrl,
+} from "@/lib/tin-cup";
 
 export const Route = createFileRoute("/ops")({
   head: () => ({
@@ -96,6 +102,15 @@ function OpsPage() {
   const revisionGuardReady =
     Boolean(data?.matches.length) &&
     data!.matches.every((match) => Number.isInteger(match.revision));
+  const contestHolesSet = useMemo(() => {
+    const bets = data?.sideBets ?? [];
+    if (bets.length === 0) return false;
+    return bets.filter((b) => b.hole != null).length >= 4;
+  }, [data?.sideBets]);
+  const decidedMatches = useMemo(
+    () => (data?.matches ?? []).filter((m) => m.result !== "pending").length,
+    [data?.matches],
+  );
 
   async function trySyncCaptain() {
     setSyncing(true);
@@ -251,6 +266,42 @@ function OpsPage() {
                     : "Checking…"
                 }
               />
+              <Row
+                done={WHATSAPP_GROUP_CONFIGURED}
+                label="WhatsApp group link"
+                detail={
+                  WHATSAPP_GROUP_CONFIGURED
+                    ? "VITE_WHATSAPP_GROUP_URL is set"
+                    : "Optional — set VITE_WHATSAPP_GROUP_URL for Group chat button"
+                }
+              />
+              <Row
+                done={Boolean(data && data.players.length === EXPECTED_PLAYER_COUNT)}
+                label="Field roster"
+                detail={
+                  data
+                    ? `${data.players.length}/${EXPECTED_PLAYER_COUNT} player slots seeded`
+                    : "Board not loaded"
+                }
+              />
+              <Row
+                done={contestHolesSet}
+                label="Contest holes posted"
+                detail={
+                  contestHolesSet
+                    ? "CTP/LD holes have numbers — Scout will badge them"
+                    : "Still TBD — captains do not pick holes; post when known"
+                }
+              />
+              <Row
+                done={decidedMatches > 0}
+                label="Scoring dry run complete"
+                detail={
+                  decidedMatches > 0
+                    ? `${decidedMatches} match result(s) on the board (clear test scores after smoke)`
+                    : "No results yet — run two-phone test before Friday"
+                }
+              />
             </ul>
           </section>
 
@@ -311,6 +362,31 @@ function OpsPage() {
             <Link to="/" className="press btn-quiet t-body flex w-full items-center justify-center">
               Open live board
             </Link>
+            <Link
+              to="/"
+              search={{ board: true }}
+              className="press btn-quiet t-body flex w-full items-center justify-center"
+            >
+              Clubhouse display board
+            </Link>
+            <Link
+              to="/scout"
+              search={{ course: "south", hole: 1 }}
+              className="press btn-quiet t-body flex w-full items-center justify-center"
+            >
+              South course planner
+            </Link>
+          </section>
+
+          <section className="surface space-y-3 p-4">
+            <h2 className="t-eyebrow">Pre-Friday freeze</h2>
+            <ol className="t-micro list-decimal space-y-2 pl-4 text-muted-foreground">
+              <li>Deploy planner branch and smoke /, /scout, claim, captain score.</li>
+              <li>Run two-phone scoring test above on a throwaway result then Clear.</li>
+              <li>Install app on both captain phones (Add to Home Screen).</li>
+              <li>Post CTP/LD holes when set — do not invent.</li>
+              <li>Content-only updates after freeze; no schema thrash.</li>
+            </ol>
           </section>
         </div>
       )}

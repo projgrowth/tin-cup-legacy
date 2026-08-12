@@ -5,8 +5,14 @@ import { ChevronLeft, ChevronRight, Loader2, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { PhotoPicker } from "@/components/tin-cup/PhotoPicker";
-import { nhost } from "@/integrations/nhost/client";
-import { graphqlRequest, subscribeGraphql } from "@/integrations/nhost/graphql";
+import { supabase } from "@/integrations/supabase/client";
+import { graphqlRequest, subscribeGraphql } from "@/integrations/supabase/graphql";
+import {
+  currentUserId,
+  deleteVaultObject,
+  signedVaultUrl,
+  uploadVaultImage,
+} from "@/integrations/supabase/storage";
 
 type VaultItem = {
   id: string;
@@ -54,7 +60,7 @@ async function loadPhotos(): Promise<VaultItem[]> {
   }
 
   const signed = await Promise.all(
-    rows.map((row) => nhost.storage.getFilePresignedURL(row.storage_path)),
+    rows.map((row) => signedVaultUrl(row.storage_path)),
   );
 
   return rows.map((row, i) => {
@@ -62,7 +68,7 @@ async function loadPhotos(): Promise<VaultItem[]> {
     return {
       id: row.id,
       caption: row.caption,
-      url: signed[i]?.body.url ?? "",
+      url: signed[i] ?? "",
       storagePath: row.storage_path,
       uploadedBy: row.uploaded_by,
       authorName,
@@ -91,8 +97,11 @@ export function PhotoVault({
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    setUserId(nhost.getUserSession()?.user?.id ?? null);
-    return nhost.sessionStorage.onChange((session) => setUserId(session?.user?.id ?? null));
+    void currentUserId().then(setUserId).catch(() => setUserId(null));
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user.id ?? null);
+    });
+    return () => data.subscription.unsubscribe();
   }, []);
 
   const {
@@ -123,22 +132,16 @@ export function PhotoVault({
     mutationFn: async ({ file, caption }: { file: File; caption: string }) => {
       if (!file.type.startsWith("image/")) throw new Error("That file isn't an image");
       if (file.size > 12 * 1024 * 1024) throw new Error("Images need to be under 12MB");
-      const user = nhost.getUserSession()?.user;
+      const user = await currentUserId();
       if (!user) throw new Error("Sign in to add photos");
       setProgress(15);
-      const uploaded = await nhost.storage.uploadFiles({
-        "bucket-id": "default",
-        "file[]": [file],
-        "metadata[]": [{ name: `${user.id}-${crypto.randomUUID()}-${file.name}` }],
-      });
-      const stored = uploaded.body.processedFiles[0];
-      if (!stored) throw new Error("Nhost did not return the uploaded file");
+      const storagePath = await uploadVaultImage(file, "photos");
       setProgress(85);
       await graphqlRequest(
         `mutation AddPhoto($fileId: String!, $caption: String) {
           insert_photos_one(object: {storage_path: $fileId, caption: $caption}) { id }
         }`,
-        { fileId: stored.id, caption: caption.trim() || null },
+        { fileId: storagePath, caption: caption.trim() || null },
       );
       setProgress(100);
     },
@@ -162,7 +165,7 @@ export function PhotoVault({
         `mutation RemovePhoto($id: uuid!) { delete_photos_by_pk(id: $id) { id } }`,
         { id: photo.id },
       );
-      await nhost.storage.deleteFile(photo.storagePath);
+      await deleteVaultObject(photo.storagePath);
     },
     onSuccess: () => {
       toast.success("Photo removed");

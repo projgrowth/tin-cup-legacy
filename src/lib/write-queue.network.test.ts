@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { graphqlRequest } = vi.hoisted(() => ({ graphqlRequest: vi.fn() }));
 
-vi.mock("@/integrations/nhost/graphql", () => ({ graphqlRequest }));
+vi.mock("@/integrations/supabase/graphql", () => ({ graphqlRequest }));
 
 import {
   __resetQueueForTests,

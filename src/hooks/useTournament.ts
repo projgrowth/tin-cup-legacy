@@ -2,7 +2,7 @@ import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { Tables } from "@/integrations/supabase/types";
-import { graphqlRequest, subscribeGraphql } from "@/integrations/nhost/graphql";
+import { graphqlRequest, subscribeGraphql } from "@/integrations/supabase/graphql";
 import {
   applyPending,
   flushQueue,
