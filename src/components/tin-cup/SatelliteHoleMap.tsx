@@ -37,9 +37,10 @@ const SATELLITE_STYLE: StyleSpecification = {
       minzoom: 0,
       maxzoom: 22,
       paint: {
-        "raster-fade-duration": 180,
-        "raster-saturation": -0.05,
-        "raster-contrast": 0.08,
+        "raster-fade-duration": 160,
+        "raster-saturation": 0.06,
+        "raster-contrast": 0.12,
+        "raster-brightness-min": 0.02,
       },
     },
   ],
@@ -273,11 +274,11 @@ function flyToHole(map: MapLibreMap, geo: GeoHole, animate: boolean) {
       [e, n],
     ],
     {
-      padding: { top: 72, bottom: 96, left: 44, right: 44 },
-      maxZoom: 17.6,
+      padding: { top: 88, bottom: 88, left: 48, right: 48 },
+      maxZoom: 17.4,
       bearing,
       pitch: 0,
-      duration: animate ? 480 : 0,
+      duration: animate ? 420 : 0,
       essential: true,
     },
   );
@@ -361,7 +362,7 @@ function ensureOverlayLayers(map: MapLibreMap) {
     filter: ["==", ["get", "kind"], "bunker"],
     paint: {
       "fill-color": "#fde68a",
-      "fill-opacity": 0.5,
+      "fill-opacity": 0.28,
     },
   });
   map.addLayer({
@@ -370,9 +371,9 @@ function ensureOverlayLayers(map: MapLibreMap) {
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "bunker"],
     paint: {
-      "line-color": "#d6b56a",
-      "line-width": 1,
-      "line-opacity": 0.7,
+      "line-color": "#f5e6a8",
+      "line-width": 1.2,
+      "line-opacity": 0.55,
     },
   });
   // Play corridor glow + dashed gold — high contrast on light sand
@@ -408,18 +409,20 @@ function ensureOverlayLayers(map: MapLibreMap) {
       "line-join": "round",
     },
   });
-  // Yard stations
+  // Soft polygon fills (don't fight aerial)
+  // already added fairway/green/bunker above — dial bunker softer
+  // Layup stations
   map.addLayer({
     id: "ov-station-dot",
     type: "circle",
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "station"],
     paint: {
-      "circle-radius": 3.5,
-      "circle-color": "#f5e6a8",
-      "circle-stroke-width": 1.5,
-      "circle-stroke-color": "#1a1a12",
-      "circle-opacity": 0.9,
+      "circle-radius": 5,
+      "circle-color": "#0c0c0a",
+      "circle-stroke-width": 2,
+      "circle-stroke-color": "#f5e6a8",
+      "circle-opacity": 0.95,
     },
   });
   map.addLayer({
@@ -429,16 +432,54 @@ function ensureOverlayLayers(map: MapLibreMap) {
     filter: ["==", ["get", "kind"], "station"],
     layout: {
       "text-field": ["get", "label"],
-      "text-size": 11,
+      "text-size": 12,
       "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-      "text-offset": [0, 1.1],
+      "text-offset": [0, 1.15],
       "text-anchor": "top",
-      "text-allow-overlap": false,
+      "text-allow-overlap": true,
     },
     paint: {
-      "text-color": "#f8f5e8",
-      "text-halo-color": "rgba(10,16,12,0.85)",
-      "text-halo-width": 1.4,
+      "text-color": "#fff8e0",
+      "text-halo-color": "rgba(0,0,0,0.9)",
+      "text-halo-width": 1.6,
+    },
+  });
+  // Hazard markers
+  map.addLayer({
+    id: "ov-hazard-sand",
+    type: "circle",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "hazard"],
+    paint: {
+      "circle-radius": 4,
+      "circle-color": "#e8d4a0",
+      "circle-stroke-width": 1.5,
+      "circle-stroke-color": "#1a1a12",
+    },
+  });
+  map.addLayer({
+    id: "ov-hazard-water",
+    type: "circle",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "hazardWater"],
+    paint: {
+      "circle-radius": 4,
+      "circle-color": "#38bdf8",
+      "circle-stroke-width": 1.5,
+      "circle-stroke-color": "#0c1a24",
+    },
+  });
+  // F / B green ticks
+  map.addLayer({
+    id: "ov-green-fb",
+    type: "circle",
+    source: OVERLAY_SOURCE,
+    filter: ["in", ["get", "kind"], ["literal", ["greenFront", "greenBack"]]],
+    paint: {
+      "circle-radius": 4,
+      "circle-color": "#ffffff",
+      "circle-stroke-width": 1.5,
+      "circle-stroke-color": "#c9a227",
     },
   });
   map.addLayer({
@@ -447,10 +488,23 @@ function ensureOverlayLayers(map: MapLibreMap) {
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "teePoint"],
     paint: {
-      "circle-radius": 8,
+      "circle-radius": 7,
       "circle-color": "#f5e6a8",
       "circle-stroke-width": 2.5,
-      "circle-stroke-color": "#1a1a12",
+      "circle-stroke-color": "#0a0a08",
+    },
+  });
+  // Pin — center gold with outer ring
+  map.addLayer({
+    id: "ov-green-pt-ring",
+    type: "circle",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "greenPoint"],
+    paint: {
+      "circle-radius": 12,
+      "circle-color": "rgba(201,162,39,0.2)",
+      "circle-stroke-width": 2,
+      "circle-stroke-color": "#e8c547",
     },
   });
   map.addLayer({
@@ -459,10 +513,10 @@ function ensureOverlayLayers(map: MapLibreMap) {
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "greenPoint"],
     paint: {
-      "circle-radius": 9,
-      "circle-color": "#f0e6c0",
-      "circle-stroke-width": 3,
-      "circle-stroke-color": "#c9a227",
+      "circle-radius": 6,
+      "circle-color": "#f5e6a8",
+      "circle-stroke-width": 2,
+      "circle-stroke-color": "#0a0a08",
     },
   });
   map.addLayer({
@@ -472,15 +526,16 @@ function ensureOverlayLayers(map: MapLibreMap) {
     filter: ["==", ["get", "kind"], "greenPoint"],
     layout: {
       "text-field": "PIN",
-      "text-size": 10,
+      "text-size": 11,
       "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-      "text-offset": [0, 1.35],
+      "text-offset": [0, 1.45],
       "text-anchor": "top",
+      "text-allow-overlap": true,
     },
     paint: {
       "text-color": "#f5e6a8",
-      "text-halo-color": "rgba(10,16,12,0.9)",
-      "text-halo-width": 1.5,
+      "text-halo-color": "rgba(0,0,0,0.92)",
+      "text-halo-width": 1.6,
     },
   });
   map.addLayer({
@@ -490,15 +545,16 @@ function ensureOverlayLayers(map: MapLibreMap) {
     filter: ["==", ["get", "kind"], "teePoint"],
     layout: {
       "text-field": "TEE",
-      "text-size": 10,
+      "text-size": 11,
       "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-      "text-offset": [0, 1.35],
+      "text-offset": [0, 1.4],
       "text-anchor": "top",
+      "text-allow-overlap": true,
     },
     paint: {
       "text-color": "#f5e6a8",
-      "text-halo-color": "rgba(10,16,12,0.9)",
-      "text-halo-width": 1.5,
+      "text-halo-color": "rgba(0,0,0,0.92)",
+      "text-halo-width": 1.6,
     },
   });
 }

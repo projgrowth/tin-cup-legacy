@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   bboxContains,
   bearingDegrees,
+  greenApproachPoints,
   haversineYards,
   holeFrameBounds,
   pointAlongLine,
@@ -10,6 +11,7 @@ import {
 import {
   getGeoHole,
   greenTarget,
+  holeGreenTriple,
   holeOverlayCollection,
   holePlayBearing,
 } from "@/lib/geo-courses";
@@ -108,5 +110,34 @@ describe("geo package — all holes", () => {
       }
     }
     expect(withGreen).toBeGreaterThanOrEqual(50);
+  });
+
+  it("builds F/C/B with center near Black yardage", () => {
+    const g = getGeoHole("copperhead", 1);
+    expect(g).toBeTruthy();
+    if (!g) return;
+    const t = holeGreenTriple(g);
+    expect(t.yardsFromTee.center).toBe(g.blackYards);
+    expect(t.yardsFromTee.front).toBeLessThan(t.yardsFromTee.center);
+    expect(t.yardsFromTee.back).toBeGreaterThan(t.yardsFromTee.center);
+    expect(t.front).toHaveLength(2);
+    expect(t.back).toHaveLength(2);
+  });
+});
+
+describe("greenApproachPoints", () => {
+  it("keeps front before center along a simple line", () => {
+    const line: [number, number][] = [
+      [-82.75, 28.1],
+      [-82.75, 28.11],
+    ];
+    const t = greenApproachPoints({
+      playLine: line,
+      blackYards: 400,
+      green: [-82.75, 28.11],
+      center: [-82.75, 28.11],
+    });
+    expect(t.yardsFromTee.front).toBeLessThan(400);
+    expect(t.yardsFromTee.center).toBe(400);
   });
 });

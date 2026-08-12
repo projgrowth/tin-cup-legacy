@@ -123,3 +123,77 @@ export function pointAlongLine(line: LngLat[], t: number): LngLat | null {
   }
   return line[line.length - 1]!;
 }
+
+/** Push past a point along the last play-line segment (~yards at Black scale). */
+export function extendAlongLine(
+  line: LngLat[],
+  from: LngLat,
+  yards: number,
+  blackYards: number,
+): LngLat {
+  if (line.length < 2 || blackYards <= 0) return from;
+  const a = line[line.length - 2]!;
+  const b = line[line.length - 1]!;
+  const segYd = Math.max(1, haversineYards(a, b));
+  const u = yards / segYd;
+  return [from[0] + (b[0] - a[0]) * u, from[1] + (b[1] - a[1]) * u];
+}
+
+/**
+ * Front / center / back of green for Grint-style approach stack.
+ * Schematic: along play line scaled to Black yardage — not survey topo.
+ */
+export type GreenTriple = {
+  front: LngLat;
+  center: LngLat;
+  back: LngLat;
+  /** Official-style Black distances from tee (schematic depth of green ~26 yd). */
+  yardsFromTee: { front: number; center: number; back: number };
+};
+
+export function greenApproachPoints(input: {
+  playLine: LngLat[];
+  blackYards: number;
+  green: LngLat;
+  /** Precomputed center (e.g. green poly centroid). */
+  center?: LngLat;
+}): GreenTriple {
+  const black = Math.max(1, input.blackYards);
+  const center = input.center ?? input.green;
+  const depthFront = Math.min(18, Math.max(10, Math.round(black * 0.04)));
+  const depthBack = Math.min(14, Math.max(8, Math.round(black * 0.03)));
+  const frontYd = Math.max(1, black - depthFront);
+  const backYd = black + depthBack;
+
+  const front =
+    pointAlongLine(input.playLine, frontYd / black) ??
+    extendAlongLine(input.playLine, center, -depthFront, black);
+  const back = extendAlongLine(input.playLine, center, depthBack, black);
+
+  return {
+    front,
+    center,
+    back,
+    yardsFromTee: {
+      front: frontYd,
+      center: black,
+      back: backYd,
+    },
+  };
+}
+
+/** Centroid of a ring (optional closing vertex ignored). */
+export function ringCentroid(ring: LngLat[]): LngLat | null {
+  if (ring.length < 3) return null;
+  let x = 0;
+  let y = 0;
+  let n = 0;
+  for (const [lon, lat] of ring) {
+    if (n > 0 && lon === ring[0]![0] && lat === ring[0]![1]) continue;
+    x += lon;
+    y += lat;
+    n += 1;
+  }
+  if (n === 0) return null;
+  return [x / n, y / n];
+}

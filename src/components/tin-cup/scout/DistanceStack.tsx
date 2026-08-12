@@ -1,64 +1,108 @@
 /**
- * Yardage instrument.
- * - Default: Black scorecard yards (official)
- * - GPS mode: hero ~yd to pin, Black demoted to micro
+ * Grint-style Front · Center · Back distance widget.
+ * Scorecard mode uses Black-proportional green depth.
+ * GPS mode uses live haversine to F/C/B points.
  */
 export function DistanceStack({
-  hole,
-  gpsYardsToGreen = null,
-  gpsNearHole = null,
+  front,
+  center,
+  back,
+  blackYards,
+  gpsEnabled = false,
   gpsActive = false,
   gpsError = null,
-  gpsEnabled = false,
+  gpsNearHole = null,
 }: {
-  hole: { yards: number };
-  gpsYardsToGreen?: number | null;
-  gpsNearHole?: boolean | null;
+  front: number;
+  center: number;
+  back: number;
+  blackYards: number;
+  gpsEnabled?: boolean;
   gpsActive?: boolean;
   gpsError?: string | null;
-  gpsEnabled?: boolean;
+  gpsNearHole?: boolean | null;
 }) {
-  const showGpsNum =
-    gpsEnabled &&
-    gpsActive &&
-    gpsYardsToGreen != null &&
-    gpsYardsToGreen >= 0 &&
-    gpsYardsToGreen < 900;
-
-  if (gpsEnabled && showGpsNum) {
-    return (
-      <div className="glass-panel min-w-[5.5rem] px-3 py-2 text-right backdrop-blur-xl">
-        <p className="hud-label text-sky-300/80">To pin</p>
-        <p className="hud-num mt-0.5 text-4xl text-sky-100">~{gpsYardsToGreen}</p>
-        <p className="mt-1 text-[0.58rem] font-semibold tracking-wide text-white/45">
-          {gpsNearHole === false ? "not on this hole" : "approx · GPS"}
-          <span className="text-white/30"> · </span>
-          <span className="text-gold-light/70">B{hole.yards}</span>
-        </p>
-      </div>
-    );
-  }
-
-  if (gpsEnabled && !gpsActive) {
-    return (
-      <div className="glass-panel min-w-[5.5rem] px-3 py-2 text-right backdrop-blur-xl">
-        <p className="hud-label text-sky-300/70">GPS</p>
-        <p className="mt-1 text-sm font-bold text-white/80">
-          {gpsError ? "Blocked" : "Locating…"}
-        </p>
-        <p className="mt-1 text-[0.58rem] font-semibold tracking-wide text-gold-light/70">
-          Black {hole.yards}
-        </p>
-      </div>
-    );
-  }
+  const live = gpsEnabled && gpsActive;
+  const locating = gpsEnabled && !gpsActive && !gpsError;
+  const blocked = gpsEnabled && Boolean(gpsError);
 
   return (
-    <div className="glass-panel min-w-[4.75rem] px-3 py-2 text-right backdrop-blur-xl">
-      <p className="hud-label text-gold-light/70">Black</p>
-      <p className="hud-num mt-0.5 text-3xl text-gold-light">{hole.yards}</p>
-      <p className="mt-1 text-[0.58rem] font-semibold tracking-wide text-white/40">
-        yd · scorecard
+    <div
+      className={`glass-panel px-2.5 py-2 backdrop-blur-xl ${
+        live ? "ring-1 ring-sky-400/30" : ""
+      }`}
+    >
+      {blocked ? (
+        <div className="min-w-[6.5rem] px-1 text-right">
+          <p className="hud-label text-copper/90">GPS</p>
+          <p className="mt-1 text-sm font-bold text-white/85">Blocked</p>
+          <p className="mt-1 text-[0.58rem] font-semibold text-gold-light/75">
+            Black {blackYards}
+          </p>
+        </div>
+      ) : locating ? (
+        <div className="min-w-[6.5rem] px-1 text-right">
+          <p className="hud-label text-sky-300/80">GPS</p>
+          <p className="mt-1 text-sm font-bold text-white/85">Locating…</p>
+          <p className="mt-1 text-[0.58rem] font-semibold text-gold-light/75">
+            Black {blackYards}
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-end gap-2.5 sm:gap-3">
+            <YardCol label="F" value={front} tone="muted" live={live} />
+            <YardCol label="C" value={center} tone={live ? "sky" : "gold"} live={live} hero />
+            <YardCol label="B" value={back} tone="muted" live={live} />
+          </div>
+          <p className="mt-1.5 text-center text-[0.58rem] font-semibold tracking-wide text-white/40">
+            {live
+              ? gpsNearHole === false
+                ? "approx · not on hole"
+                : "approx · GPS · not laser"
+              : `scorecard · Black ${blackYards}`}
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
+
+function YardCol({
+  label,
+  value,
+  tone,
+  hero,
+  live,
+}: {
+  label: string;
+  value: number;
+  tone: "gold" | "sky" | "muted";
+  hero?: boolean;
+  live?: boolean;
+}) {
+  const color =
+    tone === "gold"
+      ? "text-gold-light"
+      : tone === "sky"
+        ? "text-sky-100"
+        : "text-white/80";
+  const size = hero ? "text-3xl sm:text-4xl" : "text-xl sm:text-2xl";
+  return (
+    <div className="min-w-[2.75rem] text-center">
+      <p
+        className={`hud-label ${
+          tone === "gold"
+            ? "text-gold-light/75"
+            : tone === "sky"
+              ? "text-sky-300/80"
+              : "text-white/45"
+        }`}
+      >
+        {label}
+      </p>
+      <p className={`hud-num mt-0.5 ${size} ${color}`}>
+        {live ? `~${value}` : value}
       </p>
     </div>
   );

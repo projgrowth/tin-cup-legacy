@@ -2,11 +2,16 @@ import geoData from "@/data/geo/innisbrook-geo.json";
 import type { CourseId } from "@/lib/courses";
 import {
   bearingDegrees,
+  greenApproachPoints,
   holeFrameBounds,
   pointAlongLine,
+  ringCentroid,
   type BBox,
+  type GreenTriple,
   type LngLat,
 } from "@/lib/geo";
+
+export type { GreenTriple };
 
 export type GeoHole = {
   hole: number;
@@ -78,20 +83,21 @@ export function holePlayBearing(geo: GeoHole): number {
 /** Prefer OSM green centroid as pin when available; else line endpoint. */
 export function greenTarget(geo: GeoHole): LngLat {
   const ring = geo.greens?.[0];
-  if (ring && ring.length >= 3) {
-    let x = 0;
-    let y = 0;
-    let n = 0;
-    for (const [lon, lat] of ring) {
-      // skip closing duplicate
-      if (n > 0 && lon === ring[0]![0] && lat === ring[0]![1]) continue;
-      x += lon;
-      y += lat;
-      n += 1;
-    }
-    if (n > 0) return [x / n, y / n];
+  if (ring) {
+    const c = ringCentroid(ring);
+    if (c) return c;
   }
   return geo.green;
+}
+
+/** F/C/B approach points for distance widget + map markers. */
+export function holeGreenTriple(geo: GeoHole): GreenTriple {
+  return greenApproachPoints({
+    playLine: geo.playLine,
+    blackYards: geo.blackYards,
+    green: geo.green,
+    center: greenTarget(geo),
+  });
 }
 
 export type OverlayFeature = {
@@ -154,12 +160,11 @@ export function holeOverlayCollection(geo: GeoHole): OverlayCollection {
       geometry: { type: "LineString", coordinates: geo.playLine },
     });
 
-    // Mid-line guide ticks (proportional to Black yards — not laser)
-    if (geo.blackYards >= 200) {
-      for (const yards of [100, 150, 200, 250, 300]) {
-        if (yards >= geo.blackYards - 40) continue;
-        const t = yards / geo.blackYards;
-        const pt = pointAlongLine(geo.playLine, t);
+    // Layup markers (Grint-style) — Black-proportional
+    if (geo.blackYards >= 220) {
+      for (const yards of [100, 150, 200, 250]) {
+        if (yards >= geo.blackYards - 45) continue;
+        const pt = pointAlongLine(geo.playLine, yards / geo.blackYards);
         if (!pt) continue;
         features.push({
           type: "Feature",
@@ -169,6 +174,39 @@ export function holeOverlayCollection(geo: GeoHole): OverlayCollection {
       }
     }
   }
+
+  // Hazard dots at centroids (readable on aerial without muddy fills)
+  for (const ring of geo.bunkers.slice(0, 10)) {
+    const c = ringCentroid(ring);
+    if (!c) continue;
+    features.push({
+      type: "Feature",
+      properties: { kind: "hazard", label: "S" },
+      geometry: { type: "Point", coordinates: c },
+    });
+  }
+  for (const ring of geo.water.slice(0, 6)) {
+    const c = ringCentroid(ring);
+    if (!c) continue;
+    features.push({
+      type: "Feature",
+      properties: { kind: "hazardWater", label: "W" },
+      geometry: { type: "Point", coordinates: c },
+    });
+  }
+
+  const triple = holeGreenTriple(geo);
+  features.push({
+    type: "Feature",
+    properties: { kind: "greenFront", label: "F" },
+    geometry: { type: "Point", coordinates: triple.front },
+  });
+  features.push({
+    type: "Feature",
+    properties: { kind: "greenBack", label: "B" },
+    geometry: { type: "Point", coordinates: triple.back },
+  });
+
   features.push({
     type: "Feature",
     properties: { kind: "teePoint", label: "TEE" },
@@ -177,7 +215,7 @@ export function holeOverlayCollection(geo: GeoHole): OverlayCollection {
   features.push({
     type: "Feature",
     properties: { kind: "greenPoint", label: "PIN" },
-    geometry: { type: "Point", coordinates: greenTarget(geo) },
+    geometry: { type: "Point", coordinates: triple.center },
   });
 
   return { type: "FeatureCollection", features };

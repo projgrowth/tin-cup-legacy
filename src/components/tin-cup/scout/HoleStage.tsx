@@ -15,16 +15,16 @@ import {
 } from "@/components/tin-cup/SatelliteHoleMap";
 import { DistanceStack } from "@/components/tin-cup/scout/DistanceStack";
 import type { CourseId, Hole } from "@/lib/courses";
-import { getGeoHole, greenTarget } from "@/lib/geo-courses";
+import { getGeoHole, holeGreenTriple } from "@/lib/geo-courses";
 import { bboxContains, haversineYards } from "@/lib/geo";
 import { useGeolocation } from "@/hooks/useGeolocation";
 
 export type MapMode = "sat" | "diagram";
 
-const MODE_KEY = "tc-hole-map-mode-v4";
+const MODE_KEY = "tc-hole-map-mode-v5";
 
 /**
- * Map-first stage: one HUD, one tool cluster, GPS as rangefinder mode.
+ * Grint-class hole stage: full-bleed aerial, F/C/B widget, Play (GPS) mode.
  */
 export function HoleStage({
   courseId,
@@ -50,6 +50,7 @@ export function HoleStage({
   canNext: boolean;
 }) {
   const geo = useMemo(() => getGeoHole(courseId, hole.h), [courseId, hole.h]);
+  const triple = useMemo(() => (geo ? holeGreenTriple(geo) : null), [geo]);
   const hasSat = Boolean(geo);
   const satRef = useRef<SatelliteHoleMapHandle>(null);
 
@@ -79,7 +80,6 @@ export function HoleStage({
     setSatFailed(false);
   }, [courseId, hole.h]);
 
-  // GPS forces satellite map when available
   useEffect(() => {
     if (gpsOn && hasSat && !satFailed) setMode("sat");
   }, [gpsOn, hasSat, satFailed]);
@@ -95,15 +95,34 @@ export function HoleStage({
     }
   }
 
-  const pin = geo ? greenTarget(geo) : null;
-  const gpsYardsToGreen =
-    fix && pin ? Math.round(haversineYards(fix.point, pin)) : null;
   const nearHole =
     fix && geo ? bboxContains(geo.bounds, fix.point, 0.003) : null;
 
-  // Taller map — owns the screen
+  // F/C/B: scorecard yards from tee, or live GPS distances
+  const fcb = useMemo(() => {
+    if (!triple) {
+      return {
+        front: Math.max(1, hole.yards - 14),
+        center: hole.yards,
+        back: hole.yards + 12,
+      };
+    }
+    if (gpsOn && gpsActive && fix) {
+      return {
+        front: Math.round(haversineYards(fix.point, triple.front)),
+        center: Math.round(haversineYards(fix.point, triple.center)),
+        back: Math.round(haversineYards(fix.point, triple.back)),
+      };
+    }
+    return {
+      front: triple.yardsFromTee.front,
+      center: triple.yardsFromTee.center,
+      back: triple.yardsFromTee.back,
+    };
+  }, [triple, gpsOn, gpsActive, fix, hole.yards]);
+
   const mapHeight =
-    "h-[min(72svh,560px)] w-full sm:h-[min(68vh,580px)] lg:h-[min(70vh,640px)]";
+    "h-[min(78svh,620px)] w-full sm:h-[min(72vh,640px)] lg:h-[min(74vh,700px)]";
 
   const swipeRef = useRef<{ x: number; y: number; t: number } | null>(null);
 
@@ -114,41 +133,40 @@ export function HoleStage({
 
   return (
     <section
-      className={`relative overflow-hidden rounded-[1.25rem] ring-1 ${accentClass} ${
-        isSnake ? "ring-copper/45" : ""
-      } bg-[var(--turf-rough)] shadow-[0_24px_60px_-28px_oklch(0_0_0/80%)]`}
+      className={`relative overflow-hidden rounded-[1.15rem] ${accentClass} ${
+        isSnake ? "ring-1 ring-copper/40" : "ring-1 ring-white/10"
+      } bg-black shadow-[0_20px_50px_-24px_oklch(0_0_0/75%)]`}
     >
-      {/* Top HUD — single hole identity + yards */}
+      {/* Top HUD */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-2.5 sm:p-3">
-        <div className="pointer-events-auto glass-panel max-w-[min(100%,13.5rem)] px-3 py-2">
+        <div className="pointer-events-auto glass-panel max-w-[min(100%,11.5rem)] px-3 py-2">
           <p className="flex items-baseline gap-2">
             <span className="hud-num text-3xl leading-none text-white">{hole.h}</span>
-            <span className="text-sm font-bold tabular-nums text-white/85">
+            <span className="text-sm font-bold text-white/85">
               Par {hole.par}
-              {!gpsOn ? (
-                <span className="text-gold-light"> · {hole.yards}</span>
-              ) : null}
             </span>
           </p>
-          <p className="mt-1 truncate text-xs font-semibold text-white/65">
+          <p className="mt-1 truncate text-xs font-semibold text-white/60">
             {hole.name ?? `Hole ${hole.h}`}
             {isSnake ? " · Pit" : ""}
           </p>
         </div>
         <div className="pointer-events-auto">
           <DistanceStack
-            hole={hole}
-            gpsYardsToGreen={gpsYardsToGreen}
-            gpsNearHole={nearHole}
+            front={fcb.front}
+            center={fcb.center}
+            back={fcb.back}
+            blackYards={hole.yards}
+            gpsEnabled={gpsOn}
             gpsActive={gpsActive}
             gpsError={gpsError}
-            gpsEnabled={gpsOn}
+            gpsNearHole={nearHole}
           />
         </div>
       </div>
 
-      {/* One tool cluster — bottom left */}
-      <div className="absolute bottom-[3.5rem] left-2.5 z-20 sm:left-3">
+      {/* Tool cluster */}
+      <div className="absolute bottom-[3.35rem] left-2.5 z-20 sm:left-3">
         <div className="glass-panel flex items-center gap-0.5 p-0.5">
           <button
             type="button"
@@ -158,7 +176,6 @@ export function HoleStage({
             aria-label="Satellite map"
           >
             <MapIcon className="size-3.5" />
-            <span className="hidden sm:inline">Map</span>
           </button>
           <button
             type="button"
@@ -172,13 +189,16 @@ export function HoleStage({
           <button
             type="button"
             onClick={() => setGpsOn((v) => !v)}
-            className={toolBtn(gpsOn && gpsActive, gpsOn ? "text-sky-100" : "")}
+            className={toolBtn(
+              gpsOn && gpsActive,
+              gpsOn ? "text-sky-100 ring-1 ring-sky-400/25" : "",
+            )}
             aria-pressed={gpsOn}
-            aria-label={gpsOn ? "Turn off GPS" : "Turn on GPS"}
+            aria-label={gpsOn ? "Exit play GPS" : "Play GPS mode"}
           >
             <LocateFixed className="size-3.5" />
             <span className="hidden sm:inline">
-              {gpsOn ? (gpsActive ? "Live" : "…") : "GPS"}
+              {gpsOn ? (gpsActive ? "Play" : "…") : "Play"}
             </span>
           </button>
           {mode === "sat" && hasSat && (
@@ -186,22 +206,22 @@ export function HoleStage({
               type="button"
               onClick={() => satRef.current?.resetView()}
               className={toolBtn(false)}
-              aria-label="Fit hole in view"
+              aria-label="Fit hole"
             >
               <Crosshair className="size-3.5" />
             </button>
           )}
         </div>
         {gpsOn && gpsError && (
-          <p className="mt-1.5 max-w-[12rem] rounded-lg bg-black/55 px-2 py-1 text-[0.62rem] font-semibold text-copper backdrop-blur-sm">
-            Location blocked — enable in Settings
+          <p className="mt-1.5 max-w-[13rem] rounded-lg bg-black/60 px-2 py-1 text-[0.62rem] font-semibold leading-snug text-copper backdrop-blur-sm">
+            Location blocked — enable in phone Settings
           </p>
         )}
       </div>
 
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,transparent_55%,oklch(0.06_0.02_160/40%)_100%)]"
+        className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,transparent_58%,oklch(0.05_0.02_160/38%)_100%)]"
       />
 
       {mode === "sat" && geo ? (
@@ -249,8 +269,7 @@ export function HoleStage({
         />
       )}
 
-      {/* Compact stepper only — hole strip lives in PlanSheet */}
-      <div className="flex items-center border-t border-white/10 bg-black/60 backdrop-blur-md">
+      <div className="flex items-center border-t border-white/10 bg-black/65 backdrop-blur-md">
         <button
           type="button"
           onClick={onPrev}

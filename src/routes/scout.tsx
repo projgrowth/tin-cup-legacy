@@ -185,76 +185,75 @@ function ScoutPage() {
 
   return (
     <Shell variant="immersive">
-      {/* Single column always — map first, one plan sheet, no desktop dupe */}
-      <div className="mx-auto w-full max-w-3xl space-y-3">
-        <Segmented
-          ariaLabel="Course"
-          value={courseId}
-          onChange={(id) => setSelection({ course: id, hole: 1 })}
-          options={COURSE_ORDER.map((id) => ({
-            value: id,
-            label: COURSE_LABEL[id],
-            hint: id === todayCourse ? "today" : undefined,
-          }))}
-        />
-
-        <div className="flex items-center justify-between gap-2 px-0.5">
-          <p className="t-micro text-muted-foreground">
-            {details.dayLabel}
-            {plannedCount > 0 ? (
-              <span className="ml-2 font-semibold text-foreground/80">
-                {plannedCount}/18 planned
-              </span>
-            ) : null}
-          </p>
-          <div className="flex items-center gap-0.5">
-            <button
-              type="button"
-              onClick={() => void onSharePlan()}
-              aria-label="Share plan"
-              className="press flex size-9 items-center justify-center rounded-lg text-muted-foreground"
-            >
-              <Share2 className="size-4" />
-            </button>
-            <button
-              type="button"
-              onClick={onPrintPlan}
-              aria-label="Print plan"
-              className="press flex size-9 items-center justify-center rounded-lg text-muted-foreground"
-            >
-              <Printer className="size-4" />
-            </button>
+      {/* Map-first: full-bleed stage, tight chrome above */}
+      <div className="mx-auto w-full max-w-3xl space-y-2.5">
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <Segmented
+              ariaLabel="Course"
+              value={courseId}
+              onChange={(id) => setSelection({ course: id, hole: 1 })}
+              options={COURSE_ORDER.map((id) => ({
+                value: id,
+                label: COURSE_LABEL[id],
+                hint: id === todayCourse ? "today" : undefined,
+              }))}
+            />
           </div>
+          <button
+            type="button"
+            onClick={() => void onSharePlan()}
+            aria-label="Share plan"
+            className="press flex size-10 shrink-0 items-center justify-center rounded-xl border border-border/60 text-muted-foreground"
+          >
+            <Share2 className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={onPrintPlan}
+            aria-label="Print plan"
+            className="press flex size-10 shrink-0 items-center justify-center rounded-xl border border-border/60 text-muted-foreground"
+          >
+            <Printer className="size-4" />
+          </button>
         </div>
 
-        {currentContests.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+        {(currentContests.length > 0 || plannedCount > 0) && (
+          <div className="flex flex-wrap items-center gap-2 px-0.5">
+            {plannedCount > 0 && (
+              <span className="t-micro font-semibold text-muted-foreground">
+                {plannedCount}/18 planned
+              </span>
+            )}
             {currentContests.map((c) => (
               <span
                 key={c}
-                className={`chip ${
+                className={`chip !min-h-8 ${
                   c === "ld" ? "border-copper/35 text-copper" : "chip-on"
                 }`}
               >
-                <Target className="mr-1.5 size-3.5" />
-                {c === "ld" ? "Long drive" : "CTP"}
+                <Target className="mr-1 size-3.5" />
+                {c === "ld" ? "LD" : "CTP"}
               </span>
             ))}
           </div>
         )}
 
-        <HoleStage
-          courseId={courseId}
-          hole={current}
-          accentClass={accent}
-          isSnake={isSnake}
-          index={index}
-          total={course.holes.length}
-          onPrev={() => step(-1)}
-          onNext={() => step(1)}
-          canPrev={index > 0}
-          canNext={index < course.holes.length - 1}
-        />
+        {/* Full-bleed map under page padding */}
+        <div className="-mx-4 sm:-mx-5">
+          <HoleStage
+            courseId={courseId}
+            hole={current}
+            accentClass={accent}
+            isSnake={isSnake}
+            index={index}
+            total={course.holes.length}
+            onPrev={() => step(-1)}
+            onNext={() => step(1)}
+            canPrev={index > 0}
+            canNext={index < course.holes.length - 1}
+          />
+        </div>
 
         {tip && (
           <section className="panel border border-copper/25 px-4 py-3">
