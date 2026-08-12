@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, CloudOff } from "lucide-react";
 
 import type { Match, Round, Team } from "@/hooks/useTournament";
-import { clinchSummary, roundStatus, tallyStandings } from "@/lib/scoring";
+import { clinchSummary, raceLine, roundStatus, tallyStandings } from "@/lib/scoring";
 import { EVENT } from "@/lib/tin-cup";
-import { teamShortName } from "@/lib/team-styles";
 
 export function StatusLine({
   syncedAt,
@@ -107,31 +106,37 @@ export function LiveHero({
   );
 }
 
-/** Sticky cup score for mobile spectators scrolling the match board. */
+/** Sticky cup score + race line for mobile spectators (always useful, even at 0–0). */
 export function StickyCupBar({ matches }: { matches: Match[] }) {
   const standings = tallyStandings(matches);
   const clinch = clinchSummary(standings);
+  const race = raceLine(standings, clinch);
+  const clinched = Boolean(clinch.clinchedBy);
   return (
-    <div className="sticky top-[3.15rem] z-20 -mx-4 border-y border-border bg-background/90 px-4 py-2.5 backdrop-blur-md sm:-mx-5 sm:px-5">
+    <div
+      className={`sticky top-[3.15rem] z-20 -mx-4 border-y px-4 py-2.5 backdrop-blur-md sm:-mx-5 sm:px-5 ${
+        clinched
+          ? "border-gold/35 bg-gold/10"
+          : "border-border bg-background/92"
+      }`}
+    >
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-baseline gap-2">
-          <span className="t-micro text-gold-light">SM</span>
-          <span className="t-numeral text-xl text-gold-light">{standings.strongMental}</span>
-          <span className="t-micro text-muted-foreground">–</span>
-          <span className="t-numeral text-xl text-copper">{standings.grassRoots}</span>
-          <span className="t-micro text-copper">GR</span>
+          <span className="text-sm font-semibold text-gold-light">SM</span>
+          <span className="t-numeral text-2xl text-gold-light">{standings.strongMental}</span>
+          <span className="text-sm text-muted-foreground">–</span>
+          <span className="t-numeral text-2xl text-copper">{standings.grassRoots}</span>
+          <span className="text-sm font-semibold text-copper">GR</span>
         </div>
-        <p className="t-micro shrink-0 text-right text-muted-foreground">
-          {clinch.clinchedBy
-            ? "Cup clinched"
-            : clinch.leader
-              ? `${teamShortName(clinch.leader)} needs ${clinch.leaderNeeds}`
-              : "All square"}
+        <p
+          className={`max-w-[55%] shrink-0 text-right text-sm font-semibold leading-snug ${
+            clinched ? "text-gold-light" : "text-foreground"
+          }`}
+        >
+          {race.headline}
         </p>
       </div>
-      <p className="t-micro mt-0.5 text-muted-foreground">
-        {standings.remaining} of {EVENT.totalPoints} pts left
-      </p>
+      <p className="mt-0.5 text-sm text-muted-foreground">{race.detail}</p>
     </div>
   );
 }
@@ -176,10 +181,10 @@ export function RoundStrip({ rounds, matches }: { rounds: Round[]; matches: Matc
 export function ScoreBar({ matches, teams }: { matches: Match[]; teams: Team[] }) {
   const standings = tallyStandings(matches);
   const clinch = clinchSummary(standings);
+  const race = raceLine(standings, clinch);
   const total = Math.max(standings.strongMental + standings.grassRoots, 1);
   const left = (standings.strongMental / total) * 100;
   const nameFor = (slug: string) => teams.find((t) => t.slug === slug)?.name ?? slug;
-  const leadName = clinch.leader ? nameFor(clinch.leader) : null;
 
   return (
     <section className="surface-raised p-4 sm:p-5">
@@ -200,16 +205,9 @@ export function ScoreBar({ matches, teams }: { matches: Match[]; teams: Team[] }
           style={{ width: `${left}%` }}
         />
       </div>
-      <p className="t-micro mt-2 text-center text-foreground/85">
-        {clinch.clinchedBy
-          ? `${nameFor(clinch.clinchedBy)} has clinched`
-          : leadName
-            ? `${leadName} needs ${clinch.leaderNeeds}`
-            : "All square"}
-        <span className="text-muted-foreground">
-          {" "}
-          · {standings.remaining}/{EVENT.totalPoints} left
-        </span>
+      <p className="mt-2 text-center text-sm font-medium text-foreground/90">
+        {race.headline}
+        <span className="font-normal text-muted-foreground"> · {race.detail}</span>
       </p>
     </section>
   );

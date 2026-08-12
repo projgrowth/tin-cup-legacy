@@ -176,14 +176,15 @@ function ResultBadge({ result }: { result: string }) {
       </span>
     );
   }
-  if (result === "a") {
+  // Canonical results are team slugs; keep legacy a/b for any old rows.
+  if (result === "strong-mental" || result === "a") {
     return (
       <span className="shrink-0 rounded-full border border-gold/40 bg-gold/10 px-3 py-1.5 text-base font-semibold text-gold-light">
         SM
       </span>
     );
   }
-  if (result === "b") {
+  if (result === "grass-roots" || result === "b") {
     return (
       <span className="shrink-0 rounded-full border border-copper/40 bg-copper/10 px-3 py-1.5 text-base font-semibold text-copper">
         GR

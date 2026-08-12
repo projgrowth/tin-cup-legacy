@@ -5,10 +5,12 @@ import {
   formatRecord,
   pairingIncludes,
   playerRecord,
+  raceLine,
   roundStatus,
   roundTally,
   tallyStandings,
 } from "./scoring";
+import { EVENT } from "./tin-cup";
 
 const match = (
   round_id: string,
@@ -96,7 +98,7 @@ describe("clinchSummary", () => {
     ).toBeNull();
   });
 
-  it("flags a retained cup when neither side can reach the line", () => {
+  it("flags retained math when neither side can reach the line", () => {
     const clinch = clinchSummary({ strongMental: 13, grassRoots: 13, played: 26, remaining: 0 });
     expect(clinch.retained).toBe(true);
   });
@@ -105,6 +107,45 @@ describe("clinchSummary", () => {
     const clinch = clinchSummary({ strongMental: 7, grassRoots: 7, played: 14, remaining: 12 });
     expect(clinch.retained).toBe(false);
     expect(clinch.clinchedBy).toBeNull();
+  });
+});
+
+describe("raceLine", () => {
+  it("calls a 13–13 dead heat a playoff, not retained cup copy", () => {
+    const standings = { strongMental: 13, grassRoots: 13, played: 26, remaining: 0 };
+    const line = raceLine(standings);
+    expect(line.headline.toLowerCase()).toContain("playoff");
+  });
+
+  it("surfaces points left when all square mid-event", () => {
+    const line = raceLine({ strongMental: 0, grassRoots: 0, played: 0, remaining: 26 });
+    expect(line.headline).toBe("All square");
+    expect(line.detail).toContain("26");
+    expect(line.detail).toContain(String(EVENT.pointsToWin));
+  });
+});
+
+/** 2026 schedule: Fri 8 + Sat 6 + Sun 12 = 26 — structural invariant for seeds/UI. */
+describe("2026 point budget", () => {
+  it("matches the published 8 / 6 / 12 / 26 schedule", () => {
+    const friday = 8;
+    const saturday = 6;
+    const sunday = 12;
+    expect(friday + saturday + sunday).toBe(EVENT.totalPoints);
+    expect(EVENT.pointsToWin).toBe(13.5);
+  });
+
+  it("tally remaining equals total when nothing is decided", () => {
+    const matches = [
+      ...Array.from({ length: 4 }, (_, i) => match("fri", 2, "pending", `f${i}`)),
+      ...Array.from({ length: 3 }, (_, i) => match("sat", 2, "pending", `s${i}`)),
+      ...Array.from({ length: 4 }, (_, i) => match("sun-sham", 1, "pending", `sh${i}`)),
+      ...Array.from({ length: 8 }, (_, i) => match("sun-sing", 1, "pending", `si${i}`)),
+    ];
+    // Fri 4×2=8, Sat 3×2=6, Sun sham 4 + sing 8 = 12 → 26
+    const standings = tallyStandings(matches);
+    expect(standings.remaining).toBe(26);
+    expect(standings.played).toBe(0);
   });
 });
 

@@ -68,7 +68,54 @@ export function clinchSummary(standings: Standings, target = EVENT.pointsToWin):
     leaderNeeds: Math.max(0, target - Math.max(strongMental, grassRoots)),
     trailerNeeds: Math.max(0, target - Math.min(strongMental, grassRoots)),
     clinchedBy,
+    // Historical name: neither side can still hit the win threshold with points left.
+    // At 13–13 with 0 remaining this is true — UI should prefer playoff copy (see raceLine).
     retained: !clinchedBy && strongMental + remaining < target && grassRoots + remaining < target,
+  };
+}
+
+/**
+ * Outdoor-readable race status for sticky bars and heroes.
+ * Prefer playoff language over “retained” when the board is deadlocked 13–13.
+ */
+export function raceLine(
+  standings: Standings,
+  clinch: Clinch = clinchSummary(standings),
+  totalPoints = EVENT.totalPoints,
+): { headline: string; detail: string } {
+  const { remaining, strongMental, grassRoots } = standings;
+  if (clinch.clinchedBy === "strong-mental") {
+    return { headline: "Strong Mental clinches the Cup", detail: `${strongMental}–${grassRoots}` };
+  }
+  if (clinch.clinchedBy === "grass-roots") {
+    return { headline: "Grass Roots clinches the Cup", detail: `${strongMental}–${grassRoots}` };
+  }
+  // All points decided, still under threshold and level → one-hole playoff rule.
+  if (
+    remaining === 0 &&
+    strongMental === grassRoots &&
+    strongMental < EVENT.pointsToWin
+  ) {
+    return {
+      headline: "Playoff — captains pick scramble partners",
+      detail: `${strongMental}–${grassRoots} · one hole until decided`,
+    };
+  }
+  if (clinch.leader === "strong-mental") {
+    return {
+      headline: `Strong Mental needs ${clinch.leaderNeeds}`,
+      detail: `${remaining} of ${totalPoints} pts left`,
+    };
+  }
+  if (clinch.leader === "grass-roots") {
+    return {
+      headline: `Grass Roots needs ${clinch.leaderNeeds}`,
+      detail: `${remaining} of ${totalPoints} pts left`,
+    };
+  }
+  return {
+    headline: "All square",
+    detail: `${remaining} of ${totalPoints} pts left · ${EVENT.pointsToWin} wins`,
   };
 }
 

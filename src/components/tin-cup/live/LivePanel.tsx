@@ -80,7 +80,8 @@ export function LivePanel({
   return (
     <div className="stack-page">
       <LiveHero rounds={rounds} matches={matches} teams={teams} />
-      {decided && <StickyCupBar matches={matches} />}
+      {/* Always show race sticky — remaining points matter before any result posts */}
+      <StickyCupBar matches={matches} />
       {decided && <RoundStrip rounds={rounds} matches={matches} />}
 
       {/* On-course shortcut while the cup is live */}
