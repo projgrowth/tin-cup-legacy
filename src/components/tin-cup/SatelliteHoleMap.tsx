@@ -1,22 +1,22 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useImperativeHandle, useRef, forwardRef, useState } from "react";
 import {
   Map as MapLibreMap,
   Marker,
-  NavigationControl,
-  AttributionControl,
   type StyleSpecification,
   type GeoJSONSource,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import type { GeoHole } from "@/lib/geo-courses";
-import { holeOverlayCollection } from "@/lib/geo-courses";
+import { holeOverlayCollection, holePlayBearing } from "@/lib/geo-courses";
 import type { LngLat } from "@/lib/geo";
 
 /** Esri World Imagery — attribution required. */
 const SATELLITE_STYLE: StyleSpecification = {
   version: 8,
   name: "Esri World Imagery",
+  // Free glyphs for TEE/PIN/yard labels (MapLibre demo fonts)
+  glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
   sources: {
     esri: {
       type: "raster",
@@ -25,7 +25,7 @@ const SATELLITE_STYLE: StyleSpecification = {
       ],
       tileSize: 256,
       attribution:
-        "Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community",
+        "Tiles © Esri — Esri, Maxar, Earthstar Geographics, GIS User Community",
       maxzoom: 19,
     },
   },
@@ -36,164 +36,250 @@ const SATELLITE_STYLE: StyleSpecification = {
       source: "esri",
       minzoom: 0,
       maxzoom: 22,
+      paint: {
+        "raster-fade-duration": 180,
+        "raster-saturation": -0.05,
+        "raster-contrast": 0.08,
+      },
     },
   ],
 };
 
 const OVERLAY_SOURCE = "hole-overlay";
 
+export type SatelliteHoleMapHandle = {
+  resetView: () => void;
+};
+
 type Props = {
   geo: GeoHole;
   className?: string;
-  /** Device position [lon, lat] when GPS is on */
   gpsPoint?: LngLat | null;
   gpsAccuracyM?: number | null;
   onError?: () => void;
+  onReady?: () => void;
 };
 
 /**
- * Mobile-first MapLibre satellite hole view with OSM vector overlays.
- * Black scorecard yards stay in the HUD — this map is layout + GPS context.
+ * Mobile-first MapLibre satellite hole view.
+ * Auto-orients tee→green up the screen; smooth hole transitions.
  */
-export function SatelliteHoleMap({
-  geo,
-  className,
-  gpsPoint = null,
-  gpsAccuracyM = null,
-  onError,
-}: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<MapLibreMap | null>(null);
-  const gpsMarkerRef = useRef<Marker | null>(null);
-  const onErrorRef = useRef(onError);
-  onErrorRef.current = onError;
+export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(
+  function SatelliteHoleMap(
+    {
+      geo,
+      className,
+      gpsPoint = null,
+      gpsAccuracyM = null,
+      onError,
+      onReady,
+    },
+    ref,
+  ) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const mapRef = useRef<MapLibreMap | null>(null);
+    const gpsMarkerRef = useRef<Marker | null>(null);
+    const geoRef = useRef(geo);
+    geoRef.current = geo;
+    const onErrorRef = useRef(onError);
+    onErrorRef.current = onError;
+    const onReadyRef = useRef(onReady);
+    onReadyRef.current = onReady;
+    const [ready, setReady] = useState(false);
+    const styleFailed = useRef(false);
 
-  // Create map once
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el || mapRef.current) return;
+    useImperativeHandle(ref, () => ({
+      resetView: () => {
+        const map = mapRef.current;
+        if (!map || !map.isStyleLoaded()) return;
+        flyToHole(map, geoRef.current, true);
+      },
+    }));
 
-    const map = new MapLibreMap({
-      container: el,
-      style: SATELLITE_STYLE,
-      center: geo.green,
-      zoom: 16,
-      pitch: 0,
-      bearing: 0,
-      attributionControl: false,
-      maxPitch: 0,
-      dragRotate: false,
-      pitchWithRotate: false,
-      touchPitch: false,
-      fadeDuration: 0,
-    });
+    // Create map once
+    useEffect(() => {
+      const el = containerRef.current;
+      if (!el || mapRef.current) return;
 
-    map.addControl(new AttributionControl({ compact: true }), "bottom-left");
-    map.addControl(
-      new NavigationControl({
-        showCompass: false,
-        visualizePitch: false,
-      }),
-      "bottom-right",
-    );
+      const map = new MapLibreMap({
+        container: el,
+        style: SATELLITE_STYLE,
+        center: geo.green,
+        zoom: 16,
+        pitch: 0,
+        bearing: holePlayBearing(geo),
+        attributionControl: {
+          compact: true,
+        },
+        maxPitch: 0,
+        dragRotate: false,
+        pitchWithRotate: false,
+        touchPitch: false,
+        fadeDuration: 200,
+        maxTileCacheSize: 80,
+        pixelRatio: Math.min(typeof window !== "undefined" ? window.devicePixelRatio : 1, 2),
+        // Smoother pan on mobile
+        cooperativeGestures: false,
+      });
 
-    map.on("error", () => {
-      onErrorRef.current?.();
-    });
+      // Soft fail only on hard style failures (not every missing tile)
+      map.on("error", (e) => {
+        const msg = String((e as { error?: { message?: string } }).error?.message ?? "");
+        if (
+          !styleFailed.current &&
+          (msg.includes("style") || msg.includes("Failed to fetch") || msg.includes("AJAXError"))
+        ) {
+          // Only escalate after map never painted
+          if (!map.isStyleLoaded()) {
+            styleFailed.current = true;
+            onErrorRef.current?.();
+          }
+        }
+      });
 
-    map.once("load", () => {
-      ensureOverlayLayers(map);
-      applyHole(map, geo);
-    });
+      map.once("load", () => {
+        ensureOverlayLayers(map);
+        flyToHole(map, geoRef.current, false);
+        setReady(true);
+        onReadyRef.current?.();
+      });
 
-    mapRef.current = map;
+      mapRef.current = map;
 
-    const ro = new ResizeObserver(() => {
-      map.resize();
-    });
-    ro.observe(el);
+      const ro = new ResizeObserver(() => {
+        map.resize();
+      });
+      ro.observe(el);
 
-    return () => {
-      ro.disconnect();
-      gpsMarkerRef.current?.remove();
-      gpsMarkerRef.current = null;
-      map.remove();
-      mapRef.current = null;
-    };
-    // Only mount once — hole updates handled below
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      return () => {
+        ro.disconnect();
+        gpsMarkerRef.current?.remove();
+        gpsMarkerRef.current = null;
+        map.remove();
+        mapRef.current = null;
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-  // Hole change → overlays + camera
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    const run = () => applyHole(map, geo);
-    if (map.isStyleLoaded()) run();
-    else map.once("load", run);
-  }, [geo]);
+    // Hole change → smooth camera + overlays
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map) return;
+      const run = () => {
+        ensureOverlayLayers(map);
+        const src = map.getSource(OVERLAY_SOURCE) as GeoJSONSource | undefined;
+        src?.setData(holeOverlayCollection(geo));
+        flyToHole(map, geo, true);
+      };
+      if (map.isStyleLoaded()) run();
+      else map.once("load", run);
+    }, [geo]);
 
-  // GPS marker
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
+    // GPS marker
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map) return;
 
-    if (!gpsPoint) {
-      gpsMarkerRef.current?.remove();
-      gpsMarkerRef.current = null;
-      return;
-    }
-
-    if (!gpsMarkerRef.current) {
-      const node = document.createElement("div");
-      node.className = "tc-gps-dot";
-      node.innerHTML =
-        '<span class="tc-gps-pulse"></span><span class="tc-gps-core"></span>';
-      gpsMarkerRef.current = new Marker({ element: node, anchor: "center" })
-        .setLngLat(gpsPoint)
-        .addTo(map);
-    } else {
-      gpsMarkerRef.current.setLngLat(gpsPoint);
-    }
-
-    // Soft accuracy ring via circle layer source
-    const acc = Math.max(8, gpsAccuracyM ?? 20);
-    const circle = accuracyPolygon(gpsPoint, acc);
-    if (map.getSource("gps-acc")) {
-      (map.getSource("gps-acc") as GeoJSONSource).setData(circle);
-    } else if (map.isStyleLoaded()) {
-      map.addSource("gps-acc", { type: "geojson", data: circle });
-      if (!map.getLayer("gps-acc-fill")) {
-        map.addLayer({
-          id: "gps-acc-fill",
-          type: "fill",
-          source: "gps-acc",
-          paint: {
-            "fill-color": "#3b82f6",
-            "fill-opacity": 0.12,
-          },
-        });
-        map.addLayer({
-          id: "gps-acc-line",
-          type: "line",
-          source: "gps-acc",
-          paint: {
-            "line-color": "#60a5fa",
-            "line-width": 1.5,
-            "line-opacity": 0.55,
-          },
-        });
+      if (!gpsPoint) {
+        gpsMarkerRef.current?.remove();
+        gpsMarkerRef.current = null;
+        if (map.getSource("gps-acc")) {
+          (map.getSource("gps-acc") as GeoJSONSource).setData({
+            type: "FeatureCollection",
+            features: [],
+          });
+        }
+        return;
       }
-    }
-  }, [gpsPoint, gpsAccuracyM]);
 
-  return (
-    <div
-      ref={containerRef}
-      className={`relative size-full min-h-[280px] touch-manipulation ${className ?? ""}`}
-      role="img"
-      aria-label={`Satellite map of hole ${geo.hole}`}
-    />
+      if (!gpsMarkerRef.current) {
+        const node = document.createElement("div");
+        node.className = "tc-gps-dot";
+        node.innerHTML =
+          '<span class="tc-gps-pulse"></span><span class="tc-gps-core"></span>';
+        gpsMarkerRef.current = new Marker({ element: node, anchor: "center" })
+          .setLngLat(gpsPoint)
+          .addTo(map);
+      } else {
+        gpsMarkerRef.current.setLngLat(gpsPoint);
+      }
+
+      const acc = Math.max(8, Math.min(gpsAccuracyM ?? 20, 80));
+      const circle = accuracyPolygon(gpsPoint, acc);
+      if (map.getSource("gps-acc")) {
+        (map.getSource("gps-acc") as GeoJSONSource).setData(circle);
+      } else if (map.isStyleLoaded()) {
+        map.addSource("gps-acc", { type: "geojson", data: circle });
+        if (!map.getLayer("gps-acc-fill")) {
+          map.addLayer({
+            id: "gps-acc-fill",
+            type: "fill",
+            source: "gps-acc",
+            paint: {
+              "fill-color": "#38bdf8",
+              "fill-opacity": 0.14,
+            },
+          });
+          map.addLayer({
+            id: "gps-acc-line",
+            type: "line",
+            source: "gps-acc",
+            paint: {
+              "line-color": "#7dd3fc",
+              "line-width": 1.5,
+              "line-opacity": 0.6,
+            },
+          });
+        }
+      }
+    }, [gpsPoint, gpsAccuracyM]);
+
+    return (
+      <div
+        className={`relative size-full min-h-[280px] touch-manipulation ${className ?? ""}`}
+      >
+        <div
+          ref={containerRef}
+          className={`size-full transition-opacity duration-300 ${ready ? "opacity-100" : "opacity-0"}`}
+          role="img"
+          aria-label={`Satellite map of hole ${geo.hole}`}
+        />
+        {!ready && (
+          <div
+            className="absolute inset-0 flex items-center justify-center bg-[var(--turf-rough)]"
+            aria-hidden
+          >
+            <div className="flex flex-col items-center gap-2">
+              <div className="size-8 animate-pulse rounded-full border-2 border-gold/40 border-t-gold-light" />
+              <p className="text-xs font-semibold tracking-wide text-white/55">
+                Loading course…
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  },
+);
+
+export default SatelliteHoleMap;
+
+function flyToHole(map: MapLibreMap, geo: GeoHole, animate: boolean) {
+  const [w, s, e, n] = geo.bounds;
+  const bearing = holePlayBearing(geo);
+  map.fitBounds(
+    [
+      [w, s],
+      [e, n],
+    ],
+    {
+      padding: { top: 56, bottom: 100, left: 36, right: 36 },
+      maxZoom: 18.2,
+      bearing,
+      pitch: 0,
+      duration: animate ? 520 : 0,
+      essential: true,
+    },
   );
 }
 
@@ -205,14 +291,15 @@ function ensureOverlayLayers(map: MapLibreMap) {
     data: { type: "FeatureCollection", features: [] },
   });
 
+  // Soft fairway wash
   map.addLayer({
     id: "ov-fairway",
     type: "fill",
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "fairway"],
     paint: {
-      "fill-color": "#3d9a5c",
-      "fill-opacity": 0.28,
+      "fill-color": "#4ade80",
+      "fill-opacity": 0.22,
     },
   });
   map.addLayer({
@@ -221,9 +308,9 @@ function ensureOverlayLayers(map: MapLibreMap) {
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "fairway"],
     paint: {
-      "line-color": "#8fd4a4",
-      "line-width": 1.2,
-      "line-opacity": 0.65,
+      "line-color": "#bbf7d0",
+      "line-width": 1.4,
+      "line-opacity": 0.55,
     },
   });
   map.addLayer({
@@ -232,8 +319,8 @@ function ensureOverlayLayers(map: MapLibreMap) {
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "tee"],
     paint: {
-      "fill-color": "#4a9b68",
-      "fill-opacity": 0.4,
+      "fill-color": "#86efac",
+      "fill-opacity": 0.35,
     },
   });
   map.addLayer({
@@ -242,8 +329,8 @@ function ensureOverlayLayers(map: MapLibreMap) {
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "water"],
     paint: {
-      "fill-color": "#2a6fad",
-      "fill-opacity": 0.45,
+      "fill-color": "#38bdf8",
+      "fill-opacity": 0.38,
     },
   });
   map.addLayer({
@@ -252,20 +339,36 @@ function ensureOverlayLayers(map: MapLibreMap) {
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "bunker"],
     paint: {
-      "fill-color": "#e8d4a0",
-      "fill-opacity": 0.55,
+      "fill-color": "#fde68a",
+      "fill-opacity": 0.5,
     },
   });
+  map.addLayer({
+    id: "ov-bunker-line",
+    type: "line",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "bunker"],
+    paint: {
+      "line-color": "#d6b56a",
+      "line-width": 1,
+      "line-opacity": 0.7,
+    },
+  });
+  // Play corridor glow + dashed gold
   map.addLayer({
     id: "ov-play-glow",
     type: "line",
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "playLine"],
     paint: {
-      "line-color": "#c9a227",
-      "line-width": 6,
-      "line-opacity": 0.35,
-      "line-blur": 2,
+      "line-color": "#e8c547",
+      "line-width": 8,
+      "line-opacity": 0.28,
+      "line-blur": 3,
+    },
+    layout: {
+      "line-cap": "round",
+      "line-join": "round",
     },
   });
   map.addLayer({
@@ -274,10 +377,47 @@ function ensureOverlayLayers(map: MapLibreMap) {
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "playLine"],
     paint: {
-      "line-color": "#e8c547",
-      "line-width": 2.5,
-      "line-dasharray": [2, 1.5],
+      "line-color": "#f5e6a8",
+      "line-width": 2.4,
+      "line-dasharray": [1.8, 1.4],
       "line-opacity": 0.95,
+    },
+    layout: {
+      "line-cap": "round",
+      "line-join": "round",
+    },
+  });
+  // Yard stations
+  map.addLayer({
+    id: "ov-station-dot",
+    type: "circle",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "station"],
+    paint: {
+      "circle-radius": 3.5,
+      "circle-color": "#f5e6a8",
+      "circle-stroke-width": 1.5,
+      "circle-stroke-color": "#1a1a12",
+      "circle-opacity": 0.9,
+    },
+  });
+  map.addLayer({
+    id: "ov-station-label",
+    type: "symbol",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "station"],
+    layout: {
+      "text-field": ["get", "label"],
+      "text-size": 11,
+      "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+      "text-offset": [0, 1.1],
+      "text-anchor": "top",
+      "text-allow-overlap": false,
+    },
+    paint: {
+      "text-color": "#f8f5e8",
+      "text-halo-color": "rgba(10,16,12,0.85)",
+      "text-halo-width": 1.4,
     },
   });
   map.addLayer({
@@ -286,9 +426,9 @@ function ensureOverlayLayers(map: MapLibreMap) {
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "teePoint"],
     paint: {
-      "circle-radius": 7,
+      "circle-radius": 8,
       "circle-color": "#f5e6a8",
-      "circle-stroke-width": 2,
+      "circle-stroke-width": 2.5,
       "circle-stroke-color": "#1a1a12",
     },
   });
@@ -298,34 +438,50 @@ function ensureOverlayLayers(map: MapLibreMap) {
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "greenPoint"],
     paint: {
-      "circle-radius": 8,
+      "circle-radius": 9,
       "circle-color": "#f0e6c0",
-      "circle-stroke-width": 2.5,
+      "circle-stroke-width": 3,
       "circle-stroke-color": "#c9a227",
+    },
+  });
+  map.addLayer({
+    id: "ov-pin-label",
+    type: "symbol",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "greenPoint"],
+    layout: {
+      "text-field": "PIN",
+      "text-size": 10,
+      "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+      "text-offset": [0, 1.35],
+      "text-anchor": "top",
+    },
+    paint: {
+      "text-color": "#f5e6a8",
+      "text-halo-color": "rgba(10,16,12,0.9)",
+      "text-halo-width": 1.5,
+    },
+  });
+  map.addLayer({
+    id: "ov-tee-label",
+    type: "symbol",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "teePoint"],
+    layout: {
+      "text-field": "TEE",
+      "text-size": 10,
+      "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+      "text-offset": [0, 1.35],
+      "text-anchor": "top",
+    },
+    paint: {
+      "text-color": "#f5e6a8",
+      "text-halo-color": "rgba(10,16,12,0.9)",
+      "text-halo-width": 1.5,
     },
   });
 }
 
-function applyHole(map: MapLibreMap, geo: GeoHole) {
-  ensureOverlayLayers(map);
-  const src = map.getSource(OVERLAY_SOURCE) as GeoJSONSource | undefined;
-  src?.setData(holeOverlayCollection(geo));
-
-  const [w, s, e, n] = geo.bounds;
-  map.fitBounds(
-    [
-      [w, s],
-      [e, n],
-    ],
-    {
-      padding: { top: 48, bottom: 72, left: 28, right: 28 },
-      maxZoom: 18.5,
-      duration: 450,
-    },
-  );
-}
-
-/** Rough circle polygon for GPS accuracy (meters → deg). */
 function accuracyPolygon(
   center: LngLat,
   radiusM: number,
@@ -349,5 +505,3 @@ function accuracyPolygon(
     geometry: { type: "Polygon", coordinates: [ring] },
   };
 }
-
-export default SatelliteHoleMap;

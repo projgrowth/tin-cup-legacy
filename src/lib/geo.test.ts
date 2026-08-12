@@ -1,7 +1,18 @@
 import { describe, expect, it } from "vitest";
 
-import { bboxContains, haversineYards } from "@/lib/geo";
-import { getGeoHole, holeOverlayCollection } from "@/lib/geo-courses";
+import {
+  bboxContains,
+  bearingDegrees,
+  haversineYards,
+  holeFrameBounds,
+  pointAlongLine,
+} from "@/lib/geo";
+import {
+  getGeoHole,
+  holeOverlayCollection,
+  holePlayBearing,
+} from "@/lib/geo-courses";
+import { COURSE_ORDER, getCourse } from "@/lib/courses";
 
 describe("haversineYards", () => {
   it("returns ~0 for the same point", () => {
@@ -18,36 +29,61 @@ describe("haversineYards", () => {
   });
 });
 
-describe("geo package", () => {
-  it("loads Copperhead H16 with bounds and play line", () => {
-    const h = getGeoHole("copperhead", 16);
-    expect(h).toBeTruthy();
-    if (!h) return;
-    expect(h.blackYards).toBeGreaterThan(300);
-    expect(h.playLine.length).toBeGreaterThanOrEqual(2);
-    expect(h.bounds).toHaveLength(4);
-    expect(h.bounds[2]).toBeGreaterThan(h.bounds[0]);
+describe("bearing + frame", () => {
+  it("bearing north is ~0", () => {
+    const b = bearingDegrees([-82.75, 28.11], [-82.75, 28.12]);
+    expect(b).toBeGreaterThanOrEqual(0);
+    expect(b).toBeLessThan(5);
   });
 
-  it("loads South and Island hole 1", () => {
-    expect(getGeoHole("south", 1)?.tee).toHaveLength(2);
-    expect(getGeoHole("island", 1)?.green).toHaveLength(2);
+  it("holeFrameBounds pads and enforces min span", () => {
+    const bb = holeFrameBounds(
+      [
+        [-82.75, 28.11],
+        [-82.7501, 28.1101],
+      ],
+      { minSpanM: 140, padRatio: 0.2 },
+    );
+    expect(bb[2] - bb[0]).toBeGreaterThan(0.0005);
+    expect(bb[3] - bb[1]).toBeGreaterThan(0.0005);
   });
 
-  it("builds overlay FeatureCollection", () => {
+  it("pointAlongLine hits endpoints", () => {
+    const line: [number, number][] = [
+      [-82.75, 28.11],
+      [-82.74, 28.12],
+    ];
+    expect(pointAlongLine(line, 0)).toEqual(line[0]);
+    const end = pointAlongLine(line, 1);
+    expect(end?.[0]).toBeCloseTo(line[1][0], 5);
+  });
+});
+
+describe("geo package — all holes", () => {
+  it("has 18 geo holes per tournament course with valid frames", () => {
+    for (const cid of COURSE_ORDER) {
+      const scorecard = getCourse(cid);
+      for (const hole of scorecard.holes) {
+        const g = getGeoHole(cid, hole.h);
+        expect(g, `${cid} H${hole.h}`).toBeTruthy();
+        if (!g) continue;
+        expect(g.playLine.length).toBeGreaterThanOrEqual(2);
+        expect(g.bounds[2]).toBeGreaterThan(g.bounds[0]);
+        expect(g.bounds[3]).toBeGreaterThan(g.bounds[1]);
+        expect(g.blackYards).toBe(hole.yards);
+        expect(Number.isFinite(holePlayBearing(g))).toBe(true);
+        expect(bboxContains(g.bounds, g.tee, 0.002)).toBe(true);
+        expect(bboxContains(g.bounds, g.green, 0.002)).toBe(true);
+      }
+    }
+  });
+
+  it("builds overlay FeatureCollection with play line", () => {
     const h = getGeoHole("copperhead", 1);
     expect(h).toBeTruthy();
     if (!h) return;
     const fc = holeOverlayCollection(h);
     expect(fc.features.length).toBeGreaterThan(2);
     expect(fc.features.some((f) => f.properties.kind === "playLine")).toBe(true);
-  });
-
-  it("bboxContains works", () => {
-    const h = getGeoHole("copperhead", 1);
-    expect(h).toBeTruthy();
-    if (!h) return;
-    expect(bboxContains(h.bounds, h.green)).toBe(true);
-    expect(bboxContains(h.bounds, [-80, 28])).toBe(false);
   });
 });
