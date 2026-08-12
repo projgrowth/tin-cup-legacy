@@ -351,7 +351,7 @@ export function LoadingForm({ fields = 4 }: { fields?: number }) {
   return (
     <div className="space-y-4" aria-busy="true" aria-live="polite">
       <SkeletonBlock height={20} className="w-1/3" />
-      <div className="surface space-y-3 p-4">
+      <div className="panel space-y-3 p-4">
         {Array.from({ length: fields }).map((_, i) => (
           <SkeletonBlock key={i} height={42} />
         ))}
@@ -375,7 +375,7 @@ export function ErrorState({
   busy?: boolean;
 }) {
   return (
-    <div className="surface p-6 text-center" role="alert">
+    <div className="panel p-6 text-center" role="alert">
       <p className="t-title text-foreground">{title}</p>
       <p className="t-micro mt-1.5">{detail}</p>
       {onRetry && (

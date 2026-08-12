@@ -146,7 +146,7 @@ function OpsPage() {
         />
       ) : (
         <div className="space-y-6">
-          <section className="surface p-4">
+          <section className="panel p-4">
             <div className="flex items-baseline justify-between gap-3">
               <h2 className="t-eyebrow">Readiness score</h2>
               <p className="t-numeral text-foreground">
@@ -161,7 +161,7 @@ function OpsPage() {
             </p>
           </section>
 
-          <section className="surface p-4">
+          <section className="panel p-4">
             <h2 className="t-eyebrow">Live readiness</h2>
             <ul className="mt-1">
               <Row
@@ -305,7 +305,7 @@ function OpsPage() {
             </ul>
           </section>
 
-          <section className="surface space-y-3 p-4">
+          <section className="panel space-y-3 p-4">
             <h2 className="t-eyebrow">Captain access</h2>
             <p className="t-micro">
               Captain roles are granted by an admin. A server-only email allowlist can also be
@@ -336,7 +336,7 @@ function OpsPage() {
             </div>
           </section>
 
-          <section className="surface space-y-3 p-4">
+          <section className="panel space-y-3 p-4">
             <h2 className="t-eyebrow">Two-phone scoring test</h2>
             <p className="t-micro">
               Use a captain phone and a spectator phone before the event. On a clearly identified
@@ -349,7 +349,7 @@ function OpsPage() {
             </p>
           </section>
 
-          <section className="surface space-y-3 p-4">
+          <section className="panel space-y-3 p-4">
             <h2 className="t-eyebrow">Quick links</h2>
             <a
               href={venmoUrl}
@@ -378,7 +378,7 @@ function OpsPage() {
             </Link>
           </section>
 
-          <section className="surface space-y-3 p-4">
+          <section className="panel space-y-3 p-4">
             <h2 className="t-eyebrow">Pre-Friday freeze</h2>
             <ol className="t-micro list-decimal space-y-2 pl-4 text-muted-foreground">
               <li>Deploy planner branch and smoke /, /scout, claim, captain score.</li>

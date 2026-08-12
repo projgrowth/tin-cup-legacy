@@ -111,7 +111,7 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
   }
 
   return (
-    <div className="surface space-y-4 p-5">
+    <div className="panel space-y-4 p-5">
       <div>
         <p className="t-title text-foreground">Account</p>
         <p className="t-body mt-1.5 text-muted-foreground">{blurb}</p>

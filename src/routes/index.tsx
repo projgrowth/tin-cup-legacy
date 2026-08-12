@@ -339,7 +339,7 @@ function BoardSkeleton() {
 
 function BoardError({ onRetry, busy }: { onRetry: () => void; busy: boolean }) {
   return (
-    <div className="surface p-6 text-center">
+    <div className="panel p-6 text-center">
       <p className="t-title text-foreground">The board didn't load</p>
       <p className="t-micro mt-1.5">No connection to the scoreboard right now.</p>
       <button

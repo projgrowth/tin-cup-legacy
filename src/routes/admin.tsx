@@ -108,7 +108,7 @@ function AdminBody() {
 
   if (!setup.data?.adminExists) {
     return (
-      <div className="surface space-y-3 p-6 text-center">
+      <div className="panel space-y-3 p-6 text-center">
         <ShieldCheck className="mx-auto size-6 text-muted-foreground" strokeWidth={1.6} />
         <p className="t-title text-foreground">No admin yet</p>
         <p className="t-micro">
@@ -129,7 +129,7 @@ function AdminBody() {
 
   if (!setup.data.isAdmin) {
     return (
-      <div className="surface p-6 text-center">
+      <div className="panel p-6 text-center">
         <p className="t-title text-foreground">Admin only</p>
         <p className="t-micro mt-1.5">
           This account can't manage permissions. Ask the tournament admin for access.
@@ -150,7 +150,7 @@ function AdminBody() {
 
   return (
     <div className="space-y-6">
-      <section className="surface space-y-3 p-4">
+      <section className="panel space-y-3 p-4">
         <h2 className="t-eyebrow">Event readiness</h2>
         <ul className="space-y-2.5">
           <ChecklistItem done={!VENMO_IS_PLACEHOLDER}>
@@ -181,7 +181,7 @@ function AdminBody() {
         they sign in once.
       </p>
       {rows.map((m) => (
-        <div key={m.userId} className="surface space-y-3 p-4">
+        <div key={m.userId} className="panel space-y-3 p-4">
           <div className="min-w-0">
             <p className="t-body truncate text-foreground">
               {m.displayName || m.email || m.userId.slice(0, 8)}
@@ -211,7 +211,7 @@ function AdminBody() {
         </div>
       ))}
       {rows.length === 0 && (
-        <div className="surface p-6 text-center">
+        <div className="panel p-6 text-center">
           <p className="t-micro">No accounts yet — captains need to sign in once first.</p>
         </div>
       )}

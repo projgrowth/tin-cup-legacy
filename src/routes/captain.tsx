@@ -50,7 +50,7 @@ function CaptainPage() {
       <Shell>
         <PageHeading eyebrow="Scorekeeping" title="Captain Access" />
         {rolesError && (
-          <div role="alert" className="surface mb-4 flex items-center justify-between gap-3 p-4">
+          <div role="alert" className="panel mb-4 flex items-center justify-between gap-3 p-4">
             <p className="t-micro">Scorekeeping access could not be refreshed.</p>
             <button
               type="button"
@@ -62,7 +62,7 @@ function CaptainPage() {
             </button>
           </div>
         )}
-        <div className="surface space-y-4 p-5">
+        <div className="panel space-y-4 p-5">
           <div className="flex items-center justify-between gap-3">
             <p className="t-body min-w-0 truncate text-muted-foreground">
               Signed in as <span className="text-foreground">{user.email}</span>
