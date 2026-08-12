@@ -1,201 +1,83 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronUp, Link as LinkIcon } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
-import type { HoleNote, HoleNoteDraft } from "@/hooks/useJournal";
-import type { useAuth } from "@/hooks/useAuth";
-import type { useHoleNotes } from "@/hooks/useJournal";
-import type { CourseId } from "@/lib/courses";
-import { getGuestNote, setGuestNote } from "@/lib/guest-notes";
-import { hasPlanContent } from "@/lib/round-sheet";
-import { LoadingForm } from "@/components/tin-cup/Shell";
 import { StatusLED } from "@/components/tin-cup/scout/DistanceStack";
+import {
+  MISS_SHAPES,
+  TEE_CLUBS,
+  useHolePlanEditor,
+} from "@/hooks/useHolePlanEditor";
+import { useAuth } from "@/hooks/useAuth";
+import { useHoleNotes } from "@/hooks/useJournal";
+import type { CourseId } from "@/lib/courses";
+import { getGuestNote } from "@/lib/guest-notes";
 
-const TEE_CLUBS = ["Driver", "3W", "5W", "Hybrid", "Iron"] as const;
-const MISS = [
-  { label: "L", value: "Miss L" },
-  { label: "C", value: "Center" },
-  { label: "R", value: "Miss R" },
-] as const;
-
-function draftFromSaved(saved: HoleNote | null | undefined, guest: HoleNoteDraft | null | undefined) {
-  const src = saved
-    ? {
-        tee_club: saved.tee_club,
-        target_line: saved.target_line,
-        green_note: saved.green_note,
-        target_score: saved.target_score,
-        notes: saved.notes,
-      }
-    : guest;
-  return {
-    club: src?.tee_club ?? "",
-    line: src?.target_line ?? "",
-    green: src?.green_note ?? "",
-    score: src?.target_score != null ? String(src.target_score) : "",
-    notes: src?.notes ?? "",
-  };
+/** Parent-owned editor for map tools + sheet (single autosave). */
+export function useScoutPlanEditor(
+  courseId: CourseId,
+  hole: number,
+  user: ReturnType<typeof useAuth>["user"],
+  journal: ReturnType<typeof useHoleNotes>,
+  onGuestChange: () => void,
+) {
+  const mode = user ? "cloud" : ("guest" as const);
+  const saved = user ? journal.noteFor(hole) : null;
+  const guest = !user ? getGuestNote(courseId, hole) : null;
+  return useHolePlanEditor({
+    courseId,
+    hole,
+    mode,
+    saved,
+    guest,
+    save: journal.save,
+    onGuestChange,
+  });
 }
 
 /**
- * Grint-inspired plan sheet — collapsed HUD summary, expand for full journal.
- * Same hole_notes fields / guest storage as before.
+ * Grint-inspired plan sheet — editor owned by parent (shared with map strip).
  */
 export function PlanSheet({
-  courseId,
-  hole,
-  par,
-  user,
-  authLoading,
-  journal,
-  onGuestChange,
-}: {
-  courseId: CourseId;
-  hole: number;
-  par: number;
-  user: ReturnType<typeof useAuth>["user"];
-  authLoading: boolean;
-  journal: ReturnType<typeof useHoleNotes>;
-  onGuestChange: () => void;
-}) {
-  if (authLoading) return <LoadingForm fields={2} />;
-
-  const mode = user ? "cloud" : "guest";
-  const saved = user ? journal.noteFor(hole) : null;
-  const guest = !user ? getGuestNote(courseId, hole) : null;
-
-  return (
-    <PlanSheetInner
-      courseId={courseId}
-      hole={hole}
-      par={par}
-      mode={mode}
-      saved={saved}
-      guest={guest}
-      save={journal.save}
-      loading={journal.loading}
-      onGuestChange={onGuestChange}
-    />
-  );
-}
-
-function PlanSheetInner({
-  courseId,
   hole,
   par,
   mode,
-  saved,
-  guest,
-  save,
   loading,
-  onGuestChange,
+  editor,
 }: {
-  courseId: CourseId;
   hole: number;
   par: number;
   mode: "cloud" | "guest";
-  saved: HoleNote | null;
-  guest: HoleNoteDraft | null;
-  save: ReturnType<typeof useHoleNotes>["save"];
   loading: boolean;
-  onGuestChange: () => void;
+  editor: ReturnType<typeof useHolePlanEditor>;
 }) {
-  const initial = draftFromSaved(saved, guest);
-  const [club, setClub] = useState(initial.club);
-  const [line, setLine] = useState(initial.line);
-  const [green, setGreen] = useState(initial.green);
-  const [score, setScore] = useState(initial.score);
-  const [notes, setNotes] = useState(initial.notes);
-  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const [open, setOpen] = useState(false);
-  const dirty = useRef(false);
-  const timer = useRef<number | null>(null);
+  const [open, setOpen] = useState(!editor.filled);
+  const {
+    club,
+    line,
+    green,
+    score,
+    notes,
+    setClub,
+    setLine,
+    setGreen,
+    setScore,
+    setNotes,
+    led,
+    filled,
+    summary,
+  } = editor;
 
+  // When hole changes, open if empty so first plan is obvious
   useEffect(() => {
-    const next = draftFromSaved(saved, guest);
-    dirty.current = false;
-    if (timer.current) window.clearTimeout(timer.current);
-    setClub(next.club);
-    setLine(next.line);
-    setGreen(next.green);
-    setScore(next.score);
-    setNotes(next.notes);
-    const filled = Boolean(next.club || next.line || next.green || next.score || next.notes);
-    setStatus(filled ? "saved" : "idle");
-    // Keep expanded only if empty (encourage first plan)
     setOpen(!filled);
-  }, [saved, guest, hole, courseId]);
-
-  useEffect(() => {
-    if (!dirty.current) return;
-    if (timer.current) window.clearTimeout(timer.current);
-    setStatus("saving");
-    timer.current = window.setTimeout(() => {
-      const draft: HoleNoteDraft = {
-        tee_club: club.trim() || null,
-        target_line: line.trim() || null,
-        green_note: green.trim() || null,
-        target_score: score.trim() ? Number(score) : null,
-        notes: notes.trim() || null,
-      };
-      if (mode === "guest") {
-        setGuestNote(courseId, hole, draft);
-        onGuestChange();
-        setStatus("saved");
-        dirty.current = false;
-        return;
-      }
-      save.mutate(
-        { hole, draft },
-        {
-          onSuccess: () => {
-            setStatus("saved");
-            dirty.current = false;
-          },
-          onError: () => setStatus("error"),
-        },
-      );
-    }, 500);
-    return () => {
-      if (timer.current) window.clearTimeout(timer.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [club, line, green, score, notes, courseId, hole, mode]);
-
-  function touch<T>(setter: (v: T) => void) {
-    return (v: T) => {
-      dirty.current = true;
-      setter(v);
-    };
-  }
-
-  const filled = hasPlanContent({
-    tee_club: club || null,
-    target_line: line || null,
-    green_note: green || null,
-    target_score: score ? Number(score) : null,
-    notes: notes || null,
-  });
-  const summary = [club, green, score ? `tgt ${score}` : "", line || notes]
-    .filter(Boolean)
-    .join(" · ");
-
-  const led: "idle" | "saving" | "saved" | "error" | "guest" =
-    status === "saving"
-      ? "saving"
-      : status === "error"
-        ? "error"
-        : status === "saved"
-          ? mode === "guest"
-            ? "guest"
-            : "saved"
-          : "idle";
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only on hole change
+  }, [hole]);
 
   const chip = (on: boolean) => `press chip-hud ${on ? "chip-hud-on" : ""}`;
 
   return (
     <div className="hud-pod relative overflow-hidden border-white/10">
-      {/* Handle + collapsed row */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -217,7 +99,7 @@ function PlanSheetInner({
             {filled
               ? summary
               : open
-                ? "Pick club + shape"
+                ? "Pick club + shape — or use map tools"
                 : "Tap to set club · miss · target"}
           </p>
         </div>
@@ -235,7 +117,7 @@ function PlanSheetInner({
                 <button
                   key={c}
                   type="button"
-                  onClick={() => touch(setClub)(club === c ? "" : c)}
+                  onClick={() => setClub(club === c ? "" : c)}
                   className={chip(club === c)}
                 >
                   {c}
@@ -247,11 +129,11 @@ function PlanSheetInner({
           <div>
             <p className="hud-label mb-2">Shape</p>
             <div className="flex flex-wrap gap-1.5">
-              {MISS.map((m) => (
+              {MISS_SHAPES.map((m) => (
                 <button
                   key={m.label}
                   type="button"
-                  onClick={() => touch(setGreen)(green === m.value ? "" : m.value)}
+                  onClick={() => setGreen(green === m.value ? "" : m.value)}
                   className={chip(green === m.value)}
                 >
                   {m.label}
@@ -269,7 +151,7 @@ function PlanSheetInner({
                   <button
                     key={n}
                     type="button"
-                    onClick={() => touch(setScore)(score === String(n) ? "" : String(n))}
+                    onClick={() => setScore(score === String(n) ? "" : String(n))}
                     className={`${chip(score === String(n))} min-w-[3.25rem] text-base`}
                   >
                     {n}
@@ -282,7 +164,7 @@ function PlanSheetInner({
             <p className="hud-label mb-2">Line</p>
             <input
               value={line}
-              onChange={(e) => touch(setLine)(e.target.value)}
+              onChange={(e) => setLine(e.target.value)}
               placeholder="left edge of right bunker"
               maxLength={140}
               className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-base text-white placeholder:text-white/35 focus:border-gold/40 focus:outline-none focus:ring-1 focus:ring-gold/30"
@@ -296,14 +178,14 @@ function PlanSheetInner({
             <div className="mt-2 space-y-2">
               <input
                 value={green}
-                onChange={(e) => touch(setGreen)(e.target.value)}
+                onChange={(e) => setGreen(e.target.value)}
                 placeholder="Green read"
                 maxLength={140}
                 className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-base text-white placeholder:text-white/35"
               />
               <textarea
                 value={notes}
-                onChange={(e) => touch(setNotes)(e.target.value)}
+                onChange={(e) => setNotes(e.target.value)}
                 rows={2}
                 maxLength={600}
                 placeholder="Wind, bail-out…"

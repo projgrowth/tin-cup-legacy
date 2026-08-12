@@ -106,7 +106,7 @@ export function LiveHero({
   );
 }
 
-/** Sticky cup score + race line for mobile spectators (always useful, even at 0–0). */
+/** Sticky cup score + race line — instrument glass for outdoor live viewing. */
 export function StickyCupBar({ matches }: { matches: Match[] }) {
   const standings = tallyStandings(matches);
   const clinch = clinchSummary(standings);
@@ -114,29 +114,35 @@ export function StickyCupBar({ matches }: { matches: Match[] }) {
   const clinched = Boolean(clinch.clinchedBy);
   return (
     <div
-      className={`sticky top-[3.15rem] z-20 -mx-4 border-y px-4 py-2.5 backdrop-blur-md sm:-mx-5 sm:px-5 ${
+      className={`sticky top-[3.15rem] z-20 -mx-4 border-y px-3 py-2 backdrop-blur-md sm:-mx-5 sm:px-5 ${
         clinched
-          ? "border-gold/35 bg-gold/10"
-          : "border-border bg-background/92"
+          ? "border-gold/40 bg-gold/12"
+          : "border-border/80 bg-[var(--hud-bg)]"
       }`}
     >
-      <div className="flex items-center justify-between gap-3">
+      <div className="mx-auto flex max-w-lg items-center justify-between gap-3 sm:max-w-none">
         <div className="flex min-w-0 items-baseline gap-2">
-          <span className="text-sm font-semibold text-gold-light">SM</span>
-          <span className="t-numeral text-2xl text-gold-light">{standings.strongMental}</span>
-          <span className="text-sm text-muted-foreground">–</span>
-          <span className="t-numeral text-2xl text-copper">{standings.grassRoots}</span>
-          <span className="text-sm font-semibold text-copper">GR</span>
+          <span className="hud-label text-gold-light/80">SM</span>
+          <span className="hud-num text-2xl text-gold-light sm:text-3xl">
+            {standings.strongMental}
+          </span>
+          <span className="text-sm text-white/35">–</span>
+          <span className="hud-num text-2xl text-copper sm:text-3xl">
+            {standings.grassRoots}
+          </span>
+          <span className="hud-label text-copper/80">GR</span>
         </div>
-        <p
-          className={`max-w-[55%] shrink-0 text-right text-sm font-semibold leading-snug ${
-            clinched ? "text-gold-light" : "text-foreground"
-          }`}
-        >
-          {race.headline}
-        </p>
+        <div className="max-w-[52%] shrink-0 text-right">
+          <p
+            className={`text-sm font-bold leading-snug ${
+              clinched ? "text-gold-light" : "text-white"
+            }`}
+          >
+            {race.headline}
+          </p>
+          <p className="mt-0.5 text-xs font-medium text-white/50">{race.detail}</p>
+        </div>
       </div>
-      <p className="mt-0.5 text-sm text-muted-foreground">{race.detail}</p>
     </div>
   );
 }

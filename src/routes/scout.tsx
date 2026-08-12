@@ -5,7 +5,8 @@ import { toast } from "sonner";
 
 import { Shell } from "@/components/tin-cup/Shell";
 import { HoleStage } from "@/components/tin-cup/scout/HoleStage";
-import { PlanSheet } from "@/components/tin-cup/scout/PlanSheet";
+import { MapQuickStrip } from "@/components/tin-cup/scout/MapQuickStrip";
+import { PlanSheet, useScoutPlanEditor } from "@/components/tin-cup/scout/PlanSheet";
 import { ScoutChrome } from "@/components/tin-cup/scout/ScoutChrome";
 import { useAuth } from "@/hooks/useAuth";
 import { useHoleNotes, useRoundPlan, type HoleNoteDraft } from "@/hooks/useJournal";
@@ -157,6 +158,15 @@ function ScoutPage() {
   const [dayDraft, setDayDraft] = useState("");
   useEffect(() => setDayDraft(roundPlan.plan), [roundPlan.plan]);
 
+  const planEditor = useScoutPlanEditor(
+    courseId,
+    current.h,
+    user,
+    journal,
+    () => setGuestTick((t) => t + 1),
+  );
+  const planMode = user ? "cloud" : "guest";
+
   async function onSharePlan() {
     const result = await shareRoundSheet(courseId, planLines);
     if (result === "shared") toast.success("Plan shared");
@@ -249,6 +259,16 @@ function ScoutPage() {
                 </p>
               </div>
             }
+            mapTools={
+              !authLoading ? (
+                <MapQuickStrip
+                  club={planEditor.club}
+                  green={planEditor.green}
+                  onClub={planEditor.setClub}
+                  onGreen={planEditor.setGreen}
+                />
+              ) : null
+            }
           />
 
           {tip && (
@@ -258,17 +278,17 @@ function ScoutPage() {
             </section>
           )}
 
-          {/* Plan sheet — primary journal, Grint bottom-drawer energy */}
+          {/* Plan sheet — shared editor with map strip */}
           <div className="lg:hidden">
-            <PlanSheet
-              courseId={courseId}
-              hole={current.h}
-              par={current.par}
-              user={user}
-              authLoading={authLoading}
-              journal={journal}
-              onGuestChange={() => setGuestTick((t) => t + 1)}
-            />
+            {!authLoading && (
+              <PlanSheet
+                hole={current.h}
+                par={current.par}
+                mode={planMode}
+                loading={journal.loading}
+                editor={planEditor}
+              />
+            )}
           </div>
 
           <button
@@ -352,15 +372,15 @@ function ScoutPage() {
         </div>
 
         <aside className="hidden min-w-0 lg:sticky lg:top-28 lg:block">
-          <PlanSheet
-            courseId={courseId}
-            hole={current.h}
-            par={current.par}
-            user={user}
-            authLoading={authLoading}
-            journal={journal}
-            onGuestChange={() => setGuestTick((t) => t + 1)}
-          />
+          {!authLoading && (
+            <PlanSheet
+              hole={current.h}
+              par={current.par}
+              mode={planMode}
+              loading={journal.loading}
+              editor={planEditor}
+            />
+          )}
         </aside>
       </div>
     </Shell>

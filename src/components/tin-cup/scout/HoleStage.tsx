@@ -27,6 +27,7 @@ export function HoleStage({
   canNext,
   topLeftBadge,
   holeMeta,
+  mapTools,
 }: {
   hole: Hole;
   accentClass: string;
@@ -40,6 +41,8 @@ export function HoleStage({
   topLeftBadge?: ReactNode;
   /** Overlay: hole # / name / par — Grint-style HUD on the canvas */
   holeMeta?: ReactNode;
+  /** Floating tool strip (club / shape) above the prev/next bar */
+  mapTools?: ReactNode;
 }) {
   const [mode, setMode] = useState<MapMode>("2d");
   const [fullscreen, setFullscreen] = useState(false);
@@ -157,6 +160,8 @@ export function HoleStage({
           <HoleMap3D hole={hole} className={mapHeight} />
         </Suspense>
       )}
+
+      {mapTools}
 
       {/* Instrument footer */}
       <div className="border-t border-white/10 bg-black/50 px-2 py-1.5 backdrop-blur-md">
