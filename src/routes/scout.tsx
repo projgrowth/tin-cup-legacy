@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, ExternalLink, Target } from "lucide-react";
+import { ExternalLink, Target } from "lucide-react";
 import { toast } from "sonner";
 
-import { HoleMap } from "@/components/tin-cup/HoleMap";
 import { Shell } from "@/components/tin-cup/Shell";
 import { HolePlanDock } from "@/components/tin-cup/scout/HolePlanDock";
+import { HoleStage } from "@/components/tin-cup/scout/HoleStage";
 import { ScoutChrome } from "@/components/tin-cup/scout/ScoutChrome";
 import { useAuth } from "@/hooks/useAuth";
 import { useHoleNotes, useRoundPlan } from "@/hooks/useJournal";
@@ -165,20 +165,10 @@ function ScoutPage() {
   const plannedCount = countPlanned(planLines);
 
   const [gridOpen, setGridOpen] = useState(false);
-  const [fullscreen, setFullscreen] = useState(false);
   const [dayOpen, setDayOpen] = useState(false);
   const [dayDraft, setDayDraft] = useState("");
 
   useEffect(() => setDayDraft(roundPlan.plan), [roundPlan.plan]);
-
-  useEffect(() => {
-    if (!fullscreen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [fullscreen]);
 
   async function onSharePlan() {
     const result = await shareRoundSheet(courseId, planLines);
@@ -273,47 +263,21 @@ function ScoutPage() {
             </div>
           )}
 
-          {/* Hero map */}
-          <section
-            className={`relative overflow-hidden rounded-2xl ring-1 ${accent} ${
-              isSnake ? "ring-copper/50" : ""
-            } bg-[var(--turf-rough)] shadow-[0_20px_50px_-28px_oklch(0_0_0/80%)]`}
-          >
-            <span className="pointer-events-none absolute left-3 top-3 z-10 rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
-              Orientation
-            </span>
-            <HoleMap
-              hole={current}
-              className="block h-[min(58vh,440px)] w-full bg-transparent sm:h-[380px] lg:h-[460px]"
-              fullscreen={fullscreen}
-              onToggleFullscreen={() => setFullscreen((v) => !v)}
-              onSwipeHole={(delta) => step(delta)}
-            />
-            <div className="flex items-stretch border-t border-white/10 bg-black/35">
-              <button
-                type="button"
-                onClick={() => step(-1)}
-                disabled={index <= 0}
-                className="press flex min-h-12 flex-1 items-center justify-center gap-1 text-sm font-semibold text-white/90 disabled:opacity-30"
-              >
-                <ChevronLeft className="size-5" /> Prev
-              </button>
-              <div className="flex min-h-12 items-center border-x border-white/10 px-4 text-sm tabular-nums text-white/70">
-                {index + 1}/{course.holes.length}
-              </div>
-              <button
-                type="button"
-                onClick={() => step(1)}
-                disabled={index >= course.holes.length - 1}
-                className="press flex min-h-12 flex-1 items-center justify-center gap-1 text-sm font-semibold text-white/90 disabled:opacity-30"
-              >
-                Next <ChevronRight className="size-5" />
-              </button>
-            </div>
-          </section>
+          <HoleStage
+            hole={current}
+            accentClass={accent}
+            isSnake={isSnake}
+            index={index}
+            total={course.holes.length}
+            onPrev={() => step(-1)}
+            onNext={() => step(1)}
+            canPrev={index > 0}
+            canNext={index < course.holes.length - 1}
+          />
 
           <p className="mt-2 px-1 text-xs text-muted-foreground">
-            Black yardages · map OSM orientation only · day tees may differ
+            Black scorecard yards are official · day tees may differ · shapes are orientation
+            schematics (not GPS)
           </p>
 
           {tip && (
