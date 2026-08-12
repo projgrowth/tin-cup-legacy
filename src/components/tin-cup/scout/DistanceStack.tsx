@@ -1,45 +1,64 @@
 /**
- * Yardage instrument — Black total is official scorecard.
- * GPS yards-to-green are approximate from the device when enabled.
+ * Yardage instrument.
+ * - Default: Black scorecard yards (official)
+ * - GPS mode: hero ~yd to pin, Black demoted to micro
  */
 export function DistanceStack({
   hole,
-  compact = false,
   gpsYardsToGreen = null,
   gpsNearHole = null,
+  gpsActive = false,
+  gpsError = null,
+  gpsEnabled = false,
 }: {
   hole: { yards: number };
-  compact?: boolean;
   gpsYardsToGreen?: number | null;
   gpsNearHole?: boolean | null;
+  gpsActive?: boolean;
+  gpsError?: string | null;
+  gpsEnabled?: boolean;
 }) {
-  const showGps =
-    gpsYardsToGreen != null && gpsYardsToGreen >= 0 && gpsYardsToGreen < 900;
+  const showGpsNum =
+    gpsEnabled &&
+    gpsActive &&
+    gpsYardsToGreen != null &&
+    gpsYardsToGreen >= 0 &&
+    gpsYardsToGreen < 900;
+
+  if (gpsEnabled && showGpsNum) {
+    return (
+      <div className="glass-panel min-w-[5.5rem] px-3 py-2 text-right backdrop-blur-xl">
+        <p className="hud-label text-sky-300/80">To pin</p>
+        <p className="hud-num mt-0.5 text-4xl text-sky-100">~{gpsYardsToGreen}</p>
+        <p className="mt-1 text-[0.58rem] font-semibold tracking-wide text-white/45">
+          {gpsNearHole === false ? "not on this hole" : "approx · GPS"}
+          <span className="text-white/30"> · </span>
+          <span className="text-gold-light/70">B{hole.yards}</span>
+        </p>
+      </div>
+    );
+  }
+
+  if (gpsEnabled && !gpsActive) {
+    return (
+      <div className="glass-panel min-w-[5.5rem] px-3 py-2 text-right backdrop-blur-xl">
+        <p className="hud-label text-sky-300/70">GPS</p>
+        <p className="mt-1 text-sm font-bold text-white/80">
+          {gpsError ? "Blocked" : "Locating…"}
+        </p>
+        <p className="mt-1 text-[0.58rem] font-semibold tracking-wide text-gold-light/70">
+          Black {hole.yards}
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div
-      className={`hud-pod backdrop-blur-xl ${compact ? "px-3 py-2" : "px-3 py-2.5"}`}
-    >
-      <div className="flex items-end gap-3">
-        <div className="text-right">
-          <p className="hud-label text-gold-light/70">Black</p>
-          <p className="hud-num mt-0.5 text-3xl text-gold-light">{hole.yards}</p>
-        </div>
-        {showGps && (
-          <div className="border-l border-white/10 pl-3 text-right">
-            <p className="hud-label text-sky-300/75">To pin</p>
-            <p className="hud-num mt-0.5 text-2xl text-sky-100">
-              ~{gpsYardsToGreen}
-            </p>
-          </div>
-        )}
-      </div>
-      <p className="mt-1 text-right text-[0.58rem] font-semibold tracking-wide text-white/40">
-        {showGps
-          ? gpsNearHole === false
-            ? "GPS · leave map open on hole"
-            : "yd · GPS approx"
-          : "yd · scorecard"}
+    <div className="glass-panel min-w-[4.75rem] px-3 py-2 text-right backdrop-blur-xl">
+      <p className="hud-label text-gold-light/70">Black</p>
+      <p className="hud-num mt-0.5 text-3xl text-gold-light">{hole.yards}</p>
+      <p className="mt-1 text-[0.58rem] font-semibold tracking-wide text-white/40">
+        yd · scorecard
       </p>
     </div>
   );

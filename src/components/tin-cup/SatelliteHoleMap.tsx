@@ -273,11 +273,11 @@ function flyToHole(map: MapLibreMap, geo: GeoHole, animate: boolean) {
       [e, n],
     ],
     {
-      padding: { top: 56, bottom: 100, left: 36, right: 36 },
-      maxZoom: 18.2,
+      padding: { top: 72, bottom: 96, left: 44, right: 44 },
+      maxZoom: 17.6,
       bearing,
       pitch: 0,
-      duration: animate ? 520 : 0,
+      duration: animate ? 480 : 0,
       essential: true,
     },
   );
@@ -291,15 +291,15 @@ function ensureOverlayLayers(map: MapLibreMap) {
     data: { type: "FeatureCollection", features: [] },
   });
 
-  // Soft fairway wash
+  // Fairway wash — stronger on bright sand aerials
   map.addLayer({
     id: "ov-fairway",
     type: "fill",
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "fairway"],
     paint: {
-      "fill-color": "#4ade80",
-      "fill-opacity": 0.22,
+      "fill-color": "#22c55e",
+      "fill-opacity": 0.32,
     },
   });
   map.addLayer({
@@ -308,9 +308,9 @@ function ensureOverlayLayers(map: MapLibreMap) {
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "fairway"],
     paint: {
-      "line-color": "#bbf7d0",
-      "line-width": 1.4,
-      "line-opacity": 0.55,
+      "line-color": "#dcfce7",
+      "line-width": 2,
+      "line-opacity": 0.75,
     },
   });
   map.addLayer({
@@ -375,17 +375,17 @@ function ensureOverlayLayers(map: MapLibreMap) {
       "line-opacity": 0.7,
     },
   });
-  // Play corridor glow + dashed gold
+  // Play corridor glow + dashed gold — high contrast on light sand
   map.addLayer({
     id: "ov-play-glow",
     type: "line",
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "playLine"],
     paint: {
-      "line-color": "#e8c547",
-      "line-width": 8,
-      "line-opacity": 0.28,
-      "line-blur": 3,
+      "line-color": "#0a0a08",
+      "line-width": 10,
+      "line-opacity": 0.45,
+      "line-blur": 1,
     },
     layout: {
       "line-cap": "round",
@@ -399,9 +399,9 @@ function ensureOverlayLayers(map: MapLibreMap) {
     filter: ["==", ["get", "kind"], "playLine"],
     paint: {
       "line-color": "#f5e6a8",
-      "line-width": 2.4,
-      "line-dasharray": [1.8, 1.4],
-      "line-opacity": 0.95,
+      "line-width": 3.2,
+      "line-dasharray": [1.6, 1.2],
+      "line-opacity": 1,
     },
     layout: {
       "line-cap": "round",

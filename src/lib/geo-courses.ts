@@ -63,8 +63,9 @@ export function normalizeGeoHole(raw: GeoHole): GeoHole {
     if (ring[0]) pts.push(ring[0]);
   }
   const bounds = holeFrameBounds(pts, {
-    padRatio: 0.2,
-    minSpanM: raw.par === 3 ? 120 : 160,
+    // Looser frame so tee→green reads as a full hole on phone
+    padRatio: 0.32,
+    minSpanM: raw.par === 3 ? 160 : 220,
   });
   return { ...raw, bounds };
 }
