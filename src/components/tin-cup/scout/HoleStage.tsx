@@ -136,6 +136,9 @@ export function HoleStage({
   const mapHeight =
     "h-[min(78svh,620px)] w-full sm:h-[min(70vh,560px)] lg:h-[560px]";
 
+  // Edge swipe between holes when not interacting deeply with the map
+  const swipeRef = useRef<{ x: number; y: number; t: number } | null>(null);
+
   const modeBtn = (id: MapMode, label: string, disabled?: boolean) => (
     <button
       type="button"
@@ -215,7 +218,30 @@ export function HoleStage({
       />
 
       {mode === "sat" && geo ? (
-        <div className={mapHeight}>
+        <div
+          className={mapHeight}
+          onTouchStart={(e) => {
+            if (e.touches.length !== 1) {
+              swipeRef.current = null;
+              return;
+            }
+            const t = e.touches[0]!;
+            swipeRef.current = { x: t.clientX, y: t.clientY, t: Date.now() };
+          }}
+          onTouchEnd={(e) => {
+            const start = swipeRef.current;
+            swipeRef.current = null;
+            if (!start || e.changedTouches.length !== 1) return;
+            const t = e.changedTouches[0]!;
+            const dx = t.clientX - start.x;
+            const dy = t.clientY - start.y;
+            const dt = Date.now() - start.t;
+            // Only edge-ish horizontal flicks (avoid fighting map pan mid-gesture)
+            if (dt > 420 || Math.abs(dx) < 72 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+            if (dx < 0 && canNext) onNext();
+            if (dx > 0 && canPrev) onPrev();
+          }}
+        >
           <SatelliteHoleMap
             ref={satRef}
             geo={geo}

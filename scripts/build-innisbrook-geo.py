@@ -1,22 +1,25 @@
 #!/usr/bin/env python3
 """
-Build src/data/geo/innisbrook-geo.json from Overpass OSM extracts.
+Rebuild src/data/geo/innisbrook-geo.json from /tmp/osm-*.json Overpass extracts.
 
-Expects /tmp/osm-{hole,fairway,tee,bunker,water_hazard,lateral_water_hazard}.json
-produced by scripts/fetch-innisbrook-osm.sh (or manual Overpass queries).
-
-Data © OpenStreetMap contributors (ODbL).
+Improvements over v1:
+- Length-aware hole assignment (match OSM play-line yards to Black scorecard)
+- Synthetic fairway corridor when OSM fairway missing
+- Proximity to play line (not just centroid) for bunkers/water
 """
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "src/data/geo/innisbrook-geo.json"
+TMP = Path("/tmp")
 
 
-def load_ways(path: Path) -> list:
+def load_ways(name: str) -> list:
+    path = TMP / name
     if not path.exists():
         return []
     try:
@@ -38,14 +41,24 @@ def ring(geom: list) -> list:
 
 
 def centroid(coords: list) -> list:
-    return [
-        sum(c[0] for c in coords) / len(coords),
-        sum(c[1] for c in coords) / len(coords),
-    ]
+    return [sum(c[0] for c in coords) / len(coords), sum(c[1] for c in coords) / len(coords)]
 
 
 def dist2(a: list, b: list) -> float:
     return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
+
+
+def hav_yards(a: list, b: list) -> float:
+    r = 6_371_000 * 1.0936133
+    lat1, lon1 = math.radians(a[1]), math.radians(a[0])
+    lat2, lon2 = math.radians(b[1]), math.radians(b[0])
+    dlat, dlon = lat2 - lat1, lon2 - lon1
+    x = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    return 2 * r * math.asin(min(1.0, math.sqrt(x)))
+
+
+def line_length(coords: list) -> float:
+    return sum(hav_yards(coords[i - 1], coords[i]) for i in range(1, len(coords)))
 
 
 def bbox_of(coords: list, pad: float = 0.0004) -> list:
@@ -54,8 +67,41 @@ def bbox_of(coords: list, pad: float = 0.0004) -> list:
     return [min(lons) - pad, min(lats) - pad, max(lons) + pad, max(lats) + pad]
 
 
-def expand_bbox(b: list, pad: float = 0.00025) -> list:
+def expand_bbox(b: list, pad: float = 0.00015) -> list:
     return [b[0] - pad, b[1] - pad, b[2] + pad, b[3] + pad]
+
+
+def nearest_dist_to_line(pt: list, line: list) -> float:
+    best = 1e18
+    for i in range(1, len(line)):
+        a, b = line[i - 1], line[i]
+        for t in (0.0, 0.5, 1.0):
+            q = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]
+            best = min(best, math.sqrt(dist2(pt, q)))
+    return best
+
+
+def corridor_poly(line: list, half_width_m: float = 30) -> list | None:
+    if len(line) < 2:
+        return None
+    mid_lat = sum(p[1] for p in line) / len(line)
+    m_lon = 111_320 * math.cos(math.radians(mid_lat))
+    hw_lat = half_width_m / 111_320
+    hw_lon = half_width_m / m_lon
+    left, right = [], []
+    for i, p in enumerate(line):
+        if i < len(line) - 1:
+            dx, dy = line[i + 1][0] - p[0], line[i + 1][1] - p[1]
+        else:
+            dx, dy = p[0] - line[i - 1][0], p[1] - line[i - 1][1]
+        length = math.hypot(dx, dy) or 1e-9
+        nx, ny = -dy / length, dx / length
+        left.append([p[0] + nx * hw_lon, p[1] + ny * hw_lat])
+        right.append([p[0] - nx * hw_lon, p[1] - ny * hw_lat])
+    poly = left + list(reversed(right))
+    if poly[0] != poly[-1]:
+        poly = poly + [poly[0]]
+    return poly
 
 
 def main() -> None:
@@ -69,17 +115,13 @@ def main() -> None:
                 "name": h.get("name"),
             }
 
-    tmp = Path("/tmp")
-    hole_ways = load_ways(tmp / "osm-hole.json")
-    fairway_ways = load_ways(tmp / "osm-fairway.json")
-    bunker_ways = load_ways(tmp / "osm-bunker.json")
-    tee_ways = load_ways(tmp / "osm-tee.json")
-    water_ways = load_ways(tmp / "osm-water_hazard.json") + load_ways(
-        tmp / "osm-lateral_water_hazard.json"
-    )
+    hole_ways = load_ways("osm-hole.json")
+    fairway_ways = load_ways("osm-fairway.json")
+    bunker_ways = load_ways("osm-bunker.json")
+    tee_ways = load_ways("osm-tee.json")
+    water_ways = load_ways("osm-water_hazard.json") + load_ways("osm-lateral_water_hazard.json")
+    green_ways = load_ways("osm-green.json")
 
-    copper: list = []
-    others: list = []
     named = {
         "Bridge Hole",
         "O'Alley",
@@ -97,6 +139,8 @@ def main() -> None:
         "Innisbrook's View",
         "Longview",
     }
+
+    copper, others = [], []
     for w in hole_ways:
         t = w.get("tags") or {}
         desc = ((t.get("description") or t.get("desc") or "") + " " + (t.get("name") or "")).lower()
@@ -112,117 +156,125 @@ def main() -> None:
             "coords": coords,
             "center": centroid(coords),
             "id": w["id"],
+            "len": line_length(coords),
             "copper": "copper" in desc or (t.get("name") or "") in named,
         }
         (copper if rec["copper"] else others).append(rec)
 
-    copper_by: dict = {}
+    copper_by = {}
     for r in copper:
+        sc = scorecard[("copperhead", r["ref"])]
         prev = copper_by.get(r["ref"])
-        if not prev or len(r["coords"]) > len(prev["coords"]):
+        if not prev or abs(prev["len"] - sc["yards"]) > abs(r["len"] - sc["yards"]):
             copper_by[r["ref"]] = r
 
     west = min(others, key=lambda o: o["center"][0])
     east = max(others, key=lambda o: o["center"][0])
     c0, c1 = west["center"][:], east["center"][:]
-    g0: list = []
-    g1: list = []
-    for _ in range(12):
+    g0, g1 = [], []
+    for _ in range(15):
         g0, g1 = [], []
         for o in others:
-            if dist2(o["center"], c0) <= dist2(o["center"], c1):
-                g0.append(o)
-            else:
-                g1.append(o)
+            (g0 if dist2(o["center"], c0) <= dist2(o["center"], c1) else g1).append(o)
         if g0:
             c0 = centroid([o["center"] for o in g0])
         if g1:
             c1 = centroid([o["center"] for o in g1])
-
     if c0[0] < c1[0]:
         south_list, island_list = g0, g1
     else:
         south_list, island_list = g1, g0
 
-    def uniq(rows: list) -> dict:
-        by: dict = {}
-        for r in rows:
-            prev = by.get(r["ref"])
-            if not prev or len(r["coords"]) > len(prev["coords"]):
-                by[r["ref"]] = r
-        return by
+    def assign_course(pool: list, course_id: str) -> dict:
+        remaining = pool[:]
+        assigned = {}
+        for n in range(1, 19):
+            sc = scorecard[(course_id, n)]
+            best, best_score = None, 1e18
+            for o in remaining:
+                len_err = abs(o["len"] - sc["yards"]) / max(sc["yards"], 1)
+                ref_pen = 0 if o["ref"] == n else 0.35
+                par_pen = 0 if (o["par"] is None or o["par"] == sc["par"]) else 0.25
+                s = len_err + ref_pen + par_pen
+                if s < best_score:
+                    best_score, best = s, o
+            if best:
+                assigned[n] = best
+                remaining = [o for o in remaining if o["id"] != best["id"]]
+        return assigned
 
-    south_by = uniq(south_list)
-    island_by = uniq(island_list)
+    south_by = assign_course(south_list, "south")
+    island_by = assign_course(island_list, "island")
 
-    def fill(by: dict, seed: list, label: str) -> None:
+    for by, cid in ((south_by, "south"), (island_by, "island")):
         for n in range(1, 19):
             if n in by:
                 continue
-            cands = [
-                o
-                for o in others
-                if o["ref"] == n
-                and o["id"] not in {x["id"] for x in by.values()}
-                and o["id"] not in {x["id"] for x in copper_by.values()}
-            ]
+            sc = scorecard[(cid, n)]
+            used = {x["id"] for x in by.values()} | {x["id"] for x in copper_by.values()}
+            cands = [o for o in others if o["id"] not in used]
             if not cands:
-                print(label, "missing", n)
+                print(cid, "missing", n)
                 continue
-            cent = centroid([o["center"] for o in by.values()]) if by else seed[0]["center"]
-            cands.sort(key=lambda o: dist2(o["center"], cent))
+            cands.sort(key=lambda o: abs(o["len"] - sc["yards"]))
             by[n] = cands[0]
-
-    fill(south_by, south_list, "south")
-    fill(island_by, island_list, "island")
 
     poly_layers = {
         "fairway": [ring(w["geometry"]) for w in fairway_ways],
         "bunker": [ring(w["geometry"]) for w in bunker_ways],
         "tee": [ring(w["geometry"]) for w in tee_ways],
         "water": [ring(w["geometry"]) for w in water_ways],
+        "green": [ring(w["geometry"]) for w in green_ways],
     }
 
-    def polys_near(line: list, kind: str, max_d: float = 0.0012) -> list:
-        mid = centroid(line)
+    def polys_near_line(line: list, kind: str, max_d: float = 0.0016) -> list:
         out = []
         for poly in poly_layers[kind]:
             if len(poly) < 3:
                 continue
-            if dist2(mid, centroid(poly)) <= max_d**2:
+            if nearest_dist_to_line(centroid(poly), line) <= max_d:
                 out.append(poly)
         return out
 
     def build_hole(course_id: str, rec: dict) -> dict:
         coords = rec["coords"]
-        sc = scorecard.get((course_id, rec["ref"]), {})
+        sc = scorecard[(course_id, rec["ref"])]
+        real_fw = polys_near_line(coords, "fairway", 0.0018)
+        fw = real_fw
+        if not fw:
+            c = corridor_poly(coords, half_width_m=32 if sc["par"] >= 4 else 24)
+            if c:
+                fw = [c]
         return {
             "hole": rec["ref"],
-            "par": sc.get("par") or rec.get("par") or 4,
-            "blackYards": sc.get("yards") or 0,
+            "par": sc["par"],
+            "blackYards": sc["yards"],
             "name": sc.get("name") or rec.get("name"),
-            "bounds": expand_bbox(bbox_of(coords, pad=0.0005), pad=0.00015),
+            "bounds": expand_bbox(bbox_of(coords, pad=0.00045)),
             "tee": coords[0],
             "green": coords[-1],
             "playLine": coords,
-            "fairways": polys_near(coords, "fairway", 0.0015),
-            "bunkers": polys_near(coords, "bunker", 0.0014),
-            "tees": polys_near(coords, "tee", 0.0011),
-            "water": polys_near(coords, "water", 0.0016),
+            "fairways": fw,
+            "bunkers": polys_near_line(coords, "bunker", 0.0015)[:16],
+            "tees": polys_near_line(coords, "tee", 0.0012),
+            "water": polys_near_line(coords, "water", 0.0018),
+            "greens": polys_near_line(coords, "green", 0.0012),
         }
 
     courses_out = {}
-    for cid, by in [
+    for cid, by in (
         ("copperhead", copper_by),
         ("south", south_by),
         ("island", island_by),
-    ]:
+    ):
         holes = []
         for n in range(1, 19):
             if n not in by:
                 print("STILL MISSING", cid, n)
                 continue
-            holes.append(build_hole(cid, by[n]))
+            rec = dict(by[n])
+            rec["ref"] = n
+            holes.append(build_hole(cid, rec))
         allc = [p for h in holes for p in h["playLine"]]
         courses_out[cid] = {
             "id": cid,
@@ -231,6 +283,7 @@ def main() -> None:
             "bounds": bbox_of(allc, pad=0.0009) if allc else None,
             "source": "OpenStreetMap · ODbL",
         }
+        print(cid, len(holes))
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(courses_out, separators=(",", ":")))

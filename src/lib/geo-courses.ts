@@ -22,6 +22,8 @@ export type GeoHole = {
   bunkers: LngLat[][];
   tees: LngLat[][];
   water: LngLat[][];
+  /** OSM green polygons when present */
+  greens?: LngLat[][];
 };
 
 export type GeoCourse = {
@@ -101,6 +103,13 @@ export function holeOverlayCollection(geo: GeoHole): OverlayCollection {
     features.push({
       type: "Feature",
       properties: { kind: "tee" },
+      geometry: { type: "Polygon", coordinates: [ring] },
+    });
+  }
+  for (const ring of geo.greens ?? []) {
+    features.push({
+      type: "Feature",
+      properties: { kind: "green" },
       geometry: { type: "Polygon", coordinates: [ring] },
     });
   }

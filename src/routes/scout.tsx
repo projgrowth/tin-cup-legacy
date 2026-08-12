@@ -249,14 +249,17 @@ function ScoutPage() {
             canPrev={index > 0}
             canNext={index < course.holes.length - 1}
             holeMeta={
-              <div className="hud-pod px-3 py-2 text-right">
-                <p className="hud-num text-4xl text-white">{current.h}</p>
-                <p className="mt-0.5 max-w-[9rem] truncate text-xs font-semibold text-white/70">
+              <div className="hud-pod px-3 py-2 text-right backdrop-blur-xl">
+                <p className="hud-num text-4xl leading-none text-white">{current.h}</p>
+                <p className="mt-1 max-w-[9.5rem] truncate text-xs font-semibold text-white/75">
                   {current.name ?? `Hole ${current.h}`}
                   {isSnake ? " · Pit" : ""}
                 </p>
-                <p className="mt-0.5 text-sm font-bold tabular-nums text-white/85">
+                <p className="mt-0.5 text-sm font-bold tabular-nums text-white/90">
                   Par {current.par}
+                  <span className="ml-1.5 font-semibold text-gold-light/90">
+                    · {current.yards}
+                  </span>
                 </p>
               </div>
             }

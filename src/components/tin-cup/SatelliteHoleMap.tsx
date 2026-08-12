@@ -324,6 +324,27 @@ function ensureOverlayLayers(map: MapLibreMap) {
     },
   });
   map.addLayer({
+    id: "ov-green",
+    type: "fill",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "green"],
+    paint: {
+      "fill-color": "#4ade80",
+      "fill-opacity": 0.42,
+    },
+  });
+  map.addLayer({
+    id: "ov-green-line",
+    type: "line",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "green"],
+    paint: {
+      "line-color": "#bbf7d0",
+      "line-width": 1.6,
+      "line-opacity": 0.75,
+    },
+  });
+  map.addLayer({
     id: "ov-water",
     type: "fill",
     source: OVERLAY_SOURCE,
