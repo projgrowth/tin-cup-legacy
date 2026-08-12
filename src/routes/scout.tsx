@@ -238,6 +238,7 @@ function ScoutPage() {
           )}
 
           <HoleStage
+            courseId={courseId}
             hole={current}
             accentClass={accent}
             isSnake={isSnake}
