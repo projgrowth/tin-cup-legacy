@@ -3,6 +3,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Crosshair,
+  Flag,
   Layers,
   LocateFixed,
   Map as MapIcon,
@@ -37,6 +38,7 @@ export function HoleStage({
   onNext,
   canPrev,
   canNext,
+  onPlayModeChange,
 }: {
   courseId: CourseId;
   hole: Hole;
@@ -48,6 +50,8 @@ export function HoleStage({
   onNext: () => void;
   canPrev: boolean;
   canNext: boolean;
+  /** Notify parent when Play GPS is on (collapse plan sheet, etc.). */
+  onPlayModeChange?: (on: boolean) => void;
 }) {
   const geo = useMemo(() => getGeoHole(courseId, hole.h), [courseId, hole.h]);
   const triple = useMemo(() => (geo ? holeGreenTriple(geo) : null), [geo]);
@@ -59,6 +63,10 @@ export function HoleStage({
   const [satFailed, setSatFailed] = useState(false);
 
   const { fix, error: gpsError, active: gpsActive } = useGeolocation(gpsOn);
+
+  useEffect(() => {
+    onPlayModeChange?.(gpsOn);
+  }, [gpsOn, onPlayModeChange]);
 
   useEffect(() => {
     try {
@@ -121,8 +129,10 @@ export function HoleStage({
     };
   }, [triple, gpsOn, gpsActive, fix, hole.yards]);
 
-  const mapHeight =
-    "h-[min(78svh,620px)] w-full sm:h-[min(72vh,640px)] lg:h-[min(74vh,700px)]";
+  // Play mode: taller map, less chrome noise
+  const mapHeight = gpsOn
+    ? "h-[min(84svh,680px)] w-full sm:h-[min(78vh,700px)] lg:h-[min(80vh,760px)]"
+    : "h-[min(78svh,620px)] w-full sm:h-[min(72vh,640px)] lg:h-[min(74vh,700px)]";
 
   const swipeRef = useRef<{ x: number; y: number; t: number } | null>(null);
 
@@ -137,19 +147,31 @@ export function HoleStage({
         isSnake ? "ring-1 ring-copper/40" : "ring-1 ring-white/10"
       } bg-black shadow-[0_20px_50px_-24px_oklch(0_0_0/75%)]`}
     >
-      {/* Top HUD */}
+      {/* Top HUD — slimmer in Play */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-2.5 sm:p-3">
-        <div className="pointer-events-auto glass-panel max-w-[min(100%,11.5rem)] px-3 py-2">
+        <div
+          className={`pointer-events-auto glass-panel max-w-[min(100%,11.5rem)] ${
+            gpsOn ? "px-2.5 py-1.5" : "px-3 py-2"
+          }`}
+        >
           <p className="flex items-baseline gap-2">
-            <span className="hud-num text-3xl leading-none text-white">{hole.h}</span>
+            <span
+              className={`hud-num leading-none text-white ${
+                gpsOn ? "text-2xl" : "text-3xl"
+              }`}
+            >
+              {hole.h}
+            </span>
             <span className="text-sm font-bold text-white/85">
               Par {hole.par}
             </span>
           </p>
-          <p className="mt-1 truncate text-xs font-semibold text-white/60">
-            {hole.name ?? `Hole ${hole.h}`}
-            {isSnake ? " · Pit" : ""}
-          </p>
+          {!gpsOn && (
+            <p className="mt-1 truncate text-xs font-semibold text-white/60">
+              {hole.name ?? `Hole ${hole.h}`}
+              {isSnake ? " · Pit" : ""}
+            </p>
+          )}
         </div>
         <div className="pointer-events-auto">
           <DistanceStack
@@ -168,24 +190,28 @@ export function HoleStage({
       {/* Tool cluster */}
       <div className="absolute bottom-[3.35rem] left-2.5 z-20 sm:left-3">
         <div className="glass-panel flex items-center gap-0.5 p-0.5">
-          <button
-            type="button"
-            onClick={() => selectMode("sat")}
-            disabled={!hasSat || satFailed}
-            className={toolBtn(mode === "sat", "disabled:opacity-35")}
-            aria-label="Satellite map"
-          >
-            <MapIcon className="size-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => selectMode("diagram")}
-            className={toolBtn(mode === "diagram")}
-            aria-label="Schematic diagram"
-          >
-            <Layers className="size-3.5" />
-          </button>
-          <span className="mx-0.5 h-5 w-px bg-white/15" aria-hidden />
+          {!gpsOn && (
+            <>
+              <button
+                type="button"
+                onClick={() => selectMode("sat")}
+                disabled={!hasSat || satFailed}
+                className={toolBtn(mode === "sat", "disabled:opacity-35")}
+                aria-label="Satellite map"
+              >
+                <MapIcon className="size-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => selectMode("diagram")}
+                className={toolBtn(mode === "diagram")}
+                aria-label="Schematic diagram"
+              >
+                <Layers className="size-3.5" />
+              </button>
+              <span className="mx-0.5 h-5 w-px bg-white/15" aria-hidden />
+            </>
+          )}
           <button
             type="button"
             onClick={() => setGpsOn((v) => !v)}
@@ -197,19 +223,29 @@ export function HoleStage({
             aria-label={gpsOn ? "Exit play GPS" : "Play GPS mode"}
           >
             <LocateFixed className="size-3.5" />
-            <span className="hidden sm:inline">
+            <span className={gpsOn ? "" : "hidden sm:inline"}>
               {gpsOn ? (gpsActive ? "Play" : "…") : "Play"}
             </span>
           </button>
           {mode === "sat" && hasSat && (
-            <button
-              type="button"
-              onClick={() => satRef.current?.resetView()}
-              className={toolBtn(false)}
-              aria-label="Fit hole"
-            >
-              <Crosshair className="size-3.5" />
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => satRef.current?.focusGreen()}
+                className={toolBtn(false, "text-gold-light/90")}
+                aria-label="Focus green"
+              >
+                <Flag className="size-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => satRef.current?.resetView()}
+                className={toolBtn(false)}
+                aria-label="Fit hole"
+              >
+                <Crosshair className="size-3.5" />
+              </button>
+            </>
           )}
         </div>
         {gpsOn && gpsError && (

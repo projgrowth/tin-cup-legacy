@@ -8,7 +8,11 @@ import {
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import type { GeoHole } from "@/lib/geo-courses";
-import { holeOverlayCollection, holePlayBearing } from "@/lib/geo-courses";
+import {
+  greenTarget,
+  holeOverlayCollection,
+  holePlayBearing,
+} from "@/lib/geo-courses";
 import type { LngLat } from "@/lib/geo";
 
 /** Esri World Imagery — attribution required. */
@@ -50,6 +54,8 @@ const OVERLAY_SOURCE = "hole-overlay";
 
 export type SatelliteHoleMapHandle = {
   resetView: () => void;
+  /** Zoom tight on the green / pin for approach. */
+  focusGreen: () => void;
 };
 
 type Props = {
@@ -80,6 +86,7 @@ export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<MapLibreMap | null>(null);
     const gpsMarkerRef = useRef<Marker | null>(null);
+    const pinMarkerRef = useRef<Marker | null>(null);
     const geoRef = useRef(geo);
     geoRef.current = geo;
     const onErrorRef = useRef(onError);
@@ -94,6 +101,11 @@ export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(
         const map = mapRef.current;
         if (!map || !map.isStyleLoaded()) return;
         flyToHole(map, geoRef.current, true);
+      },
+      focusGreen: () => {
+        const map = mapRef.current;
+        if (!map || !map.isStyleLoaded()) return;
+        flyToGreen(map, geoRef.current, true);
       },
     }));
 
@@ -140,6 +152,7 @@ export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(
 
       map.once("load", () => {
         ensureOverlayLayers(map);
+        ensurePinMarker(map, pinMarkerRef, greenTarget(geoRef.current));
         flyToHole(map, geoRef.current, false);
         setReady(true);
         onReadyRef.current?.();
@@ -156,13 +169,15 @@ export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(
         ro.disconnect();
         gpsMarkerRef.current?.remove();
         gpsMarkerRef.current = null;
+        pinMarkerRef.current?.remove();
+        pinMarkerRef.current = null;
         map.remove();
         mapRef.current = null;
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Hole change → smooth camera + overlays
+    // Hole change → smooth camera + overlays + pin
     useEffect(() => {
       const map = mapRef.current;
       if (!map) return;
@@ -170,6 +185,7 @@ export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(
         ensureOverlayLayers(map);
         const src = map.getSource(OVERLAY_SOURCE) as GeoJSONSource | undefined;
         src?.setData(holeOverlayCollection(geo));
+        ensurePinMarker(map, pinMarkerRef, greenTarget(geo));
         flyToHole(map, geo, true);
       };
       if (map.isStyleLoaded()) run();
@@ -282,6 +298,39 @@ function flyToHole(map: MapLibreMap, geo: GeoHole, animate: boolean) {
       essential: true,
     },
   );
+}
+
+/** Tight approach view on the putting surface / pin. */
+function flyToGreen(map: MapLibreMap, geo: GeoHole, animate: boolean) {
+  const center = greenTarget(geo);
+  const bearing = holePlayBearing(geo);
+  map.easeTo({
+    center,
+    zoom: 18.35,
+    bearing,
+    pitch: 0,
+    duration: animate ? 520 : 0,
+    essential: true,
+  });
+}
+
+function ensurePinMarker(
+  map: MapLibreMap,
+  pinRef: { current: Marker | null },
+  pin: LngLat,
+) {
+  if (!pinRef.current) {
+    const node = document.createElement("div");
+    node.className = "tc-pin-flag";
+    node.setAttribute("aria-hidden", "true");
+    node.innerHTML =
+      '<span class="tc-pin-pole"></span><span class="tc-pin-cloth"></span><span class="tc-pin-cup"></span>';
+    pinRef.current = new Marker({ element: node, anchor: "bottom" })
+      .setLngLat(pin)
+      .addTo(map);
+  } else {
+    pinRef.current.setLngLat(pin);
+  }
 }
 
 function ensureOverlayLayers(map: MapLibreMap) {
@@ -494,48 +543,17 @@ function ensureOverlayLayers(map: MapLibreMap) {
       "circle-stroke-color": "#0a0a08",
     },
   });
-  // Pin — center gold with outer ring
+  // Soft cup halo under the HTML pin flag
   map.addLayer({
     id: "ov-green-pt-ring",
     type: "circle",
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "greenPoint"],
     paint: {
-      "circle-radius": 12,
-      "circle-color": "rgba(201,162,39,0.2)",
-      "circle-stroke-width": 2,
-      "circle-stroke-color": "#e8c547",
-    },
-  });
-  map.addLayer({
-    id: "ov-green-pt",
-    type: "circle",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "greenPoint"],
-    paint: {
-      "circle-radius": 6,
-      "circle-color": "#f5e6a8",
-      "circle-stroke-width": 2,
-      "circle-stroke-color": "#0a0a08",
-    },
-  });
-  map.addLayer({
-    id: "ov-pin-label",
-    type: "symbol",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "greenPoint"],
-    layout: {
-      "text-field": "PIN",
-      "text-size": 11,
-      "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-      "text-offset": [0, 1.45],
-      "text-anchor": "top",
-      "text-allow-overlap": true,
-    },
-    paint: {
-      "text-color": "#f5e6a8",
-      "text-halo-color": "rgba(0,0,0,0.92)",
-      "text-halo-width": 1.6,
+      "circle-radius": 10,
+      "circle-color": "rgba(201,162,39,0.18)",
+      "circle-stroke-width": 1.5,
+      "circle-stroke-color": "rgba(245,230,168,0.55)",
     },
   });
   map.addLayer({

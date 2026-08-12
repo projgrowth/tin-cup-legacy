@@ -51,6 +51,7 @@ export function PlanSheet({
   hasNote,
   contestByHole,
   onSelectHole,
+  forceCollapsed = false,
 }: {
   courseId: CourseId;
   hole: number;
@@ -62,6 +63,8 @@ export function PlanSheet({
   hasNote: (h: number) => boolean;
   contestByHole: Map<number, Array<"ctp" | "ld">>;
   onSelectHole: (h: number) => void;
+  /** Play GPS mode — keep plan collapsed so map stays hero. */
+  forceCollapsed?: boolean;
 }) {
   const [open, setOpen] = useState(!editor.filled);
   const stripRef = useRef<HTMLDivElement>(null);
@@ -82,10 +85,17 @@ export function PlanSheet({
     summary,
   } = editor;
 
+  const expanded = open && !forceCollapsed;
+
   useEffect(() => {
+    if (forceCollapsed) return;
     setOpen(!filled);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hole]);
+
+  useEffect(() => {
+    if (forceCollapsed) setOpen(false);
+  }, [forceCollapsed]);
 
   useEffect(() => {
     const el = activeRef.current;
@@ -96,11 +106,17 @@ export function PlanSheet({
   }, [hole, courseId]);
 
   return (
-    <div className="glass-panel relative overflow-hidden">
-      {/* Hole strip */}
+    <div
+      className={`glass-panel relative overflow-hidden transition-opacity ${
+        forceCollapsed ? "opacity-90" : ""
+      }`}
+    >
+      {/* Hole strip — compact in Play */}
       <div
         ref={stripRef}
-        className="no-scrollbar flex gap-1.5 overflow-x-auto scroll-smooth border-b border-white/10 px-3 py-2.5"
+        className={`no-scrollbar flex gap-1.5 overflow-x-auto scroll-smooth border-b border-white/10 px-3 ${
+          forceCollapsed ? "py-1.5" : "py-2.5"
+        }`}
       >
         {holes.map((h) => {
           const active = h.h === hole;
@@ -146,31 +162,50 @@ export function PlanSheet({
 
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="press flex w-full items-center gap-3 px-4 py-3.5 text-left"
-        aria-expanded={open}
+        onClick={() => {
+          if (forceCollapsed) return;
+          setOpen((v) => !v);
+        }}
+        className={`press flex w-full items-center gap-3 px-4 text-left ${
+          forceCollapsed ? "py-2.5" : "py-3.5"
+        }`}
+        aria-expanded={expanded}
+        aria-disabled={forceCollapsed || undefined}
       >
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-bold tracking-tight text-white">
               Plan · H{hole}
+              {forceCollapsed ? (
+                <span className="ml-2 text-xs font-semibold text-sky-200/70">
+                  · Play
+                </span>
+              ) : null}
             </p>
             <StatusLED state={led} />
           </div>
           <p className="mt-1 truncate text-sm text-white/55">
-            {filled
-              ? summary
-              : open
-                ? "Club + miss — saves as you go"
-                : "Tap to set club · miss · line"}
+            {forceCollapsed
+              ? filled
+                ? summary
+                : "Exit Play to edit plan"
+              : filled
+                ? summary
+                : expanded
+                  ? "Club + miss — saves as you go"
+                  : "Tap to set club · miss · line"}
           </p>
         </div>
-        <ChevronUp
-          className={`size-5 shrink-0 text-white/45 transition-transform ${open ? "" : "rotate-180"}`}
-        />
+        {!forceCollapsed && (
+          <ChevronUp
+            className={`size-5 shrink-0 text-white/45 transition-transform ${
+              expanded ? "" : "rotate-180"
+            }`}
+          />
+        )}
       </button>
 
-      {open && (
+      {expanded && (
         <div className="space-y-4 border-t border-white/8 px-4 pb-4 pt-3">
           <div>
             <p className="t-eyebrow mb-2 text-white/45">Club</p>

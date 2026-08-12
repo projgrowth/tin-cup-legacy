@@ -75,6 +75,7 @@ function ScoutPage() {
   const search = Route.useSearch();
   const { user, loading: authLoading } = useAuth();
   const { data: tournament } = useTournament();
+  const [playGpsOn, setPlayGpsOn] = useState(false);
 
   const courseId: CourseId = search.course ?? defaultCourseId();
   const course = getCourse(courseId);
@@ -218,7 +219,7 @@ function ScoutPage() {
           </button>
         </div>
 
-        {(currentContests.length > 0 || plannedCount > 0) && (
+        {!playGpsOn && (currentContests.length > 0 || plannedCount > 0) && (
           <div className="flex flex-wrap items-center gap-2 px-0.5">
             {plannedCount > 0 && (
               <span className="t-micro font-semibold text-muted-foreground">
@@ -252,10 +253,11 @@ function ScoutPage() {
             onNext={() => step(1)}
             canPrev={index > 0}
             canNext={index < course.holes.length - 1}
+            onPlayModeChange={setPlayGpsOn}
           />
         </div>
 
-        {tip && (
+        {tip && !playGpsOn && (
           <section className="panel border border-copper/25 px-4 py-3">
             <p className="t-eyebrow text-copper">Snake Pit · {tip.name}</p>
             <p className="mt-1.5 text-sm leading-relaxed text-foreground/90">{tip.tip}</p>
@@ -274,9 +276,11 @@ function ScoutPage() {
             hasNote={hasNote}
             contestByHole={contestByHole}
             onSelectHole={(h) => setSelection({ hole: h })}
+            forceCollapsed={playGpsOn}
           />
         )}
 
+        {!playGpsOn && (
         <details className="panel group">
           <summary className="press cursor-pointer list-none px-4 py-3 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
             {details.dayLabel} · more
@@ -342,6 +346,7 @@ function ScoutPage() {
             </div>
           </div>
         </details>
+        )}
       </div>
     </Shell>
   );
