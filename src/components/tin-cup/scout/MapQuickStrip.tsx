@@ -15,7 +15,7 @@ export function MapQuickStrip({
   onGreen: (v: string) => void;
 }) {
   return (
-    <div className="pointer-events-auto absolute bottom-[5.25rem] left-1/2 z-20 w-[min(100%-1.25rem,22rem)] -translate-x-1/2 sm:bottom-[5.5rem]">
+    <div className="pointer-events-auto absolute bottom-[6.35rem] left-1/2 z-20 w-[min(100%-1.25rem,22rem)] -translate-x-1/2 sm:bottom-[6.6rem]">
       <div className="hud-pod space-y-1.5 px-2 py-2 backdrop-blur-xl">
         <div className="no-scrollbar flex gap-1 overflow-x-auto px-0.5">
           {TEE_CLUBS.map((c) => {

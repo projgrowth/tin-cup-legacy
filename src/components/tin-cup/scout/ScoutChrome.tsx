@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { MoreHorizontal, Printer, Share2 } from "lucide-react";
 
 import {
@@ -41,6 +42,18 @@ export function ScoutChrome({
   onPrint: () => void;
 }) {
   const pct = Math.round((plannedCount / 18) * 100);
+  const stripRef = useRef<HTMLDivElement>(null);
+  const activeRef = useRef<HTMLButtonElement>(null);
+
+  // Keep active hole visible in the horizontal strip
+  useEffect(() => {
+    if (gridOpen) return;
+    const el = activeRef.current;
+    const strip = stripRef.current;
+    if (!el || !strip) return;
+    const left = el.offsetLeft - strip.clientWidth / 2 + el.clientWidth / 2;
+    strip.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+  }, [hole, courseId, gridOpen]);
 
   return (
     <div className="sticky top-[3.25rem] z-20 -mx-4 mb-4 border-b border-border/70 bg-background/94 px-4 pb-3 pt-1 backdrop-blur-md sm:-mx-5 sm:px-5">
@@ -170,26 +183,35 @@ export function ScoutChrome({
         </div>
       ) : (
         <div className="relative">
-          <div className="no-scrollbar flex snap-x snap-mandatory gap-1.5 overflow-x-auto px-0.5">
+          <div
+            ref={stripRef}
+            className="no-scrollbar flex snap-x snap-mandatory gap-1.5 overflow-x-auto scroll-smooth px-0.5"
+          >
             {holes.map((h) => {
               const contests = contestByHole.get(h.h) ?? [];
               const active = h.h === hole;
               const snake = courseId === "copperhead" && SNAKE_PIT.includes(h.h);
+              const planned = hasNote(h.h);
               return (
                 <button
                   key={h.h}
+                  ref={active ? activeRef : undefined}
                   type="button"
                   onClick={() => onSelectHole(h.h)}
-                  className={`press relative size-11 shrink-0 snap-start rounded-full border text-sm font-bold tabular-nums ${
+                  aria-current={active ? "true" : undefined}
+                  aria-label={`Hole ${h.h}${planned ? ", planned" : ""}`}
+                  className={`press relative size-11 shrink-0 snap-start rounded-full border text-sm font-bold tabular-nums transition-colors ${
                     active
-                      ? "border-foreground/30 bg-foreground text-background"
+                      ? "border-gold/50 bg-gold/20 text-gold-light shadow-[0_0_0_1px_oklch(from_var(--gold)_l_c_h/25%)]"
                       : snake
                         ? "border-copper/35 text-copper"
-                        : "border-border text-muted-foreground"
+                        : planned
+                          ? "border-border bg-secondary/40 text-foreground"
+                          : "border-border text-muted-foreground"
                   }`}
                 >
                   {h.h}
-                  {hasNote(h.h) && !active ? (
+                  {planned && !active ? (
                     <span
                       aria-hidden
                       className="absolute bottom-1 left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-gold"

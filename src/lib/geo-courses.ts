@@ -71,7 +71,26 @@ export function normalizeGeoHole(raw: GeoHole): GeoHole {
 
 /** Bearing so the hole plays toward the top of the screen. */
 export function holePlayBearing(geo: GeoHole): number {
-  return bearingDegrees(geo.tee, geo.green);
+  return bearingDegrees(geo.tee, greenTarget(geo));
+}
+
+/** Prefer OSM green centroid as pin when available; else line endpoint. */
+export function greenTarget(geo: GeoHole): LngLat {
+  const ring = geo.greens?.[0];
+  if (ring && ring.length >= 3) {
+    let x = 0;
+    let y = 0;
+    let n = 0;
+    for (const [lon, lat] of ring) {
+      // skip closing duplicate
+      if (n > 0 && lon === ring[0]![0] && lat === ring[0]![1]) continue;
+      x += lon;
+      y += lat;
+      n += 1;
+    }
+    if (n > 0) return [x / n, y / n];
+  }
+  return geo.green;
 }
 
 export type OverlayFeature = {
@@ -157,7 +176,7 @@ export function holeOverlayCollection(geo: GeoHole): OverlayCollection {
   features.push({
     type: "Feature",
     properties: { kind: "greenPoint", label: "PIN" },
-    geometry: { type: "Point", coordinates: geo.green },
+    geometry: { type: "Point", coordinates: greenTarget(geo) },
   });
 
   return { type: "FeatureCollection", features };

@@ -9,6 +9,7 @@ import {
 } from "@/lib/geo";
 import {
   getGeoHole,
+  greenTarget,
   holeOverlayCollection,
   holePlayBearing,
 } from "@/lib/geo-courses";
@@ -85,5 +86,27 @@ describe("geo package — all holes", () => {
     const fc = holeOverlayCollection(h);
     expect(fc.features.length).toBeGreaterThan(2);
     expect(fc.features.some((f) => f.properties.kind === "playLine")).toBe(true);
+  });
+
+  it("resolves greenTarget near OSM green when present", () => {
+    const h = getGeoHole("copperhead", 16);
+    expect(h).toBeTruthy();
+    if (!h) return;
+    const pin = greenTarget(h);
+    expect(pin).toHaveLength(2);
+    // pin should be close to stored green endpoint
+    expect(Math.abs(pin[0] - h.green[0])).toBeLessThan(0.003);
+    expect(Math.abs(pin[1] - h.green[1])).toBeLessThan(0.003);
+  });
+
+  it("has green polygons on most holes", () => {
+    let withGreen = 0;
+    for (const cid of COURSE_ORDER) {
+      for (let n = 1; n <= 18; n++) {
+        const g = getGeoHole(cid, n);
+        if (g?.greens && g.greens.length > 0) withGreen += 1;
+      }
+    }
+    expect(withGreen).toBeGreaterThanOrEqual(50);
   });
 });

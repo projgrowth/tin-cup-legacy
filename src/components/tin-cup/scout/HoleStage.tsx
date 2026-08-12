@@ -22,7 +22,7 @@ import {
 } from "@/components/tin-cup/SatelliteHoleMap";
 import { DistanceStack } from "@/components/tin-cup/scout/DistanceStack";
 import type { CourseId, Hole } from "@/lib/courses";
-import { getGeoHole } from "@/lib/geo-courses";
+import { getGeoHole, greenTarget } from "@/lib/geo-courses";
 import { bboxContains, haversineYards } from "@/lib/geo";
 import { useGeolocation } from "@/hooks/useGeolocation";
 
@@ -128,8 +128,9 @@ export function HoleStage({
     };
   }, [fullscreen]);
 
+  const pin = geo ? greenTarget(geo) : null;
   const gpsYardsToGreen =
-    fix && geo ? Math.round(haversineYards(fix.point, geo.green)) : null;
+    fix && pin ? Math.round(haversineYards(fix.point, pin)) : null;
   const nearHole =
     fix && geo ? bboxContains(geo.bounds, fix.point, 0.003) : null;
 
@@ -216,6 +217,26 @@ export function HoleStage({
         aria-hidden
         className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,transparent_50%,oklch(0.06_0.02_160/50%)_100%)]"
       />
+
+      {/* Compact map key — bottom-left, clear of club strip */}
+      {mode === "sat" && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute bottom-[5.4rem] left-2.5 z-[15] sm:left-3"
+        >
+          <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-2.5 py-1 backdrop-blur-md">
+            <span className="flex items-center gap-1 text-[0.55rem] font-bold uppercase tracking-wider text-white/70">
+              <span className="size-1.5 rounded-full bg-gold-light" /> Tee
+            </span>
+            <span className="flex items-center gap-1 text-[0.55rem] font-bold uppercase tracking-wider text-white/70">
+              <span className="size-1.5 rounded-full bg-emerald-300" /> Green
+            </span>
+            <span className="flex items-center gap-1 text-[0.55rem] font-bold uppercase tracking-wider text-white/70">
+              <span className="h-0.5 w-2 rounded bg-gold" /> Line
+            </span>
+          </div>
+        </div>
+      )}
 
       {mode === "sat" && geo ? (
         <div
