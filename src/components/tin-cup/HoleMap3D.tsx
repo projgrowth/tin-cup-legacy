@@ -7,14 +7,16 @@ import {
   featuresFor3D,
   holeBounds,
   lineStations,
+  smoothOpenPolyline,
+  smoothPolygon,
 } from "@/lib/hole-geometry";
 
 const FILL: Record<HoleFeatureKind, number> = {
-  fw: 0x3d8f5a,
-  gr: 0x5cb87a,
-  tee: 0x4a9b68,
-  bk: 0xe8d4a0,
-  wa: 0x3a7ab5,
+  fw: 0x458f5c,
+  gr: 0x62c484,
+  tee: 0x529a70,
+  bk: 0xedd9a8,
+  wa: 0x3d82c4,
 };
 
 /**
@@ -77,12 +79,12 @@ export function HoleMap3D({
     const root = new THREE.Group();
     scene.add(root);
 
-    // Ground plate
+    // Ground plate — darker rough
     const ground = new THREE.Mesh(
-      new THREE.CircleGeometry(bounds.span * scale * 0.72, 48),
+      new THREE.CircleGeometry(bounds.span * scale * 0.78, 64),
       new THREE.MeshStandardMaterial({
-        color: 0x1a2a22,
-        roughness: 0.95,
+        color: 0x15241c,
+        roughness: 0.97,
         metalness: 0.02,
       }),
     );
@@ -96,11 +98,12 @@ export function HoleMap3D({
       z: (y - bounds.cy) * scale,
     });
 
-    // Extruded features
+    // Extruded features — Chaikin-smoothed silhouettes
     for (const feat of featuresFor3D(hole)) {
       if (feat.p.length < 3) continue;
+      const ring = smoothPolygon(feat.p, feat.k === "fw" || feat.k === "gr" ? 3 : 2);
       const shape = new THREE.Shape();
-      feat.p.forEach(([px, py], i) => {
+      ring.forEach(([px, py], i) => {
         const { x, z } = toLocal(px, py);
         // Shape is X/Y; we map data Y → shape Y then rotate to XZ
         if (i === 0) shape.moveTo(x, -z);
@@ -110,20 +113,20 @@ export function HoleMap3D({
 
       const geo = new THREE.ExtrudeGeometry(shape, {
         depth: EXTRUDE_H[feat.k],
-        bevelEnabled: feat.k === "gr" || feat.k === "fw",
-        bevelThickness: 0.15,
-        bevelSize: 0.12,
-        bevelSegments: 1,
+        bevelEnabled: feat.k === "gr" || feat.k === "fw" || feat.k === "bk",
+        bevelThickness: feat.k === "gr" ? 0.22 : 0.12,
+        bevelSize: feat.k === "gr" ? 0.18 : 0.1,
+        bevelSegments: 2,
       });
       // Extrude goes +Z in shape space; rotate to stand on XZ ground
       geo.rotateX(-Math.PI / 2);
 
       const mat = new THREE.MeshStandardMaterial({
         color: FILL[feat.k],
-        roughness: feat.k === "wa" ? 0.25 : feat.k === "bk" ? 0.9 : 0.72,
-        metalness: feat.k === "wa" ? 0.35 : 0.04,
+        roughness: feat.k === "wa" ? 0.22 : feat.k === "bk" ? 0.92 : 0.68,
+        metalness: feat.k === "wa" ? 0.4 : 0.05,
         transparent: feat.k === "wa",
-        opacity: feat.k === "wa" ? 0.88 : 1,
+        opacity: feat.k === "wa" ? 0.9 : 1,
       });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.castShadow = true;
@@ -133,9 +136,10 @@ export function HoleMap3D({
       root.add(mesh);
     }
 
-    // Play line ribbon
+    // Play line ribbon (smoothed display path)
     if (hole.line.length >= 2) {
-      const pts = hole.line.map(([px, py]) => {
+      const smoothed = smoothOpenPolyline(hole.line, 2);
+      const pts = smoothed.map(([px, py]) => {
         const { x, z } = toLocal(px, py);
         return new THREE.Vector3(x, 3.2, z);
       });

@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { getHole } from "@/lib/courses";
-import { lineStations, polylineLength } from "@/lib/hole-geometry";
+import {
+  lineStations,
+  paddedViewBox,
+  polylineLength,
+  smoothOpenPolyline,
+  smoothPolygon,
+} from "@/lib/hole-geometry";
 
 describe("hole-geometry", () => {
   it("places stations along the play line scaled to Black yardage", () => {
@@ -24,5 +30,44 @@ describe("hole-geometry", () => {
     expect(hole).toBeTruthy();
     if (!hole) return;
     expect(polylineLength(hole.line)).toBeGreaterThan(0);
+  });
+
+  it("smoothPolygon densifies a coarse square without leaving the bbox much", () => {
+    const sq: [number, number][] = [
+      [0, 0],
+      [100, 0],
+      [100, 100],
+      [0, 100],
+    ];
+    const out = smoothPolygon(sq, 2);
+    expect(out.length).toBeGreaterThan(sq.length);
+    for (const [x, y] of out) {
+      expect(x).toBeGreaterThanOrEqual(-1);
+      expect(x).toBeLessThanOrEqual(101);
+      expect(y).toBeGreaterThanOrEqual(-1);
+      expect(y).toBeLessThanOrEqual(101);
+    }
+  });
+
+  it("smoothOpenPolyline keeps endpoints fixed", () => {
+    const line: [number, number][] = [
+      [0, 0],
+      [50, 40],
+      [100, 0],
+    ];
+    const out = smoothOpenPolyline(line, 2);
+    expect(out[0]).toEqual([0, 0]);
+    expect(out[out.length - 1]).toEqual([100, 0]);
+    expect(out.length).toBeGreaterThan(line.length);
+  });
+
+  it("paddedViewBox expands bounds for South H1", () => {
+    const hole = getHole("south", 1);
+    expect(hole).toBeTruthy();
+    if (!hole) return;
+    const vb = paddedViewBox(hole, 0.06);
+    expect(vb.width).toBeGreaterThan(0);
+    expect(vb.height).toBeGreaterThan(0);
+    expect(vb.viewBox.split(" ").length).toBe(4);
   });
 });

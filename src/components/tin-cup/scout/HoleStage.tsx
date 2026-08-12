@@ -86,13 +86,13 @@ export function HoleStage({
   }, [fullscreen]);
 
   const mapHeight =
-    "h-[min(62vh,480px)] w-full sm:h-[400px] lg:h-[480px]";
+    "h-[min(72vh,560px)] w-full sm:h-[460px] lg:h-[540px]";
 
   return (
     <section
       className={`relative overflow-hidden rounded-[1.25rem] ring-1 ${accentClass} ${
         isSnake ? "ring-copper/50" : ""
-      } bg-[var(--turf-rough)] shadow-[0_24px_60px_-28px_oklch(0_0_0/85%)]`}
+      } bg-[var(--turf-rough)] shadow-[0_28px_70px_-30px_oklch(0_0_0/88%)]`}
     >
       {/* Top-left: mode */}
       <div className="absolute left-3 top-3 z-20 flex flex-col gap-2">
@@ -130,10 +130,10 @@ export function HoleStage({
         <DistanceStack hole={hole} />
       </div>
 
-      {/* Edge vignette */}
+      {/* Edge vignette — immersive map frame */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,transparent_45%,oklch(0.08_0.02_160/55%)_100%)]"
+        className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,transparent_42%,var(--map-vignette)_100%)]"
       />
 
       {mode === "2d" ? (
@@ -168,7 +168,7 @@ export function HoleStage({
         <p className="hud-label mb-1.5 text-center tracking-[0.14em] text-white/50">
           {mode === "3d"
             ? "Schematic 3D · Black line ticks · not rangefinder"
-            : "Schematic map · Black scorecard · OSM outline"}
+            : "Schematic layout · Black tee yards · not GPS"}
         </p>
         <div className="flex items-stretch">
           <button
