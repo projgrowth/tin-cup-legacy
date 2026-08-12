@@ -6,6 +6,7 @@ import { ChevronRight } from "lucide-react";
 import { Avatar } from "@/components/tin-cup/Avatar";
 import { ErrorState, LoadingRows, PageHeading, Shell } from "@/components/tin-cup/Shell";
 import { WhatsAppGroupButton } from "@/components/tin-cup/WhatsAppLinks";
+import { Segmented } from "@/components/tin-cup/ui/primitives";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
@@ -118,26 +119,22 @@ function RostersPage() {
           </section>
         )}
 
-        <div className="flex gap-1 rounded-xl border border-border bg-secondary/40 p-1">
-          {teams.map((team) => (
-            <button
-              key={team.id}
-              type="button"
-              onClick={() => setActiveSlug(team.slug)}
-              className={`press t-body min-h-11 flex-1 rounded-lg px-2 py-2 font-semibold ${
-                selected?.id === team.id
-                  ? "bg-secondary text-foreground"
-                  : "text-muted-foreground"
-              }`}
-            >
-              {team.name.replace("Team ", "")}
-            </button>
-          ))}
-        </div>
+        {teams.length > 0 && (
+          <Segmented
+            ariaLabel="Team"
+            value={(activeSlug ?? teams[0]?.slug ?? "strong-mental") as string}
+            onChange={(slug) => setActiveSlug(slug)}
+            options={teams.map((team) => ({
+              value: team.slug,
+              label: team.name.replace("Team ", ""),
+              hint: myTeam?.id === team.id ? "you" : undefined,
+            }))}
+          />
+        )}
 
         <Link
           to="/profile"
-          className="press flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3"
+          className="press panel flex items-center justify-between gap-3 px-4 py-3"
         >
           <span className="flex min-w-0 items-center gap-3">
             {myPlayer && myTeam ? (
@@ -161,7 +158,7 @@ function RostersPage() {
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
         {selected && (
-          <section className={`surface-raised overflow-hidden ${teamRailClass(selected.slug)}`}>
+          <section className={`panel overflow-hidden ${teamRailClass(selected.slug)}`}>
             <div className="border-b border-border px-4 py-3">
               <div className="flex items-baseline justify-between gap-3">
                 <div className="min-w-0">

@@ -112,7 +112,7 @@ function PlayerPage() {
         <ChevronLeft className="size-4" strokeWidth={1.7} /> Team hub
       </Link>
 
-      <header className={`surface ${teamRailClass(team.slug)} p-5`}>
+      <header className={`panel ${teamRailClass(team.slug)} p-5`}>
         <div className="flex items-start gap-3">
           <Avatar
             name={player.name}
@@ -153,7 +153,7 @@ function PlayerPage() {
           { label: "Halved", value: record.halved },
           { label: "Lost", value: record.lost },
         ].map((stat) => (
-          <div key={stat.label} className="surface p-4 text-center">
+          <div key={stat.label} className="panel p-4 text-center">
             <p className="t-numeral text-foreground">{stat.value}</p>
             <p className="t-micro mt-0.5">{stat.label}</p>
           </div>

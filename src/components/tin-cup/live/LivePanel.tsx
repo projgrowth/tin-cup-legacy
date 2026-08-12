@@ -102,7 +102,7 @@ export function LivePanel({
       <Link
         to="/scout"
         search={{ course: planCourse, hole: 1 }}
-        className="press surface-inset flex min-h-12 items-center justify-between gap-3 px-4 py-3"
+        className="press panel flex min-h-12 items-center justify-between gap-3 px-4 py-3"
       >
         <span className="min-w-0">
           <span className="t-body flex items-center gap-2 font-medium text-foreground">
@@ -149,10 +149,8 @@ export function LivePanel({
               type="button"
               aria-pressed={needsResultOnly}
               onClick={() => setNeedsResultOnly((value) => !value)}
-              className={`press min-h-11 rounded-full border px-3 t-micro font-semibold ${
-                needsResultOnly
-                  ? "border-foreground/25 bg-secondary text-foreground"
-                  : "border-border text-muted-foreground"
+              className={`press chip t-micro ${
+                needsResultOnly ? "chip-on" : ""
               }`}
             >
               {needsResultOnly ? "Open only" : "All"}
@@ -173,7 +171,7 @@ export function LivePanel({
         ))}
       </section>
 
-      <section className="surface-inset overflow-hidden">
+      <section className="panel overflow-hidden">
         <button
           type="button"
           onClick={() => setSideOpen((v) => !v)}

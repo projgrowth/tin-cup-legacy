@@ -21,7 +21,7 @@ export function Countdown() {
   ];
 
   return (
-    <section className="surface-raised overflow-hidden">
+    <section className="panel overflow-hidden">
       <p className="t-eyebrow border-b border-border px-4 py-2.5 text-center">
         {time?.done ? "The cup is live" : "First tee · Friday 12:19 PM"}
       </p>

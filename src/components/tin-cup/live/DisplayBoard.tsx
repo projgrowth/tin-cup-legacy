@@ -58,7 +58,7 @@ export function DisplayBoard({
         </header>
 
         {/* Cup score — huge */}
-        <section className="surface-raised px-6 py-8 text-center sm:px-10 sm:py-12">
+        <section className="panel px-6 py-8 text-center sm:px-10 sm:py-12">
           <div className="flex items-center justify-center gap-6 sm:gap-12">
             <div className="min-w-0">
               <p className="text-lg font-semibold text-gold-light sm:text-xl">

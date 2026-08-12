@@ -64,7 +64,7 @@ function ProfilePage() {
         title={user ? (firstName ? firstName : "You") : "Sign in"}
       />
       {user && rolesError && (
-        <div role="alert" className="surface mb-4 flex items-center justify-between gap-3 p-4">
+        <div role="alert" className="panel mb-4 flex items-center justify-between gap-3 p-4">
           <p className="t-micro">Your access level could not be refreshed.</p>
           <button
             type="button"
@@ -104,7 +104,7 @@ function ProfilePage() {
               <Link
                 to="/player/$playerId"
                 params={{ playerId: claimedPlayer.id }}
-                className="press surface-raised flex items-center justify-between gap-2 px-4 py-3.5"
+                className="press panel flex items-center justify-between gap-2 px-4 py-3.5"
               >
                 <span className="t-body font-medium text-foreground">Your player card</span>
                 <ChevronRight className="size-4 text-muted-foreground" />
@@ -112,14 +112,14 @@ function ProfilePage() {
             )}
             <Link
               to="/scout"
-              className="press surface-raised flex items-center justify-between gap-2 px-4 py-3.5"
+              className="press panel flex items-center justify-between gap-2 px-4 py-3.5"
             >
               <span className="t-body font-medium text-foreground">Course notes</span>
               <ChevronRight className="size-4 text-muted-foreground" />
             </Link>
             <Link
               to="/rosters"
-              className="press surface-inset flex items-center justify-between gap-2 px-4 py-3.5"
+              className="press panel flex items-center justify-between gap-2 px-4 py-3.5"
             >
               <span className="t-body font-medium text-foreground">
                 {claimedTeam ? "Your team hub" : "Teams"}
@@ -129,7 +129,7 @@ function ProfilePage() {
             {canScore && (
               <Link
                 to="/"
-                className="press surface-inset flex items-center justify-between gap-2 px-4 py-3.5"
+                className="press panel flex items-center justify-between gap-2 px-4 py-3.5"
               >
                 <span className="t-body font-medium text-foreground">Live board · score</span>
                 <ChevronRight className="size-4 text-muted-foreground" />
@@ -138,7 +138,7 @@ function ProfilePage() {
           </div>
           <WhatsAppGroupButton className="w-full" />
           <RoundPlans />
-          <section className="surface p-4">
+          <section className="panel p-4">
             <p className="t-section text-foreground">Add to Home Screen</p>
             <p className="t-micro mt-1.5 text-muted-foreground">
               iPhone: Share → Add to Home Screen. Android: browser menu → Install app.
@@ -241,7 +241,7 @@ function MyHubCard({
   const src = localUrl || face?.url || null;
 
   return (
-    <section className={`surface-raised p-4 ${teamRailClass(teamSlug)}`}>
+    <section className={`panel p-4 ${teamRailClass(teamSlug)}`}>
       <div className="flex items-start gap-3">
         <button
           type="button"
@@ -329,7 +329,7 @@ function GuestNotesMerge() {
   }
 
   return (
-    <div className="surface flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="panel flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
         <p className="t-title text-foreground">On-device notes found</p>
         <p className="t-micro mt-0.5 text-muted-foreground">
@@ -421,7 +421,7 @@ function Identity({
         </h2>
         <span className="pill t-micro text-muted-foreground">{roleLabel}</span>
       </div>
-      <div className={`space-y-3 p-4 ${needsClaim ? "surface-emphasized" : "surface"}`}>
+      <div className={`space-y-3 p-4 ${needsClaim ? "surface-emphasized" : "panel"}`}>
         <p className="t-micro truncate text-muted-foreground">{email}</p>
         <select
           value={playerId}
@@ -508,7 +508,7 @@ function PlanCard({ slug, label, format }: { slug: string; label: string; format
   useEffect(() => setDraft(plan), [plan]);
 
   return (
-    <div className="surface p-4">
+    <div className="panel p-4">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

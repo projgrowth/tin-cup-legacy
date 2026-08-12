@@ -89,7 +89,7 @@ export function PreTournamentPanel({
       </div>
 
       {/* Weekend command strip — next up */}
-      <section className="surface-raised overflow-hidden">
+      <section className="panel overflow-hidden">
         <div className="border-b border-border px-4 py-3">
           <p className="t-eyebrow">Next up</p>
           <p className="t-title mt-1.5 text-foreground">
@@ -144,7 +144,7 @@ export function PreTournamentPanel({
 
       {/* For you — claimed only */}
       {isClaimed && myDay1 && (
-        <section className="surface-raised p-4">
+        <section className="panel p-4">
           <p className="t-eyebrow">For you · Day 1</p>
           <div className="mt-3 flex items-center gap-3">
             <AvatarPair
@@ -197,7 +197,7 @@ export function PreTournamentPanel({
       {signedIn && needsClaim && (
         <Link
           to="/profile"
-          className="press surface-raised flex items-center justify-between gap-3 border border-gold/30 p-4"
+          className="press panel flex items-center justify-between gap-3 border border-gold/30 p-4"
         >
           <span className="min-w-0">
             <span className="t-title block text-foreground">Claim your roster name</span>

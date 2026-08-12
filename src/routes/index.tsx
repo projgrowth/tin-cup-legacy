@@ -138,7 +138,7 @@ function Index() {
         {needsClaim && mode === "live" && (
           <Link
             to="/profile"
-            className="press mb-4 flex items-center justify-between gap-3 rounded-xl border border-gold/30 bg-secondary/40 px-4 py-3"
+            className="press panel mb-4 flex items-center justify-between gap-3 border border-gold/30 px-4 py-3"
           >
             <span className="min-w-0">
               <span className="t-body block font-medium text-foreground">Claim your roster name</span>

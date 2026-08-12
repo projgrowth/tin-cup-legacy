@@ -108,7 +108,7 @@ function SchedulePage() {
     !now ||
     (todayRound ? roundStatus(todayRound, now) !== "complete" : true);
 
-  // Social: surface today's dinner first
+  // Social: panel today's dinner first
   const socialOrdered = useMemo(() => {
     const dayLabel = todayDetails.dayLabel; // Friday / Saturday / Sunday
     const list = [...WEEKEND_SOCIAL];
@@ -125,7 +125,7 @@ function SchedulePage() {
       <PageHeading eyebrow="Aug 28–30" title="Weekend" />
       <div className="stack-page pb-4">
         {/* Today-first command card */}
-        <section className="surface-raised overflow-hidden">
+        <section className="panel overflow-hidden">
           <div className="flex items-start justify-between gap-3 p-4">
             <div className="min-w-0">
               <p className="t-eyebrow">Today · focus</p>
@@ -165,7 +165,7 @@ function SchedulePage() {
           <button
             type="button"
             onClick={() => downloadWeekendIcs(rounds)}
-            className="press t-micro inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-3.5 text-muted-foreground"
+            className="press chip inline-flex min-h-11 items-center gap-2"
           >
             <CalendarPlus className="size-3.5" /> Add to calendar
           </button>
@@ -235,7 +235,7 @@ function SchedulePage() {
             return (
               <article
                 key={round.id}
-                className={`overflow-hidden ${raised ? "surface-raised" : "surface-inset"} ${courseRail(round.course)}`}
+                className={`overflow-hidden ${raised ? "panel" : "surface-inset"} ${courseRail(round.course)}`}
               >
                 <div className="flex items-start justify-between gap-3 p-4">
                   <div className="min-w-0">
