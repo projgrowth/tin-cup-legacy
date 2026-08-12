@@ -226,36 +226,58 @@ export function HoleMap({
       aria-label={`Overhead diagram of hole ${hole.h}`}
       preserveAspectRatio="xMidYMid meet"
     >
-      <rect x={0} y={0} width={hole.w} height={hole.ht} fill="var(--turf-rough)" rx={14} />
+      <defs>
+        <radialGradient id={`rough-glow-${hole.h}`} cx="50%" cy="45%" r="65%">
+          <stop offset="0%" stopColor="oklch(0.26 0.04 155)" />
+          <stop offset="100%" stopColor="var(--turf-rough)" />
+        </radialGradient>
+      </defs>
+      <rect
+        x={0}
+        y={0}
+        width={hole.w}
+        height={hole.ht}
+        fill={`url(#rough-glow-${hole.h})`}
+        rx={18}
+      />
       {layers.map(({ kind, i, d }) => (
         <path
           key={`${kind}-${i}`}
           d={d}
           fill={FILL[kind]}
-          stroke="oklch(0 0 0 / 22%)"
-          strokeWidth={2}
+          stroke="var(--turf-stroke)"
+          strokeWidth={kind === "gr" || kind === "wa" ? 2.5 : 1.75}
+          strokeLinejoin="round"
         />
       ))}
       <polyline
         points={line.map(([x, y]) => `${x},${y}`).join(" ")}
         fill="none"
         stroke="var(--gold)"
-        strokeWidth={5}
-        strokeDasharray="14 12"
+        strokeWidth={4.5}
+        strokeDasharray="16 10"
         strokeLinecap="round"
-        opacity={0.85}
+        opacity={0.9}
       />
-      <circle cx={tee[0]} cy={tee[1]} r={13} fill="var(--gold-light)" />
+      {/* Tee mark */}
+      <circle cx={tee[0]} cy={tee[1]} r={11} fill="var(--gold-light)" />
+      <circle cx={tee[0]} cy={tee[1]} r={4} fill="var(--background)" opacity={0.85} />
+      {/* Green target */}
       <circle
         cx={green[0]}
         cy={green[1]}
-        r={13}
+        r={16}
         fill="none"
         stroke="var(--gold-light)"
-        strokeWidth={5}
+        strokeWidth={3.5}
+        opacity={0.95}
       />
+      <circle cx={green[0]} cy={green[1]} r={5} fill="var(--gold-light)" opacity={0.9} />
     </svg>
   );
+
+  const ctrlBtn =
+    "press flex size-11 items-center justify-center rounded-full border border-white/10 bg-black/55 text-foreground shadow-lg backdrop-blur-md disabled:opacity-35";
 
   const controls = (
     <div className="absolute bottom-3 right-3 z-10 flex gap-1.5">
@@ -264,7 +286,7 @@ export function HoleMap({
         aria-label="Zoom out"
         onClick={() => zoom(-0.4)}
         disabled={scale <= MIN_SCALE}
-        className="press flex size-11 items-center justify-center rounded-lg border border-border bg-background/90 text-foreground backdrop-blur-sm disabled:opacity-35"
+        className={ctrlBtn}
       >
         <Minus className="size-4" />
       </button>
@@ -273,16 +295,11 @@ export function HoleMap({
         aria-label="Zoom in"
         onClick={() => zoom(0.4)}
         disabled={scale >= MAX_SCALE}
-        className="press flex size-11 items-center justify-center rounded-lg border border-border bg-background/90 text-foreground backdrop-blur-sm disabled:opacity-35"
+        className={ctrlBtn}
       >
         <Plus className="size-4" />
       </button>
-      <button
-        type="button"
-        aria-label="Reset map view"
-        onClick={reset}
-        className="press flex size-11 items-center justify-center rounded-lg border border-border bg-background/90 text-foreground backdrop-blur-sm"
-      >
+      <button type="button" aria-label="Reset map view" onClick={reset} className={ctrlBtn}>
         <RotateCcw className="size-4" />
       </button>
       {onToggleFullscreen ? (
@@ -290,7 +307,7 @@ export function HoleMap({
           type="button"
           aria-label={fullscreen ? "Exit full screen" : "Full screen map"}
           onClick={onToggleFullscreen}
-          className="press flex size-11 items-center justify-center rounded-lg border border-border bg-background/90 text-foreground backdrop-blur-sm"
+          className={ctrlBtn}
         >
           {fullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
         </button>
@@ -320,11 +337,6 @@ export function HoleMap({
         {mapSvg}
       </div>
       {controls}
-      {!fullscreen && scale <= 1.05 ? (
-        <p className="pointer-events-none absolute bottom-3 left-3 max-w-[9rem] rounded-md border border-border bg-background/80 px-2 py-1 t-micro text-muted-foreground backdrop-blur-sm">
-          Pinch · swipe holes
-        </p>
-      ) : null}
     </div>
   );
 
