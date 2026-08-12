@@ -338,61 +338,109 @@
   line-height: 1;
 }
 
-/* ---- Surfaces: quiet base, one raised focal, inset lists ---- */
+/* ---- Surfaces: three roles only (panel / raised / inset) ---- */
 
 @utility surface {
   background-color: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid oklch(1 0 0 / 6%);
+  border-radius: 1rem;
 }
 
-/** Primary focal card — soft lift, no gold wash */
+/** Primary panel — soft lift */
 @utility surface-raised {
   background-color: oklch(from var(--card) calc(l + 0.02) c h);
-  border: 1px solid oklch(1 0 0 / 10%);
-  border-radius: calc(var(--radius) + 2px);
+  border: 1px solid oklch(1 0 0 / 8%);
+  border-radius: 1.125rem;
   box-shadow:
-    0 1px 0 oklch(1 0 0 / 6%) inset,
-    0 12px 32px -20px oklch(0 0 0 / 55%);
+    0 1px 0 oklch(1 0 0 / 5%) inset,
+    0 16px 40px -24px oklch(0 0 0 / 55%);
 }
 
-/** Nested lists / ledgers — sits into the page */
+/** Nested lists / ledgers */
 @utility surface-inset {
   background-color: oklch(1 0 0 / 2.5%);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid oklch(1 0 0 / 5%);
+  border-radius: 1rem;
 }
 
+/* Aliases — prefer surface-raised / surface-inset going forward */
 @utility surface-hero {
   background-color: oklch(from var(--card) calc(l + 0.02) c h);
-  border: 1px solid oklch(1 0 0 / 10%);
-  border-radius: calc(var(--radius) + 2px);
+  border: 1px solid oklch(1 0 0 / 8%);
+  border-radius: 1.125rem;
   box-shadow:
-    0 1px 0 oklch(1 0 0 / 6%) inset,
-    0 12px 32px -20px oklch(0 0 0 / 55%);
+    0 1px 0 oklch(1 0 0 / 5%) inset,
+    0 16px 40px -24px oklch(0 0 0 / 55%);
 }
 
 @utility surface-emphasized {
   background-color: var(--card);
-  border: 1px solid oklch(from var(--gold) l c h / 22%);
-  border-radius: calc(var(--radius) + 2px);
+  border: 1px solid oklch(from var(--gold) l c h / 18%);
+  border-radius: 1.125rem;
+}
+
+@utility panel {
+  background-color: oklch(from var(--card) calc(l + 0.015) c h);
+  border: 1px solid oklch(1 0 0 / 7%);
+  border-radius: 1.125rem;
+  box-shadow:
+    0 1px 0 oklch(1 0 0 / 4%) inset,
+    0 14px 36px -22px oklch(0 0 0 / 50%);
+}
+
+@utility glass-panel {
+  background: oklch(0.12 0.018 165 / 78%);
+  border: 1px solid oklch(1 0 0 / 10%);
+  border-radius: 1.125rem;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow:
+    0 1px 0 oklch(1 0 0 / 6%) inset,
+    0 12px 32px -18px oklch(0 0 0 / 50%);
 }
 
 @utility hairline {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid oklch(1 0 0 / 6%);
 }
 
-/** Vertical rhythm between major page blocks */
+/** Vertical rhythm — tighter, cleaner pages */
 @utility stack-page {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 1.5rem;
 }
 
 @utility stack-tight {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+@utility stack-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Quiet chip (app-wide, not only HUD) */
+@utility chip {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid oklch(1 0 0 / 10%);
+  padding-inline: 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  color: var(--muted-foreground);
+  background: oklch(0 0 0 / 18%);
+}
+
+@utility chip-on {
+  border-color: oklch(from var(--gold) l c h / 40%);
+  background: oklch(from var(--gold) l c h / 14%);
+  color: var(--gold-light);
 }
 
 /* ---- Skeletons: one shimmer for every loading surface ---- */

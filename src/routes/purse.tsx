@@ -49,7 +49,7 @@ function PursePage() {
     <Shell>
       <PageHeading eyebrow={`$${BUY_IN} buy-in`} title="Purse" />
       <div className="stack-page pb-4">
-        <section className="surface-raised flex items-center justify-between gap-3 p-5">
+        <section className="panel flex items-center justify-between gap-3 p-5">
           <span className="min-w-0">
             <span className="t-title block text-foreground">@{VENMO_HANDLE}</span>
             <span className="t-micro mt-0.5 block text-muted-foreground">{TOURNAMENT_BANK}</span>

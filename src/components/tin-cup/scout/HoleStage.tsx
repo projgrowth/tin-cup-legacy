@@ -1,18 +1,10 @@
-import {
-  lazy,
-  Suspense,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ChevronLeft,
   ChevronRight,
-  LocateFixed,
-  Map as MapIcon,
   Crosshair,
+  Layers,
+  LocateFixed,
 } from "lucide-react";
 
 import { HoleMap } from "@/components/tin-cup/HoleMap";
@@ -26,14 +18,12 @@ import { getGeoHole, greenTarget } from "@/lib/geo-courses";
 import { bboxContains, haversineYards } from "@/lib/geo";
 import { useGeolocation } from "@/hooks/useGeolocation";
 
-const HoleMap3D = lazy(() => import("@/components/tin-cup/HoleMap3D"));
+export type MapMode = "sat" | "diagram";
 
-export type MapMode = "sat" | "2d" | "3d";
-
-const MODE_KEY = "tc-hole-map-mode-v2";
+const MODE_KEY = "tc-hole-map-mode-v3";
 
 /**
- * Hero map stage — satellite-first, mobile glass HUD, smooth hole transitions.
+ * Immersive map stage — satellite first, minimal chrome, robust fallback.
  */
 export function HoleStage({
   courseId,
@@ -46,9 +36,7 @@ export function HoleStage({
   onNext,
   canPrev,
   canNext,
-  topLeftBadge,
-  holeMeta,
-  mapTools,
+  topBar,
 }: {
   courseId: CourseId;
   hole: Hole;
@@ -60,48 +48,33 @@ export function HoleStage({
   onNext: () => void;
   canPrev: boolean;
   canNext: boolean;
-  topLeftBadge?: ReactNode;
-  holeMeta?: ReactNode;
-  mapTools?: ReactNode;
+  /** Course/hole control row rendered over the map */
+  topBar?: ReactNode;
 }) {
-  const geo = useMemo(
-    () => getGeoHole(courseId, hole.h),
-    [courseId, hole.h],
-  );
+  const geo = useMemo(() => getGeoHole(courseId, hole.h), [courseId, hole.h]);
   const hasSat = Boolean(geo);
   const satRef = useRef<SatelliteHoleMapHandle>(null);
 
-  const [mode, setMode] = useState<MapMode>(hasSat ? "sat" : "2d");
-  const [fullscreen, setFullscreen] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [mode, setMode] = useState<MapMode>(hasSat ? "sat" : "diagram");
   const [gpsOn, setGpsOn] = useState(false);
   const [satFailed, setSatFailed] = useState(false);
 
   const { fix, error: gpsError, active: gpsActive } = useGeolocation(gpsOn);
 
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(mq.matches);
-    const onChange = () => setReducedMotion(mq.matches);
-    mq.addEventListener("change", onChange);
     try {
       const saved = window.localStorage.getItem(MODE_KEY);
-      if (saved === "sat" || saved === "2d" || saved === "3d") {
-        if (saved === "sat" && !hasSat) setMode("2d");
+      if (saved === "sat" || saved === "diagram") {
+        if (saved === "sat" && !hasSat) setMode("diagram");
         else setMode(saved);
       }
     } catch {
       /* ignore */
     }
-    return () => mq.removeEventListener("change", onChange);
   }, [hasSat]);
 
   useEffect(() => {
-    if (reducedMotion && mode === "3d") setMode("2d");
-  }, [reducedMotion, mode]);
-
-  useEffect(() => {
-    if (mode === "sat" && (!hasSat || satFailed)) setMode("2d");
+    if (mode === "sat" && (!hasSat || satFailed)) setMode("diagram");
   }, [mode, hasSat, satFailed]);
 
   useEffect(() => {
@@ -109,7 +82,6 @@ export function HoleStage({
   }, [courseId, hole.h]);
 
   function selectMode(next: MapMode) {
-    if (next === "3d" && reducedMotion) return;
     if (next === "sat" && (!hasSat || satFailed)) return;
     setMode(next);
     try {
@@ -119,67 +91,65 @@ export function HoleStage({
     }
   }
 
-  useEffect(() => {
-    if (!fullscreen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [fullscreen]);
-
   const pin = geo ? greenTarget(geo) : null;
   const gpsYardsToGreen =
     fix && pin ? Math.round(haversineYards(fix.point, pin)) : null;
   const nearHole =
     fix && geo ? bboxContains(geo.bounds, fix.point, 0.003) : null;
 
-  const mapHeight =
-    "h-[min(78svh,620px)] w-full sm:h-[min(70vh,560px)] lg:h-[560px]";
+  const mapHeight = "h-[min(68svh,520px)] w-full sm:h-[min(62vh,500px)]";
 
-  // Edge swipe between holes when not interacting deeply with the map
   const swipeRef = useRef<{ x: number; y: number; t: number } | null>(null);
-
-  const modeBtn = (id: MapMode, label: string, disabled?: boolean) => (
-    <button
-      type="button"
-      onClick={() => selectMode(id)}
-      disabled={disabled}
-      className={`press min-h-10 rounded-full px-3.5 text-xs font-bold tracking-wide disabled:opacity-35 ${
-        mode === id
-          ? "bg-white/18 text-white shadow-sm"
-          : "text-white/55 hover:text-white/80"
-      }`}
-    >
-      {label}
-    </button>
-  );
 
   return (
     <section
       className={`relative overflow-hidden rounded-[1.35rem] ring-1 ${accentClass} ${
-        isSnake ? "ring-copper/50" : ""
-      } bg-[var(--turf-rough)] shadow-[0_28px_70px_-30px_oklch(0_0_0/88%)]`}
+        isSnake ? "ring-copper/45" : ""
+      } bg-[var(--turf-rough)] shadow-[0_24px_60px_-28px_oklch(0_0_0/80%)]`}
     >
-      {/* Top-left: mode + tools */}
-      <div className="absolute left-2.5 top-2.5 z-20 flex flex-col gap-1.5 sm:left-3 sm:top-3">
-        <div
-          className="hud-pod inline-flex p-0.5 backdrop-blur-xl"
-          role="group"
-          aria-label="Map mode"
-        >
-          {modeBtn("sat", "Sat", !hasSat || satFailed)}
-          {modeBtn("2d", "Plan")}
-          {modeBtn("3d", "3D", reducedMotion)}
+      {/* Single top instrument row */}
+      <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-2.5 sm:p-3">
+        <div className="min-w-0 flex-1">{topBar}</div>
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <DistanceStack
+            hole={hole}
+            gpsYardsToGreen={gpsYardsToGreen}
+            gpsNearHole={nearHole}
+            compact
+          />
+        </div>
+      </div>
+
+      {/* Floating tools — left */}
+      <div className="absolute bottom-[3.75rem] left-2.5 z-20 flex flex-col gap-1.5 sm:left-3">
+        <div className="glass-panel flex p-0.5">
+          <button
+            type="button"
+            onClick={() => selectMode("sat")}
+            disabled={!hasSat || satFailed}
+            className={`press min-h-10 rounded-xl px-3 text-xs font-bold disabled:opacity-35 ${
+              mode === "sat" ? "bg-white/15 text-white" : "text-white/55"
+            }`}
+          >
+            Map
+          </button>
+          <button
+            type="button"
+            onClick={() => selectMode("diagram")}
+            className={`press min-h-10 rounded-xl px-3 text-xs font-bold ${
+              mode === "diagram" ? "bg-white/15 text-white" : "text-white/55"
+            }`}
+          >
+            <Layers className="size-3.5 sm:mr-1 sm:inline" />
+            <span className="hidden sm:inline">Diagram</span>
+          </button>
         </div>
         <div className="flex gap-1.5">
           <button
             type="button"
             onClick={() => setGpsOn((v) => !v)}
-            className={`press hud-pod inline-flex min-h-10 items-center gap-1.5 px-3 text-xs font-bold backdrop-blur-xl ${
-              gpsOn && gpsActive
-                ? "border-sky-400/45 text-sky-100"
-                : "text-white/65"
+            className={`press glass-panel inline-flex min-h-10 items-center gap-1.5 px-3 text-xs font-bold ${
+              gpsOn && gpsActive ? "text-sky-100" : "text-white/65"
             }`}
             aria-pressed={gpsOn}
           >
@@ -190,7 +160,7 @@ export function HoleStage({
             <button
               type="button"
               onClick={() => satRef.current?.resetView()}
-              className="press hud-pod inline-flex min-h-10 items-center gap-1.5 px-3 text-xs font-bold text-white/65 backdrop-blur-xl"
+              className="press glass-panel inline-flex min-h-10 items-center gap-1.5 px-3 text-xs font-bold text-white/65"
               aria-label="Recenter hole"
             >
               <Crosshair className="size-3.5 opacity-85" />
@@ -198,45 +168,12 @@ export function HoleStage({
             </button>
           )}
         </div>
-        {topLeftBadge}
       </div>
 
-      {/* Top-right: hole meta + distance */}
-      <div className="absolute right-2.5 top-2.5 z-20 flex max-w-[min(56%,15.5rem)] flex-col items-end gap-1.5 sm:right-3 sm:top-3">
-        {holeMeta}
-        <DistanceStack
-          hole={hole}
-          gpsYardsToGreen={gpsYardsToGreen}
-          gpsNearHole={nearHole}
-          compact
-        />
-      </div>
-
-      {/* Soft edge vignette — doesn’t block map tiles under chrome */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,transparent_50%,oklch(0.06_0.02_160/50%)_100%)]"
+        className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,transparent_52%,oklch(0.06_0.02_160/45%)_100%)]"
       />
-
-      {/* Compact map key — bottom-left, clear of club strip */}
-      {mode === "sat" && (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute bottom-[5.4rem] left-2.5 z-[15] sm:left-3"
-        >
-          <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-2.5 py-1 backdrop-blur-md">
-            <span className="flex items-center gap-1 text-[0.55rem] font-bold uppercase tracking-wider text-white/70">
-              <span className="size-1.5 rounded-full bg-gold-light" /> Tee
-            </span>
-            <span className="flex items-center gap-1 text-[0.55rem] font-bold uppercase tracking-wider text-white/70">
-              <span className="size-1.5 rounded-full bg-emerald-300" /> Green
-            </span>
-            <span className="flex items-center gap-1 text-[0.55rem] font-bold uppercase tracking-wider text-white/70">
-              <span className="h-0.5 w-2 rounded bg-gold" /> Line
-            </span>
-          </div>
-        </div>
-      )}
 
       {mode === "sat" && geo ? (
         <div
@@ -257,8 +194,8 @@ export function HoleStage({
             const dx = t.clientX - start.x;
             const dy = t.clientY - start.y;
             const dt = Date.now() - start.t;
-            // Only edge-ish horizontal flicks (avoid fighting map pan mid-gesture)
-            if (dt > 420 || Math.abs(dx) < 72 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+            if (dt > 420 || Math.abs(dx) < 72 || Math.abs(dx) < Math.abs(dy) * 1.6)
+              return;
             if (dx < 0 && canNext) onNext();
             if (dx > 0 && canPrev) onPrev();
           }}
@@ -272,93 +209,48 @@ export function HoleStage({
             onError={() => setSatFailed(true)}
           />
         </div>
-      ) : mode === "2d" || (mode === "sat" && !geo) ? (
+      ) : (
         <HoleMap
           hole={hole}
           className={`block ${mapHeight} bg-transparent`}
-          fullscreen={fullscreen}
-          onToggleFullscreen={() => setFullscreen((v) => !v)}
           onSwipeHole={(delta) => {
             if (delta < 0 && canPrev) onPrev();
             if (delta > 0 && canNext) onNext();
           }}
         />
-      ) : (
-        <Suspense
-          fallback={
-            <div
-              className={`${mapHeight} flex items-center justify-center bg-[var(--turf-rough)] text-sm text-white/70`}
-            >
-              Loading 3D…
-            </div>
-          }
-        >
-          <HoleMap3D hole={hole} className={mapHeight} />
-        </Suspense>
       )}
 
-      {mapTools}
-
-      {/* Instrument footer */}
-      <div className="border-t border-white/10 bg-black/60 px-2 py-1.5 backdrop-blur-md">
-        <p className="mb-1 text-center text-[0.62rem] font-semibold tracking-[0.1em] text-white/45">
-          {mode === "sat"
-            ? "Aerial · hole plays up · Black yards official"
-            : mode === "3d"
-              ? "3D schematic · not a rangefinder"
-              : "Diagram plan · Black tee yards"}
-          {gpsError ? (
-            <span className="text-copper/90"> · Location blocked</span>
-          ) : null}
-          {gpsOn && nearHole === false ? (
-            <span className="text-white/50"> · Walk to this hole for GPS</span>
-          ) : null}
-        </p>
-        <div className="flex items-stretch">
-          <button
-            type="button"
-            onClick={onPrev}
-            disabled={!canPrev}
-            className="press flex min-h-12 flex-1 items-center justify-center gap-1 text-sm font-bold text-white disabled:opacity-30"
-            aria-label="Previous hole"
-          >
-            <ChevronLeft className="size-5" />
-            <span className="hidden text-xs font-semibold text-white/50 sm:inline">
-              Prev
-            </span>
-          </button>
-          <div className="flex min-h-12 min-w-[5rem] flex-col items-center justify-center border-x border-white/10">
-            <span className="font-bold tabular-nums text-white">
-              {index + 1}
-              <span className="text-white/35">/{total}</span>
-            </span>
-            <span className="text-[0.6rem] font-semibold uppercase tracking-wider text-white/40">
-              Hole
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={onNext}
-            disabled={!canNext}
-            className="press flex min-h-12 flex-1 items-center justify-center gap-1 text-sm font-bold text-white disabled:opacity-30"
-            aria-label="Next hole"
-          >
-            <span className="hidden text-xs font-semibold text-white/50 sm:inline">
-              Next
-            </span>
-            <ChevronRight className="size-5" />
-          </button>
+      {/* Minimal hole stepper */}
+      <div className="flex items-center border-t border-white/10 bg-black/55 backdrop-blur-md">
+        <button
+          type="button"
+          onClick={onPrev}
+          disabled={!canPrev}
+          className="press flex min-h-12 flex-1 items-center justify-center text-white disabled:opacity-30"
+          aria-label="Previous hole"
+        >
+          <ChevronLeft className="size-5" />
+        </button>
+        <div className="min-w-[5.5rem] text-center">
+          <p className="text-sm font-bold tabular-nums text-white">
+            {index + 1}
+            <span className="text-white/35">/{total}</span>
+          </p>
+          {(gpsError || (gpsOn && nearHole === false)) && (
+            <p className="text-[0.6rem] font-medium text-white/45">
+              {gpsError ? "Location off" : "Walk to hole"}
+            </p>
+          )}
         </div>
-        {mode !== "sat" && hasSat && !satFailed && (
-          <button
-            type="button"
-            onClick={() => selectMode("sat")}
-            className="press mt-1 flex w-full items-center justify-center gap-1.5 py-1.5 text-[0.65rem] font-semibold uppercase tracking-wider text-gold-light/80"
-          >
-            <MapIcon className="size-3 opacity-80" />
-            Back to aerial
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={onNext}
+          disabled={!canNext}
+          className="press flex min-h-12 flex-1 items-center justify-center text-white disabled:opacity-30"
+          aria-label="Next hole"
+        >
+          <ChevronRight className="size-5" />
+        </button>
       </div>
     </section>
   );

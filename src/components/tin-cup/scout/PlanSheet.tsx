@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronUp, Link as LinkIcon } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 import { StatusLED } from "@/components/tin-cup/scout/DistanceStack";
+import { Chip } from "@/components/tin-cup/ui/primitives";
 import {
   MISS_SHAPES,
   TEE_CLUBS,
@@ -10,7 +11,7 @@ import {
 } from "@/hooks/useHolePlanEditor";
 import { useAuth } from "@/hooks/useAuth";
 import { useHoleNotes } from "@/hooks/useJournal";
-import type { CourseId } from "@/lib/courses";
+import { SNAKE_PIT, type CourseId } from "@/lib/courses";
 import { getGuestNote } from "@/lib/guest-notes";
 
 /** Parent-owned editor for map tools + sheet (single autosave). */
@@ -36,22 +37,35 @@ export function useScoutPlanEditor(
 }
 
 /**
- * Grint-inspired plan sheet — editor owned by parent (shared with map strip).
+ * Single plan surface — collapsed summary, expand for chips + notes.
+ * Hole strip lives here (not a second sticky chrome).
  */
 export function PlanSheet({
+  courseId,
   hole,
   par,
+  holes,
   mode,
   loading,
   editor,
+  hasNote,
+  contestByHole,
+  onSelectHole,
 }: {
+  courseId: CourseId;
   hole: number;
   par: number;
+  holes: { h: number }[];
   mode: "cloud" | "guest";
   loading: boolean;
   editor: ReturnType<typeof useHolePlanEditor>;
+  hasNote: (h: number) => boolean;
+  contestByHole: Map<number, Array<"ctp" | "ld">>;
+  onSelectHole: (h: number) => void;
 }) {
   const [open, setOpen] = useState(!editor.filled);
+  const stripRef = useRef<HTMLDivElement>(null);
+  const activeRef = useRef<HTMLButtonElement>(null);
   const {
     club,
     line,
@@ -68,100 +82,142 @@ export function PlanSheet({
     summary,
   } = editor;
 
-  // When hole changes, open if empty so first plan is obvious
   useEffect(() => {
     setOpen(!filled);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only on hole change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hole]);
 
-  const chip = (on: boolean) => `press chip-hud ${on ? "chip-hud-on" : ""}`;
+  useEffect(() => {
+    const el = activeRef.current;
+    const strip = stripRef.current;
+    if (!el || !strip) return;
+    const left = el.offsetLeft - strip.clientWidth / 2 + el.clientWidth / 2;
+    strip.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+  }, [hole, courseId]);
 
   return (
-    <div className="hud-pod relative overflow-hidden border-white/10">
+    <div className="glass-panel relative overflow-hidden">
+      {/* Hole strip */}
+      <div
+        ref={stripRef}
+        className="no-scrollbar flex gap-1.5 overflow-x-auto scroll-smooth border-b border-white/10 px-3 py-2.5"
+      >
+        {holes.map((h) => {
+          const active = h.h === hole;
+          const snake = courseId === "copperhead" && SNAKE_PIT.includes(h.h);
+          const planned = hasNote(h.h);
+          const contests = contestByHole.get(h.h) ?? [];
+          return (
+            <button
+              key={h.h}
+              ref={active ? activeRef : undefined}
+              type="button"
+              onClick={() => onSelectHole(h.h)}
+              aria-current={active ? "true" : undefined}
+              className={`press relative size-10 shrink-0 rounded-full text-sm font-bold tabular-nums transition-colors ${
+                active
+                  ? "bg-gold/20 text-gold-light ring-1 ring-gold/40"
+                  : snake
+                    ? "bg-white/5 text-copper"
+                    : planned
+                      ? "bg-white/8 text-white/90"
+                      : "bg-white/5 text-white/45"
+              }`}
+            >
+              {h.h}
+              {planned && !active ? (
+                <span
+                  aria-hidden
+                  className="absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-gold"
+                />
+              ) : null}
+              {contests.length > 0 && !active ? (
+                <span
+                  aria-hidden
+                  className={`absolute right-0.5 top-0.5 size-1.5 rounded-full ${
+                    contests.includes("ld") ? "bg-copper" : "bg-gold-light"
+                  }`}
+                />
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="press flex w-full items-center gap-3 px-4 py-3.5 text-left"
         aria-expanded={open}
       >
-        <span
-          className="pointer-events-none absolute left-1/2 top-2 h-1 w-10 -translate-x-1/2 rounded-full bg-white/25"
-          aria-hidden
-        />
-        <div className="min-w-0 flex-1 pt-1.5">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-bold tracking-tight text-white">
-              Plan <span className="text-white/40">·</span> H{hole}
+              Plan · H{hole}
             </p>
             <StatusLED state={led} />
           </div>
-          <p className="mt-1 truncate text-sm text-white/60">
+          <p className="mt-1 truncate text-sm text-white/55">
             {filled
               ? summary
               : open
-                ? "Pick club + shape — or use map tools"
-                : "Tap to set club · miss · target"}
+                ? "Club + miss — saves as you go"
+                : "Tap to set club · miss · line"}
           </p>
         </div>
         <ChevronUp
-          className={`size-5 shrink-0 text-white/50 transition-transform ${open ? "" : "rotate-180"}`}
+          className={`size-5 shrink-0 text-white/45 transition-transform ${open ? "" : "rotate-180"}`}
         />
       </button>
 
       {open && (
-        <div className="space-y-4 border-t border-white/10 px-4 pb-4 pt-3">
+        <div className="space-y-4 border-t border-white/8 px-4 pb-4 pt-3">
           <div>
-            <p className="hud-label mb-2">Club</p>
+            <p className="t-eyebrow mb-2 text-white/45">Club</p>
             <div className="flex flex-wrap gap-1.5">
               {TEE_CLUBS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setClub(club === c ? "" : c)}
-                  className={chip(club === c)}
-                >
-                  {c}
-                </button>
+                <Chip key={c} on={club === c} onClick={() => setClub(club === c ? "" : c)}>
+                  {c === "Driver" ? "Dr" : c}
+                </Chip>
               ))}
             </div>
           </div>
 
           <div>
-            <p className="hud-label mb-2">Shape</p>
+            <p className="t-eyebrow mb-2 text-white/45">Shape</p>
             <div className="flex flex-wrap gap-1.5">
               {MISS_SHAPES.map((m) => (
-                <button
+                <Chip
                   key={m.label}
-                  type="button"
+                  on={green === m.value}
                   onClick={() => setGreen(green === m.value ? "" : m.value)}
-                  className={chip(green === m.value)}
                 >
                   {m.label}
-                </button>
+                </Chip>
               ))}
             </div>
           </div>
 
           <div>
-            <p className="hud-label mb-2">Target</p>
+            <p className="t-eyebrow mb-2 text-white/45">Target</p>
             <div className="flex gap-1.5">
               {[par - 1, par, par + 1]
                 .filter((n) => n > 0)
                 .map((n) => (
-                  <button
+                  <Chip
                     key={n}
-                    type="button"
+                    on={score === String(n)}
                     onClick={() => setScore(score === String(n) ? "" : String(n))}
-                    className={`${chip(score === String(n))} min-w-[3.25rem] text-base`}
+                    className="min-w-[3rem]"
                   >
                     {n}
-                  </button>
+                  </Chip>
                 ))}
             </div>
           </div>
 
           <div>
-            <p className="hud-label mb-2">Line</p>
+            <p className="t-eyebrow mb-2 text-white/45">Line</p>
             <input
               value={line}
               onChange={(e) => setLine(e.target.value)}
@@ -172,7 +228,7 @@ export function PlanSheet({
           </div>
 
           <details className="group">
-            <summary className="press cursor-pointer list-none text-xs font-bold uppercase tracking-[0.1em] text-white/45 [&::-webkit-details-marker]:hidden">
+            <summary className="press cursor-pointer list-none text-xs font-bold uppercase tracking-[0.1em] text-white/40 [&::-webkit-details-marker]:hidden">
               More notes
             </summary>
             <div className="mt-2 space-y-2">
@@ -195,7 +251,7 @@ export function PlanSheet({
           </details>
 
           {mode === "guest" && (
-            <p className="flex items-start gap-1.5 text-xs text-white/50">
+            <p className="flex items-start gap-1.5 text-xs text-white/45">
               <LinkIcon className="mt-0.5 size-3.5 shrink-0" />
               <span>
                 On this device until you{" "}
@@ -206,7 +262,7 @@ export function PlanSheet({
             </p>
           )}
           {loading && mode === "cloud" && (
-            <p className="text-xs text-white/45">Loading…</p>
+            <p className="text-xs text-white/40">Loading…</p>
           )}
         </div>
       )}

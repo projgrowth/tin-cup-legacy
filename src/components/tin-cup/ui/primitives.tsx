@@ -1,0 +1,112 @@
+import type { ReactNode } from "react";
+
+/** Quiet page title block — one line hierarchy. */
+export function PageHeader({
+  eyebrow,
+  title,
+  meta,
+  action,
+}: {
+  eyebrow?: string;
+  title: string;
+  meta?: ReactNode;
+  action?: ReactNode;
+}) {
+  return (
+    <header className="mb-4 flex items-start justify-between gap-3">
+      <div className="min-w-0">
+        {eyebrow ? <p className="t-eyebrow mb-1">{eyebrow}</p> : null}
+        <h1 className="t-display text-foreground">{title}</h1>
+        {meta ? <div className="t-micro mt-1.5 text-muted-foreground">{meta}</div> : null}
+      </div>
+      {action ? <div className="shrink-0">{action}</div> : null}
+    </header>
+  );
+}
+
+/** Standard content panel. */
+export function Panel({
+  children,
+  className = "",
+  raised = false,
+}: {
+  children: ReactNode;
+  className?: string;
+  raised?: boolean;
+}) {
+  return (
+    <section className={`${raised ? "surface-raised" : "panel"} ${className}`.trim()}>
+      {children}
+    </section>
+  );
+}
+
+/** Segmented control — courses, filters. */
+export function Segmented<T extends string>({
+  value,
+  options,
+  onChange,
+  ariaLabel,
+}: {
+  value: T;
+  options: { value: T; label: string; hint?: string }[];
+  onChange: (v: T) => void;
+  ariaLabel: string;
+}) {
+  return (
+    <div
+      className="grid gap-1 rounded-2xl border border-border/60 bg-secondary/20 p-1"
+      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+      role="tablist"
+      aria-label={ariaLabel}
+    >
+      {options.map((opt) => {
+        const on = opt.value === value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            role="tab"
+            aria-selected={on}
+            onClick={() => onChange(opt.value)}
+            className={`press min-h-11 rounded-xl px-2 text-center text-sm font-semibold tracking-tight transition-colors ${
+              on
+                ? "bg-background text-foreground shadow-sm ring-1 ring-border/80"
+                : "text-muted-foreground"
+            }`}
+          >
+            {opt.label}
+            {opt.hint ? (
+              <span className="mt-0.5 block text-[0.62rem] font-bold uppercase tracking-[0.1em] text-gold-light/90">
+                {opt.hint}
+              </span>
+            ) : null}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Selectable chip. */
+export function Chip({
+  children,
+  on,
+  onClick,
+  className = "",
+}: {
+  children: ReactNode;
+  on?: boolean;
+  onClick?: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`press chip ${on ? "chip-on" : ""} ${className}`.trim()}
+    >
+      {children}
+    </button>
+  );
+}

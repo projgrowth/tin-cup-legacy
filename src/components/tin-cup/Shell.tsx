@@ -18,7 +18,7 @@ import { tallyStandings } from "@/lib/scoring";
 import { retryFailed } from "@/lib/write-queue";
 import { playerInitials } from "@/lib/team-styles";
 
-type ShellVariant = "compact" | "content" | "dashboard";
+type ShellVariant = "compact" | "content" | "dashboard" | "immersive";
 
 export function Shell({
   children,
@@ -70,19 +70,38 @@ export function Shell({
       window.removeEventListener("offline", disconnected);
     };
   }, []);
+  const immersive = variant === "immersive";
   const width =
-    variant === "compact" ? "max-w-xl" : variant === "dashboard" ? "max-w-6xl" : "max-w-4xl";
+    variant === "compact"
+      ? "max-w-xl"
+      : variant === "dashboard" || immersive
+        ? "max-w-6xl"
+        : "max-w-4xl";
   return (
-    <div className="min-h-screen pb-[calc(6.75rem+env(safe-area-inset-bottom))]">
+    <div
+      className={`min-h-screen ${
+        immersive
+          ? "pb-[calc(5.5rem+env(safe-area-inset-bottom))]"
+          : "pb-[calc(6.5rem+env(safe-area-inset-bottom))]"
+      }`}
+    >
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-gold focus:px-3 focus:py-2 focus:text-primary-foreground"
       >
         Skip to content
       </a>
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md">
+      <header
+        className={`sticky top-0 z-30 ${
+          immersive
+            ? "bg-background/55 backdrop-blur-xl"
+            : "bg-background/80 backdrop-blur-md"
+        }`}
+      >
         <div
-          className={`mx-auto grid w-full ${width} grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 sm:px-5`}
+          className={`mx-auto grid w-full ${width} grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 ${
+            immersive ? "py-1.5" : "py-2"
+          } sm:px-5`}
         >
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
             <img
@@ -94,18 +113,26 @@ export function Shell({
             />
             <span className="min-w-0 leading-none">
               <span className="t-section block truncate text-foreground">Tin Cup</span>
-              <span className="mt-0.5 hidden truncate text-[0.6875rem] leading-tight tracking-[0.04em] text-muted-foreground min-[370px]:block">
-                {cupLive ? (
-                  <>
-                    <span className="text-gold-light">{fmtPts(standings.strongMental)}</span>
-                    <span className="mx-0.5">–</span>
-                    <span className="text-copper">{fmtPts(standings.grassRoots)}</span>
-                    <span className="ml-1.5">Cup</span>
-                  </>
-                ) : (
-                  "Innisbrook · 2026"
-                )}
-              </span>
+              {!immersive ? (
+                <span className="mt-0.5 hidden truncate text-[0.6875rem] leading-tight tracking-[0.04em] text-muted-foreground min-[370px]:block">
+                  {cupLive ? (
+                    <>
+                      <span className="text-gold-light">{fmtPts(standings.strongMental)}</span>
+                      <span className="mx-0.5">–</span>
+                      <span className="text-copper">{fmtPts(standings.grassRoots)}</span>
+                      <span className="ml-1.5">Cup</span>
+                    </>
+                  ) : (
+                    "Innisbrook · 2026"
+                  )}
+                </span>
+              ) : cupLive ? (
+                <span className="mt-0.5 block text-[0.65rem] font-semibold tabular-nums tracking-wide text-muted-foreground">
+                  <span className="text-gold-light">{fmtPts(standings.strongMental)}</span>
+                  <span className="mx-0.5 text-white/30">–</span>
+                  <span className="text-copper">{fmtPts(standings.grassRoots)}</span>
+                </span>
+              ) : null}
             </span>
           </Link>
           <Link
@@ -278,11 +305,20 @@ function GlobalSyncStatus({
   return null;
 }
 
-export function PageHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
+export function PageHeading({
+  eyebrow,
+  title,
+  meta,
+}: {
+  eyebrow: string;
+  title: string;
+  meta?: ReactNode;
+}) {
   return (
-    <header className="mb-8 sm:mb-10">
+    <header className="mb-5 sm:mb-6">
       <p className="t-eyebrow">{eyebrow}</p>
-      <h1 className="t-display mt-2 text-foreground">{title}</h1>
+      <h1 className="t-display mt-1.5 text-foreground">{title}</h1>
+      {meta ? <div className="t-micro mt-1.5 text-muted-foreground">{meta}</div> : null}
     </header>
   );
 }
