@@ -4,11 +4,11 @@ import { ExternalLink, Target } from "lucide-react";
 import { toast } from "sonner";
 
 import { Shell } from "@/components/tin-cup/Shell";
-import { HolePlanDock } from "@/components/tin-cup/scout/HolePlanDock";
 import { HoleStage } from "@/components/tin-cup/scout/HoleStage";
+import { PlanSheet } from "@/components/tin-cup/scout/PlanSheet";
 import { ScoutChrome } from "@/components/tin-cup/scout/ScoutChrome";
 import { useAuth } from "@/hooks/useAuth";
-import { useHoleNotes, useRoundPlan } from "@/hooks/useJournal";
+import { useHoleNotes, useRoundPlan, type HoleNoteDraft } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
 import { SNAKE_PIT as SNAKE_PIT_TIPS } from "@/lib/tin-cup";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
@@ -19,13 +19,12 @@ import {
   clampHole,
   coursePar,
   defaultCourseId,
-  formatTeeYardChip,
   getCourse,
   isCourseId,
   roundSlugForCourse,
   type CourseId,
 } from "@/lib/courses";
-import { getGuestNote, guestNoteHoles } from "@/lib/guest-notes";
+import { getGuestNote } from "@/lib/guest-notes";
 import {
   buildPlanLines,
   countPlanned,
@@ -34,7 +33,6 @@ import {
   shareRoundSheet,
   type PlanLine,
 } from "@/lib/round-sheet";
-import type { HoleNoteDraft } from "@/hooks/useJournal";
 
 type ScoutSearch = {
   course?: CourseId;
@@ -61,14 +59,9 @@ export const Route = createFileRoute("/scout")({
       {
         name: "description",
         content:
-          "Hole-by-hole game plans for Innisbrook's Copperhead, Island and South courses — maps, yardages, and private notes for Tin Cup 2026.",
+          "On-course hole maps and game plans for Innisbrook South, Copperhead, and Island — Tin Cup 2026.",
       },
       { property: "og:title", content: "Course Planner — Tin Cup Invitational" },
-      {
-        property: "og:description",
-        content:
-          "Study all 54 tournament holes at Innisbrook and save your own game plan before the first tee.",
-      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -106,10 +99,6 @@ function ScoutPage() {
   const journal = useHoleNotes(courseId);
   const roundPlan = useRoundPlan(roundSlugForCourse(courseId));
   const [guestTick, setGuestTick] = useState(0);
-  const guestHoles = useMemo(() => {
-    void guestTick;
-    return new Set(guestNoteHoles(courseId));
-  }, [courseId, guestTick]);
 
   const index = course.holes.findIndex((h) => h.h === current.h);
   const step = (delta: number) => {
@@ -163,11 +152,9 @@ function ScoutPage() {
   }, [courseId, guestTick, journal.notes, user]);
 
   const plannedCount = countPlanned(planLines);
-
   const [gridOpen, setGridOpen] = useState(false);
   const [dayOpen, setDayOpen] = useState(false);
   const [dayDraft, setDayDraft] = useState("");
-
   useEffect(() => setDayDraft(roundPlan.plan), [roundPlan.plan]);
 
   async function onSharePlan() {
@@ -178,9 +165,7 @@ function ScoutPage() {
   }
 
   function onPrintPlan() {
-    if (!printRoundSheet(courseId, planLines)) {
-      toast.error("Allow pop-ups to print");
-    }
+    if (!printRoundSheet(courseId, planLines)) toast.error("Allow pop-ups to print");
   }
 
   const accent =
@@ -188,21 +173,23 @@ function ScoutPage() {
       ? "ring-copper/40"
       : courseId === "island"
         ? "ring-[oklch(0.5_0.1_235/35%)]"
-        : "ring-emerald-500/20";
+        : "ring-white/10";
 
   return (
     <Shell variant="dashboard">
-      {/* Minimal header — map is the product */}
-      <header className="mb-3">
-        <p className="t-eyebrow">On course</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          {COURSE_LABEL[courseId]}
-          <span className="font-medium text-muted-foreground"> · plan</span>
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {details.dayLabel} · {details.format} · first tee {details.firstTee}
+      {/* Compact instrument header — no wasted hero title stack */}
+      <div className="mb-2 flex items-baseline justify-between gap-3">
+        <div>
+          <p className="hud-label text-muted-foreground">Scout</p>
+          <h1 className="mt-0.5 text-xl font-bold tracking-tight text-foreground">
+            {COURSE_LABEL[courseId]}
+            <span className="font-medium text-muted-foreground"> · {details.dayLabel}</span>
+          </h1>
+        </div>
+        <p className="text-right text-xs font-medium text-muted-foreground">
+          {details.format}
         </p>
-      </header>
+      </div>
 
       <ScoutChrome
         courseId={courseId}
@@ -220,33 +207,10 @@ function ScoutPage() {
         onPrint={onPrintPlan}
       />
 
-      <div className="mx-auto max-w-lg lg:max-w-none lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.7fr)] lg:items-start lg:gap-8">
-        <div className="min-w-0">
-          {/* Hole identity */}
-          <div className="mb-3 flex items-end justify-between gap-3 px-0.5">
-            <div className="min-w-0">
-              <p className="text-[2.75rem] font-bold leading-none tracking-tighter tabular-nums text-foreground">
-                {current.h}
-              </p>
-              <p className="mt-1 truncate text-base font-semibold text-foreground/90">
-                {current.name ?? `Hole ${current.h}`}
-                {isSnake ? (
-                  <span className="ml-2 text-sm font-semibold text-copper">Snake Pit</span>
-                ) : null}
-              </p>
-            </div>
-            <div className="shrink-0 text-right">
-              <p className="text-2xl font-bold tabular-nums tracking-tight text-foreground">
-                Par {current.par}
-              </p>
-              <p className="mt-1 rounded-full border border-border px-2.5 py-0.5 text-sm font-semibold tabular-nums text-muted-foreground">
-                {formatTeeYardChip(current.yards, "black")}
-              </p>
-            </div>
-          </div>
-
+      <div className="mx-auto max-w-lg space-y-3 lg:max-w-none lg:grid lg:grid-cols-[minmax(0,1.45fr)_minmax(17rem,0.65fr)] lg:items-start lg:gap-6 lg:space-y-0">
+        <div className="min-w-0 space-y-3">
           {currentContests.length > 0 && (
-            <div className="mb-3 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
               {currentContests.map((c) => (
                 <span
                   key={c}
@@ -273,25 +237,30 @@ function ScoutPage() {
             onNext={() => step(1)}
             canPrev={index > 0}
             canNext={index < course.holes.length - 1}
+            holeMeta={
+              <div className="hud-pod px-3 py-2 text-right">
+                <p className="hud-num text-4xl text-white">{current.h}</p>
+                <p className="mt-0.5 max-w-[9rem] truncate text-xs font-semibold text-white/70">
+                  {current.name ?? `Hole ${current.h}`}
+                  {isSnake ? " · Pit" : ""}
+                </p>
+                <p className="mt-0.5 text-sm font-bold tabular-nums text-white/85">
+                  Par {current.par}
+                </p>
+              </div>
+            }
           />
 
-          <p className="mt-2 px-1 text-xs text-muted-foreground">
-            Black scorecard yards are official · day tees may differ · shapes are orientation
-            schematics (not GPS)
-          </p>
-
           {tip && (
-            <section className="mt-4 rounded-2xl border border-copper/30 bg-copper/10 px-4 py-3">
-              <p className="text-xs font-bold uppercase tracking-[0.1em] text-copper">
-                Snake Pit · {tip.name}
-              </p>
-              <p className="mt-1.5 text-sm leading-relaxed text-foreground/90">{tip.tip}</p>
+            <section className="hud-pod border-copper/30 px-4 py-3">
+              <p className="hud-label text-copper">Snake Pit · {tip.name}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-white/85">{tip.tip}</p>
             </section>
           )}
 
-          {/* Plan dock — primary after map (phone); desktop uses sticky aside */}
-          <div className="mt-4 lg:hidden">
-            <HolePlanDock
+          {/* Plan sheet — primary journal, Grint bottom-drawer energy */}
+          <div className="lg:hidden">
+            <PlanSheet
               courseId={courseId}
               hole={current.h}
               par={current.par}
@@ -302,30 +271,27 @@ function ScoutPage() {
             />
           </div>
 
-          {/* Day strategy — collapsed */}
           <button
             type="button"
             onClick={() => setDayOpen((v) => !v)}
-            className="press mt-4 flex w-full items-center justify-between rounded-2xl border border-border px-4 py-3 text-left"
+            className="press flex w-full items-center justify-between rounded-2xl border border-border/80 bg-card/80 px-4 py-3 text-left"
           >
             <span>
               <span className="block text-sm font-semibold text-foreground">
                 {details.dayLabel} strategy
               </span>
-              <span className="mt-0.5 block text-xs text-muted-foreground">
+              <span className="mt-0.5 block text-xs text-muted-foreground line-clamp-1">
                 {details.formatTip}
               </span>
             </span>
-            <span className="text-xs font-semibold text-muted-foreground">
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               {dayOpen ? "Hide" : "Edit"}
             </span>
           </button>
           {dayOpen && (
-            <div className="mt-2 space-y-2 rounded-2xl border border-border p-3">
+            <div className="space-y-2 rounded-2xl border border-border p-3">
               {!user ? (
-                <p className="text-sm text-muted-foreground">
-                  Sign in to save a day strategy across devices.
-                </p>
+                <p className="text-sm text-muted-foreground">Sign in to save day strategy.</p>
               ) : (
                 <>
                   <textarea
@@ -334,7 +300,7 @@ function ScoutPage() {
                     rows={3}
                     maxLength={800}
                     className="control w-full resize-none text-base"
-                    placeholder="Pairing thoughts, clubs, holes to attack…"
+                    placeholder="Pairing thoughts, attack holes…"
                   />
                   <button
                     type="button"
@@ -354,9 +320,8 @@ function ScoutPage() {
             </div>
           )}
 
-          {/* About — footer density */}
-          <details className="mt-4 rounded-2xl border border-border">
-            <summary className="press cursor-pointer list-none px-4 py-3 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
+          <details className="rounded-2xl border border-border/80">
+            <summary className="press cursor-pointer list-none px-4 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
               {course.name}
               <span className="ml-2 font-normal text-muted-foreground">
                 Par {coursePar(courseId)} · {details.blackTotal.toLocaleString()} yds
@@ -386,9 +351,8 @@ function ScoutPage() {
           </details>
         </div>
 
-        {/* Desktop: plan dock sticky */}
-        <aside className="mt-6 hidden min-w-0 lg:mt-0 lg:block lg:sticky lg:top-28">
-          <HolePlanDock
+        <aside className="hidden min-w-0 lg:sticky lg:top-28 lg:block">
+          <PlanSheet
             courseId={courseId}
             hole={current.h}
             par={current.par}

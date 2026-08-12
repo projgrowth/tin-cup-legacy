@@ -117,6 +117,59 @@
   --turf-bunker: oklch(0.86 0.06 92);
   --turf-water: oklch(0.42 0.09 235);
   --turf-stroke: oklch(0 0 0 / 28%);
+  /* High-tech on-course HUD (Scout “Grint-class” instrument glass) */
+  --hud-bg: oklch(0.11 0.022 160 / 90%);
+  --hud-bg-solid: oklch(0.12 0.02 160);
+  --hud-border: oklch(1 0 0 / 12%);
+  --hud-num: oklch(0.96 0.02 100);
+  --hud-muted: oklch(0.78 0.02 150);
+  --hud-led-ok: oklch(0.72 0.14 155);
+  --hud-led-busy: oklch(0.84 0.1 92);
+  --hud-led-err: oklch(0.62 0.18 25);
+}
+
+@utility hud-pod {
+  background: var(--hud-bg);
+  border: 1px solid var(--hud-border);
+  border-radius: 0.875rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow:
+    0 1px 0 oklch(1 0 0 / 6%) inset,
+    0 12px 32px -16px oklch(0 0 0 / 55%);
+}
+
+@utility hud-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--hud-muted);
+}
+
+@utility hud-num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--hud-num);
+  line-height: 1;
+}
+
+@utility chip-hud {
+  min-height: 2.75rem;
+  border-radius: 9999px;
+  border: 1px solid var(--hud-border);
+  padding-inline: 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 650;
+  color: var(--hud-muted);
+  background: oklch(0 0 0 / 25%);
+}
+
+@utility chip-hud-on {
+  border-color: oklch(from var(--gold) l c h / 45%);
+  background: oklch(from var(--gold) l c h / 18%);
+  color: var(--gold-light);
 }
 
 @layer base {

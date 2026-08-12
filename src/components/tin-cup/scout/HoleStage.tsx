@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { HoleMap } from "@/components/tin-cup/HoleMap";
+import { DistanceStack } from "@/components/tin-cup/scout/DistanceStack";
 import type { Hole } from "@/lib/courses";
 
 const HoleMap3D = lazy(() => import("@/components/tin-cup/HoleMap3D"));
@@ -25,6 +26,7 @@ export function HoleStage({
   canPrev,
   canNext,
   topLeftBadge,
+  holeMeta,
 }: {
   hole: Hole;
   accentClass: string;
@@ -36,6 +38,8 @@ export function HoleStage({
   canPrev: boolean;
   canNext: boolean;
   topLeftBadge?: ReactNode;
+  /** Overlay: hole # / name / par — Grint-style HUD on the canvas */
+  holeMeta?: ReactNode;
 }) {
   const [mode, setMode] = useState<MapMode>("2d");
   const [fullscreen, setFullscreen] = useState(false);
@@ -79,26 +83,26 @@ export function HoleStage({
   }, [fullscreen]);
 
   const mapHeight =
-    "h-[min(58vh,440px)] w-full sm:h-[380px] lg:h-[460px]";
+    "h-[min(62vh,480px)] w-full sm:h-[400px] lg:h-[480px]";
 
   return (
     <section
-      className={`relative overflow-hidden rounded-2xl ring-1 ${accentClass} ${
+      className={`relative overflow-hidden rounded-[1.25rem] ring-1 ${accentClass} ${
         isSnake ? "ring-copper/50" : ""
-      } bg-[var(--turf-rough)] shadow-[0_20px_50px_-28px_oklch(0_0_0/80%)]`}
+      } bg-[var(--turf-rough)] shadow-[0_24px_60px_-28px_oklch(0_0_0/85%)]`}
     >
-      {/* Mode toggle + accuracy */}
-      <div className="absolute left-3 top-3 z-20 flex max-w-[min(100%-6rem,18rem)] flex-col gap-1.5">
+      {/* Top-left: mode */}
+      <div className="absolute left-3 top-3 z-20 flex flex-col gap-2">
         <div
-          className="inline-flex rounded-full border border-white/15 bg-black/55 p-0.5 backdrop-blur-md"
+          className="hud-pod inline-flex p-0.5"
           role="group"
           aria-label="Map mode"
         >
           <button
             type="button"
             onClick={() => selectMode("2d")}
-            className={`press min-h-9 rounded-full px-3 text-xs font-bold ${
-              mode === "2d" ? "bg-white/15 text-white" : "text-white/65"
+            className={`press min-h-9 rounded-full px-3.5 text-xs font-bold ${
+              mode === "2d" ? "bg-white/15 text-white" : "text-white/60"
             }`}
           >
             2D
@@ -107,8 +111,8 @@ export function HoleStage({
             type="button"
             onClick={() => selectMode("3d")}
             disabled={reducedMotion}
-            className={`press min-h-9 rounded-full px-3 text-xs font-bold disabled:opacity-40 ${
-              mode === "3d" ? "bg-white/15 text-white" : "text-white/65"
+            className={`press min-h-9 rounded-full px-3.5 text-xs font-bold disabled:opacity-40 ${
+              mode === "3d" ? "bg-white/15 text-white" : "text-white/60"
             }`}
           >
             3D
@@ -116,6 +120,18 @@ export function HoleStage({
         </div>
         {topLeftBadge}
       </div>
+
+      {/* Top-right: hole meta + distance instrument */}
+      <div className="absolute right-3 top-3 z-20 flex max-w-[min(52%,14rem)] flex-col items-end gap-2">
+        {holeMeta}
+        <DistanceStack hole={hole} />
+      </div>
+
+      {/* Edge vignette */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,transparent_45%,oklch(0.08_0.02_160/55%)_100%)]"
+      />
 
       {mode === "2d" ? (
         <HoleMap
@@ -142,37 +158,33 @@ export function HoleStage({
         </Suspense>
       )}
 
-      {/* Footer controls */}
-      <div className="border-t border-white/10 bg-black/40 px-3 py-2">
-        <p className="mb-2 text-center text-[0.7rem] leading-snug text-white/65">
-          {mode === "3d" ? (
-            <>
-              Schematic 3D from course outline · Black yard ticks along target line (proportional) ·
-              not a rangefinder · drag to orbit · pinch zoom
-            </>
-          ) : (
-            <>Orientation map · Black yards on scorecard · OSM outline only</>
-          )}
+      {/* Instrument footer */}
+      <div className="border-t border-white/10 bg-black/50 px-2 py-1.5 backdrop-blur-md">
+        <p className="hud-label mb-1.5 text-center tracking-[0.14em] text-white/50">
+          {mode === "3d"
+            ? "Schematic 3D · Black line ticks · not rangefinder"
+            : "Schematic map · Black scorecard · OSM outline"}
         </p>
         <div className="flex items-stretch">
           <button
             type="button"
             onClick={onPrev}
             disabled={!canPrev}
-            className="press flex min-h-12 flex-1 items-center justify-center gap-1 text-sm font-semibold text-white/90 disabled:opacity-30"
+            className="press flex min-h-12 flex-1 items-center justify-center gap-1 text-sm font-bold text-white disabled:opacity-30"
           >
-            <ChevronLeft className="size-5" /> Prev
+            <ChevronLeft className="size-5" />
           </button>
-          <div className="flex min-h-12 items-center border-x border-white/10 px-4 text-sm tabular-nums text-white/70">
-            {index + 1}/{total}
+          <div className="flex min-h-12 min-w-[4.5rem] items-center justify-center border-x border-white/10 font-bold tabular-nums text-white/80">
+            {index + 1}
+            <span className="text-white/35">/{total}</span>
           </div>
           <button
             type="button"
             onClick={onNext}
             disabled={!canNext}
-            className="press flex min-h-12 flex-1 items-center justify-center gap-1 text-sm font-semibold text-white/90 disabled:opacity-30"
+            className="press flex min-h-12 flex-1 items-center justify-center gap-1 text-sm font-bold text-white disabled:opacity-30"
           >
-            Next <ChevronRight className="size-5" />
+            <ChevronRight className="size-5" />
           </button>
         </div>
       </div>
