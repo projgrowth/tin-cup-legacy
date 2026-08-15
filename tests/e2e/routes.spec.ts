@@ -39,13 +39,11 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
 
   await page.goto("/scout");
   await page.getByRole("tab", { name: /South/i }).click();
-  await expect(page.getByRole("heading", { name: /South game plan/i })).toBeVisible();
-  await expect(page.getByText("Scramble + Modified Alt Shot").first()).toBeVisible();
-  await expect(page.getByText("335 yds").first()).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Dr$/ })).toBeVisible();
-  await page.getByRole("button", { name: "Open hole 1 map" }).click();
+  await expect(page.getByRole("button", { name: /^Card$/ })).toBeVisible();
   await expect(page.getByText(/Black 335/)).toBeVisible();
-  await page.getByRole("button", { name: /Card/i }).click();
+  await page.getByRole("button", { name: /^Card$/ }).click();
+  await expect(page.getByRole("heading", { name: /South game plan/i })).toBeVisible();
+  await expect(page.getByText("335 yds").first()).toBeVisible();
   await page.getByRole("tab", { name: /Copperhead/i }).click();
   await expect(page.getByRole("heading", { name: /Copperhead game plan/i })).toBeVisible();
   await page.getByRole("tab", { name: /Island/i }).click();

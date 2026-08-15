@@ -14,6 +14,7 @@ import {
   holeGreenTriple,
   holeOverlayCollection,
   holePlayBearing,
+  spotlightMask,
 } from "@/lib/geo-courses";
 import { COURSE_ORDER, getCourse } from "@/lib/courses";
 
@@ -88,6 +89,10 @@ describe("geo package — all holes", () => {
     const fc = holeOverlayCollection(h);
     expect(fc.features.length).toBeGreaterThan(2);
     expect(fc.features.some((f) => f.properties.kind === "playLine")).toBe(true);
+    expect(fc.features.some((f) => f.properties.kind === "spotlight")).toBe(true);
+    const mask = spotlightMask(h);
+    expect(mask).toBeTruthy();
+    expect(mask!.length).toBeGreaterThan(1);
   });
 
   it("resolves greenTarget near OSM green when present", () => {

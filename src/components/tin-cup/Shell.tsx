@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { AlertTriangle, CloudOff } from "lucide-react";
 
 import { BottomNav } from "./BottomNav";
+import { SeatWelcome } from "./SeatWelcome";
 import { Avatar } from "./Avatar";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -50,9 +51,7 @@ export function Shell({
   });
 
   const claimed = tournament?.players.find((p) => p.id === myPlayerId);
-  const claimedTeam = claimed
-    ? tournament?.teams.find((t) => t.id === claimed.team_id)
-    : undefined;
+  const claimedTeam = claimed ? tournament?.teams.find((t) => t.id === claimed.team_id) : undefined;
   const avatars = usePlayerAvatars(tournament?.players ?? [], tournament?.teams ?? []);
   const face = claimed ? avatars.data?.byPlayerId.get(claimed.id) : undefined;
   const standings = tallyStandings(tournament?.matches ?? []);
@@ -93,9 +92,7 @@ export function Shell({
       </a>
       <header
         className={`sticky top-0 z-30 ${
-          immersive
-            ? "bg-background/55 backdrop-blur-xl"
-            : "bg-background/80 backdrop-blur-md"
+          immersive ? "bg-background/55 backdrop-blur-xl" : "bg-background/80 backdrop-blur-md"
         }`}
       >
         <div
@@ -137,22 +134,11 @@ export function Shell({
           </Link>
           <Link
             to="/profile"
-            aria-label={
-              user
-                ? claimed
-                  ? "Your hub"
-                  : "Claim your roster name"
-                : "Sign in"
-            }
+            aria-label={user ? (claimed ? "Your hub" : "Claim your roster name") : "Sign in"}
             className="press relative shrink-0"
           >
             {claimed ? (
-              <Avatar
-                name={claimed.name}
-                teamSlug={claimedTeam?.slug}
-                src={face?.url}
-                size="md"
-              />
+              <Avatar name={claimed.name} teamSlug={claimedTeam?.slug} src={face?.url} size="md" />
             ) : (
               <span
                 className={`flex size-10 items-center justify-center rounded-full border text-sm font-semibold uppercase ${
@@ -161,9 +147,7 @@ export function Shell({
                     : "border-border text-muted-foreground"
                 }`}
               >
-                {user
-                  ? playerInitials(user.email?.split("@")[0] || "P")
-                  : "?"}
+                {user ? playerInitials(user.email?.split("@")[0] || "P") : "?"}
               </span>
             )}
             {user && !claimed && (
@@ -200,6 +184,7 @@ export function Shell({
         {children}
       </main>
       <BottomNav />
+      <SeatWelcome />
     </div>
   );
 }
@@ -294,10 +279,7 @@ function GlobalSyncStatus({
   }
   if (stale) {
     return (
-      <div
-        role="status"
-        className={`${banner} border-border bg-secondary/90 backdrop-blur-md`}
-      >
+      <div role="status" className={`${banner} border-border bg-secondary/90 backdrop-blur-md`}>
         <AlertTriangle className="size-4 shrink-0 text-muted-foreground" />
         <span className="t-micro-strong flex-1 text-muted-foreground">
           Showing cached board{when ? ` · last synced ${when}` : ""}. Pull to refresh when online.

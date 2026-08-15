@@ -1,3 +1,4 @@
+import { DAY_COURSE, easternDateKey } from "@/lib/courses";
 import { getEventPhase } from "@/lib/event-phase";
 
 /** Legacy session-only flag (still written for one-release compatibility). */
@@ -56,6 +57,8 @@ export function shouldPlayIntro(now: number = Date.now()): boolean {
   if (typeof window === "undefined") return false;
   if (prefersReducedMotion()) return false;
   if (getEventPhase(now) === "live") return false;
+  // Whole tournament weekend (Eastern calendar), not only after Friday's first tee.
+  if (DAY_COURSE[easternDateKey(now)]) return false;
   if (hasSeenCurrentIntro()) return false;
   return true;
 }

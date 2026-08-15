@@ -242,6 +242,19 @@
   }
 }
 
+.tc-tee-chip {
+  pointer-events: none;
+  border-radius: 999px;
+  border: 1px solid oklch(from var(--gold) l c h / 55%);
+  background: oklch(0.12 0.02 165 / 82%);
+  padding: 0.2rem 0.45rem;
+  font-size: 0.58rem;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  color: oklch(from var(--gold-light) l c h);
+  box-shadow: 0 2px 8px oklch(0 0 0 / 40%);
+}
+
 /* Pin flag — HTML marker on green (Grint-style) */
 .tc-pin-flag {
   position: relative;

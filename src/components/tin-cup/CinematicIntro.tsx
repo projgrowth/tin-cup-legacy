@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useFrameBudget } from "@/hooks/useFrameBudget";
 import { markIntroSeen } from "@/lib/intro";
+import { setIntroPlaying } from "@/lib/seat";
 
 const INTRO_VIDEO = "/tin-cup-intro.mp4";
 const INTRO_POSTER = "/tin-cup-intro-poster.jpg";
@@ -19,6 +20,11 @@ const EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
 const MARK_REVEAL_MS = 4650;
 
 export function CinematicIntro({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    setIntroPlaying(true);
+    return () => setIntroPlaying(false);
+  }, []);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showMark, setShowMark] = useState(false);
   const [collapsing, setCollapsing] = useState(false);
@@ -157,9 +163,7 @@ export function CinematicIntro({ onDone }: { onDone: () => void }) {
       <div
         className={`intro-mark-anchor pointer-events-none ${showMark ? "intro-mark-visible" : ""}`}
       >
-        <div
-          className="relative flex items-center justify-center"
-        >
+        <div className="relative flex items-center justify-center">
           <div
             aria-hidden
             className="absolute size-[min(86vw,420px)] rounded-full"

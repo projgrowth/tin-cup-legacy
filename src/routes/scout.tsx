@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, Printer, Share2, Target } from "lucide-react";
+import { Printer, Share2, Target } from "lucide-react";
 import { toast } from "sonner";
 
 import { Shell } from "@/components/tin-cup/Shell";
@@ -38,7 +38,9 @@ import {
 type ScoutSearch = {
   course?: CourseId;
   hole?: number;
-  /** Hole-map theater. Default is the 18-hole round sheet. */
+  /** 18-hole sheet. Default is hole satellite. */
+  card?: boolean;
+  /** @deprecated Prefer omitting `card`. Still accepted. */
   map?: boolean;
 };
 
@@ -53,8 +55,14 @@ export const Route = createFileRoute("/scout")({
           ? Number(holeRaw)
           : undefined;
     const hole = holeNum != null && Number.isFinite(holeNum) ? clampHole(holeNum) : undefined;
+    const card = raw.card === true || raw.card === "1" || raw.card === 1;
     const map = raw.map === true || raw.map === "1" || raw.map === 1;
-    return { course, hole, map: map || undefined };
+    return {
+      course,
+      hole,
+      card: card || undefined,
+      map: map || undefined,
+    };
   },
   head: () => ({
     meta: [
@@ -82,17 +90,18 @@ function ScoutPage() {
   const courseId: CourseId = search.course ?? defaultCourseId();
   const course = getCourse(courseId);
   const hole = clampHole(search.hole ?? 1, course.holes.length);
-  const showMap = Boolean(search.map);
+  const showCard = Boolean(search.card) && search.map !== true;
+  const showMap = !showCard;
 
-  const setSelection = (next: { course?: CourseId; hole?: number; map?: boolean }) => {
+  const setSelection = (next: { course?: CourseId; hole?: number; card?: boolean }) => {
     const nextCourse = next.course ?? courseId;
     const nextHole = next.hole ?? (next.course && next.course !== courseId ? 1 : hole);
-    const nextMap = next.map ?? showMap;
+    const nextCard = next.card ?? showCard;
     void navigate({
       search: {
         course: nextCourse,
         hole: clampHole(nextHole, getCourse(nextCourse).holes.length),
-        ...(nextMap ? { map: true } : {}),
+        ...(nextCard ? { card: true } : {}),
       },
       replace: true,
     });
@@ -192,13 +201,20 @@ function ScoutPage() {
           {showMap ? (
             <button
               type="button"
-              onClick={() => setSelection({ map: false })}
+              onClick={() => setSelection({ card: true })}
               className="press flex min-h-11 shrink-0 items-center gap-1 rounded-xl border border-border/60 px-2.5 text-sm font-semibold text-foreground"
             >
-              <ChevronLeft className="size-4" />
               Card
             </button>
-          ) : null}
+          ) : (
+            <button
+              type="button"
+              onClick={() => setSelection({ card: false })}
+              className="press flex min-h-11 shrink-0 items-center gap-1 rounded-xl border border-gold/35 bg-gold/15 px-2.5 text-sm font-semibold text-gold-light"
+            >
+              Hole
+            </button>
+          )}
           <div className="min-w-0 flex-1">
             <Segmented
               ariaLabel="Course"
@@ -301,8 +317,8 @@ function ScoutPage() {
             loading={authLoading || journal.loading}
             editor={planEditor}
             contestByHole={contestByHole}
-            onSelectHole={(h) => setSelection({ hole: h, map: false })}
-            onOpenMap={(h) => setSelection({ hole: h, map: true })}
+            onSelectHole={(h) => setSelection({ hole: h, card: true })}
+            onOpenMap={(h) => setSelection({ hole: h, card: false })}
             dayDraft={dayDraft}
             onDayDraft={setDayDraft}
             onSaveDay={() =>

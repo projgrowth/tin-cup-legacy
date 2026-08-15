@@ -54,6 +54,9 @@ function createSupabaseClient() {
       storage: typeof window !== "undefined" ? localStorage : undefined,
       persistSession: true,
       autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: "pkce",
+      storageKey: "tc-auth-v1",
     },
   });
 }
@@ -72,4 +75,6 @@ export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>,
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
+  const { clearSeat } = await import("@/lib/seat");
+  clearSeat();
 }

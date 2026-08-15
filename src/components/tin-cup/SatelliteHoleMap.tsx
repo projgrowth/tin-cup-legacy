@@ -8,11 +8,7 @@ import {
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import type { GeoHole } from "@/lib/geo-courses";
-import {
-  greenTarget,
-  holeOverlayCollection,
-  holePlayBearing,
-} from "@/lib/geo-courses";
+import { greenTarget, holeOverlayCollection, holePlayBearing } from "@/lib/geo-courses";
 import type { LngLat } from "@/lib/geo";
 
 /** Esri World Imagery — attribution required. */
@@ -28,8 +24,7 @@ const SATELLITE_STYLE: StyleSpecification = {
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       ],
       tileSize: 256,
-      attribution:
-        "Tiles © Esri — Esri, Maxar, Earthstar Geographics, GIS User Community",
+      attribution: "Tiles © Esri — Esri, Maxar, Earthstar Geographics, GIS User Community",
       maxzoom: 19,
     },
   },
@@ -71,213 +66,193 @@ type Props = {
  * Mobile-first MapLibre satellite hole view.
  * Auto-orients tee→green up the screen; smooth hole transitions.
  */
-export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(
-  function SatelliteHoleMap(
-    {
-      geo,
-      className,
-      gpsPoint = null,
-      gpsAccuracyM = null,
-      onError,
-      onReady,
+export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(function SatelliteHoleMap(
+  { geo, className, gpsPoint = null, gpsAccuracyM = null, onError, onReady },
+  ref,
+) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<MapLibreMap | null>(null);
+  const gpsMarkerRef = useRef<Marker | null>(null);
+  const pinMarkerRef = useRef<Marker | null>(null);
+  const teeMarkerRef = useRef<Marker | null>(null);
+  const geoRef = useRef(geo);
+  geoRef.current = geo;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
+  const [ready, setReady] = useState(false);
+  const styleFailed = useRef(false);
+
+  useImperativeHandle(ref, () => ({
+    resetView: () => {
+      const map = mapRef.current;
+      if (!map || !map.isStyleLoaded()) return;
+      flyToHole(map, geoRef.current, true);
     },
-    ref,
-  ) {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const mapRef = useRef<MapLibreMap | null>(null);
-    const gpsMarkerRef = useRef<Marker | null>(null);
-    const pinMarkerRef = useRef<Marker | null>(null);
-    const geoRef = useRef(geo);
-    geoRef.current = geo;
-    const onErrorRef = useRef(onError);
-    onErrorRef.current = onError;
-    const onReadyRef = useRef(onReady);
-    onReadyRef.current = onReady;
-    const [ready, setReady] = useState(false);
-    const styleFailed = useRef(false);
-
-    useImperativeHandle(ref, () => ({
-      resetView: () => {
-        const map = mapRef.current;
-        if (!map || !map.isStyleLoaded()) return;
-        flyToHole(map, geoRef.current, true);
-      },
-      focusGreen: () => {
-        const map = mapRef.current;
-        if (!map || !map.isStyleLoaded()) return;
-        flyToGreen(map, geoRef.current, true);
-      },
-    }));
-
-    // Create map once
-    useEffect(() => {
-      const el = containerRef.current;
-      if (!el || mapRef.current) return;
-
-      const map = new MapLibreMap({
-        container: el,
-        style: SATELLITE_STYLE,
-        center: geo.green,
-        zoom: 16,
-        pitch: 0,
-        bearing: holePlayBearing(geo),
-        attributionControl: {
-          compact: true,
-        },
-        maxPitch: 0,
-        dragRotate: false,
-        pitchWithRotate: false,
-        touchPitch: false,
-        fadeDuration: 200,
-        maxTileCacheSize: 80,
-        pixelRatio: Math.min(typeof window !== "undefined" ? window.devicePixelRatio : 1, 2),
-        // Smoother pan on mobile
-        cooperativeGestures: false,
-      });
-
-      // Soft fail only on hard style failures (not every missing tile)
-      map.on("error", (e) => {
-        const msg = String((e as { error?: { message?: string } }).error?.message ?? "");
-        if (
-          !styleFailed.current &&
-          (msg.includes("style") || msg.includes("Failed to fetch") || msg.includes("AJAXError"))
-        ) {
-          // Only escalate after map never painted
-          if (!map.isStyleLoaded()) {
-            styleFailed.current = true;
-            onErrorRef.current?.();
-          }
-        }
-      });
-
-      map.once("load", () => {
-        ensureOverlayLayers(map);
-        ensurePinMarker(map, pinMarkerRef, greenTarget(geoRef.current));
-        flyToHole(map, geoRef.current, false);
-        setReady(true);
-        onReadyRef.current?.();
-      });
-
-      mapRef.current = map;
-
-      const ro = new ResizeObserver(() => {
-        map.resize();
-      });
-      ro.observe(el);
-
-      return () => {
-        ro.disconnect();
-        gpsMarkerRef.current?.remove();
-        gpsMarkerRef.current = null;
-        pinMarkerRef.current?.remove();
-        pinMarkerRef.current = null;
-        map.remove();
-        mapRef.current = null;
-      };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    // Hole change → smooth camera + overlays + pin
-    useEffect(() => {
+    focusGreen: () => {
       const map = mapRef.current;
-      if (!map) return;
-      const run = () => {
-        ensureOverlayLayers(map);
-        const src = map.getSource(OVERLAY_SOURCE) as GeoJSONSource | undefined;
-        src?.setData(holeOverlayCollection(geo));
-        ensurePinMarker(map, pinMarkerRef, greenTarget(geo));
-        flyToHole(map, geo, true);
-      };
-      if (map.isStyleLoaded()) run();
-      else map.once("load", run);
-    }, [geo]);
+      if (!map || !map.isStyleLoaded()) return;
+      flyToGreen(map, geoRef.current, true);
+    },
+  }));
 
-    // GPS marker
-    useEffect(() => {
-      const map = mapRef.current;
-      if (!map) return;
+  // Create map once
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || mapRef.current) return;
 
-      if (!gpsPoint) {
-        gpsMarkerRef.current?.remove();
-        gpsMarkerRef.current = null;
-        if (map.getSource("gps-acc")) {
-          (map.getSource("gps-acc") as GeoJSONSource).setData({
-            type: "FeatureCollection",
-            features: [],
-          });
+    const map = new MapLibreMap({
+      container: el,
+      style: SATELLITE_STYLE,
+      center: geo.green,
+      zoom: 16,
+      pitch: 0,
+      bearing: holePlayBearing(geo),
+      attributionControl: {
+        compact: true,
+      },
+      maxPitch: 0,
+      dragRotate: false,
+      pitchWithRotate: false,
+      touchPitch: false,
+      fadeDuration: 200,
+      maxTileCacheSize: 80,
+      pixelRatio: Math.min(typeof window !== "undefined" ? window.devicePixelRatio : 1, 2),
+      // Smoother pan on mobile
+      cooperativeGestures: false,
+    });
+
+    // Soft fail only on hard style failures (not every missing tile)
+    map.on("error", (e) => {
+      const msg = String((e as { error?: { message?: string } }).error?.message ?? "");
+      if (
+        !styleFailed.current &&
+        (msg.includes("style") || msg.includes("Failed to fetch") || msg.includes("AJAXError"))
+      ) {
+        // Only escalate after map never painted
+        if (!map.isStyleLoaded()) {
+          styleFailed.current = true;
+          onErrorRef.current?.();
         }
-        return;
       }
+    });
 
-      if (!gpsMarkerRef.current) {
-        const node = document.createElement("div");
-        node.className = "tc-gps-dot";
-        node.innerHTML =
-          '<span class="tc-gps-pulse"></span><span class="tc-gps-core"></span>';
-        gpsMarkerRef.current = new Marker({ element: node, anchor: "center" })
-          .setLngLat(gpsPoint)
-          .addTo(map);
-      } else {
-        gpsMarkerRef.current.setLngLat(gpsPoint);
-      }
+    map.once("load", () => {
+      ensureOverlayLayers(map);
+      ensurePinMarker(map, pinMarkerRef, greenTarget(geoRef.current));
+      flyToHole(map, geoRef.current, false);
+      setReady(true);
+      onReadyRef.current?.();
+    });
 
-      const acc = Math.max(8, Math.min(gpsAccuracyM ?? 20, 80));
-      const circle = accuracyPolygon(gpsPoint, acc);
+    mapRef.current = map;
+
+    const ro = new ResizeObserver(() => {
+      map.resize();
+    });
+    ro.observe(el);
+
+    return () => {
+      ro.disconnect();
+      gpsMarkerRef.current?.remove();
+      gpsMarkerRef.current = null;
+      pinMarkerRef.current?.remove();
+      pinMarkerRef.current = null;
+      teeMarkerRef.current?.remove();
+      teeMarkerRef.current = null;
+      map.remove();
+      mapRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Hole change → smooth camera + overlays + pin
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const run = () => {
+      ensureOverlayLayers(map);
+      const src = map.getSource(OVERLAY_SOURCE) as GeoJSONSource | undefined;
+      src?.setData(holeOverlayCollection(geo));
+      ensurePinMarker(map, pinMarkerRef, greenTarget(geo));
+      ensureTeeMarker(map, teeMarkerRef, geo.tee);
+      flyToHole(map, geo, true);
+    };
+    if (map.isStyleLoaded()) run();
+    else map.once("load", run);
+  }, [geo]);
+
+  // GPS marker
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (!gpsPoint) {
+      gpsMarkerRef.current?.remove();
+      gpsMarkerRef.current = null;
       if (map.getSource("gps-acc")) {
-        (map.getSource("gps-acc") as GeoJSONSource).setData(circle);
-      } else if (map.isStyleLoaded()) {
-        map.addSource("gps-acc", { type: "geojson", data: circle });
-        if (!map.getLayer("gps-acc-fill")) {
-          map.addLayer({
-            id: "gps-acc-fill",
-            type: "fill",
-            source: "gps-acc",
-            paint: {
-              "fill-color": "#38bdf8",
-              "fill-opacity": 0.14,
-            },
-          });
-          map.addLayer({
-            id: "gps-acc-line",
-            type: "line",
-            source: "gps-acc",
-            paint: {
-              "line-color": "#7dd3fc",
-              "line-width": 1.5,
-              "line-opacity": 0.6,
-            },
-          });
-        }
+        (map.getSource("gps-acc") as GeoJSONSource).setData({
+          type: "FeatureCollection",
+          features: [],
+        });
       }
-    }, [gpsPoint, gpsAccuracyM]);
+      return;
+    }
 
-    return (
+    if (!gpsMarkerRef.current) {
+      const node = document.createElement("div");
+      node.className = "tc-gps-dot";
+      node.innerHTML = '<span class="tc-gps-pulse"></span><span class="tc-gps-core"></span>';
+      gpsMarkerRef.current = new Marker({ element: node, anchor: "center" })
+        .setLngLat(gpsPoint)
+        .addTo(map);
+    } else {
+      gpsMarkerRef.current.setLngLat(gpsPoint);
+    }
+
+    const acc = Math.max(8, Math.min(gpsAccuracyM ?? 20, 80));
+    const circle = accuracyPolygon(gpsPoint, acc);
+    if (map.getSource("gps-acc")) {
+      (map.getSource("gps-acc") as GeoJSONSource).setData(circle);
+    } else if (map.isStyleLoaded()) {
+      map.addSource("gps-acc", { type: "geojson", data: circle });
+      if (!map.getLayer("gps-acc-fill")) {
+        map.addLayer({
+          id: "gps-acc-fill",
+          type: "fill",
+          source: "gps-acc",
+          paint: {
+            "fill-color": "#38bdf8",
+            "fill-opacity": 0.14,
+          },
+        });
+        map.addLayer({
+          id: "gps-acc-line",
+          type: "line",
+          source: "gps-acc",
+          paint: {
+            "line-color": "#7dd3fc",
+            "line-width": 1.5,
+            "line-opacity": 0.6,
+          },
+        });
+      }
+    }
+  }, [gpsPoint, gpsAccuracyM]);
+
+  return (
+    <div className={`relative size-full min-h-[280px] touch-manipulation ${className ?? ""}`}>
       <div
-        className={`relative size-full min-h-[280px] touch-manipulation ${className ?? ""}`}
-      >
-        <div
-          ref={containerRef}
-          className={`size-full transition-opacity duration-300 ${ready ? "opacity-100" : "opacity-0"}`}
-          role="img"
-          aria-label={`Satellite map of hole ${geo.hole}`}
-        />
-        {!ready && (
-          <div
-            className="absolute inset-0 flex items-center justify-center bg-[var(--turf-rough)]"
-            aria-hidden
-          >
-            <div className="flex flex-col items-center gap-2">
-              <div className="size-8 animate-pulse rounded-full border-2 border-gold/40 border-t-gold-light" />
-              <p className="text-xs font-semibold tracking-wide text-white/55">
-                Loading course…
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  },
-);
+        ref={containerRef}
+        className={`size-full transition-opacity duration-300 ${ready ? "opacity-100" : "opacity-0"}`}
+        role="img"
+        aria-label={`Satellite map of hole ${geo.hole}`}
+      />
+      {!ready && <div className="absolute inset-0 bg-[#0a100c]" aria-hidden />}
+    </div>
+  );
+});
 
 export default SatelliteHoleMap;
 
@@ -294,7 +269,7 @@ function flyToHole(map: MapLibreMap, geo: GeoHole, animate: boolean) {
       maxZoom: 17.4,
       bearing,
       pitch: 0,
-      duration: animate ? 420 : 0,
+      duration: animate ? 450 : 0,
       essential: true,
     },
   );
@@ -314,20 +289,26 @@ function flyToGreen(map: MapLibreMap, geo: GeoHole, animate: boolean) {
   });
 }
 
-function ensurePinMarker(
-  map: MapLibreMap,
-  pinRef: { current: Marker | null },
-  pin: LngLat,
-) {
+function ensureTeeMarker(map: MapLibreMap, teeRef: { current: Marker | null }, tee: LngLat) {
+  if (!teeRef.current) {
+    const node = document.createElement("div");
+    node.className = "tc-tee-chip";
+    node.setAttribute("aria-hidden", "true");
+    node.textContent = "TEE";
+    teeRef.current = new Marker({ element: node, anchor: "center" }).setLngLat(tee).addTo(map);
+  } else {
+    teeRef.current.setLngLat(tee);
+  }
+}
+
+function ensurePinMarker(map: MapLibreMap, pinRef: { current: Marker | null }, pin: LngLat) {
   if (!pinRef.current) {
     const node = document.createElement("div");
     node.className = "tc-pin-flag";
     node.setAttribute("aria-hidden", "true");
     node.innerHTML =
       '<span class="tc-pin-pole"></span><span class="tc-pin-cloth"></span><span class="tc-pin-cup"></span>';
-    pinRef.current = new Marker({ element: node, anchor: "bottom" })
-      .setLngLat(pin)
-      .addTo(map);
+    pinRef.current = new Marker({ element: node, anchor: "bottom" }).setLngLat(pin).addTo(map);
   } else {
     pinRef.current.setLngLat(pin);
   }
@@ -341,7 +322,19 @@ function ensureOverlayLayers(map: MapLibreMap) {
     data: { type: "FeatureCollection", features: [] },
   });
 
-  // Fairway wash — stronger on bright sand aerials
+  // Dim everything outside mapped fairway / green / tee
+  map.addLayer({
+    id: "ov-spotlight",
+    type: "fill",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "spotlight"],
+    paint: {
+      "fill-color": "#050806",
+      "fill-opacity": 0.58,
+    },
+  });
+
+  // Soft collar only — aerial stays the turf
   map.addLayer({
     id: "ov-fairway",
     type: "fill",
@@ -349,7 +342,7 @@ function ensureOverlayLayers(map: MapLibreMap) {
     filter: ["==", ["get", "kind"], "fairway"],
     paint: {
       "fill-color": "#22c55e",
-      "fill-opacity": 0.32,
+      "fill-opacity": 0.08,
     },
   });
   map.addLayer({

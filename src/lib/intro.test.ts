@@ -58,8 +58,13 @@ describe("intro persistence", () => {
   });
 
   it("does not play after markIntroSeen (localStorage)", async () => {
-    const { markIntroSeen, hasSeenCurrentIntro, shouldPlayIntro, INTRO_STORAGE_KEY, INTRO_VERSION } =
-      await loadIntro();
+    const {
+      markIntroSeen,
+      hasSeenCurrentIntro,
+      shouldPlayIntro,
+      INTRO_STORAGE_KEY,
+      INTRO_VERSION,
+    } = await loadIntro();
     markIntroSeen(FIRST_TEE - 1_000);
     expect(hasSeenCurrentIntro()).toBe(true);
     expect(shouldPlayIntro(FIRST_TEE - 1_000)).toBe(false);
@@ -71,6 +76,12 @@ describe("intro persistence", () => {
     clearIntroSeen();
     expect(shouldPlayIntro(FIRST_TEE + 60_000)).toBe(false);
     expect(shouldPlayIntro(ENDS - 60_000)).toBe(false);
+  });
+
+  it("does not play Friday morning of tournament weekend", async () => {
+    const { clearIntroSeen, shouldPlayIntro } = await loadIntro();
+    clearIntroSeen();
+    expect(shouldPlayIntro(FIRST_TEE - 4 * 60 * 60 * 1000)).toBe(false);
   });
 
   it("can play again after the event for a brand-new visitor", async () => {
@@ -97,6 +108,6 @@ describe("intro persistence", () => {
     const { markIntroSeen, clearIntroSeen, shouldPlayIntro } = await loadIntro();
     markIntroSeen();
     clearIntroSeen();
-    expect(shouldPlayIntro(FIRST_TEE - 1_000)).toBe(true);
+    expect(shouldPlayIntro(FIRST_TEE - 86_400_000)).toBe(true);
   });
 });

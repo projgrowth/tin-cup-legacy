@@ -153,6 +153,15 @@ export function holeOverlayCollection(geo: GeoHole): OverlayCollection {
       geometry: { type: "Polygon", coordinates: [ring] },
     });
   }
+  const spotlight = spotlightMask(geo);
+  if (spotlight) {
+    features.push({
+      type: "Feature",
+      properties: { kind: "spotlight" },
+      geometry: { type: "Polygon", coordinates: spotlight },
+    });
+  }
+
   if (geo.playLine.length >= 2) {
     features.push({
       type: "Feature",
@@ -219,4 +228,55 @@ export function holeOverlayCollection(geo: GeoHole): OverlayCollection {
   });
 
   return { type: "FeatureCollection", features };
+}
+
+function closeRing(ring: LngLat[]): LngLat[] {
+  if (ring.length < 3) return ring;
+  const first = ring[0]!;
+  const last = ring[ring.length - 1]!;
+  if (first[0] === last[0] && first[1] === last[1]) return ring;
+  return [...ring, first];
+}
+
+/** Positive = counter-clockwise in lon/lat. */
+function ringArea(ring: LngLat[]): number {
+  const pts = closeRing(ring);
+  let area = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x0, y0] = pts[i]!;
+    const [x1, y1] = pts[i + 1]!;
+    area += x0 * y1 - x1 * y0;
+  }
+  return area / 2;
+}
+
+function windRing(ring: LngLat[], clockwise: boolean): LngLat[] {
+  const closed = closeRing(ring);
+  if (closed.length < 4) return closed;
+  const isCw = ringArea(closed) < 0;
+  return isCw === clockwise ? closed : [...closed].reverse();
+}
+
+/**
+ * Outer frame minus mapped fairway / green / tee — spotlight the real turf.
+ * Never invents a corridor; holes with no polygons get no mask.
+ */
+export function spotlightMask(geo: GeoHole): LngLat[][] | null {
+  const cuts = [...geo.fairways, ...(geo.greens ?? []), ...geo.tees].filter(
+    (ring) => ring.length >= 3,
+  );
+  if (cuts.length === 0) return null;
+  const [w, s, e, n] = geo.bounds;
+  const padLon = (e - w) * 0.18;
+  const padLat = (n - s) * 0.18;
+  const outer = windRing(
+    [
+      [w - padLon, s - padLat],
+      [e + padLon, s - padLat],
+      [e + padLon, n + padLat],
+      [w - padLon, n + padLat],
+    ],
+    false,
+  );
+  return [outer, ...cuts.map((ring) => windRing(ring, true))];
 }
