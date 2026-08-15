@@ -4,6 +4,7 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     // Durable skip — matches production markIntroSeen shape.
     localStorage.setItem("tc-intro-v1", JSON.stringify({ seenAt: Date.now(), version: 1 }));
+    localStorage.setItem("tc-seat-v1", "guest");
     sessionStorage.setItem("tc-intro-played", "1");
   });
 });
@@ -20,7 +21,7 @@ test("home loads its local brand and command center", async ({ page }) => {
     response.url().endsWith("/tin-cup-logo.png"),
   );
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Tin Cup 2026" })).toBeVisible();
+  await expect(page.getByText("First tee · Friday 12:19 PM")).toBeVisible();
   await expect(page.getByText("Today at Tin Cup")).toHaveCount(0);
   expect((await logoRequest).ok()).toBe(true);
   await expect(page.getByRole("button", { name: "Captain score input" })).toHaveCount(0);

@@ -3,20 +3,18 @@ import { Link } from "@tanstack/react-router";
 import { AvatarPair } from "@/components/tin-cup/Avatar";
 import { Countdown } from "@/components/tin-cup/Countdown";
 import { LiveWireTicker } from "@/components/tin-cup/LiveWireTicker";
-import { PairingRow } from "@/components/tin-cup/PairingRow";
 import { PhotoVault } from "@/components/tin-cup/PhotoVault";
 import { InstallHint } from "@/components/tin-cup/WhatsAppLinks";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import {
   BUY_IN,
-  EVENT,
   TOURNAMENT_BANK,
   VENMO_HANDLE,
   VENMO_IS_PLACEHOLDER,
   venmoUrl,
 } from "@/lib/tin-cup";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
-import { DAY1_META, DAY1_PAIRINGS, day1GroupForPlayer } from "@/lib/day1-pairings";
+import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
 import { tallyStandings } from "@/lib/scoring";
 
@@ -47,26 +45,11 @@ export function PreTournamentPanel({
   const nextCourseId = defaultCourseId() as CourseId;
   const nextDetails = COURSE_DETAILS[nextCourseId];
 
-  const featuredPairings =
-    isClaimed && myDay1
-      ? DAY1_PAIRINGS.filter((p) => p.matchIndex === myDay1.pairing.matchIndex)
-      : DAY1_PAIRINGS.slice(0, 1);
-
   return (
     <div className="stack-page pb-2">
-      <section className="text-center">
-        <img
-          src="/tin-cup-logo.png"
-          alt=""
-          width={56}
-          height={56}
-          className="mx-auto h-12 w-auto object-contain opacity-95"
-        />
-        <h1 className="t-display mt-4 text-foreground">
-          {isClaimed && firstName ? `Hey ${firstName}` : "Tin Cup 2026"}
-        </h1>
-        <p className="t-micro mt-1 text-muted-foreground">{EVENT.dates} · Innisbrook</p>
-      </section>
+      {isClaimed && firstName ? (
+        <p className="t-micro text-center text-muted-foreground">Hey {firstName}</p>
+      ) : null}
 
       <div className="stack-tight">
         <Countdown />
@@ -186,42 +169,6 @@ export function PreTournamentPanel({
 
       {signedIn && <InstallHint />}
 
-      <section>
-        <div className="mb-2.5 flex items-baseline justify-between gap-3">
-          <div>
-            <h2 className="t-section text-foreground">Day 1</h2>
-            <p className="t-micro mt-0.5 text-muted-foreground">
-              {DAY1_META.course} · {DAY1_META.tee}
-            </p>
-          </div>
-          <Link to="/schedule" className="t-micro shrink-0 text-muted-foreground">
-            All 4 →
-          </Link>
-        </div>
-        <ul className="surface-inset divide-y divide-border overflow-hidden">
-          {featuredPairings.map((p) => (
-            <PairingRow
-              key={p.matchIndex}
-              index={p.matchIndex}
-              sideALabel={p.sideA}
-              sideBLabel={p.sideB}
-              sideAPeople={p.playersA.map((name) => ({
-                name,
-                teamSlug: "strong-mental",
-                src: avatars.data?.getByName(name)?.url,
-              }))}
-              sideBPeople={p.playersB.map((name) => ({
-                name,
-                teamSlug: "grass-roots",
-                src: avatars.data?.getByName(name)?.url,
-              }))}
-              highlight={myDay1?.pairing.matchIndex === p.matchIndex}
-              meta={DAY1_META.formats}
-            />
-          ))}
-        </ul>
-      </section>
-
       <LiveWireTicker
         matches={matches}
         sideBets={[]}
@@ -232,7 +179,7 @@ export function PreTournamentPanel({
         toastEnabled={false}
       />
 
-      <PhotoVault canUpload={canUpload} variant="pulse" hideWhenEmpty={!canUpload} />
+      <PhotoVault canUpload={canUpload} variant="pulse" hideWhenEmpty />
     </div>
   );
 }

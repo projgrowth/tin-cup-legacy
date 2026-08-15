@@ -292,6 +292,11 @@ function SchedulePage() {
                     </div>
                   </details>
                 )}
+                {round.slug !== "friday" && !decided && (
+                  <p className="t-micro border-t border-border px-4 py-2.5 text-muted-foreground">
+                    Pairings when captains post
+                  </p>
+                )}
               </article>
             );
           })}

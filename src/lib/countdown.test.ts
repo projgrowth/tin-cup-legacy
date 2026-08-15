@@ -8,6 +8,8 @@ describe("countdown", () => {
       days: 2,
       hours: 3,
       minutes: 4,
+      seconds: 59,
+      remaining: 2 * 86_400_000 + 3 * 3_600_000 + 4 * 60_000 + 59_000,
       done: false,
     });
   });

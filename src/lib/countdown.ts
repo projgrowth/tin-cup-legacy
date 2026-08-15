@@ -2,15 +2,19 @@ export type CountdownParts = {
   days: number;
   hours: number;
   minutes: number;
+  seconds: number;
+  remaining: number;
   done: boolean;
 };
 
 export function countdownParts(milliseconds: number): CountdownParts {
-  const ms = Math.max(0, milliseconds);
+  const ms = Math.max(0, Math.floor(milliseconds));
   return {
     days: Math.floor(ms / 86_400_000),
     hours: Math.floor((ms / 3_600_000) % 24),
     minutes: Math.floor((ms / 60_000) % 60),
+    seconds: Math.floor((ms / 1_000) % 60),
+    remaining: ms,
     done: ms === 0,
   };
 }

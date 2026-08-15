@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
+import { Countdown } from "@/components/tin-cup/Countdown";
 import { useAuth } from "@/hooks/useAuth";
 import { isIntroPlaying, readSeat, subscribeIntroPlaying, writeSeat } from "@/lib/seat";
 
@@ -38,6 +39,9 @@ export function SeatWelcome() {
           <p className="t-body mt-2 text-muted-foreground">
             Same app either way. Sign in if you&apos;re in the field — or just look around.
           </p>
+          <div className="mt-3">
+            <Countdown compact />
+          </div>
         </div>
         <Link to="/profile" className="press btn-gold t-body flex w-full justify-center">
           I&apos;m in the field

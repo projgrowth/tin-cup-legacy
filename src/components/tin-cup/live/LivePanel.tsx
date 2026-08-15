@@ -93,37 +93,6 @@ export function LivePanel({
         />
       )}
 
-      {/* On-course shortcut while the cup is live */}
-      <Link
-        to="/scout"
-        search={{ course: planCourse }}
-        className="press t-micro flex min-h-11 items-center justify-between gap-3 px-1 font-semibold text-foreground"
-      >
-        <span className="inline-flex items-center gap-2">
-          <Map className="size-3.5 opacity-70" />
-          {COURSE_LABEL[planCourse]} game plan
-        </span>
-        <span className="text-muted-foreground">Open →</span>
-      </Link>
-
-      {/* PGA-style wire: score changes, side cash, social — before the board */}
-      <LiveWireTicker
-        matches={matches}
-        sideBets={sideBets}
-        players={players}
-        teams={teams}
-        variant="live"
-        limit={3}
-      />
-
-      <StatusLine
-        syncedAt={syncedAt}
-        pendingWrites={pendingWrites}
-        failedWrites={failedWrites}
-        onRetryFailed={onRetryFailed}
-        stale={stale}
-      />
-
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
@@ -158,6 +127,35 @@ export function LivePanel({
           />
         ))}
       </section>
+
+      <Link
+        to="/scout"
+        search={{ course: planCourse }}
+        className="press t-micro flex min-h-11 items-center justify-between gap-3 px-1 font-semibold text-foreground"
+      >
+        <span className="inline-flex items-center gap-2">
+          <Map className="size-3.5 opacity-70" />
+          {COURSE_LABEL[planCourse]} game plan
+        </span>
+        <span className="text-muted-foreground">Open →</span>
+      </Link>
+
+      <LiveWireTicker
+        matches={matches}
+        sideBets={sideBets}
+        players={players}
+        teams={teams}
+        variant="live"
+        limit={3}
+      />
+
+      <StatusLine
+        syncedAt={syncedAt}
+        pendingWrites={pendingWrites}
+        failedWrites={failedWrites}
+        onRetryFailed={onRetryFailed}
+        stale={stale}
+      />
 
       <section className="panel overflow-hidden">
         <button
@@ -217,7 +215,7 @@ export function LivePanel({
       </section>
 
       {/* Photos after board — secondary during live play */}
-      <PhotoVault canUpload={canUpload} variant="pulse" hideWhenEmpty={!canUpload} />
+      <PhotoVault canUpload={canUpload} variant="pulse" hideWhenEmpty />
     </div>
   );
 }
