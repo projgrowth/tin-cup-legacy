@@ -141,7 +141,9 @@ function Index() {
             className="press panel mb-4 flex items-center justify-between gap-3 border border-gold/30 px-4 py-3"
           >
             <span className="min-w-0">
-              <span className="t-body block font-medium text-foreground">Claim your roster name</span>
+              <span className="t-body block font-medium text-foreground">
+                Claim your roster name
+              </span>
               <span className="t-micro block text-muted-foreground">
                 Unlocks your player card, private notes, and photo credits
               </span>
@@ -303,14 +305,12 @@ function TodayAtTinCup({
         <div className="mt-3 flex flex-wrap gap-2">
           <Link
             to="/scout"
-            search={{ course: todayCourse, hole: 1 }}
+            search={{ course: todayCourse }}
             className="press btn-quiet t-micro min-h-11 px-3 py-2 font-semibold"
           >
             {COURSE_LABEL[todayCourse]} plan
           </Link>
-          <ShareBoardButton
-            scoreLine={`${standings.strongMental}–${standings.grassRoots}`}
-          />
+          <ShareBoardButton scoreLine={`${standings.strongMental}–${standings.grassRoots}`} />
         </div>
       </div>
       <div className="shrink-0 text-right">

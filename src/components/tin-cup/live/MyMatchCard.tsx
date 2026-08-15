@@ -6,18 +6,8 @@ import { AvatarPair } from "@/components/tin-cup/Avatar";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
-import {
-  COURSE_LABEL,
-  ROUND_COURSE,
-  defaultCourseId,
-  type CourseId,
-} from "@/lib/courses";
-import {
-  matchFormatChip,
-  playerInMatch,
-  pairingIncludesLoose,
-  roundStatus,
-} from "@/lib/scoring";
+import { COURSE_LABEL, ROUND_COURSE, defaultCourseId, type CourseId } from "@/lib/courses";
+import { matchFormatChip, playerInMatch, pairingIncludesLoose, roundStatus } from "@/lib/scoring";
 
 function courseIdFromRound(round: Round): CourseId {
   if (ROUND_COURSE[round.slug]) return ROUND_COURSE[round.slug];
@@ -137,14 +127,9 @@ export function MyMatchCard({
   const sideB = featured.sideB;
   const planCourse: CourseId =
     featured.kind === "match" ? courseIdFromRound(featured.round) : "south";
-  const status =
-    featured.kind === "match" ? roundStatus(featured.round) : "upcoming";
-  const formatChip =
-    featured.kind === "match"
-      ? matchFormatChip(featured.match.label)
-      : "Day 1";
-  const pointsChip =
-    featured.kind === "match" ? `${featured.match.points}pt` : "1pt";
+  const status = featured.kind === "match" ? roundStatus(featured.round) : "upcoming";
+  const formatChip = featured.kind === "match" ? matchFormatChip(featured.match.label) : "Day 1";
+  const pointsChip = featured.kind === "match" ? `${featured.match.points}pt` : "1pt";
   const dayLine =
     featured.kind === "match"
       ? `${featured.round.day_label} · ${featured.round.course}`
@@ -154,12 +139,9 @@ export function MyMatchCard({
       ? `w/ ${featured.partner.split(" ")[0]} · Match ${featured.matchIndex}`
       : null;
   const result =
-    featured.kind === "match"
-      ? resultLabel(featured.match.result, featured.match.points)
-      : "Open";
+    featured.kind === "match" ? resultLabel(featured.match.result, featured.match.points) : "Open";
   const live = status === "live";
-  const decided =
-    featured.kind === "match" && featured.match.result !== "pending";
+  const decided = featured.kind === "match" && featured.match.result !== "pending";
 
   return (
     <section className="hud-pod border-gold/25 px-4 py-3.5">
@@ -169,9 +151,7 @@ export function MyMatchCard({
             {live ? "My match · Live" : decided ? "My match · Final" : "My match"}
           </p>
           <p className="t-title mt-1.5 truncate text-foreground">{dayLine}</p>
-          {partnerHint && (
-            <p className="t-micro mt-0.5 text-muted-foreground">{partnerHint}</p>
-          )}
+          {partnerHint && <p className="t-micro mt-0.5 text-muted-foreground">{partnerHint}</p>}
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
           <span className="inline-flex items-center gap-1.5">
@@ -216,13 +196,9 @@ export function MyMatchCard({
         />
         <div className="min-w-0 flex-1">
           <p className="t-body truncate font-medium leading-snug">
-            <span className={featured.onA ? "text-gold-light" : "text-foreground/90"}>
-              {sideA}
-            </span>
+            <span className={featured.onA ? "text-gold-light" : "text-foreground/90"}>{sideA}</span>
             <span className="mx-1.5 text-muted-foreground">vs</span>
-            <span className={!featured.onA ? "text-copper" : "text-foreground/90"}>
-              {sideB}
-            </span>
+            <span className={!featured.onA ? "text-copper" : "text-foreground/90"}>{sideB}</span>
           </p>
           <p className="t-micro mt-0.5 text-muted-foreground">
             You on {featured.onA ? "Strong Mental" : "Grass Roots"}
@@ -241,7 +217,7 @@ export function MyMatchCard({
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[var(--hud-border)] pt-3">
         <Link
           to="/scout"
-          search={{ course: planCourse, hole: 1 }}
+          search={{ course: planCourse }}
           className="press t-micro inline-flex items-center gap-1.5 font-semibold text-foreground underline-offset-2 hover:underline"
         >
           <Map className="size-3.5 opacity-70" />

@@ -9,12 +9,7 @@ import { roundStatus } from "@/lib/scoring";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { formatPayout } from "@/lib/purse";
 import { contestHoleLabel } from "@/lib/tin-cup";
-import {
-  COURSE_LABEL,
-  ROUND_COURSE,
-  defaultCourseId,
-  type CourseId,
-} from "@/lib/courses";
+import { COURSE_LABEL, ROUND_COURSE, defaultCourseId, type CourseId } from "@/lib/courses";
 import { BetClaim } from "./MatchControls";
 import { MyMatchCard } from "./MyMatchCard";
 import { LiveHero, RoundStrip, StatusLine, StickyCupBar } from "./ScoreBoard";
@@ -101,19 +96,14 @@ export function LivePanel({
       {/* On-course shortcut while the cup is live */}
       <Link
         to="/scout"
-        search={{ course: planCourse, hole: 1 }}
-        className="press panel flex min-h-12 items-center justify-between gap-3 px-4 py-3"
+        search={{ course: planCourse }}
+        className="press t-micro flex min-h-11 items-center justify-between gap-3 px-1 font-semibold text-foreground"
       >
-        <span className="min-w-0">
-          <span className="t-body flex items-center gap-2 font-medium text-foreground">
-            <Map className="size-4 shrink-0 opacity-70" />
-            {COURSE_LABEL[planCourse]} planner
-          </span>
-          <span className="t-micro mt-0.5 block text-muted-foreground">
-            Maps · notes · contest holes
-          </span>
+        <span className="inline-flex items-center gap-2">
+          <Map className="size-3.5 opacity-70" />
+          {COURSE_LABEL[planCourse]} game plan
         </span>
-        <span className="t-micro shrink-0 text-muted-foreground">Open →</span>
+        <span className="text-muted-foreground">Open →</span>
       </Link>
 
       {/* PGA-style wire: score changes, side cash, social — before the board */}
@@ -123,7 +113,7 @@ export function LivePanel({
         players={players}
         teams={teams}
         variant="live"
-        limit={5}
+        limit={3}
       />
 
       <StatusLine
@@ -149,9 +139,7 @@ export function LivePanel({
               type="button"
               aria-pressed={needsResultOnly}
               onClick={() => setNeedsResultOnly((value) => !value)}
-              className={`press chip t-micro ${
-                needsResultOnly ? "chip-on" : ""
-              }`}
+              className={`press chip t-micro ${needsResultOnly ? "chip-on" : ""}`}
             >
               {needsResultOnly ? "Open only" : "All"}
             </button>

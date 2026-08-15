@@ -60,7 +60,7 @@ function ProfilePage() {
   return (
     <Shell>
       <PageHeading
-        eyebrow={claimedPlayer ? claimedTeam?.name.replace("Team ", "") ?? "My hub" : "Account"}
+        eyebrow={claimedPlayer ? (claimedTeam?.name.replace("Team ", "") ?? "My hub") : "Account"}
         title={user ? (firstName ? firstName : "You") : "Sign in"}
       />
       {user && rolesError && (
@@ -138,12 +138,14 @@ function ProfilePage() {
           </div>
           <WhatsAppGroupButton className="w-full" />
           <RoundPlans />
-          <section className="panel p-4">
-            <p className="t-section text-foreground">Add to Home Screen</p>
-            <p className="t-micro mt-1.5 text-muted-foreground">
+          <details className="panel">
+            <summary className="press cursor-pointer list-none px-4 py-3.5 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
+              Add to Home Screen
+            </summary>
+            <p className="t-micro border-t border-border px-4 py-3 text-muted-foreground">
               iPhone: Share → Add to Home Screen. Android: browser menu → Install app.
             </p>
-          </section>
+          </details>
           <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
             {canScore && (
               <Link
@@ -265,9 +267,7 @@ function MyHubCard({
         <div className="min-w-0 flex-1">
           <p className="t-micro text-muted-foreground">{teamName}</p>
           <h2 className="t-title mt-0.5 text-foreground">{player.name}</h2>
-          {player.is_captain && (
-            <span className="t-micro text-muted-foreground">Captain</span>
-          )}
+          {player.is_captain && <span className="t-micro text-muted-foreground">Captain</span>}
           <button
             type="button"
             onClick={() => setShowPicker((v) => !v)}
@@ -323,7 +323,9 @@ function GuestNotesMerge() {
       }
       clearGuestNotes();
       setCount(0);
-      toast.success(`Moved ${notes.length} hole note${notes.length === 1 ? "" : "s"} to your account`);
+      toast.success(
+        `Moved ${notes.length} hole note${notes.length === 1 ? "" : "s"} to your account`,
+      );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not merge notes");
     } finally {
@@ -419,9 +421,7 @@ function Identity({
   return (
     <section>
       <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h2 className="t-section text-foreground">
-          {needsClaim ? "Claim your name" : "Identity"}
-        </h2>
+        <h2 className="t-section text-foreground">{needsClaim ? "Claim your name" : "Identity"}</h2>
         <span className="pill t-micro text-muted-foreground">{roleLabel}</span>
       </div>
       <div className={`space-y-3 p-4 ${needsClaim ? "surface-emphasized" : "panel"}`}>
@@ -537,11 +537,7 @@ function PlanCard({ slug, label, format }: { slug: string; label: string; format
           />
           <div className="flex items-center justify-between gap-3">
             {course ? (
-              <Link
-                to="/scout"
-                search={{ course, hole: 1 }}
-                className="t-micro text-muted-foreground"
-              >
+              <Link to="/scout" search={{ course }} className="t-micro text-muted-foreground">
                 Open {COURSE_LABEL[course]} planner →
               </Link>
             ) : (

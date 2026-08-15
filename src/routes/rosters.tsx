@@ -6,16 +6,12 @@ import { ChevronRight } from "lucide-react";
 import { Avatar } from "@/components/tin-cup/Avatar";
 import { ErrorState, LoadingRows, PageHeading, Shell } from "@/components/tin-cup/Shell";
 import { WhatsAppGroupButton } from "@/components/tin-cup/WhatsAppLinks";
-import { Segmented } from "@/components/tin-cup/ui/primitives";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
-import { day1GroupForPlayer } from "@/lib/day1-pairings";
-import { formatRecord, playerRecord, tallyStandings } from "@/lib/scoring";
-import { sideBetShortLabel } from "@/lib/side-bets";
+import { tallyStandings } from "@/lib/scoring";
 import { teamRailClass } from "@/lib/team-styles";
-import { formatPayout } from "@/lib/purse";
 
 export const Route = createFileRoute("/rosters")({
   head: () => ({
@@ -41,7 +37,6 @@ function RostersPage() {
   const { user } = useAuth();
   const standings = tallyStandings(data?.matches ?? []);
   const teams = data?.teams ?? [];
-  const bets = data?.sideBets ?? [];
   const players = data?.players ?? [];
   const avatars = usePlayerAvatars(players, teams);
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
@@ -119,19 +114,6 @@ function RostersPage() {
           </section>
         )}
 
-        {teams.length > 0 && (
-          <Segmented
-            ariaLabel="Team"
-            value={(activeSlug ?? teams[0]?.slug ?? "strong-mental") as string}
-            onChange={(slug) => setActiveSlug(slug)}
-            options={teams.map((team) => ({
-              value: team.slug,
-              label: team.name.replace("Team ", ""),
-              hint: myTeam?.id === team.id ? "you" : undefined,
-            }))}
-          />
-        )}
-
         <Link
           to="/profile"
           className="press panel flex items-center justify-between gap-3 px-4 py-3"
@@ -183,16 +165,7 @@ function RostersPage() {
               {players
                 .filter((p) => p.team_id === selected.id)
                 .map((player) => {
-                  const claims = bets.filter((b) => b.player_name === player.name);
-                  const record = playerRecord(data?.matches ?? [], player.name, selected.slug);
-                  const shorthand = formatRecord(record);
-                  const d1 = day1GroupForPlayer(player.name);
                   const isYou = myPlayerId === player.id;
-                  const sub = d1
-                    ? `w/ ${d1.partner.split(" ")[0]} · vs ${d1.opponents}`
-                    : claims.length > 0
-                      ? `${claims.map((c) => sideBetShortLabel(c.kind)).join(" · ")} · ${formatPayout(claims.reduce((sum, c) => sum + Number(c.amount), 0))}`
-                      : null;
                   return (
                     <li key={player.id} className={isYou ? "bg-secondary/40" : ""}>
                       <Link
@@ -217,19 +190,12 @@ function RostersPage() {
                                 <span className="t-micro shrink-0 text-muted-foreground">You</span>
                               )}
                             </span>
-                            {sub && (
-                              <span className="t-micro mt-0.5 block truncate text-muted-foreground">
-                                {sub}
-                              </span>
-                            )}
                           </span>
                         </span>
-                        <span className="flex shrink-0 items-center gap-2">
-                          <span className="t-numeral text-right text-foreground/90">
-                            {shorthand ?? "—"}
-                          </span>
-                          <ChevronRight className="size-4 text-muted-foreground" strokeWidth={1.7} />
-                        </span>
+                        <ChevronRight
+                          className="size-4 shrink-0 text-muted-foreground"
+                          strokeWidth={1.7}
+                        />
                       </Link>
                     </li>
                   );

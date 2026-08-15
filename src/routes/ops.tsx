@@ -1,15 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  CheckCircle2,
-  Circle,
-  Loader2,
-  Smartphone,
-  ExternalLink,
-  Map,
-  Radio,
-} from "lucide-react";
+import { CheckCircle2, Circle, Loader2, Smartphone, ExternalLink, Map, Radio } from "lucide-react";
 import { toast } from "sonner";
 
 import { AuthCard } from "@/components/tin-cup/AuthCard";
@@ -112,9 +104,7 @@ function Row({
         />
       ) : (
         <Circle
-          className={`mt-0.5 size-4 shrink-0 ${
-            critical ? "text-copper" : "text-muted-foreground"
-          }`}
+          className={`mt-0.5 size-4 shrink-0 ${critical ? "text-copper" : "text-muted-foreground"}`}
           strokeWidth={1.8}
         />
       )}
@@ -126,9 +116,7 @@ function Row({
         >
           {label}
         </span>
-        {detail && (
-          <span className="t-micro mt-0.5 block text-muted-foreground">{detail}</span>
-        )}
+        {detail && <span className="t-micro mt-0.5 block text-muted-foreground">{detail}</span>}
       </span>
     </li>
   );
@@ -259,9 +247,7 @@ function OpsPage() {
           {/* Score hero */}
           <section
             className={`panel p-5 ${
-              ready && dryComplete
-                ? "border border-[oklch(0.72_0.12_155/30%)]"
-                : ""
+              ready && dryComplete ? "border border-[oklch(0.72_0.12_155/30%)]" : ""
             }`}
           >
             <div className="flex items-baseline justify-between gap-3">
@@ -269,9 +255,7 @@ function OpsPage() {
                 <p className="t-eyebrow">System readiness</p>
                 <p className="t-display mt-1 text-foreground">
                   {score.ready}
-                  <span className="t-title font-normal text-muted-foreground">
-                    /{score.total}
-                  </span>
+                  <span className="t-title font-normal text-muted-foreground">/{score.total}</span>
                 </p>
               </div>
               <div className="text-right">
@@ -531,11 +515,13 @@ function OpsPage() {
             <h2 className="t-eyebrow">Captain access</h2>
             <p className="t-micro text-muted-foreground">
               Zack & Charles: sign in once → Kevin grants captain on{" "}
-              <Link to="/admin" className="font-semibold text-foreground underline-offset-2 hover:underline">
+              <Link
+                to="/admin"
+                className="font-semibold text-foreground underline-offset-2 hover:underline"
+              >
                 Admin
               </Link>
-              . Or configure{" "}
-              <code className="text-foreground">CAPTAIN_EMAILS</code> and sync below.
+              . Or configure <code className="text-foreground">CAPTAIN_EMAILS</code> and sync below.
             </p>
             <button
               type="button"
@@ -569,9 +555,7 @@ function OpsPage() {
               rel="noreferrer"
               className="press panel flex min-h-12 items-center justify-between gap-3 border border-border/60 px-4 py-3"
             >
-              <span className="t-body font-medium text-foreground">
-                Test Venmo $150
-              </span>
+              <span className="t-body font-medium text-foreground">Test Venmo $150</span>
               <ExternalLink className="size-4 text-muted-foreground" />
             </a>
             <Link
@@ -593,7 +577,7 @@ function OpsPage() {
             </Link>
             <Link
               to="/scout"
-              search={{ course: "south", hole: 1 }}
+              search={{ course: "south" }}
               className="press panel flex min-h-12 items-center justify-between gap-3 border border-border/60 px-4 py-3"
             >
               <span className="inline-flex items-center gap-2 t-body font-medium text-foreground">

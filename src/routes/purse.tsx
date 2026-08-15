@@ -82,9 +82,7 @@ function PursePage() {
           <div className="surface-inset p-4">
             <p className="t-micro text-muted-foreground">Side cash</p>
             <p className="t-display mt-1.5 text-foreground">${cash.pool}</p>
-            {hasTbdPayouts && (
-              <p className="t-micro mt-1 text-muted-foreground">Holes TBD</p>
-            )}
+            {hasTbdPayouts && <p className="t-micro mt-1 text-muted-foreground">Holes TBD</p>}
           </div>
         </section>
 
@@ -98,10 +96,7 @@ function PursePage() {
             </div>
             <ul className="surface-inset divide-y divide-border overflow-hidden">
               {bets.map((bet) => (
-                <li
-                  key={bet.id}
-                  className="flex items-center justify-between gap-3 px-4 py-3.5"
-                >
+                <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
                   <span className="min-w-0">
                     <span className="t-body block truncate font-medium text-foreground">
                       {bet.label}
@@ -120,14 +115,13 @@ function PursePage() {
         )}
 
         {perPlayer.length > 0 && (
-          <section>
-            <h2 className="t-section mb-3 text-foreground">Won so far</h2>
-            <ul className="surface-inset divide-y divide-border overflow-hidden">
+          <details className="surface-inset">
+            <summary className="press cursor-pointer list-none px-4 py-3.5 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
+              Won so far
+            </summary>
+            <ul className="divide-y divide-border border-t border-border">
               {perPlayer.map((row) => (
-                <li
-                  key={row.name}
-                  className="flex items-center justify-between gap-3 px-4 py-3"
-                >
+                <li key={row.name} className="flex items-center justify-between gap-3 px-4 py-3">
                   <span className="t-body min-w-0 truncate text-foreground">{row.name}</span>
                   <span className="t-numeral shrink-0 text-foreground">
                     {formatPayout(row.total)}
@@ -135,7 +129,7 @@ function PursePage() {
                 </li>
               ))}
             </ul>
-          </section>
+          </details>
         )}
 
         <section className="stack-tight">

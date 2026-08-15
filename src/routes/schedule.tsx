@@ -99,9 +99,7 @@ function SchedulePage() {
     return upcoming ?? rounds[0] ?? null;
   }, [rounds, now]);
 
-  const todayCourseId = todayRound
-    ? courseIdFromRound(todayRound) ?? todayCourse
-    : todayCourse;
+  const todayCourseId = todayRound ? (courseIdFromRound(todayRound) ?? todayCourse) : todayCourse;
   const todayDetails = COURSE_DETAILS[todayCourseId];
   const showDay1Pairings =
     todayCourseId === "south" ||
@@ -146,16 +144,13 @@ function SchedulePage() {
           <div className="flex flex-wrap gap-2 border-t border-border px-4 py-3">
             <Link
               to="/scout"
-              search={{ course: todayCourseId, hole: 1 }}
+              search={{ course: todayCourseId }}
               className="press btn-gold t-body inline-flex min-h-11 items-center gap-2 px-4"
             >
               <Map className="size-4" />
               Open planner
             </Link>
-            <Link
-              to="/"
-              className="press btn-quiet t-body inline-flex min-h-11 items-center px-4"
-            >
+            <Link to="/" className="press btn-quiet t-body inline-flex min-h-11 items-center px-4">
               Live board
             </Link>
           </div>
@@ -183,7 +178,7 @@ function SchedulePage() {
               </div>
               <Link
                 to="/scout"
-                search={{ course: "south", hole: 1 }}
+                search={{ course: "south" }}
                 className="t-micro shrink-0 text-muted-foreground"
               >
                 South plan →
@@ -261,7 +256,7 @@ function SchedulePage() {
                       {courseId && (
                         <Link
                           to="/scout"
-                          search={{ course: courseId, hole: 1 }}
+                          search={{ course: courseId }}
                           className="press t-micro font-semibold text-foreground underline-offset-2 hover:underline"
                         >
                           {COURSE_LABEL[courseId]} planner →
@@ -277,12 +272,14 @@ function SchedulePage() {
                       )}
                     </div>
                   </div>
-                  <span className="t-numeral shrink-0 text-2xl text-foreground">{round.points}</span>
+                  <span className="t-numeral shrink-0 text-2xl text-foreground">
+                    {round.points}
+                  </span>
                 </div>
                 {hasDetail && (
                   <details className="border-t border-border" open={raised}>
                     <summary className="press flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-2.5 t-micro text-muted-foreground [&::-webkit-details-marker]:hidden">
-                      Details
+                      {raised ? "Format & dinner" : "More"}
                       <ChevronDown className="size-3.5 opacity-60" />
                     </summary>
                     <div className="space-y-1.5 px-4 pb-3.5">
@@ -334,9 +331,6 @@ function SchedulePage() {
           </p>
         </details>
         <SnakePitDrawer />
-        <Link to="/" className="press t-body block text-center text-muted-foreground">
-          ← Live board
-        </Link>
       </div>
     </Shell>
   );
