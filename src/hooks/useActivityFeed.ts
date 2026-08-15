@@ -32,10 +32,7 @@ export function formatActivityTime(iso: string) {
   return relativeTime(iso);
 }
 
-async function loadActivity(
-  players: Player[],
-  teams: Team[],
-): Promise<ActivityItem[]> {
+async function loadActivity(players: Player[], teams: Team[]): Promise<ActivityItem[]> {
   const playerById = new Map(players.map((p) => [p.id, p]));
   const teamById = new Map(teams.map((t) => [t.id, t.slug]));
 
@@ -75,7 +72,7 @@ async function loadActivity(
     }`);
     profiles = data.profiles ?? [];
     photos = data.photos ?? [];
-  } catch {
+  } catch (primary) {
     // Fallback without timestamps if public columns not expanded yet
     try {
       const data = await graphqlRequest<{
@@ -97,7 +94,7 @@ async function loadActivity(
       profiles = data.profiles ?? [];
       photos = data.photos ?? [];
     } catch {
-      return [];
+      throw primary;
     }
   }
 
@@ -108,14 +105,19 @@ async function loadActivity(
     if (!p.player_id) continue;
     const player = playerById.get(p.player_id);
     const name = player?.name || p.display_name || "Someone";
-    const teamSlug = player ? teamById.get(player.team_id) ?? null : null;
+    const teamSlug = player ? (teamById.get(player.team_id) ?? null) : null;
     const at = p.created_at || p.updated_at || new Date(0).toISOString();
     items.push({
       id: `claim-${p.id}`,
       kind: "claim",
       at,
       title: `${name.split(" ")[0]} joined the field`,
-      subtitle: teamSlug === "grass-roots" ? "Grass Roots" : teamSlug === "strong-mental" ? "Strong Mental" : undefined,
+      subtitle:
+        teamSlug === "grass-roots"
+          ? "Grass Roots"
+          : teamSlug === "strong-mental"
+            ? "Strong Mental"
+            : undefined,
       playerName: name,
       playerId: p.player_id,
       teamSlug,
@@ -139,7 +141,7 @@ async function loadActivity(
     const author = ph.uploaded_by ? profileByUser.get(ph.uploaded_by) : null;
     const player = author?.player_id ? playerById.get(author.player_id) : null;
     const name = player?.name || author?.display_name || "Someone";
-    const teamSlug = player ? teamById.get(player.team_id) ?? null : null;
+    const teamSlug = player ? (teamById.get(player.team_id) ?? null) : null;
     items.push({
       id: `photo-${ph.id}`,
       kind: "photo",
@@ -162,6 +164,7 @@ export function useActivityFeed(players: Player[], teams: Team[]) {
     queryKey: ["activity-feed", players.map((p) => p.id).join(",")],
     queryFn: () => loadActivity(players, teams),
     enabled: players.length > 0,
+    retry: 1,
     staleTime: 45_000,
   });
 }

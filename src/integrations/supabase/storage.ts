@@ -26,10 +26,11 @@ export async function uploadVaultImage(file: File, folder = "photos") {
 }
 
 export async function signedVaultUrl(path: string, expiresIn = 60 * 60) {
+  if (!path.trim()) return null;
   const { data, error } = await supabase.storage
     .from(VAULT_BUCKET)
     .createSignedUrl(path, expiresIn);
-  if (error) throw error;
+  if (error || !data?.signedUrl) return null;
   return data.signedUrl;
 }
 

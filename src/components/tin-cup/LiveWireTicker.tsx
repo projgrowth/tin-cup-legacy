@@ -53,7 +53,12 @@ export function LiveWireTicker({
   limit?: number;
   toastEnabled?: boolean;
 }) {
-  const { data: activity } = useActivityFeed(players, teams);
+  const {
+    data: activity,
+    isError: activityError,
+    isFetching: activityFetching,
+    refetch: refetchActivity,
+  } = useActivityFeed(players, teams);
   const { events, recent, hot } = useLiveWire({
     matches,
     sideBets,
@@ -102,7 +107,24 @@ export function LiveWireTicker({
         )}
       </div>
 
-      {list.length === 0 ? (
+      {activityError && list.length === 0 ? (
+        <div className="panel flex items-start justify-between gap-3 px-4 py-4">
+          <div className="min-w-0">
+            <p className="t-body font-medium text-foreground">Couldn&apos;t load updates</p>
+            <p className="t-micro mt-0.5 text-muted-foreground">
+              Check the connection and try again.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void refetchActivity()}
+            disabled={activityFetching}
+            className="press btn-quiet t-micro shrink-0"
+          >
+            {activityFetching ? "Retrying…" : "Retry"}
+          </button>
+        </div>
+      ) : list.length === 0 ? (
         <div className="panel flex items-start gap-3 px-4 py-4">
           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white/5">
             <Radio className="size-3.5 text-muted-foreground" strokeWidth={1.7} />

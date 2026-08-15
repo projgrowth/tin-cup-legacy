@@ -52,28 +52,28 @@ async function loadPhotos(): Promise<VaultItem[]> {
   const authorByUserId = new Map<string, string>();
   for (const p of result.profiles ?? []) {
     const roster =
-      p.player_id && rosterByPlayerId.get(p.player_id)
-        ? rosterByPlayerId.get(p.player_id)!
-        : null;
+      p.player_id && rosterByPlayerId.get(p.player_id) ? rosterByPlayerId.get(p.player_id)! : null;
     const label = roster || p.display_name.trim();
     if (label) authorByUserId.set(p.id, label);
   }
 
-  const signed = await Promise.all(
-    rows.map((row) => signedVaultUrl(row.storage_path)),
-  );
+  const signed = await Promise.all(rows.map((row) => signedVaultUrl(row.storage_path)));
 
-  return rows.map((row, i) => {
-    const authorName = row.uploaded_by ? authorByUserId.get(row.uploaded_by) ?? null : null;
-    return {
-      id: row.id,
-      caption: row.caption,
-      url: signed[i] ?? "",
-      storagePath: row.storage_path,
-      uploadedBy: row.uploaded_by,
-      authorName,
-      createdAt: row.created_at ?? null,
-    };
+  return rows.flatMap((row, i) => {
+    const url = signed[i];
+    if (!url) return [];
+    const authorName = row.uploaded_by ? (authorByUserId.get(row.uploaded_by) ?? null) : null;
+    return [
+      {
+        id: row.id,
+        caption: row.caption,
+        url,
+        storagePath: row.storage_path,
+        uploadedBy: row.uploaded_by,
+        authorName,
+        createdAt: row.created_at ?? null,
+      },
+    ];
   });
 }
 
@@ -97,7 +97,9 @@ export function PhotoVault({
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    void currentUserId().then(setUserId).catch(() => setUserId(null));
+    void currentUserId()
+      .then(setUserId)
+      .catch(() => setUserId(null));
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserId(session?.user.id ?? null);
     });
@@ -222,7 +224,11 @@ export function PhotoVault({
           autoFocus
         />
         <div className="flex gap-2">
-          <button type="button" onClick={() => confirmUpload()} className="press btn-gold t-body flex-1">
+          <button
+            type="button"
+            onClick={() => confirmUpload()}
+            className="press btn-gold t-body flex-1"
+          >
             Post photo
           </button>
           <button
@@ -251,8 +257,7 @@ export function PhotoVault({
 
   if (variant === "pulse") {
     const strip = photos?.slice(0, 16) ?? [];
-    const empty =
-      !isPending && !isError && strip.length === 0 && !upload.isPending && !pendingFile;
+    const empty = !isPending && !isError && strip.length === 0 && !upload.isPending && !pendingFile;
     if (hideWhenEmpty && empty) return null;
 
     return (
@@ -295,8 +300,19 @@ export function PhotoVault({
             Pulse didn&apos;t load · Retry
           </button>
         )}
-        {!isPending && !isError && strip.length === 0 && canUpload && (
-          <p className="t-micro text-muted-foreground">First photo of the weekend?</p>
+        {!isPending && !isError && strip.length === 0 && (
+          <p className="t-micro text-muted-foreground">
+            {canUpload ? (
+              "First photo of the weekend?"
+            ) : (
+              <>
+                Sign in to post.{" "}
+                <Link to="/profile" className="font-semibold text-foreground underline">
+                  Account
+                </Link>
+              </>
+            )}
+          </p>
         )}
         {strip.length > 0 && (
           <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
