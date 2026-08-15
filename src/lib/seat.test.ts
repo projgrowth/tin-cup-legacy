@@ -36,4 +36,11 @@ describe("seat persistence", () => {
     clearSeat();
     expect(readSeat()).toBeNull();
   });
+
+  it("treats account routes as sign-in surfaces", async () => {
+    const { isAuthPath } = await import("@/lib/seat");
+    expect(isAuthPath("/profile")).toBe(true);
+    expect(isAuthPath("/")).toBe(false);
+    expect(isAuthPath("/scout")).toBe(false);
+  });
 });

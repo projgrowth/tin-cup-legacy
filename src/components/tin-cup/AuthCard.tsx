@@ -6,20 +6,22 @@ import { supabase } from "@/integrations/supabase/client";
 
 type AuthCardProps = {
   blurb: string;
-  /** Path used for email magic-link / confirm redirect. Defaults to /profile. */
   redirectPath?: string;
 };
 
-type Mode = "magic" | "password-in" | "password-up";
+type Mode = "password-in" | "password-up" | "magic";
+
+function isRateLimited(message: string) {
+  return /rate|exceed|too many|429|over_email/i.test(message);
+}
 
 /**
- * Single account door: magic link first (best on phone), password optional.
- * Used on profile, captain, admin, ops.
+ * Password first — reliable on a phone when magic-link email is rate-limited.
  */
 export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<Mode>("magic");
+  const [mode, setMode] = useState<Mode>("password-in");
   const [busy, setBusy] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
 
@@ -47,11 +49,17 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
       setSentTo(trimmed);
       toast.success("Check your email for a sign-in link.");
     } catch (error) {
-      // If passwordless email is disabled, fall through to password with a clear message.
       const message = error instanceof Error ? error.message : "Could not send link";
-      if (/disabled|not enabled|forbidden|invalid-request/i.test(message)) {
-        toast.message("Magic link isn’t enabled — use a password below.");
+      if (
+        isRateLimited(message) ||
+        /disabled|not enabled|forbidden|invalid-request/i.test(message)
+      ) {
         setMode("password-in");
+        toast.message(
+          isRateLimited(message)
+            ? "Email link is rate-limited — use your password."
+            : "Use a password instead.",
+        );
       } else {
         toast.error(message);
       }
@@ -69,11 +77,7 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
     setBusy(true);
     setSentTo(null);
     try {
-      if (mode === "password-in") {
-        const { error } = await supabase.auth.signInWithPassword({ email: trimmed, password });
-        if (error) throw error;
-        toast.success("Signed in");
-      } else {
+      if (mode === "password-up") {
         const { error } = await supabase.auth.signUp({
           email: trimmed,
           password,
@@ -83,6 +87,10 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
         setSentTo(trimmed);
         toast.success("Account created — confirm email if asked, then sign in.");
         setMode("password-in");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email: trimmed, password });
+        if (error) throw error;
+        toast.success("Signed in");
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Authentication failed");
@@ -104,7 +112,14 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
       setSentTo(trimmed);
       toast.success("Password reset email sent (if that account exists).");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not send reset email");
+      const message = error instanceof Error ? error.message : "Could not send reset email";
+      if (isRateLimited(message)) {
+        toast.error(
+          "Email is rate-limited. Try again in a few minutes, or sign in with a password.",
+        );
+      } else {
+        toast.error(message);
+      }
     } finally {
       setBusy(false);
     }
@@ -113,12 +128,10 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
   return (
     <div className="panel space-y-4 p-5">
       <div>
-        <p className="t-title text-foreground">Account</p>
-        <p className="t-body mt-1.5 text-muted-foreground">{blurb}</p>
-        <p className="t-micro mt-2 text-muted-foreground">
-          Live board, schedule, and pay work without signing in. Account is for roster name + private
-          notes. Captains use the same door — Kevin grants scoring.
+        <p className="t-title text-foreground">
+          {mode === "password-up" ? "Create account" : mode === "magic" ? "Email link" : "Sign in"}
         </p>
+        <p className="t-micro mt-1.5 text-muted-foreground">{blurb}</p>
       </div>
 
       {sentTo && (
@@ -128,8 +141,7 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
             Check {sentTo}
           </p>
           <p className="t-micro mt-1.5 text-muted-foreground">
-            Open the email on this phone, tap the link, and you’ll land back in the app signed in.
-            Check spam if nothing arrives in a minute.
+            Open the email on this phone. Spam if it&apos;s not there in a minute.
           </p>
         </div>
       )}
@@ -147,24 +159,14 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
       />
 
       {mode === "magic" ? (
-        <>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void sendMagicLink()}
-            className="press btn-gold t-body w-full"
-          >
-            {busy ? "Sending…" : "Email me a sign-in link"}
-          </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => setMode("password-in")}
-            className="t-micro w-full text-center text-muted-foreground"
-          >
-            Use password instead
-          </button>
-        </>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void sendMagicLink()}
+          className="press btn-gold t-body min-h-12 w-full"
+        >
+          {busy ? "Sending…" : "Email me a sign-in link"}
+        </button>
       ) : (
         <>
           <input
@@ -179,45 +181,54 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
             type="button"
             disabled={busy}
             onClick={() => void submitPassword()}
-            className="press btn-gold t-body w-full"
+            className="press btn-gold t-body min-h-12 w-full"
           >
-            {busy
-              ? "Working…"
-              : mode === "password-in"
-                ? "Sign in with password"
-                : "Create account"}
+            {busy ? "Working…" : mode === "password-up" ? "Create account" : "Sign in"}
           </button>
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => setMode(mode === "password-in" ? "password-up" : "password-in")}
-              className="t-micro w-full text-center text-muted-foreground"
-            >
-              {mode === "password-in" ? "Need an account? Create one" : "Already have one? Sign in"}
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => void resetPassword()}
-              className="t-micro w-full text-center text-muted-foreground"
-            >
-              Forgot password?
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => {
-                setMode("magic");
-                setPassword("");
-              }}
-              className="t-micro w-full text-center text-muted-foreground"
-            >
-              ← Back to email link
-            </button>
-          </div>
         </>
       )}
+
+      <div className="flex flex-col gap-2 pt-1">
+        {mode === "magic" ? (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => setMode("password-in")}
+            className="press min-h-11 t-micro text-center font-semibold text-foreground"
+          >
+            Use password instead
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => setMode("magic")}
+            className="t-micro w-full text-center text-muted-foreground"
+          >
+            Email me a link instead
+          </button>
+        )}
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => setMode(mode === "password-up" ? "password-in" : "password-up")}
+          className="t-micro w-full text-center text-muted-foreground"
+        >
+          {mode === "password-up"
+            ? "Already have an account? Sign in"
+            : "Need an account? Create one"}
+        </button>
+        {mode !== "magic" && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void resetPassword()}
+            className="t-micro w-full text-center text-muted-foreground"
+          >
+            Forgot password?
+          </button>
+        )}
+      </div>
     </div>
   );
 }

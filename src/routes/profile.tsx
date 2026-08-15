@@ -80,11 +80,7 @@ function ProfilePage() {
         <LoadingForm fields={3} />
       ) : !user ? (
         <div className="space-y-6">
-          <AuthCard blurb="Join the field: claim your roster name, private notes, and photo credits." />
-          <p className="t-micro text-muted-foreground">
-            Players should sign in and claim their name. Guests can still follow the live cup on the
-            board without an account.
-          </p>
+          <AuthCard blurb="Claim your name. Password works if the email link is rate-limited." />
         </div>
       ) : (
         <div className="space-y-8">

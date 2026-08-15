@@ -1,6 +1,12 @@
 export const SEAT_KEY = "tc-seat-v1";
 export type Seat = "guest" | "account";
 
+export const AUTH_PATHS = ["/profile", "/admin", "/ops", "/captain"];
+
+export function isAuthPath(pathname: string) {
+  return AUTH_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
 export function readSeat(): Seat | null {
   if (typeof window === "undefined") return null;
   try {
