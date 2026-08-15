@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Camera, ChevronRight, Loader2, LogOut } from "lucide-react";
+import { Camera, ChevronRight, Loader2 } from "lucide-react";
 
 import { AuthCard } from "@/components/tin-cup/AuthCard";
 import { Avatar } from "@/components/tin-cup/Avatar";
@@ -83,8 +83,8 @@ function ProfilePage() {
           <AuthCard blurb="Claim your name. Password works if the email link is rate-limited." />
         </div>
       ) : (
-        <div className="space-y-8">
-          {claimedPlayer && claimedTeam && (
+        <div className="stack-page">
+          {claimedPlayer && claimedTeam ? (
             <MyHubCard
               player={claimedPlayer}
               teamSlug={claimedTeam.slug}
@@ -92,81 +92,61 @@ function ProfilePage() {
               matches={tournament?.matches ?? []}
               sideBets={tournament?.sideBets ?? []}
             />
+          ) : (
+            <Identity email={user.email ?? ""} canScore={canScore} isAdmin={isAdmin} />
           )}
-          <Identity email={user.email ?? ""} canScore={canScore} isAdmin={isAdmin} />
           <GuestNotesMerge />
-          <div className="grid gap-2 sm:grid-cols-2">
+          <ul className="panel divide-y divide-border overflow-hidden">
             {claimedPlayer && (
+              <li>
+                <Link
+                  to="/player/$playerId"
+                  params={{ playerId: claimedPlayer.id }}
+                  className="press flex min-h-12 items-center justify-between px-4 py-3"
+                >
+                  <span className="t-body font-medium">Player card</span>
+                  <ChevronRight className="size-4 text-muted-foreground" />
+                </Link>
+              </li>
+            )}
+            <li>
               <Link
-                to="/player/$playerId"
-                params={{ playerId: claimedPlayer.id }}
-                className="press panel flex items-center justify-between gap-2 px-4 py-3.5"
+                to="/scout"
+                className="press flex min-h-12 items-center justify-between px-4 py-3"
               >
-                <span className="t-body font-medium text-foreground">Your player card</span>
+                <span className="t-body font-medium">Notes</span>
                 <ChevronRight className="size-4 text-muted-foreground" />
               </Link>
-            )}
-            <Link
-              to="/scout"
-              className="press panel flex items-center justify-between gap-2 px-4 py-3.5"
-            >
-              <span className="t-body font-medium text-foreground">Course notes</span>
-              <ChevronRight className="size-4 text-muted-foreground" />
-            </Link>
-            <Link
-              to="/rosters"
-              className="press panel flex items-center justify-between gap-2 px-4 py-3.5"
-            >
-              <span className="t-body font-medium text-foreground">
-                {claimedTeam ? "Your team hub" : "Teams"}
-              </span>
-              <ChevronRight className="size-4 text-muted-foreground" />
-            </Link>
-            {canScore && (
-              <Link
-                to="/"
-                className="press panel flex items-center justify-between gap-2 px-4 py-3.5"
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => void signOut()}
+                className="press flex min-h-12 w-full items-center px-4 py-3 text-left t-body font-medium"
               >
-                <span className="t-body font-medium text-foreground">Live board · score</span>
-                <ChevronRight className="size-4 text-muted-foreground" />
-              </Link>
-            )}
-          </div>
-          <WhatsAppGroupButton className="w-full" />
-          <RoundPlans />
-          <details className="panel">
-            <summary className="press cursor-pointer list-none px-4 py-3.5 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
-              Add to Home Screen
+                Sign out
+              </button>
+            </li>
+          </ul>
+          <details className="t-micro text-muted-foreground">
+            <summary className="press cursor-pointer list-none py-2 [&::-webkit-details-marker]:hidden">
+              More
             </summary>
-            <p className="t-micro border-t border-border px-4 py-3 text-muted-foreground">
-              iPhone: Share → Add to Home Screen. Android: browser menu → Install app.
-            </p>
+            <div className="mt-2 flex flex-col gap-2">
+              <WhatsAppGroupButton className="!min-h-11 w-full" />
+              <p>iPhone: Share → Add to Home Screen.</p>
+              {canScore && (
+                <Link to="/ops" className="font-semibold text-gold-light">
+                  Ops
+                </Link>
+              )}
+              {isAdmin && (
+                <Link to="/admin" className="text-muted-foreground">
+                  Admin
+                </Link>
+              )}
+            </div>
           </details>
-          <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
-            {canScore && (
-              <Link
-                to="/ops"
-                className="press t-micro font-semibold text-gold-light underline-offset-2 hover:underline"
-              >
-                Ops
-              </Link>
-            )}
-            {isAdmin && (
-              <Link to="/admin" className="press t-micro text-muted-foreground">
-                Admin
-              </Link>
-            )}
-            <button
-              type="button"
-              onClick={() => void signOut()}
-              className="press btn-quiet t-micro ml-auto"
-            >
-              <LogOut className="size-3.5" strokeWidth={1.6} /> Sign out
-            </button>
-          </div>
-          <p className="t-micro text-center text-muted-foreground">
-            Chat lives in WhatsApp · issues → message Kevin
-          </p>
         </div>
       )}
     </Shell>

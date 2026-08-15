@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Radio } from "lucide-react";
 
 import { useActivityFeed } from "@/hooks/useActivityFeed";
 import { useLiveWire } from "@/hooks/useLiveWire";
@@ -84,6 +83,10 @@ export function LiveWireTicker({
   const list = seeded.slice(0, limit);
   const full = events.length > 0 ? events : seeded;
 
+  if (!activityError && list.length === 0 && variant === "pre") {
+    return <p className="t-micro text-center text-muted-foreground">No updates yet.</p>;
+  }
+
   return (
     <section>
       <div className="mb-2.5 flex items-center justify-between gap-2">
@@ -125,21 +128,11 @@ export function LiveWireTicker({
           </button>
         </div>
       ) : list.length === 0 ? (
-        <div className="panel flex items-start gap-3 px-4 py-4">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white/5">
-            <Radio className="size-3.5 text-muted-foreground" strokeWidth={1.7} />
-          </span>
-          <div className="min-w-0">
-            <p className="t-body font-medium text-foreground">
-              {variant === "live" ? "Waiting for the first score" : "Quiet so far"}
-            </p>
-            <p className="t-micro mt-0.5 text-muted-foreground">
-              {variant === "live"
-                ? "Results post here the moment captains score."
-                : "Claim your name or drop a photo — updates show up here."}
-            </p>
-          </div>
-        </div>
+        variant === "pre" ? (
+          <p className="t-micro text-muted-foreground">No updates yet.</p>
+        ) : (
+          <p className="t-micro text-muted-foreground">Waiting on the first score.</p>
+        )
       ) : (
         <ul className="panel divide-y divide-border/70 overflow-hidden">
           {(open ? full.slice(0, 20) : list).map((item) => (

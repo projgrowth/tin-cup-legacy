@@ -4,7 +4,7 @@ import { AvatarPair } from "@/components/tin-cup/Avatar";
 import { Countdown } from "@/components/tin-cup/Countdown";
 import { LiveWireTicker } from "@/components/tin-cup/LiveWireTicker";
 import { PhotoVault } from "@/components/tin-cup/PhotoVault";
-import { InstallHint } from "@/components/tin-cup/WhatsAppLinks";
+
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import {
   BUY_IN,
@@ -107,36 +107,14 @@ export function PreTournamentPanel({
         )}
       </section>
 
-      <section className="panel overflow-hidden">
-        <div className="flex items-start justify-between gap-3 px-4 py-3.5">
-          <div className="min-w-0">
-            <p className="t-eyebrow">Next up</p>
-            <p className="t-title mt-1.5 text-foreground">
-              {nextDetails.dayLabel} · {COURSE_LABEL[nextCourseId]}
-            </p>
-            <p className="t-micro mt-1 text-muted-foreground">
-              First tee {nextDetails.firstTee} · {nextDetails.format}
-            </p>
-          </div>
-          <Link to="/schedule" className="press t-micro shrink-0 font-semibold text-foreground">
-            Weekend →
-          </Link>
-        </div>
-        <div className="flex flex-wrap gap-2 border-t border-border px-4 py-3">
-          <Link
-            to="/scout"
-            search={{ course: nextCourseId }}
-            className="press btn-quiet t-micro min-h-11 px-3 font-semibold"
-          >
-            {COURSE_LABEL[nextCourseId]} plan
-          </Link>
-          {isClaimed && myDay1 ? (
-            <p className="t-micro self-center text-muted-foreground">
-              Match {myDay1.pairing.matchIndex} · w/ {myDay1.partner.split(" ")[0]}
-            </p>
-          ) : null}
-        </div>
-      </section>
+      <p className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 t-micro">
+        <Link to="/schedule" className="press font-semibold text-foreground">
+          {nextDetails.dayLabel} · {COURSE_LABEL[nextCourseId]} →
+        </Link>
+        <Link to="/scout" search={{ course: nextCourseId }} className="press text-muted-foreground">
+          Plan
+        </Link>
+      </p>
 
       {isClaimed && myDay1 && (
         <section className="panel p-4">
@@ -166,8 +144,6 @@ export function PreTournamentPanel({
           </div>
         </section>
       )}
-
-      {signedIn && <InstallHint />}
 
       <LiveWireTicker
         matches={matches}
