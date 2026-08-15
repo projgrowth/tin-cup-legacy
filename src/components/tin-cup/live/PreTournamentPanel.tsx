@@ -70,9 +70,7 @@ export function PreTournamentPanel({
         <h1 className="t-display mt-4 text-foreground">
           {isClaimed && firstName ? `Hey ${firstName}` : "Tin Cup 2026"}
         </h1>
-        <p className="t-micro mt-1 text-muted-foreground">
-          {EVENT.dates} · Innisbrook
-        </p>
+        <p className="t-micro mt-1 text-muted-foreground">{EVENT.dates} · Innisbrook</p>
       </section>
 
       {/* Sole raised hero: countdown embeds cup line */}
@@ -108,7 +106,7 @@ export function PreTournamentPanel({
             <span className="inline-flex items-center gap-1.5 t-micro font-semibold text-foreground">
               <Map className="size-3.5 opacity-70" /> Game plan
             </span>
-            <span className="t-micro text-muted-foreground">Maps & notes</span>
+            <span className="t-micro text-muted-foreground">18-hole sheet</span>
           </Link>
           <Link
             to="/schedule"
@@ -180,13 +178,22 @@ export function PreTournamentPanel({
             >
               Plan South →
             </Link>
-            <Link to="/profile" className="press t-micro text-muted-foreground underline-offset-2 hover:underline">
+            <Link
+              to="/profile"
+              className="press t-micro text-muted-foreground underline-offset-2 hover:underline"
+            >
               My hub
             </Link>
-            <Link to="/rosters" className="press t-micro text-muted-foreground underline-offset-2 hover:underline">
+            <Link
+              to="/rosters"
+              className="press t-micro text-muted-foreground underline-offset-2 hover:underline"
+            >
               Team
             </Link>
-            <Link to="/schedule" className="press t-micro text-muted-foreground underline-offset-2 hover:underline">
+            <Link
+              to="/schedule"
+              className="press t-micro text-muted-foreground underline-offset-2 hover:underline"
+            >
               Weekend
             </Link>
           </div>
@@ -214,10 +221,7 @@ export function PreTournamentPanel({
       {/* Primary CTA stack */}
       <section className="stack-tight">
         {!signedIn && (
-          <Link
-            to="/profile"
-            className="press btn-quiet t-body flex w-full justify-center"
-          >
+          <Link to="/profile" className="press btn-quiet t-body flex w-full justify-center">
             Sign in · claim your spot
           </Link>
         )}
@@ -233,7 +237,9 @@ export function PreTournamentPanel({
           @{VENMO_HANDLE} · {TOURNAMENT_BANK}
         </p>
         {VENMO_IS_PLACEHOLDER && (
-          <p className="t-micro text-center text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>
+          <p className="t-micro text-center text-copper">
+            Set VITE_VENMO_HANDLE before the weekend.
+          </p>
         )}
       </section>
 
@@ -281,7 +287,10 @@ export function PreTournamentPanel({
           >
             South planner
           </Link>
-          <Link to="/purse" className="press t-micro text-muted-foreground underline-offset-2 hover:underline">
+          <Link
+            to="/purse"
+            className="press t-micro text-muted-foreground underline-offset-2 hover:underline"
+          >
             Money details
           </Link>
         </div>

@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ExternalLink, Printer, Share2, Target } from "lucide-react";
+import { ChevronLeft, Printer, Share2, Target } from "lucide-react";
 import { toast } from "sonner";
 
 import { Shell } from "@/components/tin-cup/Shell";
 import { HoleStage } from "@/components/tin-cup/scout/HoleStage";
 import { PlanSheet, useScoutPlanEditor } from "@/components/tin-cup/scout/PlanSheet";
+import { RoundPlanBoard } from "@/components/tin-cup/scout/RoundPlanBoard";
 import { Segmented } from "@/components/tin-cup/ui/primitives";
 import { useAuth } from "@/hooks/useAuth";
 import { useHoleNotes, useRoundPlan, type HoleNoteDraft } from "@/hooks/useJournal";
@@ -18,7 +19,6 @@ import {
   COURSE_ORDER,
   SNAKE_PIT,
   clampHole,
-  coursePar,
   defaultCourseId,
   getCourse,
   isCourseId,
@@ -38,6 +38,8 @@ import {
 type ScoutSearch = {
   course?: CourseId;
   hole?: number;
+  /** Hole-map theater. Default is the 18-hole round sheet. */
+  map?: boolean;
 };
 
 export const Route = createFileRoute("/scout")({
@@ -50,19 +52,19 @@ export const Route = createFileRoute("/scout")({
         : typeof holeRaw === "string" && holeRaw.trim()
           ? Number(holeRaw)
           : undefined;
-    const hole =
-      holeNum != null && Number.isFinite(holeNum) ? clampHole(holeNum) : undefined;
-    return { course, hole };
+    const hole = holeNum != null && Number.isFinite(holeNum) ? clampHole(holeNum) : undefined;
+    const map = raw.map === true || raw.map === "1" || raw.map === 1;
+    return { course, hole, map: map || undefined };
   },
   head: () => ({
     meta: [
-      { title: "Course Planner — Tin Cup Invitational" },
+      { title: "Round plan — Tin Cup Invitational" },
       {
         name: "description",
         content:
-          "On-course hole maps and game plans for Innisbrook South, Copperhead, and Island — Tin Cup 2026.",
+          "18-hole game plans and on-course maps for Innisbrook South, Copperhead, and Island — Tin Cup 2026.",
       },
-      { property: "og:title", content: "Course Planner — Tin Cup Invitational" },
+      { property: "og:title", content: "Round plan — Tin Cup Invitational" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -80,14 +82,17 @@ function ScoutPage() {
   const courseId: CourseId = search.course ?? defaultCourseId();
   const course = getCourse(courseId);
   const hole = clampHole(search.hole ?? 1, course.holes.length);
+  const showMap = Boolean(search.map);
 
-  const setSelection = (next: { course?: CourseId; hole?: number }) => {
+  const setSelection = (next: { course?: CourseId; hole?: number; map?: boolean }) => {
     const nextCourse = next.course ?? courseId;
     const nextHole = next.hole ?? (next.course && next.course !== courseId ? 1 : hole);
+    const nextMap = next.map ?? showMap;
     void navigate({
       search: {
         course: nextCourse,
         hole: clampHole(nextHole, getCourse(nextCourse).holes.length),
+        ...(nextMap ? { map: true } : {}),
       },
       replace: true,
     });
@@ -157,12 +162,8 @@ function ScoutPage() {
   const [dayDraft, setDayDraft] = useState("");
   useEffect(() => setDayDraft(roundPlan.plan), [roundPlan.plan]);
 
-  const planEditor = useScoutPlanEditor(
-    courseId,
-    current.h,
-    user,
-    journal,
-    () => setGuestTick((t) => t + 1),
+  const planEditor = useScoutPlanEditor(courseId, current.h, user, journal, () =>
+    setGuestTick((t) => t + 1),
   );
   const planMode = user ? "cloud" : "guest";
 
@@ -185,10 +186,19 @@ function ScoutPage() {
         : "ring-white/10";
 
   return (
-    <Shell variant="immersive">
-      {/* Map-first: full-bleed stage, tight chrome above */}
+    <Shell variant={showMap ? "immersive" : "content"}>
       <div className="mx-auto w-full max-w-3xl space-y-2.5">
         <div className="flex items-center gap-2">
+          {showMap ? (
+            <button
+              type="button"
+              onClick={() => setSelection({ map: false })}
+              className="press flex min-h-11 shrink-0 items-center gap-1 rounded-xl border border-border/60 px-2.5 text-sm font-semibold text-foreground"
+            >
+              <ChevronLeft className="size-4" />
+              Card
+            </button>
+          ) : null}
           <div className="min-w-0 flex-1">
             <Segmented
               ariaLabel="Course"
@@ -219,133 +229,92 @@ function ScoutPage() {
           </button>
         </div>
 
-        {!playGpsOn && (currentContests.length > 0 || plannedCount > 0) && (
-          <div className="flex flex-wrap items-center gap-2 px-0.5">
-            {plannedCount > 0 && (
-              <span className="t-micro font-semibold text-muted-foreground">
-                {plannedCount}/18 planned
-              </span>
+        {showMap ? (
+          <>
+            {!playGpsOn && (currentContests.length > 0 || plannedCount > 0) && (
+              <div className="flex flex-wrap items-center gap-2 px-0.5">
+                {plannedCount > 0 && (
+                  <span className="t-micro font-semibold text-muted-foreground">
+                    {plannedCount}/18 planned
+                  </span>
+                )}
+                {currentContests.map((c) => (
+                  <span
+                    key={c}
+                    className={`chip !min-h-8 ${
+                      c === "ld" ? "border-copper/35 text-copper" : "chip-on"
+                    }`}
+                  >
+                    <Target className="mr-1 size-3.5" />
+                    {c === "ld" ? "LD" : "CTP"}
+                  </span>
+                ))}
+              </div>
             )}
-            {currentContests.map((c) => (
-              <span
-                key={c}
-                className={`chip !min-h-8 ${
-                  c === "ld" ? "border-copper/35 text-copper" : "chip-on"
-                }`}
-              >
-                <Target className="mr-1 size-3.5" />
-                {c === "ld" ? "LD" : "CTP"}
-              </span>
-            ))}
-          </div>
-        )}
 
-        {/* Full-bleed map under page padding */}
-        <div className="-mx-4 sm:-mx-5">
-          <HoleStage
-            courseId={courseId}
-            hole={current}
-            accentClass={accent}
-            isSnake={isSnake}
-            index={index}
-            total={course.holes.length}
-            onPrev={() => step(-1)}
-            onNext={() => step(1)}
-            canPrev={index > 0}
-            canNext={index < course.holes.length - 1}
-            onPlayModeChange={setPlayGpsOn}
-          />
-        </div>
+            <div className="-mx-4 sm:-mx-5">
+              <HoleStage
+                courseId={courseId}
+                hole={current}
+                accentClass={accent}
+                isSnake={isSnake}
+                index={index}
+                total={course.holes.length}
+                onPrev={() => step(-1)}
+                onNext={() => step(1)}
+                canPrev={index > 0}
+                canNext={index < course.holes.length - 1}
+                onPlayModeChange={setPlayGpsOn}
+              />
+            </div>
 
-        {tip && !playGpsOn && (
-          <section className="panel border border-copper/25 px-4 py-3">
-            <p className="t-eyebrow text-copper">Snake Pit · {tip.name}</p>
-            <p className="mt-1.5 text-sm leading-relaxed text-foreground/90">{tip.tip}</p>
-          </section>
-        )}
+            {tip && !playGpsOn && (
+              <section className="panel border border-copper/25 px-4 py-3">
+                <p className="t-eyebrow text-copper">Snake Pit · {tip.name}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-foreground/90">{tip.tip}</p>
+              </section>
+            )}
 
-        {!authLoading && (
-          <PlanSheet
+            {!authLoading && (
+              <PlanSheet
+                courseId={courseId}
+                hole={current.h}
+                par={current.par}
+                holes={course.holes}
+                mode={planMode}
+                loading={journal.loading}
+                editor={planEditor}
+                hasNote={hasNote}
+                contestByHole={contestByHole}
+                onSelectHole={(h) => setSelection({ hole: h })}
+                forceCollapsed={playGpsOn}
+              />
+            )}
+          </>
+        ) : (
+          <RoundPlanBoard
             courseId={courseId}
             hole={current.h}
-            par={current.par}
             holes={course.holes}
+            lines={planLines}
             mode={planMode}
-            loading={journal.loading}
+            loading={authLoading || journal.loading}
             editor={planEditor}
-            hasNote={hasNote}
             contestByHole={contestByHole}
-            onSelectHole={(h) => setSelection({ hole: h })}
-            forceCollapsed={playGpsOn}
+            onSelectHole={(h) => setSelection({ hole: h, map: false })}
+            onOpenMap={(h) => setSelection({ hole: h, map: true })}
+            dayDraft={dayDraft}
+            onDayDraft={setDayDraft}
+            onSaveDay={() =>
+              roundPlan.save.mutate(dayDraft, {
+                onSuccess: () => toast.success("Day plan saved"),
+                onError: () => toast.error("Could not save"),
+              })
+            }
+            canSaveDay={!roundPlan.save.isPending && dayDraft !== roundPlan.plan}
+            savingDay={roundPlan.save.isPending}
+            signedIn={Boolean(user)}
           />
-        )}
-
-        {!playGpsOn && (
-        <details className="panel group">
-          <summary className="press cursor-pointer list-none px-4 py-3 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
-            {details.dayLabel} · more
-            <span className="ml-2 font-normal text-muted-foreground">
-              strategy · course
-            </span>
-          </summary>
-          <div className="space-y-3 border-t border-border/60 px-4 py-3">
-            <div>
-              <p className="t-micro mb-2 text-muted-foreground">{details.formatTip}</p>
-              {!user ? (
-                <p className="text-sm text-muted-foreground">Sign in to save day strategy.</p>
-              ) : (
-                <div className="space-y-2">
-                  <textarea
-                    value={dayDraft}
-                    onChange={(e) => setDayDraft(e.target.value)}
-                    rows={3}
-                    maxLength={800}
-                    className="control w-full resize-none text-base"
-                    placeholder="Pairing thoughts, attack holes…"
-                  />
-                  <button
-                    type="button"
-                    disabled={roundPlan.save.isPending || dayDraft === roundPlan.plan}
-                    onClick={() =>
-                      roundPlan.save.mutate(dayDraft, {
-                        onSuccess: () => toast.success("Day plan saved"),
-                        onError: () => toast.error("Could not save"),
-                      })
-                    }
-                    className="press btn-gold w-full !min-h-11 text-sm font-semibold disabled:opacity-40"
-                  >
-                    {roundPlan.save.isPending ? "Saving…" : "Save day plan"}
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="hairline pt-3 text-sm text-muted-foreground">
-              <p className="font-semibold text-foreground">{course.name}</p>
-              <p className="mt-1">
-                Par {coursePar(courseId)} · {details.blackTotal.toLocaleString()} yds Black
-              </p>
-              <p className="mt-2">{details.description}</p>
-              <div className="mt-3 flex flex-wrap gap-4">
-                <a
-                  href={details.scorecardUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="press inline-flex items-center gap-1 font-medium text-foreground"
-                >
-                  Scorecard <ExternalLink className="size-3.5" />
-                </a>
-                <a
-                  href={details.officialUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="press inline-flex items-center gap-1 font-medium text-foreground"
-                >
-                  Course page <ExternalLink className="size-3.5" />
-                </a>
-              </div>
-            </div>
-          </div>
-        </details>
         )}
       </div>
     </Shell>

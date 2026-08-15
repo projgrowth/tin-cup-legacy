@@ -38,16 +38,18 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expectNoHorizontalOverflow(page);
 
   await page.goto("/scout");
-  // South Black H1 = 335 (not the old OSM-junk 258).
   await page.getByRole("tab", { name: /South/i }).click();
-  await expect(page.getByText(/Black · 335/)).toBeVisible();
-  await page.getByText("Map notes", { exact: true }).click();
-  await expect(page.getByText(/Black tees/i).first()).toBeVisible();
-  await expect(page.getByText(/orientation only/i).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: /South game plan/i })).toBeVisible();
+  await expect(page.getByText("Scramble + Modified Alt Shot").first()).toBeVisible();
+  await expect(page.getByText("335 yds").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Dr$/ })).toBeVisible();
+  await page.getByRole("button", { name: "Open hole 1 map" }).click();
+  await expect(page.getByText(/Black 335/)).toBeVisible();
+  await page.getByRole("button", { name: /Card/i }).click();
   await page.getByRole("tab", { name: /Copperhead/i }).click();
-  await expect(page.getByText(/Black ·/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Copperhead game plan/i })).toBeVisible();
   await page.getByRole("tab", { name: /Island/i }).click();
-  await expect(page.getByText(/Black ·/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Island game plan/i })).toBeVisible();
   await expectNoHorizontalOverflow(page);
 
   await page.goto("/purse");

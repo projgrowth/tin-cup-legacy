@@ -1,14 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronUp, Link as LinkIcon } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { ChevronUp } from "lucide-react";
 
 import { StatusLED } from "@/components/tin-cup/scout/DistanceStack";
-import { Chip } from "@/components/tin-cup/ui/primitives";
-import {
-  MISS_SHAPES,
-  TEE_CLUBS,
-  useHolePlanEditor,
-} from "@/hooks/useHolePlanEditor";
+import { HolePlanFields } from "@/components/tin-cup/scout/HolePlanFields";
+import { useHolePlanEditor } from "@/hooks/useHolePlanEditor";
 import { useAuth } from "@/hooks/useAuth";
 import { useHoleNotes } from "@/hooks/useJournal";
 import { SNAKE_PIT, type CourseId } from "@/lib/courses";
@@ -69,21 +64,7 @@ export function PlanSheet({
   const [open, setOpen] = useState(!editor.filled);
   const stripRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLButtonElement>(null);
-  const {
-    club,
-    line,
-    green,
-    score,
-    notes,
-    setClub,
-    setLine,
-    setGreen,
-    setScore,
-    setNotes,
-    led,
-    filled,
-    summary,
-  } = editor;
+  const { led, filled, summary } = editor;
 
   const expanded = open && !forceCollapsed;
 
@@ -177,9 +158,7 @@ export function PlanSheet({
             <p className="text-sm font-bold tracking-tight text-white">
               Plan · H{hole}
               {forceCollapsed ? (
-                <span className="ml-2 text-xs font-semibold text-sky-200/70">
-                  · Play
-                </span>
+                <span className="ml-2 text-xs font-semibold text-sky-200/70">· Play</span>
               ) : null}
             </p>
             <StatusLED state={led} />
@@ -206,99 +185,8 @@ export function PlanSheet({
       </button>
 
       {expanded && (
-        <div className="space-y-4 border-t border-white/8 px-4 pb-4 pt-3">
-          <div>
-            <p className="t-eyebrow mb-2 text-white/45">Club</p>
-            <div className="flex flex-wrap gap-1.5">
-              {TEE_CLUBS.map((c) => (
-                <Chip key={c} on={club === c} onClick={() => setClub(club === c ? "" : c)}>
-                  {c === "Driver" ? "Dr" : c}
-                </Chip>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="t-eyebrow mb-2 text-white/45">Shape</p>
-            <div className="flex flex-wrap gap-1.5">
-              {MISS_SHAPES.map((m) => (
-                <Chip
-                  key={m.label}
-                  on={green === m.value}
-                  onClick={() => setGreen(green === m.value ? "" : m.value)}
-                >
-                  {m.label}
-                </Chip>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="t-eyebrow mb-2 text-white/45">Target</p>
-            <div className="flex gap-1.5">
-              {[par - 1, par, par + 1]
-                .filter((n) => n > 0)
-                .map((n) => (
-                  <Chip
-                    key={n}
-                    on={score === String(n)}
-                    onClick={() => setScore(score === String(n) ? "" : String(n))}
-                    className="min-w-[3rem]"
-                  >
-                    {n}
-                  </Chip>
-                ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="t-eyebrow mb-2 text-white/45">Line</p>
-            <input
-              value={line}
-              onChange={(e) => setLine(e.target.value)}
-              placeholder="left edge of right bunker"
-              maxLength={140}
-              className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-base text-white placeholder:text-white/35 focus:border-gold/40 focus:outline-none focus:ring-1 focus:ring-gold/30"
-            />
-          </div>
-
-          <details className="group">
-            <summary className="press cursor-pointer list-none text-xs font-bold uppercase tracking-[0.1em] text-white/40 [&::-webkit-details-marker]:hidden">
-              More notes
-            </summary>
-            <div className="mt-2 space-y-2">
-              <input
-                value={green}
-                onChange={(e) => setGreen(e.target.value)}
-                placeholder="Green read"
-                maxLength={140}
-                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-base text-white placeholder:text-white/35"
-              />
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={2}
-                maxLength={600}
-                placeholder="Wind, bail-out…"
-                className="w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-base text-white placeholder:text-white/35"
-              />
-            </div>
-          </details>
-
-          {mode === "guest" && (
-            <p className="flex items-start gap-1.5 text-xs text-white/45">
-              <LinkIcon className="mt-0.5 size-3.5 shrink-0" />
-              <span>
-                On this device until you{" "}
-                <Link to="/profile" className="font-semibold text-gold-light underline">
-                  sign in
-                </Link>
-              </span>
-            </p>
-          )}
-          {loading && mode === "cloud" && (
-            <p className="text-xs text-white/40">Loading…</p>
-          )}
+        <div className="border-t border-white/8 px-4 pb-4 pt-3">
+          <HolePlanFields par={par} mode={mode} loading={loading} editor={editor} />
         </div>
       )}
     </div>

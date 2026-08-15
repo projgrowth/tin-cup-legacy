@@ -1,10 +1,5 @@
 import type { HoleNoteDraft } from "@/hooks/useJournal";
-import {
-  COURSE_LABEL,
-  formatScorecardYards,
-  getCourse,
-  type CourseId,
-} from "@/lib/courses";
+import { COURSE_LABEL, formatScorecardYards, getCourse, type CourseId } from "@/lib/courses";
 
 export type PlanLine = {
   hole: number;
@@ -31,14 +26,35 @@ export function countPlanned(lines: PlanLine[]): number {
   return lines.filter((l) => hasPlanContent(l.draft)).length;
 }
 
+export function tallyLines(lines: PlanLine[]) {
+  return {
+    par: lines.reduce((sum, l) => sum + l.par, 0),
+    yards: lines.reduce((sum, l) => sum + l.yards, 0),
+    planned: countPlanned(lines),
+  };
+}
+
+/** Front / back nine split for a scorecard-style planner. */
+export function nineSplit(lines: PlanLine[]) {
+  const front = lines.filter((l) => l.hole <= 9);
+  const back = lines.filter((l) => l.hole > 9);
+  return {
+    front,
+    back,
+    out: tallyLines(front),
+    inn: tallyLines(back),
+    all: tallyLines(lines),
+  };
+}
+
 export function hasPlanContent(draft: HoleNoteDraft | null | undefined): boolean {
   if (!draft) return false;
   return Boolean(
     draft.tee_club ||
-      draft.target_line ||
-      draft.green_note ||
-      draft.target_score != null ||
-      draft.notes,
+    draft.target_line ||
+    draft.green_note ||
+    draft.target_score != null ||
+    draft.notes,
   );
 }
 
@@ -65,7 +81,10 @@ export function formatRoundSheetText(courseId: CourseId, lines: PlanLine[]): str
   return `${header}\n${body}\n\ntincupinv.com/scout?course=${courseId}`;
 }
 
-export async function shareRoundSheet(courseId: CourseId, lines: PlanLine[]): Promise<"shared" | "copied" | "failed"> {
+export async function shareRoundSheet(
+  courseId: CourseId,
+  lines: PlanLine[],
+): Promise<"shared" | "copied" | "failed"> {
   const text = formatRoundSheetText(courseId, lines);
   try {
     if (typeof navigator !== "undefined" && navigator.share) {
