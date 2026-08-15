@@ -4,16 +4,14 @@ import { useEffect, useState } from "react";
 import { CinematicIntro } from "@/components/tin-cup/CinematicIntro";
 import { ScoreModal } from "@/components/tin-cup/ScoreModal";
 import { Shell, SkeletonBlock } from "@/components/tin-cup/Shell";
-import { ShareBoardButton } from "@/components/tin-cup/WhatsAppLinks";
 import { DisplayBoard } from "@/components/tin-cup/live/DisplayBoard";
 import { HallOfFamePanel, LivePanel, PreTournamentPanel } from "@/components/tin-cup/panels";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
-import { useTournament, type Match, type Round } from "@/hooks/useTournament";
+import { useTournament, type Match } from "@/hooks/useTournament";
 import { getEventPhase, phaseMode } from "@/lib/event-phase";
-import { defaultCourseId, COURSE_LABEL } from "@/lib/courses";
-import { EVENT, EXPECTED_PLAYER_COUNT, type BoardMode } from "@/lib/tin-cup";
-import { roundStatus, tallyStandings } from "@/lib/scoring";
+import { type BoardMode } from "@/lib/tin-cup";
+import { tallyStandings } from "@/lib/scoring";
 import { shouldPlayIntro } from "@/lib/intro";
 
 const MODES: Array<{ key: BoardMode; label: string }> = [
@@ -151,13 +149,6 @@ function Index() {
             <span className="t-micro shrink-0 font-semibold text-gold-light">Account →</span>
           </Link>
         )}
-        {mode === "live" && (
-          <TodayAtTinCup
-            rounds={data?.rounds ?? []}
-            matches={data?.matches ?? []}
-            playerCount={data?.players.length || EXPECTED_PLAYER_COUNT}
-          />
-        )}
         {(canScore || isAdmin) && (
           <PhaseControl mode={mode} automatic={!override} onChange={selectMode} />
         )}
@@ -275,53 +266,6 @@ function LegacySummary({ matches }: { matches: Match[] }) {
         <span className="text-muted-foreground">–</span>
         <span className="text-copper">{standings.grassRoots}</span>
       </p>
-    </section>
-  );
-}
-
-function TodayAtTinCup({
-  rounds,
-  matches,
-  playerCount,
-}: {
-  rounds: Round[];
-  matches: Match[];
-  playerCount: number;
-}) {
-  const now = Date.now();
-  const current = rounds.find((round) => roundStatus(round, now) === "live");
-  const next = rounds.find((round) => roundStatus(round, now) === "upcoming");
-  const focus = current ?? next;
-  const standings = tallyStandings(matches);
-  const status = current ? "Live now" : next ? "Up next" : "Tournament recap";
-  const todayCourse = defaultCourseId(now);
-  return (
-    <section className="mb-6 flex items-end justify-between gap-4">
-      <div className="min-w-0">
-        <h1 className="t-display text-foreground">{status}</h1>
-        <p className="t-micro mt-1.5 truncate text-muted-foreground">
-          {focus ? `${focus.day_label} · ${focus.course}` : EVENT.dates}
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Link
-            to="/scout"
-            search={{ course: todayCourse }}
-            className="press btn-quiet t-micro min-h-11 px-3 py-2 font-semibold"
-          >
-            {COURSE_LABEL[todayCourse]} plan
-          </Link>
-          <ShareBoardButton scoreLine={`${standings.strongMental}–${standings.grassRoots}`} />
-        </div>
-      </div>
-      <div className="shrink-0 text-right">
-        <p className="t-micro text-muted-foreground">Cup</p>
-        <p className="t-hero mt-0.5">
-          <span className="text-gold-light">{standings.strongMental}</span>
-          <span className="text-muted-foreground">–</span>
-          <span className="text-copper">{standings.grassRoots}</span>
-        </p>
-        <p className="t-micro mt-1 text-muted-foreground">{playerCount} players</p>
-      </div>
     </section>
   );
 }

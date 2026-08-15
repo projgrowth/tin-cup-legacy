@@ -84,7 +84,7 @@ export function LiveWireTicker({
   const full = events.length > 0 ? events : seeded;
 
   if (!activityError && list.length === 0 && variant === "pre") {
-    return <p className="t-micro text-center text-muted-foreground">No updates yet.</p>;
+    return null;
   }
 
   return (
@@ -128,11 +128,7 @@ export function LiveWireTicker({
           </button>
         </div>
       ) : list.length === 0 ? (
-        variant === "pre" ? (
-          <p className="t-micro text-muted-foreground">No updates yet.</p>
-        ) : (
-          <p className="t-micro text-muted-foreground">Waiting on the first score.</p>
-        )
+        <p className="t-micro text-muted-foreground">Waiting on the first score.</p>
       ) : (
         <ul className="panel divide-y divide-border/70 overflow-hidden">
           {(open ? full.slice(0, 20) : list).map((item) => (

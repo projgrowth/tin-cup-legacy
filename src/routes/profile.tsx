@@ -7,15 +7,15 @@ import { Camera, ChevronRight, Loader2 } from "lucide-react";
 import { AuthCard } from "@/components/tin-cup/AuthCard";
 import { Avatar } from "@/components/tin-cup/Avatar";
 import { PhotoPicker } from "@/components/tin-cup/PhotoPicker";
-import { LoadingForm, LoadingRows, PageHeading, Shell } from "@/components/tin-cup/Shell";
+import { LoadingForm, PageHeading, Shell } from "@/components/tin-cup/Shell";
 import { WhatsAppGroupButton } from "@/components/tin-cup/WhatsAppLinks";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfile, useRoundPlan } from "@/hooks/useJournal";
+import { useProfile } from "@/hooks/useJournal";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { useTournament } from "@/hooks/useTournament";
 import { signOut } from "@/integrations/supabase/client";
 import { signedVaultUrl, uploadVaultImage } from "@/integrations/supabase/storage";
-import { COURSE_LABEL, ROUND_COURSE, type CourseId } from "@/lib/courses";
+import { type CourseId } from "@/lib/courses";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { clearGuestNotes, countGuestNotes, listGuestNotes } from "@/lib/guest-notes";
 import { formatPayout } from "@/lib/purse";
@@ -55,14 +55,11 @@ function ProfilePage() {
     if (!claimedPlayer) return null;
     return (tournament?.teams ?? []).find((t) => t.id === claimedPlayer.team_id) ?? null;
   }, [claimedPlayer, tournament?.teams]);
-  const firstName = claimedPlayer?.name.split(" ")[0] ?? null;
-
   return (
     <Shell>
-      <PageHeading
-        eyebrow={claimedPlayer ? (claimedTeam?.name.replace("Team ", "") ?? "My hub") : "Account"}
-        title={user ? (firstName ? firstName : "You") : "Sign in"}
-      />
+      {!(user && claimedPlayer) && (
+        <PageHeading eyebrow="Account" title={user ? "Claim your name" : "Sign in"} />
+      )}
       {user && rolesError && (
         <div role="alert" className="panel mb-4 flex items-center justify-between gap-3 p-4">
           <p className="t-micro">Your access level could not be refreshed.</p>
@@ -454,89 +451,4 @@ function Identity({
   );
 }
 
-function RoundPlans() {
-  const { data, isPending } = useTournament();
-  const rounds = data?.rounds ?? [];
-  return (
-    <section>
-      <h2 className="t-eyebrow mb-3">Round game plans</h2>
-      {isPending && rounds.length === 0 ? (
-        <LoadingRows rows={3} height={78} />
-      ) : (
-        <div className="space-y-3">
-          {rounds.map((round) => (
-            <PlanCard
-              key={round.slug}
-              slug={round.slug}
-              label={`${round.day_label} · ${round.course}`}
-              format={round.format}
-            />
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
 
-function PlanCard({ slug, label, format }: { slug: string; label: string; format: string }) {
-  const { plan, save } = useRoundPlan(slug);
-  const [draft, setDraft] = useState("");
-  const [open, setOpen] = useState(false);
-  const course = ROUND_COURSE[slug];
-
-  useEffect(() => setDraft(plan), [plan]);
-
-  return (
-    <div className="panel p-4">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-baseline justify-between gap-3 text-left"
-      >
-        <span className="min-w-0">
-          <span className="t-body block truncate text-foreground">{label}</span>
-          <span className="t-micro mt-0.5 block text-muted-foreground">{format}</span>
-        </span>
-        <span className="t-micro shrink-0 text-muted-foreground">
-          {plan ? "Edit" : open ? "Close" : "Add plan"}
-        </span>
-      </button>
-      {open ? (
-        <div className="mt-3 space-y-3">
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            rows={4}
-            maxLength={1200}
-            placeholder="Strategy, pairing thoughts, clubs to lean on, holes to attack…"
-            className="control t-body w-full resize-none"
-          />
-          <div className="flex items-center justify-between gap-3">
-            {course ? (
-              <Link to="/scout" search={{ course }} className="t-micro text-muted-foreground">
-                Open {COURSE_LABEL[course]} planner →
-              </Link>
-            ) : (
-              <span />
-            )}
-            <button
-              type="button"
-              disabled={save.isPending}
-              onClick={() =>
-                save.mutate(draft.trim(), {
-                  onSuccess: () => toast.success("Plan saved"),
-                  onError: (error) => toast.error(error.message),
-                })
-              }
-              className="press btn-gold t-body"
-            >
-              {save.isPending ? "Saving…" : "Save plan"}
-            </button>
-          </div>
-        </div>
-      ) : plan ? (
-        <p className="t-micro mt-2 line-clamp-2 text-muted-foreground">{plan}</p>
-      ) : null}
-    </div>
-  );
-}

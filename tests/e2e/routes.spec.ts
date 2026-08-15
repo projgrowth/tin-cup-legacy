@@ -32,17 +32,16 @@ test("home loads its local brand and command center", async ({ page }) => {
 
 test("weekend, scout and purse retain confirmed source-of-truth details", async ({ page }) => {
   await page.goto("/schedule");
-  await expect(page.getByRole("heading", { name: "Weekend" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Day 1 pairings" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Friday · South/i })).toBeVisible();
   await expect(page.getByText("Zack / Chris")).toBeVisible();
   await expect(page.getByText("Charles / Blake")).toBeVisible();
   await expectNoHorizontalOverflow(page);
 
   await page.goto("/scout");
   await page.getByRole("tab", { name: /South/i }).click();
-  await expect(page.getByRole("button", { name: /^Card$/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^Card$/ })).toBeVisible();
   await expect(page.getByText(/Black 335/)).toBeVisible();
-  await page.getByRole("button", { name: /^Card$/ }).click();
+  await page.getByRole("link", { name: /^Card$/ }).click();
   await expect(page.getByRole("heading", { name: /South game plan/i })).toBeVisible();
   await expect(page.getByText("335 yds").first()).toBeVisible();
   await page.getByRole("tab", { name: /Copperhead/i }).click();

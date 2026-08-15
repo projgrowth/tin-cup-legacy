@@ -1,13 +1,12 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Printer, Share2, Target } from "lucide-react";
+import { MoreHorizontal, Printer, Share2, Target } from "lucide-react";
 import { toast } from "sonner";
 
 import { Shell } from "@/components/tin-cup/Shell";
 import { HoleStage } from "@/components/tin-cup/scout/HoleStage";
 import { PlanSheet, useScoutPlanEditor } from "@/components/tin-cup/scout/PlanSheet";
 import { RoundPlanBoard } from "@/components/tin-cup/scout/RoundPlanBoard";
-import { Segmented } from "@/components/tin-cup/ui/primitives";
 import { useAuth } from "@/hooks/useAuth";
 import { useHoleNotes, useRoundPlan, type HoleNoteDraft } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
@@ -86,6 +85,7 @@ function ScoutPage() {
   const { user, loading: authLoading } = useAuth();
   const { data: tournament } = useTournament();
   const [playGpsOn, setPlayGpsOn] = useState(false);
+  const [cardMenu, setCardMenu] = useState(false);
 
   const courseId: CourseId = search.course ?? defaultCourseId();
   const course = getCourse(courseId);
@@ -98,6 +98,7 @@ function ScoutPage() {
     const nextHole = next.hole ?? (next.course && next.course !== courseId ? 1 : hole);
     const nextCard = next.card ?? showCard;
     void navigate({
+      to: "/scout",
       search: {
         course: nextCourse,
         hole: clampHole(nextHole, getCourse(nextCourse).holes.length),
@@ -199,50 +200,99 @@ function ScoutPage() {
       <div className="mx-auto w-full max-w-3xl space-y-2.5">
         <div className="flex items-center gap-2">
           {showMap ? (
-            <button
-              type="button"
-              onClick={() => setSelection({ card: true })}
+            <Link
+              to="/scout"
+              search={{ course: courseId, hole, card: true }}
+              replace
               className="press flex min-h-11 shrink-0 items-center gap-1 rounded-xl border border-border/60 px-2.5 text-sm font-semibold text-foreground"
             >
               Card
-            </button>
+            </Link>
           ) : (
-            <button
-              type="button"
-              onClick={() => setSelection({ card: false })}
+            <Link
+              to="/scout"
+              search={{ course: courseId, hole }}
+              replace
               className="press flex min-h-11 shrink-0 items-center gap-1 rounded-xl border border-gold/35 bg-gold/15 px-2.5 text-sm font-semibold text-gold-light"
             >
               Hole
-            </button>
+            </Link>
           )}
-          <div className="min-w-0 flex-1">
-            <Segmented
-              ariaLabel="Course"
-              value={courseId}
-              onChange={(id) => setSelection({ course: id, hole: 1 })}
-              options={COURSE_ORDER.map((id) => ({
-                value: id,
-                label: COURSE_LABEL[id],
-                hint: id === todayCourse ? "today" : undefined,
-              }))}
-            />
+          <div
+            className="grid min-w-0 flex-1 gap-1 rounded-2xl border border-border/60 bg-secondary/20 p-1"
+            style={{ gridTemplateColumns: `repeat(${COURSE_ORDER.length}, minmax(0, 1fr))` }}
+            role="tablist"
+            aria-label="Course"
+          >
+            {COURSE_ORDER.map((id) => {
+              const on = id === courseId;
+              return (
+                <Link
+                  key={id}
+                  role="tab"
+                  aria-selected={on}
+                  to="/scout"
+                  replace
+                  search={{
+                    course: id,
+                    hole: 1,
+                    ...(showCard ? { card: true } : {}),
+                  }}
+                  className={`press min-h-11 rounded-xl px-2 text-center text-sm font-semibold tracking-tight ${
+                    on
+                      ? "bg-background text-foreground shadow-sm ring-1 ring-border/80"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  {COURSE_LABEL[id]}
+                  {id === todayCourse ? (
+                    <span className="mt-0.5 block text-[0.62rem] font-bold uppercase tracking-[0.1em] text-gold-light/90">
+                      today
+                    </span>
+                  ) : null}
+                </Link>
+              );
+            })}
           </div>
-          <button
-            type="button"
-            onClick={() => void onSharePlan()}
-            aria-label="Share plan"
-            className="press flex size-10 shrink-0 items-center justify-center rounded-xl border border-border/60 text-muted-foreground"
-          >
-            <Share2 className="size-4" />
-          </button>
-          <button
-            type="button"
-            onClick={onPrintPlan}
-            aria-label="Print plan"
-            className="press flex size-10 shrink-0 items-center justify-center rounded-xl border border-border/60 text-muted-foreground"
-          >
-            <Printer className="size-4" />
-          </button>
+          {showCard && (
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setCardMenu((v) => !v)}
+                aria-label="Plan actions"
+                aria-expanded={cardMenu}
+                className="press flex size-11 items-center justify-center rounded-xl border border-border/60 text-muted-foreground"
+              >
+                <MoreHorizontal className="size-4" />
+              </button>
+              {cardMenu && (
+                <div className="panel absolute right-0 top-full z-20 mt-1 min-w-36 overflow-hidden py-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCardMenu(false);
+                      void onSharePlan();
+                    }}
+                    className="press flex min-h-11 w-full items-center gap-2 px-3 text-left t-body"
+                  >
+                    <Share2 className="size-4 text-muted-foreground" />
+                    Share
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCardMenu(false);
+                      onPrintPlan();
+                    }}
+                    className="press flex min-h-11 w-full items-center gap-2 px-3 text-left t-body"
+                  >
+                    <Printer className="size-4 text-muted-foreground" />
+                    Print
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {showMap ? (

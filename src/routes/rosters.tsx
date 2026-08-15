@@ -4,8 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronRight } from "lucide-react";
 
 import { Avatar } from "@/components/tin-cup/Avatar";
-import { ErrorState, LoadingRows, PageHeading, Shell } from "@/components/tin-cup/Shell";
-import { WhatsAppGroupButton } from "@/components/tin-cup/WhatsAppLinks";
+import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
@@ -77,8 +76,6 @@ function RostersPage() {
 
   return (
     <Shell variant="dashboard">
-      <PageHeading eyebrow="Locker room" title="Teams" />
-
       <div className="stack-page">
         {teams.length === 2 && (
           <section className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
@@ -114,27 +111,15 @@ function RostersPage() {
           </section>
         )}
 
-        <Link
-          to="/profile"
-          className="press panel flex items-center justify-between gap-3 px-4 py-3"
-        >
-          <span className="flex min-w-0 items-center gap-3">
-            {myPlayer && myTeam ? (
-              <Avatar
-                name={myPlayer.name}
-                teamSlug={myTeam.slug}
-                src={avatars.data?.byPlayerId.get(myPlayer.id)?.url}
-                size="sm"
-              />
-            ) : null}
-            <span className="t-body font-medium text-foreground">
-              {myPlayerId ? "Your hub" : "Claim your spot"}
-            </span>
-          </span>
-          <ChevronRight className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.7} />
-        </Link>
-
-        <WhatsAppGroupButton className="w-full" />
+        {!myPlayerId && (
+          <Link
+            to="/profile"
+            className="press panel flex items-center justify-between gap-3 px-4 py-3"
+          >
+            <span className="t-body font-medium text-foreground">Claim your spot</span>
+            <ChevronRight className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.7} />
+          </Link>
+        )}
 
         {isPending && !data && <LoadingRows rows={2} height={280} />}
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}

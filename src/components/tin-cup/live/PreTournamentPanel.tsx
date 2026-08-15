@@ -6,17 +6,10 @@ import { LiveWireTicker } from "@/components/tin-cup/LiveWireTicker";
 import { PhotoVault } from "@/components/tin-cup/PhotoVault";
 
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
-import {
-  BUY_IN,
-  TOURNAMENT_BANK,
-  VENMO_HANDLE,
-  VENMO_IS_PLACEHOLDER,
-  venmoUrl,
-} from "@/lib/tin-cup";
+import { BUY_IN, VENMO_IS_PLACEHOLDER, venmoUrl } from "@/lib/tin-cup";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
-import { tallyStandings } from "@/lib/scoring";
 
 export function PreTournamentPanel({
   rounds: _rounds = [],
@@ -37,7 +30,6 @@ export function PreTournamentPanel({
   claimedName?: string | null;
   needsClaim?: boolean;
 }) {
-  const standings = tallyStandings(matches);
   const firstName = claimedName?.trim().split(/\s+/)[0] ?? null;
   const isClaimed = signedIn && Boolean(claimedName) && !needsClaim;
   const myDay1 = claimedName ? day1GroupForPlayer(claimedName) : null;
@@ -51,17 +43,7 @@ export function PreTournamentPanel({
         <p className="t-micro text-center text-muted-foreground">Hey {firstName}</p>
       ) : null}
 
-      <div className="stack-tight">
-        <Countdown />
-        <p className="text-center t-micro">
-          <span className="t-numeral text-base">
-            <span className="text-gold-light">{standings.strongMental}</span>
-            <span className="mx-1 text-muted-foreground">–</span>
-            <span className="text-copper">{standings.grassRoots}</span>
-          </span>
-          <span className="ml-2 text-muted-foreground">Cup · 13.5 to win</span>
-        </p>
-      </div>
+      <Countdown />
 
       <section className="stack-tight">
         {!signedIn && (
@@ -84,22 +66,6 @@ export function PreTournamentPanel({
             Pay ${BUY_IN}
           </a>
         )}
-        <p className="t-micro text-center text-muted-foreground">
-          @{VENMO_HANDLE} · {TOURNAMENT_BANK}
-          {!signedIn ? (
-            <>
-              {" · "}
-              <a
-                href={venmoUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="font-semibold text-foreground"
-              >
-                Pay ${BUY_IN}
-              </a>
-            </>
-          ) : null}
-        </p>
         {VENMO_IS_PLACEHOLDER && (
           <p className="t-micro text-center text-copper">
             Set VITE_VENMO_HANDLE before the weekend.
