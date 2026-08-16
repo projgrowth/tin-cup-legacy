@@ -96,7 +96,7 @@ describe("geo package — all holes", () => {
     expect(mask!.length).toBeGreaterThan(1);
     const theater = theaterOverlayCollection(h);
     expect(theater.features.some((f) => f.properties.kind === "playLine")).toBe(true);
-    expect(theater.features.every((f) => f.properties.kind === "playLine" || f.properties.kind === "pill")).toBe(
+    expect(theater.features.some((f) => f.properties.kind === "fairway" || f.properties.kind === "green")).toBe(
       true,
     );
   });

@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useRef } from "react";
 
-import { HoleMap } from "@/components/tin-cup/HoleMap";
+import { HoleMap3D } from "@/components/tin-cup/HoleMap3D";
 import { SatelliteHoleMap } from "@/components/tin-cup/SatelliteHoleMap";
 import type { CourseId, Hole } from "@/lib/courses";
 import { getGeoHole, holeGreenTriple } from "@/lib/geo-courses";
 import { haversineYards } from "@/lib/geo";
 import { useGeolocation } from "@/hooks/useGeolocation";
 
-export type MapMode = "sat" | "diagram";
+export type MapMode = "sat" | "mock3d";
 
 /**
- * Aerial is the screen. HUD is PAR / YARDS only.
+ * Default is the 3D mockup. Satellite (and GPS) paints turf on Esri.
  */
 export function HoleStage({
   courseId,
@@ -44,7 +44,7 @@ export function HoleStage({
   const swipeRef = useRef<{ x: number; y: number; t: number } | null>(null);
 
   useEffect(() => {
-    if (mapMode === "sat" && !hasSat) onMapMode("diagram");
+    if (mapMode === "sat" && !hasSat) onMapMode("mock3d");
   }, [mapMode, hasSat, onMapMode]);
 
   const liveYards =
@@ -102,19 +102,14 @@ export function HoleStage({
             gpsAccuracyM={gpsOn ? (fix?.accuracyM ?? null) : null}
             onError={() => {
               onSatFailed?.();
-              onMapMode("diagram");
+              onMapMode("mock3d");
             }}
           />
         </div>
       ) : (
-        <HoleMap
-          hole={hole}
-          className="absolute inset-0 block size-full bg-transparent"
-          onSwipeHole={(delta) => {
-            if (delta < 0 && canPrev) onPrev();
-            if (delta > 0 && canNext) onNext();
-          }}
-        />
+        <div className="absolute inset-0">
+          <HoleMap3D hole={hole} className="size-full" />
+        </div>
       )}
     </section>
   );

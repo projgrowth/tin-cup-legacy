@@ -45,7 +45,7 @@ const SATELLITE_STYLE: StyleSpecification = {
   ],
 };
 
-const OVERLAY_SOURCE = "hole-overlay";
+const OVERLAY_SOURCE = "hole-overlay-v2";
 
 export type SatelliteHoleMapHandle = {
   resetView: () => void;
@@ -260,6 +260,8 @@ export default SatelliteHoleMap;
 
 function flyToHole(map: MapLibreMap, geo: GeoHole, animate: boolean) {
   const pts = [...geo.playLine, geo.tee, geo.green];
+  for (const ring of geo.fairways) pts.push(...ring);
+  for (const ring of geo.greens ?? []) pts.push(...ring);
   let w = Infinity;
   let s = Infinity;
   let e = -Infinity;
@@ -320,6 +322,56 @@ function ensureOverlayLayers(map: MapLibreMap) {
   map.addSource(OVERLAY_SOURCE, {
     type: "geojson",
     data: { type: "FeatureCollection", features: [] },
+  });
+
+  map.addLayer({
+    id: "ov-fairway",
+    type: "fill",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "fairway"],
+    paint: { "fill-color": "#22c55e", "fill-opacity": 0.28 },
+  });
+  map.addLayer({
+    id: "ov-fairway-line",
+    type: "line",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "fairway"],
+    paint: { "line-color": "#bbf7d0", "line-width": 1.8, "line-opacity": 0.7 },
+  });
+  map.addLayer({
+    id: "ov-tee",
+    type: "fill",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "tee"],
+    paint: { "fill-color": "#86efac", "fill-opacity": 0.4 },
+  });
+  map.addLayer({
+    id: "ov-green",
+    type: "fill",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "green"],
+    paint: { "fill-color": "#4ade80", "fill-opacity": 0.38 },
+  });
+  map.addLayer({
+    id: "ov-green-line",
+    type: "line",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "green"],
+    paint: { "line-color": "#dcfce7", "line-width": 1.6, "line-opacity": 0.8 },
+  });
+  map.addLayer({
+    id: "ov-water",
+    type: "fill",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "water"],
+    paint: { "fill-color": "#38bdf8", "fill-opacity": 0.28 },
+  });
+  map.addLayer({
+    id: "ov-bunker",
+    type: "fill",
+    source: OVERLAY_SOURCE,
+    filter: ["==", ["get", "kind"], "bunker"],
+    paint: { "fill-color": "#fde68a", "fill-opacity": 0.32 },
   });
 
   map.addLayer({

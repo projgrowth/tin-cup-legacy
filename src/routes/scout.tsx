@@ -84,9 +84,27 @@ function ScoutPage() {
   const { user, loading: authLoading } = useAuth();
   const { data: tournament } = useTournament();
   const [playGpsOn, setPlayGpsOn] = useState(false);
-  const [mapMode, setMapMode] = useState<MapMode>("sat");
+  const [mapMode, setMapMode] = useState<MapMode>("mock3d");
   const [cardMenu, setCardMenu] = useState(false);
   const [theaterMenu, setTheaterMenu] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("tc-hole-map-mode-v6");
+      if (saved === "sat" || saved === "mock3d") setMapMode(saved);
+    } catch {
+      /* first visit stays 3D */
+    }
+  }, []);
+
+  function persistMode(next: MapMode) {
+    setMapMode(next);
+    try {
+      window.localStorage.setItem("tc-hole-map-mode-v6", next);
+    } catch {
+      /* ignore */
+    }
+  }
 
   const courseId: CourseId = search.course ?? defaultCourseId();
   const course = getCourse(courseId);
@@ -203,7 +221,7 @@ function ScoutPage() {
             canNext={index < course.holes.length - 1}
             gpsOn={playGpsOn}
             mapMode={mapMode}
-            onMapMode={setMapMode}
+            onMapMode={persistMode}
             onSatFailed={() => setPlayGpsOn(false)}
           />
 
@@ -251,8 +269,9 @@ function ScoutPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setPlayGpsOn((v) => !v);
-                    if (!playGpsOn) setMapMode("sat");
+                    const next = !playGpsOn;
+                    setPlayGpsOn(next);
+                    if (next) persistMode("sat");
                     setTheaterMenu(false);
                   }}
                   className="press flex min-h-11 w-full items-center border-t border-border px-3 text-left t-body"
@@ -263,16 +282,16 @@ function ScoutPage() {
                   type="button"
                   onClick={() => {
                     if (mapMode === "sat") {
-                      setMapMode("diagram");
+                      persistMode("mock3d");
                       setPlayGpsOn(false);
                     } else {
-                      setMapMode("sat");
+                      persistMode("sat");
                     }
                     setTheaterMenu(false);
                   }}
                   className="press flex min-h-11 w-full items-center px-3 text-left t-body"
                 >
-                  {mapMode === "sat" ? "Schematic" : "Satellite"}
+                  {mapMode === "sat" ? "3D mockup" : "Satellite"}
                 </button>
                 <button
                   type="button"

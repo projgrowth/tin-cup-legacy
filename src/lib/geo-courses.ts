@@ -231,17 +231,58 @@ export function holeOverlayCollection(geo: GeoHole): OverlayCollection {
 }
 
 /**
- * Hole theater — play line + 2 remaining-yard pills. No GIS fills.
+ * Satellite theater — turf so the hole is obvious, plus play line + remaining pills.
  */
 export function theaterOverlayCollection(geo: GeoHole): OverlayCollection {
   const line = geo.playLine.length >= 2 ? geo.playLine : [geo.tee, geo.green];
-  const features: OverlayFeature[] = [
-    {
+  const features: OverlayFeature[] = [];
+
+  for (const ring of geo.fairways) {
+    if (ring.length < 3) continue;
+    features.push({
       type: "Feature",
-      properties: { kind: "playLine" },
-      geometry: { type: "LineString", coordinates: line },
-    },
-  ];
+      properties: { kind: "fairway" },
+      geometry: { type: "Polygon", coordinates: [ring] },
+    });
+  }
+  for (const ring of geo.tees) {
+    if (ring.length < 3) continue;
+    features.push({
+      type: "Feature",
+      properties: { kind: "tee" },
+      geometry: { type: "Polygon", coordinates: [ring] },
+    });
+  }
+  for (const ring of geo.greens ?? []) {
+    if (ring.length < 3) continue;
+    features.push({
+      type: "Feature",
+      properties: { kind: "green" },
+      geometry: { type: "Polygon", coordinates: [ring] },
+    });
+  }
+  for (const ring of geo.water) {
+    if (ring.length < 3) continue;
+    features.push({
+      type: "Feature",
+      properties: { kind: "water" },
+      geometry: { type: "Polygon", coordinates: [ring] },
+    });
+  }
+  for (const ring of geo.bunkers) {
+    if (ring.length < 3) continue;
+    features.push({
+      type: "Feature",
+      properties: { kind: "bunker" },
+      geometry: { type: "Polygon", coordinates: [ring] },
+    });
+  }
+
+  features.push({
+    type: "Feature",
+    properties: { kind: "playLine" },
+    geometry: { type: "LineString", coordinates: line },
+  });
   const yards = Math.max(1, geo.blackYards);
   const fromTee: number[] = [];
   if (yards >= 330) fromTee.push(Math.round(yards * 0.4));
