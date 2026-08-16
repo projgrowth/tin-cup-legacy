@@ -12,7 +12,7 @@ const items = [
 export function BottomNav() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.35rem,env(safe-area-inset-bottom))] md:inset-x-auto md:left-1/2 md:top-3 md:bottom-auto md:-translate-x-1/2 md:px-0 md:pb-0">
-      <div className="glass-panel mx-auto flex w-full max-w-md items-stretch justify-between gap-0.5 px-1 py-1 md:w-auto md:max-w-none md:gap-1 md:px-1.5">
+      <div className="mx-auto flex w-full max-w-md items-stretch justify-between gap-0.5 rounded-2xl border border-white/8 bg-[oklch(0.12_0.018_165/72%)] px-1 py-1 backdrop-blur-xl md:w-auto md:max-w-none md:gap-1 md:px-1.5">
         {items.map(({ to, label, icon: Icon, exact }) => (
           <Link
             key={to}

@@ -125,29 +125,13 @@ export function Shell({
               height={28}
               className="size-7 shrink-0 object-contain"
             />
-            <span className="min-w-0 leading-none">
-              <span className="t-section block truncate text-foreground">Tin Cup</span>
-              {!immersive ? (
-                <span className="mt-0.5 hidden truncate text-[0.6875rem] leading-tight tracking-[0.04em] text-muted-foreground min-[370px]:block">
-                  {cupLive ? (
-                    <>
-                      <span className="text-gold-light">{fmtPts(standings.strongMental)}</span>
-                      <span className="mx-0.5">–</span>
-                      <span className="text-copper">{fmtPts(standings.grassRoots)}</span>
-                      <span className="ml-1.5">Cup</span>
-                    </>
-                  ) : (
-                    "Innisbrook · 2026"
-                  )}
-                </span>
-              ) : cupLive ? (
-                <span className="mt-0.5 block text-[0.65rem] font-semibold tabular-nums tracking-wide text-muted-foreground">
-                  <span className="text-gold-light">{fmtPts(standings.strongMental)}</span>
-                  <span className="mx-0.5 text-white/30">–</span>
-                  <span className="text-copper">{fmtPts(standings.grassRoots)}</span>
-                </span>
-              ) : null}
-            </span>
+            {cupLive ? (
+              <span className="t-numeral text-[0.95rem] tracking-tight">
+                <span className="text-gold-light">{fmtPts(standings.strongMental)}</span>
+                <span className="mx-0.5 text-muted-foreground">–</span>
+                <span className="text-copper">{fmtPts(standings.grassRoots)}</span>
+              </span>
+            ) : null}
           </Link>
           <Link
             to="/profile"

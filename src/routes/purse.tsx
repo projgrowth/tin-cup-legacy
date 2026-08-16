@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { ErrorState, LoadingRows, PageHeading, Shell } from "@/components/tin-cup/Shell";
+import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
 import { useTournament } from "@/hooks/useTournament";
 import { sideCash, sideCashByPlayer, settlement, formatPayout } from "@/lib/purse";
 import {
@@ -47,18 +47,20 @@ function PursePage() {
 
   return (
     <Shell>
-      <PageHeading eyebrow={`$${BUY_IN} buy-in`} title="Purse" />
       <div className="stack-page pb-4">
-        <section className="panel flex items-center justify-between gap-3 p-5">
-          <span className="min-w-0">
-            <span className="t-title block text-foreground">@{VENMO_HANDLE}</span>
-            <span className="t-micro mt-0.5 block text-muted-foreground">{TOURNAMENT_BANK}</span>
-          </span>
+        <section className="panel space-y-4 p-5">
+          <div>
+            <p className="t-eyebrow">Buy-in</p>
+            <h1 className="t-display mt-1.5 text-foreground">Pay ${BUY_IN}</h1>
+            <p className="t-micro mt-1.5 text-muted-foreground">
+              @{VENMO_HANDLE} · {TOURNAMENT_BANK}
+            </p>
+          </div>
           <a
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className="press btn-gold t-body shrink-0"
+            className="press btn-gold t-body flex w-full justify-center"
           >
             Pay ${BUY_IN}
           </a>
