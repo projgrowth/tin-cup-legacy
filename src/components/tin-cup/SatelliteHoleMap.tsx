@@ -74,7 +74,6 @@ export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(functi
   const mapRef = useRef<MapLibreMap | null>(null);
   const gpsMarkerRef = useRef<Marker | null>(null);
   const pinMarkerRef = useRef<Marker | null>(null);
-  const teeMarkerRef = useRef<Marker | null>(null);
   const geoRef = useRef(geo);
   geoRef.current = geo;
   const onErrorRef = useRef(onError);
@@ -159,8 +158,6 @@ export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(functi
       gpsMarkerRef.current = null;
       pinMarkerRef.current?.remove();
       pinMarkerRef.current = null;
-      teeMarkerRef.current?.remove();
-      teeMarkerRef.current = null;
       map.remove();
       mapRef.current = null;
     };
@@ -176,7 +173,6 @@ export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(functi
       const src = map.getSource(OVERLAY_SOURCE) as GeoJSONSource | undefined;
       src?.setData(holeOverlayCollection(geo));
       ensurePinMarker(map, pinMarkerRef, greenTarget(geo));
-      ensureTeeMarker(map, teeMarkerRef, geo.tee);
       flyToHole(map, geo, true);
     };
     if (map.isStyleLoaded()) run();
@@ -265,7 +261,7 @@ function flyToHole(map: MapLibreMap, geo: GeoHole, animate: boolean) {
       [e, n],
     ],
     {
-      padding: { top: 88, bottom: 88, left: 48, right: 48 },
+      padding: { top: 108, bottom: 176, left: 96, right: 36 },
       maxZoom: 17.4,
       bearing,
       pitch: 0,
@@ -287,18 +283,6 @@ function flyToGreen(map: MapLibreMap, geo: GeoHole, animate: boolean) {
     duration: animate ? 520 : 0,
     essential: true,
   });
-}
-
-function ensureTeeMarker(map: MapLibreMap, teeRef: { current: Marker | null }, tee: LngLat) {
-  if (!teeRef.current) {
-    const node = document.createElement("div");
-    node.className = "tc-tee-chip";
-    node.setAttribute("aria-hidden", "true");
-    node.textContent = "TEE";
-    teeRef.current = new Marker({ element: node, anchor: "center" }).setLngLat(tee).addTo(map);
-  } else {
-    teeRef.current.setLngLat(tee);
-  }
 }
 
 function ensurePinMarker(map: MapLibreMap, pinRef: { current: Marker | null }, pin: LngLat) {
@@ -330,7 +314,7 @@ function ensureOverlayLayers(map: MapLibreMap) {
     filter: ["==", ["get", "kind"], "spotlight"],
     paint: {
       "fill-color": "#050806",
-      "fill-opacity": 0.58,
+      "fill-opacity": 0.74,
     },
   });
 
@@ -342,7 +326,7 @@ function ensureOverlayLayers(map: MapLibreMap) {
     filter: ["==", ["get", "kind"], "fairway"],
     paint: {
       "fill-color": "#22c55e",
-      "fill-opacity": 0.08,
+      "fill-opacity": 0.03,
     },
   });
   map.addLayer({
@@ -352,8 +336,8 @@ function ensureOverlayLayers(map: MapLibreMap) {
     filter: ["==", ["get", "kind"], "fairway"],
     paint: {
       "line-color": "#dcfce7",
-      "line-width": 2,
-      "line-opacity": 0.75,
+      "line-width": 1.2,
+      "line-opacity": 0.22,
     },
   });
   map.addLayer({
@@ -363,7 +347,7 @@ function ensureOverlayLayers(map: MapLibreMap) {
     filter: ["==", ["get", "kind"], "tee"],
     paint: {
       "fill-color": "#86efac",
-      "fill-opacity": 0.35,
+      "fill-opacity": 0.16,
     },
   });
   map.addLayer({
@@ -373,7 +357,7 @@ function ensureOverlayLayers(map: MapLibreMap) {
     filter: ["==", ["get", "kind"], "green"],
     paint: {
       "fill-color": "#4ade80",
-      "fill-opacity": 0.42,
+      "fill-opacity": 0.14,
     },
   });
   map.addLayer({
@@ -383,8 +367,8 @@ function ensureOverlayLayers(map: MapLibreMap) {
     filter: ["==", ["get", "kind"], "green"],
     paint: {
       "line-color": "#bbf7d0",
-      "line-width": 1.6,
-      "line-opacity": 0.75,
+      "line-width": 1.2,
+      "line-opacity": 0.35,
     },
   });
   map.addLayer({
@@ -394,7 +378,7 @@ function ensureOverlayLayers(map: MapLibreMap) {
     filter: ["==", ["get", "kind"], "water"],
     paint: {
       "fill-color": "#38bdf8",
-      "fill-opacity": 0.38,
+      "fill-opacity": 0.16,
     },
   });
   map.addLayer({
@@ -404,7 +388,7 @@ function ensureOverlayLayers(map: MapLibreMap) {
     filter: ["==", ["get", "kind"], "bunker"],
     paint: {
       "fill-color": "#fde68a",
-      "fill-opacity": 0.28,
+      "fill-opacity": 0.12,
     },
   });
   map.addLayer({
@@ -426,9 +410,9 @@ function ensureOverlayLayers(map: MapLibreMap) {
     filter: ["==", ["get", "kind"], "playLine"],
     paint: {
       "line-color": "#0a0a08",
-      "line-width": 10,
-      "line-opacity": 0.45,
-      "line-blur": 1,
+      "line-width": 6,
+      "line-opacity": 0.22,
+      "line-blur": 1.4,
     },
     layout: {
       "line-cap": "round",
@@ -441,10 +425,9 @@ function ensureOverlayLayers(map: MapLibreMap) {
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "playLine"],
     paint: {
-      "line-color": "#f5e6a8",
-      "line-width": 3.2,
-      "line-dasharray": [1.6, 1.2],
-      "line-opacity": 1,
+      "line-color": "#f4f4f5",
+      "line-width": 1.8,
+      "line-opacity": 0.5,
     },
     layout: {
       "line-cap": "round",

@@ -1,13 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Crosshair,
-  Flag,
-  Layers,
-  LocateFixed,
-  Map as MapIcon,
-} from "lucide-react";
+import { Crosshair, Flag, Layers, LocateFixed, Map as MapIcon } from "lucide-react";
 
 import { HoleMap } from "@/components/tin-cup/HoleMap";
 import {
@@ -25,33 +17,28 @@ export type MapMode = "sat" | "diagram";
 const MODE_KEY = "tc-hole-map-mode-v5";
 
 /**
- * Grint-class hole stage: full-bleed aerial, F/C/B widget, Play (GPS) mode.
+ * Full-bleed hole theater: aerial is the screen, PAR / YARDS HUD, Play GPS.
  */
 export function HoleStage({
   courseId,
   hole,
-  accentClass,
   isSnake,
-  index,
-  total,
   onPrev,
   onNext,
   canPrev,
   canNext,
   onPlayModeChange,
+  contests = [],
 }: {
   courseId: CourseId;
   hole: Hole;
-  accentClass: string;
   isSnake?: boolean;
-  index: number;
-  total: number;
   onPrev: () => void;
   onNext: () => void;
   canPrev: boolean;
   canNext: boolean;
-  /** Notify parent when Play GPS is on (collapse plan sheet, etc.). */
   onPlayModeChange?: (on: boolean) => void;
+  contests?: Array<"ctp" | "ld">;
 }) {
   const geo = useMemo(() => getGeoHole(courseId, hole.h), [courseId, hole.h]);
   const triple = useMemo(() => (geo ? holeGreenTriple(geo) : null), [geo]);
@@ -61,6 +48,7 @@ export function HoleStage({
   const [mode, setMode] = useState<MapMode>(hasSat ? "sat" : "diagram");
   const [gpsOn, setGpsOn] = useState(false);
   const [satFailed, setSatFailed] = useState(false);
+  const [yardsOpen, setYardsOpen] = useState(false);
 
   const { fix, error: gpsError, active: gpsActive } = useGeolocation(gpsOn);
 
@@ -86,6 +74,7 @@ export function HoleStage({
 
   useEffect(() => {
     setSatFailed(false);
+    setYardsOpen(false);
   }, [courseId, hole.h]);
 
   useEffect(() => {
@@ -103,10 +92,8 @@ export function HoleStage({
     }
   }
 
-  const nearHole =
-    fix && geo ? bboxContains(geo.bounds, fix.point, 0.003) : null;
+  const nearHole = fix && geo ? bboxContains(geo.bounds, fix.point, 0.003) : null;
 
-  // F/C/B: scorecard yards from tee, or live GPS distances
   const fcb = useMemo(() => {
     if (!triple) {
       return {
@@ -129,67 +116,61 @@ export function HoleStage({
     };
   }, [triple, gpsOn, gpsActive, fix, hole.yards]);
 
-  // Play mode: taller map, less chrome noise
-  const mapHeight = gpsOn
-    ? "h-[min(84svh,680px)] w-full sm:h-[min(78vh,700px)] lg:h-[min(80vh,760px)]"
-    : "h-[min(78svh,620px)] w-full sm:h-[min(72vh,640px)] lg:h-[min(74vh,700px)]";
-
   const swipeRef = useRef<{ x: number; y: number; t: number } | null>(null);
+  const showDetail = gpsOn || yardsOpen;
 
   const toolBtn = (on: boolean, extra = "") =>
-    `press flex min-h-10 min-w-10 items-center justify-center gap-1 rounded-xl px-2.5 text-xs font-bold ${
-      on ? "bg-white/18 text-white" : "text-white/55"
+    `press flex size-10 items-center justify-center rounded-full text-xs font-bold ${
+      on ? "bg-white/20 text-white" : "text-white/60"
     } ${extra}`;
 
   return (
-    <section
-      className={`relative overflow-hidden rounded-[1.15rem] ${accentClass} ${
-        isSnake ? "ring-1 ring-copper/40" : "ring-1 ring-white/10"
-      } bg-black shadow-[0_20px_50px_-24px_oklch(0_0_0/75%)]`}
-    >
-      {/* Top HUD — slimmer in Play */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-2.5 sm:p-3">
-        <div
-          className={`pointer-events-auto glass-panel max-w-[min(100%,11.5rem)] ${
-            gpsOn ? "px-2.5 py-1.5" : "px-3 py-2"
-          }`}
-        >
-          <p className="flex items-baseline gap-2">
-            <span
-              className={`hud-num leading-none text-white ${
-                gpsOn ? "text-2xl" : "text-3xl"
-              }`}
-            >
-              {hole.h}
-            </span>
-            <span className="text-sm font-bold text-white/85">
-              Par {hole.par}
-            </span>
-          </p>
-          {!gpsOn && (
-            <p className="mt-1 truncate text-xs font-semibold text-white/60">
-              {hole.name ?? `Hole ${hole.h}`}
-              {isSnake ? " · Pit" : ""}
+    <section className="absolute inset-0 overflow-hidden bg-black">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between px-3 pt-[max(4.75rem,calc(env(safe-area-inset-top)+3.4rem))]">
+        <div className="pointer-events-auto max-w-[9.5rem] drop-shadow-[0_2px_12px_oklch(0_0_0/70%)]">
+          <p className="text-[0.62rem] font-bold uppercase tracking-[0.16em] text-white/55">Par</p>
+          <p className="hud-num mt-0.5 text-[2.35rem] leading-none text-white">{hole.par}</p>
+          {isSnake ? (
+            <p className="mt-1 text-[0.62rem] font-bold uppercase tracking-[0.14em] text-copper">
+              Pit
+            </p>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setYardsOpen((v) => !v)}
+            className="press mt-4 block text-left"
+            aria-expanded={showDetail}
+          >
+            <p className="text-[0.62rem] font-bold uppercase tracking-[0.16em] text-white/55">
+              Yards
+            </p>
+            <p className="hud-num mt-0.5 text-[2.35rem] leading-none text-white">{hole.yards}</p>
+            <p className="sr-only">Black {hole.yards}</p>
+          </button>
+          {contests.length > 0 && (
+            <p className="mt-2 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-gold-light/85">
+              {contests.map((c) => (c === "ld" ? "LD" : "CTP")).join(" · ")}
             </p>
           )}
         </div>
-        <div className="pointer-events-auto">
-          <DistanceStack
-            front={fcb.front}
-            center={fcb.center}
-            back={fcb.back}
-            blackYards={hole.yards}
-            gpsEnabled={gpsOn}
-            gpsActive={gpsActive}
-            gpsError={gpsError}
-            gpsNearHole={nearHole}
-          />
-        </div>
+        {showDetail ? (
+          <div className="pointer-events-auto">
+            <DistanceStack
+              front={fcb.front}
+              center={fcb.center}
+              back={fcb.back}
+              blackYards={hole.yards}
+              gpsEnabled={gpsOn}
+              gpsActive={gpsActive}
+              gpsError={gpsError}
+              gpsNearHole={nearHole}
+            />
+          </div>
+        ) : null}
       </div>
 
-      {/* Tool cluster */}
-      <div className="absolute bottom-[3.35rem] left-2.5 z-20 sm:left-3">
-        <div className="glass-panel flex items-center gap-0.5 p-0.5">
+      <div className="absolute bottom-[7.75rem] left-3 z-20 sm:bottom-[8.25rem]">
+        <div className="flex items-center gap-0.5 rounded-full border border-white/12 bg-black/40 p-1 backdrop-blur-md">
           {!gpsOn && (
             <>
               <button
@@ -209,23 +190,17 @@ export function HoleStage({
               >
                 <Layers className="size-3.5" />
               </button>
-              <span className="mx-0.5 h-5 w-px bg-white/15" aria-hidden />
+              <span className="mx-0.5 h-4 w-px bg-white/15" aria-hidden />
             </>
           )}
           <button
             type="button"
             onClick={() => setGpsOn((v) => !v)}
-            className={toolBtn(
-              gpsOn && gpsActive,
-              gpsOn ? "text-sky-100 ring-1 ring-sky-400/25" : "",
-            )}
+            className={toolBtn(gpsOn && gpsActive, gpsOn ? "text-sky-100" : "")}
             aria-pressed={gpsOn}
             aria-label={gpsOn ? "Exit play GPS" : "Play GPS mode"}
           >
             <LocateFixed className="size-3.5" />
-            <span className={gpsOn ? "" : "hidden sm:inline"}>
-              {gpsOn ? (gpsActive ? "Play" : "…") : "Play"}
-            </span>
           </button>
           {mode === "sat" && hasSat && (
             <>
@@ -255,14 +230,9 @@ export function HoleStage({
         )}
       </div>
 
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,transparent_58%,oklch(0.05_0.02_160/38%)_100%)]"
-      />
-
       {mode === "sat" && geo ? (
         <div
-          className={mapHeight}
+          className="absolute inset-0"
           onTouchStart={(e) => {
             if (e.touches.length !== 1) {
               swipeRef.current = null;
@@ -279,8 +249,7 @@ export function HoleStage({
             const dx = t.clientX - start.x;
             const dy = t.clientY - start.y;
             const dt = Date.now() - start.t;
-            if (dt > 420 || Math.abs(dx) < 72 || Math.abs(dx) < Math.abs(dy) * 1.6)
-              return;
+            if (dt > 420 || Math.abs(dx) < 72 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
             if (dx < 0 && canNext) onNext();
             if (dx > 0 && canPrev) onPrev();
           }}
@@ -289,46 +258,21 @@ export function HoleStage({
             ref={satRef}
             geo={geo}
             className="size-full"
-            gpsPoint={gpsOn ? fix?.point ?? null : null}
-            gpsAccuracyM={gpsOn ? fix?.accuracyM ?? null : null}
+            gpsPoint={gpsOn ? (fix?.point ?? null) : null}
+            gpsAccuracyM={gpsOn ? (fix?.accuracyM ?? null) : null}
             onError={() => setSatFailed(true)}
           />
         </div>
       ) : (
         <HoleMap
           hole={hole}
-          className={`block ${mapHeight} bg-transparent`}
+          className="absolute inset-0 block size-full bg-transparent"
           onSwipeHole={(delta) => {
             if (delta < 0 && canPrev) onPrev();
             if (delta > 0 && canNext) onNext();
           }}
         />
       )}
-
-      <div className="flex items-center border-t border-white/10 bg-black/65 backdrop-blur-md">
-        <button
-          type="button"
-          onClick={onPrev}
-          disabled={!canPrev}
-          className="press flex min-h-11 flex-1 items-center justify-center text-white disabled:opacity-30"
-          aria-label="Previous hole"
-        >
-          <ChevronLeft className="size-5" />
-        </button>
-        <p className="min-w-[4rem] text-center text-sm font-bold tabular-nums text-white/90">
-          {index + 1}
-          <span className="text-white/35">/{total}</span>
-        </p>
-        <button
-          type="button"
-          onClick={onNext}
-          disabled={!canNext}
-          className="press flex min-h-11 flex-1 items-center justify-center text-white disabled:opacity-30"
-          aria-label="Next hole"
-        >
-          <ChevronRight className="size-5" />
-        </button>
-      </div>
     </section>
   );
 }

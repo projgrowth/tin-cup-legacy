@@ -202,8 +202,8 @@
   color: oklch(1 0 0 / 75%) !important;
 }
 .maplibregl-ctrl-bottom-right {
-  /* Clear Fit/GPS pods on the left; leave room for footer */
-  bottom: 0.25rem !important;
+  /* Clear Fit/GPS pods; sit above the plan drawer */
+  bottom: 5.75rem !important;
   right: 0.35rem !important;
 }
 .maplibregl-ctrl-group {

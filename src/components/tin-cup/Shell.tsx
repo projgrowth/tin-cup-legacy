@@ -19,7 +19,7 @@ import { tallyStandings } from "@/lib/scoring";
 import { retryFailed } from "@/lib/write-queue";
 import { playerInitials } from "@/lib/team-styles";
 
-type ShellVariant = "compact" | "content" | "dashboard" | "immersive";
+type ShellVariant = "compact" | "content" | "dashboard" | "immersive" | "theater";
 
 export function Shell({
   children,
@@ -70,12 +70,29 @@ export function Shell({
     };
   }, []);
   const immersive = variant === "immersive";
+  const theater = variant === "theater";
   const width =
     variant === "compact"
       ? "max-w-xl"
       : variant === "dashboard" || immersive
         ? "max-w-6xl"
         : "max-w-4xl";
+  if (theater) {
+    return (
+      <div className="relative min-h-svh bg-black">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-gold focus:px-3 focus:py-2 focus:text-primary-foreground"
+        >
+          Skip to content
+        </a>
+        <main id="main-content" className="relative min-h-svh">
+          {children}
+        </main>
+        <SeatWelcome />
+      </div>
+    );
+  }
   return (
     <div
       className={`min-h-screen ${

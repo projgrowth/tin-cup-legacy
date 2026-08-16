@@ -47,6 +47,8 @@ export function PlanSheet({
   contestByHole,
   onSelectHole,
   forceCollapsed = false,
+  overlay = false,
+  pitLabel = null,
 }: {
   courseId: CourseId;
   hole: number;
@@ -60,8 +62,11 @@ export function PlanSheet({
   onSelectHole: (h: number) => void;
   /** Play GPS mode — keep plan collapsed so map stays hero. */
   forceCollapsed?: boolean;
+  /** Bottom drawer over the aerial. Starts collapsed. */
+  overlay?: boolean;
+  pitLabel?: string | null;
 }) {
-  const [open, setOpen] = useState(!editor.filled);
+  const [open, setOpen] = useState(overlay ? false : !editor.filled);
   const stripRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLButtonElement>(null);
   const { led, filled, summary } = editor;
@@ -69,7 +74,7 @@ export function PlanSheet({
   const expanded = open && !forceCollapsed;
 
   useEffect(() => {
-    if (forceCollapsed) return;
+    if (forceCollapsed || overlay) return;
     setOpen(!filled);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hole]);
@@ -88,11 +93,13 @@ export function PlanSheet({
 
   return (
     <div
-      className={`glass-panel relative overflow-hidden transition-opacity ${
-        forceCollapsed ? "opacity-90" : ""
-      }`}
+      className={`relative overflow-hidden transition-opacity ${
+        overlay
+          ? "rounded-t-[1.25rem] border border-white/10 bg-black/72 shadow-[0_-18px_40px_-24px_oklch(0_0_0/70%)] backdrop-blur-xl"
+          : "glass-panel"
+      } ${forceCollapsed ? "opacity-90" : ""}`}
     >
-      {/* Hole strip — compact in Play */}
+      {(!overlay || expanded || forceCollapsed) && (
       <div
         ref={stripRef}
         className={`no-scrollbar flex gap-1.5 overflow-x-auto scroll-smooth border-b border-white/10 px-3 ${
@@ -140,6 +147,7 @@ export function PlanSheet({
           );
         })}
       </div>
+      )}
 
       <button
         type="button"
@@ -157,6 +165,9 @@ export function PlanSheet({
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-bold tracking-tight text-white">
               Plan · H{hole}
+              {pitLabel ? (
+                <span className="ml-2 text-xs font-semibold text-copper">· {pitLabel}</span>
+              ) : null}
               {forceCollapsed ? (
                 <span className="ml-2 text-xs font-semibold text-sky-200/70">· Play</span>
               ) : null}

@@ -38,9 +38,9 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expectNoHorizontalOverflow(page);
 
   await page.goto("/scout");
-  await page.getByRole("tab", { name: /South/i }).click();
   await expect(page.getByRole("link", { name: /^Card$/ })).toBeVisible();
-  await expect(page.getByText(/Black 335/)).toBeVisible();
+  await expect(page.getByText("Yards", { exact: true })).toBeVisible();
+  await expect(page.getByText("335", { exact: true }).first()).toBeVisible();
   await page.getByRole("link", { name: /^Card$/ }).click();
   await expect(page.getByRole("heading", { name: /South game plan/i })).toBeVisible();
   await expect(page.getByText("335 yds").first()).toBeVisible();
