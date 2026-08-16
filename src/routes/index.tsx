@@ -153,7 +153,7 @@ function Index() {
           <PhaseControl mode={mode} automatic={!override} onChange={selectMode} />
         )}
 
-        <div className="mt-4">
+        <div className={mode === "pre" ? "" : "mt-4"}>
           {mode === "pre" && (
             <PreTournamentPanel
               rounds={data?.rounds ?? []}

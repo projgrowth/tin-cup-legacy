@@ -37,54 +37,82 @@ export function PreTournamentPanel({
   const nextCourseId = defaultCourseId() as CourseId;
   const nextDetails = COURSE_DETAILS[nextCourseId];
 
+  const cta = !signedIn ? (
+    <Link
+      to="/profile"
+      className="press btn-gold t-body flex w-full justify-center shadow-[0_12px_40px_-16px_oklch(0.84_0.085_92/70%)]"
+    >
+      Sign in · claim your spot
+    </Link>
+  ) : needsClaim ? (
+    <Link
+      to="/profile"
+      className="press btn-gold t-body flex w-full justify-center shadow-[0_12px_40px_-16px_oklch(0.84_0.085_92/70%)]"
+    >
+      Claim your roster name
+    </Link>
+  ) : (
+    <a
+      href={venmoUrl}
+      target="_blank"
+      rel="noreferrer"
+      className="press btn-gold t-body flex w-full items-center justify-center px-6 py-3.5 shadow-[0_12px_40px_-16px_oklch(0.84_0.085_92/70%)]"
+    >
+      Pay ${BUY_IN}
+    </a>
+  );
+
   return (
     <div className="stack-page pb-2">
-      {isClaimed && firstName ? (
-        <p className="t-micro text-center text-muted-foreground">Hey {firstName}</p>
-      ) : null}
-
-      <Countdown />
-
-      <section className="stack-tight">
-        {!signedIn && (
-          <Link to="/profile" className="press btn-gold t-body flex w-full justify-center">
-            Sign in · claim your spot
-          </Link>
-        )}
-        {signedIn && needsClaim && (
-          <Link to="/profile" className="press btn-gold t-body flex w-full justify-center">
-            Claim your roster name
-          </Link>
-        )}
-        {isClaimed && (
-          <a
-            href={venmoUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="press btn-gold t-body flex w-full items-center justify-center px-6 py-3.5"
-          >
-            Pay ${BUY_IN}
-          </a>
-        )}
-        {VENMO_IS_PLACEHOLDER && (
-          <p className="t-micro text-center text-copper">
-            Set VITE_VENMO_HANDLE before the weekend.
+      <section className="relative -mx-4 -mt-3.5 overflow-hidden sm:-mx-5 sm:-mt-5">
+        <img
+          src="/tin-cup-intro-poster.jpg"
+          alt=""
+          className="absolute inset-0 size-full object-cover object-[50%_28%]"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-t from-[oklch(0.11_0.02_165)] via-[oklch(0.11_0.02_165/55%)] to-[oklch(0.08_0.02_165/20%)]"
+        />
+        <div className="relative flex min-h-[min(68svh,580px)] flex-col justify-end px-5 pb-8 pt-20">
+          {isClaimed && firstName ? (
+            <p className="mb-4 text-center text-[0.8rem] font-medium tracking-wide text-white/70">
+              Hey {firstName}
+            </p>
+          ) : null}
+          <Countdown cover />
+          <p className="t-display mt-6 text-center text-white">
+            {nextDetails.dayLabel}
+            <span className="mx-2 text-white/35">·</span>
+            {COURSE_LABEL[nextCourseId]}
           </p>
-        )}
+          <p className="mt-2 text-center text-[0.8rem] font-medium tracking-[0.08em] text-white/60">
+            Innisbrook · 12:19 PM
+          </p>
+          <div className="mx-auto mt-7 w-full max-w-sm">{cta}</div>
+          <p className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-[0.8rem]">
+            <Link to="/schedule" className="press font-semibold text-white">
+              Weekend →
+            </Link>
+            <Link
+              to="/scout"
+              search={{ course: nextCourseId }}
+              className="press text-white/65"
+            >
+              Plan the round
+            </Link>
+          </p>
+          {VENMO_IS_PLACEHOLDER && (
+            <p className="t-micro mt-3 text-center text-copper">
+              Set VITE_VENMO_HANDLE before the weekend.
+            </p>
+          )}
+        </div>
       </section>
 
-      <p className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 t-micro">
-        <Link to="/schedule" className="press font-semibold text-foreground">
-          {nextDetails.dayLabel} · {COURSE_LABEL[nextCourseId]} →
-        </Link>
-        <Link to="/scout" search={{ course: nextCourseId }} className="press text-muted-foreground">
-          Plan
-        </Link>
-      </p>
-
       {isClaimed && myDay1 && (
-        <section className="panel p-4">
-          <p className="t-eyebrow">For you · Day 1</p>
+        <section className="relative overflow-hidden rounded-[1.25rem] border border-gold/20 bg-[oklch(0.16_0.02_165)] px-4 py-4">
+          <p className="t-eyebrow text-gold-light">Your Friday</p>
           <div className="mt-3 flex items-center gap-3">
             <AvatarPair
               people={[
@@ -102,7 +130,9 @@ export function PreTournamentPanel({
               size="md"
             />
             <div className="min-w-0">
-              <p className="t-title text-foreground">Match {myDay1.pairing.matchIndex}</p>
+              <p className="t-display text-[1.45rem] text-foreground">
+                Match {myDay1.pairing.matchIndex}
+              </p>
               <p className="t-micro mt-1 text-muted-foreground">
                 w/ {myDay1.partner.split(" ")[0]} · vs {myDay1.opponents}
               </p>
