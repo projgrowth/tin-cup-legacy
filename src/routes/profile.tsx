@@ -13,7 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { useTournament } from "@/hooks/useTournament";
-import { signOut } from "@/integrations/supabase/client";
+import { signOut, supabase } from "@/integrations/supabase/client";
 import { signedVaultUrl, uploadVaultImage } from "@/integrations/supabase/storage";
 import { type CourseId } from "@/lib/courses";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
@@ -44,7 +44,17 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfilePage() {
-  const { user, loading, canScore, isAdmin, rolesError, rolesLoading, refreshRoles } = useAuth();
+  const {
+    user,
+    loading,
+    canScore,
+    isAdmin,
+    rolesError,
+    rolesLoading,
+    refreshRoles,
+    passwordRecovery,
+    clearPasswordRecovery,
+  } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
   const { data: tournament } = useTournament();
   const claimedPlayer = useMemo(() => {
@@ -81,6 +91,9 @@ function ProfilePage() {
         </div>
       ) : (
         <div className="stack-page">
+          {passwordRecovery && (
+            <SetNewPassword onDone={clearPasswordRecovery} />
+          )}
           {claimedPlayer && claimedTeam ? (
             <MyHubCard
               player={claimedPlayer}
@@ -118,7 +131,11 @@ function ProfilePage() {
             <li>
               <button
                 type="button"
-                onClick={() => void signOut()}
+                onClick={() => {
+                  void signOut().catch((e) =>
+                    toast.error(e instanceof Error ? e.message : "Could not sign out"),
+                  );
+                }}
                 className="press flex min-h-12 w-full items-center px-4 py-3 text-left t-body font-medium"
               >
                 Sign out
@@ -147,6 +164,47 @@ function ProfilePage() {
         </div>
       )}
     </Shell>
+  );
+}
+
+function SetNewPassword({ onDone }: { onDone: () => void }) {
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    if (password.length < 6) {
+      toast.error("Use at least 6 characters.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+      toast.success("Password updated — you're signed in.");
+      onDone();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update password");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="panel space-y-3 p-4">
+      <p className="t-title text-foreground">Set a new password</p>
+      <p className="t-micro text-muted-foreground">You opened a reset link. Choose a password for this weekend.</p>
+      <input
+        type="password"
+        autoComplete="new-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="New password"
+        className="control t-body w-full"
+      />
+      <button type="button" disabled={busy} onClick={() => void save()} className="press btn-gold t-body w-full">
+        {busy ? "Saving…" : "Save password"}
+      </button>
+    </section>
   );
 }
 

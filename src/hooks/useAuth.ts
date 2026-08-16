@@ -20,6 +20,8 @@ export type AuthState = {
   isAdmin: boolean;
   rolesLoading: boolean;
   rolesError: string | null;
+  passwordRecovery: boolean;
+  clearPasswordRecovery: () => void;
   /** Re-fetch captain/admin roles (e.g. after an admin grant or /ops sync). */
   refreshRoles: () => Promise<void>;
 };
@@ -88,6 +90,7 @@ function useAuthState(): AuthState {
   const [isAdmin, setIsAdmin] = useState(initialRoles.isAdmin);
   const [rolesLoading, setRolesLoading] = useState(true);
   const [rolesError, setRolesError] = useState<string | null>(null);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -97,9 +100,14 @@ function useAuthState(): AuthState {
         setLoading(false);
       }
     });
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => {
+    const { data } = supabase.auth.onAuthStateChange((event, next) => {
       setSession(next);
       setLoading(false);
+      if (event === "PASSWORD_RECOVERY") setPasswordRecovery(true);
+      if (event === "SIGNED_IN" && next?.user) {
+        void import("@/lib/seat").then(({ writeSeat }) => writeSeat("account"));
+      }
+      if (event === "SIGNED_OUT") setPasswordRecovery(false);
     });
     return () => {
       mounted = false;
@@ -158,6 +166,8 @@ function useAuthState(): AuthState {
     isAdmin,
     rolesLoading,
     rolesError,
+    passwordRecovery,
+    clearPasswordRecovery: () => setPasswordRecovery(false),
     refreshRoles,
   };
 }
@@ -176,6 +186,8 @@ const SIGNED_OUT: AuthState = {
   isAdmin: false,
   rolesLoading: true,
   rolesError: null,
+  passwordRecovery: false,
+  clearPasswordRecovery: () => {},
   refreshRoles: async () => {},
 };
 

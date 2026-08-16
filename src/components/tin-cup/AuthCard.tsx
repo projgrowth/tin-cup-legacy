@@ -3,6 +3,13 @@ import { toast } from "sonner";
 import { Mail } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { writeSeat } from "@/lib/seat";
+import {
+  isAlreadyRegistered,
+  isInvalidLogin,
+  isRateLimited,
+  isUnconfirmedEmail,
+} from "@/lib/auth-messages";
 
 type AuthCardProps = {
   blurb: string;
@@ -10,10 +17,6 @@ type AuthCardProps = {
 };
 
 type Mode = "password-in" | "password-up" | "magic";
-
-function isRateLimited(message: string) {
-  return /rate|exceed|too many|429|over_email/i.test(message);
-}
 
 /**
  * Password first — reliable on a phone when magic-link email is rate-limited.
@@ -78,22 +81,45 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
     setSentTo(null);
     try {
       if (mode === "password-up") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: trimmed,
           password,
           options: { emailRedirectTo: redirectTo },
         });
         if (error) throw error;
-        setSentTo(trimmed);
-        toast.success("Account created — confirm email if asked, then sign in.");
-        setMode("password-in");
+        const ghost =
+          Boolean(data.user) &&
+          !data.session &&
+          (data.user?.identities?.length ?? 1) === 0;
+        if (ghost) {
+          setMode("password-in");
+          toast.message("That email already has an account — sign in.");
+        } else if (data.session) {
+          writeSeat("account");
+          toast.success("You're in. Claim your roster name next.");
+        } else {
+          setSentTo(trimmed);
+          setMode("password-in");
+          toast.success("Account created — confirm the email, then sign in.");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: trimmed, password });
         if (error) throw error;
+        writeSeat("account");
         toast.success("Signed in");
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Authentication failed");
+      const message = error instanceof Error ? error.message : "Authentication failed";
+      if (isAlreadyRegistered(message)) {
+        setMode("password-in");
+        toast.message("That email already has an account — sign in.");
+      } else if (isUnconfirmedEmail(message)) {
+        toast.error("Confirm the email we sent, then sign in.");
+      } else if (isInvalidLogin(message)) {
+        toast.error("Email or password doesn't match. Create an account if you're new.");
+      } else {
+        toast.error(message);
+      }
     } finally {
       setBusy(false);
     }

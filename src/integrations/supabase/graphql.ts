@@ -89,11 +89,11 @@ export async function graphqlRequest<
     if (!id) throw new Error("Sign in again");
     const { data, error } = await supabase
       .from("profiles")
-      .insert({ id, display_name: v.displayName })
+      .upsert({ id, display_name: v.displayName }, { onConflict: "id", ignoreDuplicates: true })
       .select("id")
-      .single();
-    if (error) fail(error);
-    return { insert_profiles_one: data } as TData;
+      .maybeSingle();
+    if (error && error.code !== "23505") fail(error);
+    return { insert_profiles_one: data ?? { id } } as TData;
   }
 
   if (operation === "SaveMyProfile") {

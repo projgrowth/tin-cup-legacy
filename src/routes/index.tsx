@@ -28,9 +28,11 @@ type HomeSearch = {
 };
 
 export const Route = createFileRoute("/")({
-  validateSearch: (raw: Record<string, unknown>): HomeSearch => ({
-    board: raw.board === true || raw.board === "1" || raw.board === 1,
-  }),
+  validateSearch: (raw: Record<string, unknown>): HomeSearch => {
+    const board = raw.board === true || raw.board === "1" || raw.board === 1;
+    // Omit `board: false` — a canonical redirect would drop auth `code` / hash.
+    return board ? { board: true } : {};
+  },
   head: () => ({
     links: [{ rel: "preload", as: "image", href: "/tin-cup-intro-poster.jpg" }],
     meta: [
