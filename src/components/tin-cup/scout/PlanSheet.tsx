@@ -91,110 +91,98 @@ export function PlanSheet({
     strip.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
   }, [hole, courseId]);
 
+  const handle = (
+    <button
+      type="button"
+      onClick={() => {
+        if (forceCollapsed) return;
+        setOpen((v) => !v);
+      }}
+      className={`press flex w-full flex-col items-center px-4 text-center ${
+        overlay && !expanded ? "pb-3 pt-2" : "py-3"
+      }`}
+      aria-expanded={expanded}
+      aria-disabled={forceCollapsed || undefined}
+    >
+      {overlay ? <span aria-hidden className="mb-2 h-1 w-8 rounded-full bg-white/30" /> : null}
+      <span className="text-sm font-semibold tracking-tight text-white">
+        H{hole} · Plan
+        {pitLabel ? <span className="text-copper"> · {pitLabel}</span> : null}
+      </span>
+      {!overlay && (
+        <span className="mt-1 flex items-center gap-2">
+          <StatusLED state={led} />
+          <span className="truncate text-sm text-white/55">
+            {filled ? summary : "Club · miss · line"}
+          </span>
+          <ChevronUp
+            className={`size-4 text-white/45 transition-transform ${expanded ? "" : "rotate-180"}`}
+          />
+        </span>
+      )}
+    </button>
+  );
+
+  const strip = (
+    <div
+      ref={stripRef}
+      className="no-scrollbar flex gap-1.5 overflow-x-auto scroll-smooth border-b border-white/10 px-3 py-2.5"
+    >
+      {holes.map((h) => {
+        const active = h.h === hole;
+        const snake = courseId === "copperhead" && SNAKE_PIT.includes(h.h);
+        const planned = hasNote(h.h);
+        const contests = contestByHole.get(h.h) ?? [];
+        return (
+          <button
+            key={h.h}
+            ref={active ? activeRef : undefined}
+            type="button"
+            onClick={() => onSelectHole(h.h)}
+            aria-current={active ? "true" : undefined}
+            className={`press relative size-10 shrink-0 rounded-full text-sm font-bold tabular-nums transition-colors ${
+              active
+                ? "bg-gold/20 text-gold-light ring-1 ring-gold/40"
+                : snake
+                  ? "bg-white/5 text-copper"
+                  : planned
+                    ? "bg-white/8 text-white/90"
+                    : "bg-white/5 text-white/45"
+            }`}
+          >
+            {h.h}
+            {planned && !active ? (
+              <span
+                aria-hidden
+                className="absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-gold"
+              />
+            ) : null}
+            {contests.length > 0 && !active ? (
+              <span
+                aria-hidden
+                className={`absolute right-0.5 top-0.5 size-1.5 rounded-full ${
+                  contests.includes("ld") ? "bg-copper" : "bg-gold-light"
+                }`}
+              />
+            ) : null}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div
       className={`relative overflow-hidden transition-opacity ${
         overlay
-          ? "rounded-t-[1.25rem] border border-white/10 bg-black/72 shadow-[0_-18px_40px_-24px_oklch(0_0_0/70%)] backdrop-blur-xl"
+          ? `rounded-t-[1.15rem] border-t border-white/10 backdrop-blur-md ${
+              expanded ? "bg-black/78" : "bg-black/40"
+            }`
           : "glass-panel"
-      } ${forceCollapsed ? "opacity-90" : ""}`}
+      }`}
     >
-      {(!overlay || expanded || forceCollapsed) && (
-      <div
-        ref={stripRef}
-        className={`no-scrollbar flex gap-1.5 overflow-x-auto scroll-smooth border-b border-white/10 px-3 ${
-          forceCollapsed ? "py-1.5" : "py-2.5"
-        }`}
-      >
-        {holes.map((h) => {
-          const active = h.h === hole;
-          const snake = courseId === "copperhead" && SNAKE_PIT.includes(h.h);
-          const planned = hasNote(h.h);
-          const contests = contestByHole.get(h.h) ?? [];
-          return (
-            <button
-              key={h.h}
-              ref={active ? activeRef : undefined}
-              type="button"
-              onClick={() => onSelectHole(h.h)}
-              aria-current={active ? "true" : undefined}
-              className={`press relative size-10 shrink-0 rounded-full text-sm font-bold tabular-nums transition-colors ${
-                active
-                  ? "bg-gold/20 text-gold-light ring-1 ring-gold/40"
-                  : snake
-                    ? "bg-white/5 text-copper"
-                    : planned
-                      ? "bg-white/8 text-white/90"
-                      : "bg-white/5 text-white/45"
-              }`}
-            >
-              {h.h}
-              {planned && !active ? (
-                <span
-                  aria-hidden
-                  className="absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-gold"
-                />
-              ) : null}
-              {contests.length > 0 && !active ? (
-                <span
-                  aria-hidden
-                  className={`absolute right-0.5 top-0.5 size-1.5 rounded-full ${
-                    contests.includes("ld") ? "bg-copper" : "bg-gold-light"
-                  }`}
-                />
-              ) : null}
-            </button>
-          );
-        })}
-      </div>
-      )}
-
-      <button
-        type="button"
-        onClick={() => {
-          if (forceCollapsed) return;
-          setOpen((v) => !v);
-        }}
-        className={`press flex w-full items-center gap-3 px-4 text-left ${
-          forceCollapsed ? "py-2.5" : "py-3.5"
-        }`}
-        aria-expanded={expanded}
-        aria-disabled={forceCollapsed || undefined}
-      >
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-bold tracking-tight text-white">
-              Plan · H{hole}
-              {pitLabel ? (
-                <span className="ml-2 text-xs font-semibold text-copper">· {pitLabel}</span>
-              ) : null}
-              {forceCollapsed ? (
-                <span className="ml-2 text-xs font-semibold text-sky-200/70">· Play</span>
-              ) : null}
-            </p>
-            <StatusLED state={led} />
-          </div>
-          <p className="mt-1 truncate text-sm text-white/55">
-            {forceCollapsed
-              ? filled
-                ? summary
-                : "Exit Play to edit plan"
-              : filled
-                ? summary
-                : expanded
-                  ? "Club + miss — saves as you go"
-                  : "Tap to set club · miss · line"}
-          </p>
-        </div>
-        {!forceCollapsed && (
-          <ChevronUp
-            className={`size-5 shrink-0 text-white/45 transition-transform ${
-              expanded ? "" : "rotate-180"
-            }`}
-          />
-        )}
-      </button>
-
+      {overlay ? handle : strip}
+      {overlay ? (expanded ? strip : null) : handle}
       {expanded && (
         <div className="border-t border-white/8 px-4 pb-4 pt-3">
           <HolePlanFields par={par} mode={mode} loading={loading} editor={editor} />

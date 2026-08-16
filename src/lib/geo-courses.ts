@@ -230,6 +230,35 @@ export function holeOverlayCollection(geo: GeoHole): OverlayCollection {
   return { type: "FeatureCollection", features };
 }
 
+/**
+ * Hole theater — play line + 2 remaining-yard pills. No GIS fills.
+ */
+export function theaterOverlayCollection(geo: GeoHole): OverlayCollection {
+  const line = geo.playLine.length >= 2 ? geo.playLine : [geo.tee, geo.green];
+  const features: OverlayFeature[] = [
+    {
+      type: "Feature",
+      properties: { kind: "playLine" },
+      geometry: { type: "LineString", coordinates: line },
+    },
+  ];
+  const yards = Math.max(1, geo.blackYards);
+  const fromTee: number[] = [];
+  if (yards >= 330) fromTee.push(Math.round(yards * 0.4));
+  if (yards >= 220) fromTee.push(Math.round(yards * 0.68));
+  else fromTee.push(Math.round(yards * 0.55));
+  for (const carry of fromTee) {
+    const pt = pointAlongLine(line, carry / yards);
+    if (!pt) continue;
+    features.push({
+      type: "Feature",
+      properties: { kind: "pill", label: String(Math.max(1, yards - carry)) },
+      geometry: { type: "Point", coordinates: pt },
+    });
+  }
+  return { type: "FeatureCollection", features };
+}
+
 function closeRing(ring: LngLat[]): LngLat[] {
   if (ring.length < 3) return ring;
   const first = ring[0]!;

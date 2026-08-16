@@ -8,7 +8,7 @@ import {
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import type { GeoHole } from "@/lib/geo-courses";
-import { greenTarget, holeOverlayCollection, holePlayBearing } from "@/lib/geo-courses";
+import { greenTarget, holePlayBearing, theaterOverlayCollection } from "@/lib/geo-courses";
 import type { LngLat } from "@/lib/geo";
 
 /** Esri World Imagery — attribution required. */
@@ -139,6 +139,8 @@ export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(functi
 
     map.once("load", () => {
       ensureOverlayLayers(map);
+      const src = map.getSource(OVERLAY_SOURCE) as GeoJSONSource | undefined;
+      src?.setData(theaterOverlayCollection(geoRef.current));
       ensurePinMarker(map, pinMarkerRef, greenTarget(geoRef.current));
       flyToHole(map, geoRef.current, false);
       setReady(true);
@@ -171,7 +173,7 @@ export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(functi
     const run = () => {
       ensureOverlayLayers(map);
       const src = map.getSource(OVERLAY_SOURCE) as GeoJSONSource | undefined;
-      src?.setData(holeOverlayCollection(geo));
+      src?.setData(theaterOverlayCollection(geo));
       ensurePinMarker(map, pinMarkerRef, greenTarget(geo));
       flyToHole(map, geo, true);
     };
@@ -245,6 +247,10 @@ export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(functi
         role="img"
         aria-label={`Satellite map of hole ${geo.hole}`}
       />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_38%,oklch(0.05_0.02_160/58%)_78%,oklch(0.04_0.02_160/82%)_100%)]"
+      />
       {!ready && <div className="absolute inset-0 bg-[#0a100c]" aria-hidden />}
     </div>
   );
@@ -253,7 +259,17 @@ export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(functi
 export default SatelliteHoleMap;
 
 function flyToHole(map: MapLibreMap, geo: GeoHole, animate: boolean) {
-  const [w, s, e, n] = geo.bounds;
+  const pts = [...geo.playLine, geo.tee, geo.green];
+  let w = Infinity;
+  let s = Infinity;
+  let e = -Infinity;
+  let n = -Infinity;
+  for (const [lon, lat] of pts) {
+    if (lon < w) w = lon;
+    if (lon > e) e = lon;
+    if (lat < s) s = lat;
+    if (lat > n) n = lat;
+  }
   const bearing = holePlayBearing(geo);
   map.fitBounds(
     [
@@ -261,11 +277,11 @@ function flyToHole(map: MapLibreMap, geo: GeoHole, animate: boolean) {
       [e, n],
     ],
     {
-      padding: { top: 108, bottom: 176, left: 96, right: 36 },
-      maxZoom: 17.4,
+      padding: 24,
+      maxZoom: 18.4,
       bearing,
       pitch: 0,
-      duration: animate ? 450 : 0,
+      duration: animate ? 420 : 0,
       essential: true,
     },
   );
@@ -306,118 +322,18 @@ function ensureOverlayLayers(map: MapLibreMap) {
     data: { type: "FeatureCollection", features: [] },
   });
 
-  // Dim everything outside mapped fairway / green / tee
-  map.addLayer({
-    id: "ov-spotlight",
-    type: "fill",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "spotlight"],
-    paint: {
-      "fill-color": "#050806",
-      "fill-opacity": 0.74,
-    },
-  });
-
-  // Soft collar only — aerial stays the turf
-  map.addLayer({
-    id: "ov-fairway",
-    type: "fill",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "fairway"],
-    paint: {
-      "fill-color": "#22c55e",
-      "fill-opacity": 0.03,
-    },
-  });
-  map.addLayer({
-    id: "ov-fairway-line",
-    type: "line",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "fairway"],
-    paint: {
-      "line-color": "#dcfce7",
-      "line-width": 1.2,
-      "line-opacity": 0.22,
-    },
-  });
-  map.addLayer({
-    id: "ov-tee",
-    type: "fill",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "tee"],
-    paint: {
-      "fill-color": "#86efac",
-      "fill-opacity": 0.16,
-    },
-  });
-  map.addLayer({
-    id: "ov-green",
-    type: "fill",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "green"],
-    paint: {
-      "fill-color": "#4ade80",
-      "fill-opacity": 0.14,
-    },
-  });
-  map.addLayer({
-    id: "ov-green-line",
-    type: "line",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "green"],
-    paint: {
-      "line-color": "#bbf7d0",
-      "line-width": 1.2,
-      "line-opacity": 0.35,
-    },
-  });
-  map.addLayer({
-    id: "ov-water",
-    type: "fill",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "water"],
-    paint: {
-      "fill-color": "#38bdf8",
-      "fill-opacity": 0.16,
-    },
-  });
-  map.addLayer({
-    id: "ov-bunker",
-    type: "fill",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "bunker"],
-    paint: {
-      "fill-color": "#fde68a",
-      "fill-opacity": 0.12,
-    },
-  });
-  map.addLayer({
-    id: "ov-bunker-line",
-    type: "line",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "bunker"],
-    paint: {
-      "line-color": "#f5e6a8",
-      "line-width": 1.2,
-      "line-opacity": 0.55,
-    },
-  });
-  // Play corridor glow + dashed gold — high contrast on light sand
   map.addLayer({
     id: "ov-play-glow",
     type: "line",
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "playLine"],
     paint: {
-      "line-color": "#0a0a08",
-      "line-width": 6,
-      "line-opacity": 0.22,
-      "line-blur": 1.4,
+      "line-color": "#0c4a6e",
+      "line-width": 7,
+      "line-opacity": 0.45,
+      "line-blur": 1.2,
     },
-    layout: {
-      "line-cap": "round",
-      "line-join": "round",
-    },
+    layout: { "line-cap": "round", "line-join": "round" },
   });
   map.addLayer({
     id: "ov-play",
@@ -425,130 +341,40 @@ function ensureOverlayLayers(map: MapLibreMap) {
     source: OVERLAY_SOURCE,
     filter: ["==", ["get", "kind"], "playLine"],
     paint: {
-      "line-color": "#f4f4f5",
-      "line-width": 1.8,
-      "line-opacity": 0.5,
+      "line-color": "#38bdf8",
+      "line-width": 2.6,
+      "line-opacity": 0.95,
     },
-    layout: {
-      "line-cap": "round",
-      "line-join": "round",
-    },
+    layout: { "line-cap": "round", "line-join": "round" },
   });
-  // Soft polygon fills (don't fight aerial)
-  // already added fairway/green/bunker above — dial bunker softer
-  // Layup stations
   map.addLayer({
-    id: "ov-station-dot",
+    id: "ov-pill",
     type: "circle",
     source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "station"],
+    filter: ["==", ["get", "kind"], "pill"],
     paint: {
-      "circle-radius": 5,
-      "circle-color": "#0c0c0a",
-      "circle-stroke-width": 2,
-      "circle-stroke-color": "#f5e6a8",
-      "circle-opacity": 0.95,
+      "circle-radius": 13,
+      "circle-color": "#0b1220",
+      "circle-stroke-width": 1.5,
+      "circle-stroke-color": "#38bdf8",
+      "circle-opacity": 0.92,
     },
   });
   map.addLayer({
-    id: "ov-station-label",
+    id: "ov-pill-label",
     type: "symbol",
     source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "station"],
+    filter: ["==", ["get", "kind"], "pill"],
     layout: {
       "text-field": ["get", "label"],
-      "text-size": 12,
-      "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-      "text-offset": [0, 1.15],
-      "text-anchor": "top",
-      "text-allow-overlap": true,
-    },
-    paint: {
-      "text-color": "#fff8e0",
-      "text-halo-color": "rgba(0,0,0,0.9)",
-      "text-halo-width": 1.6,
-    },
-  });
-  // Hazard markers
-  map.addLayer({
-    id: "ov-hazard-sand",
-    type: "circle",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "hazard"],
-    paint: {
-      "circle-radius": 4,
-      "circle-color": "#e8d4a0",
-      "circle-stroke-width": 1.5,
-      "circle-stroke-color": "#1a1a12",
-    },
-  });
-  map.addLayer({
-    id: "ov-hazard-water",
-    type: "circle",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "hazardWater"],
-    paint: {
-      "circle-radius": 4,
-      "circle-color": "#38bdf8",
-      "circle-stroke-width": 1.5,
-      "circle-stroke-color": "#0c1a24",
-    },
-  });
-  // F / B green ticks
-  map.addLayer({
-    id: "ov-green-fb",
-    type: "circle",
-    source: OVERLAY_SOURCE,
-    filter: ["in", ["get", "kind"], ["literal", ["greenFront", "greenBack"]]],
-    paint: {
-      "circle-radius": 4,
-      "circle-color": "#ffffff",
-      "circle-stroke-width": 1.5,
-      "circle-stroke-color": "#c9a227",
-    },
-  });
-  map.addLayer({
-    id: "ov-tee-pt",
-    type: "circle",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "teePoint"],
-    paint: {
-      "circle-radius": 7,
-      "circle-color": "#f5e6a8",
-      "circle-stroke-width": 2.5,
-      "circle-stroke-color": "#0a0a08",
-    },
-  });
-  // Soft cup halo under the HTML pin flag
-  map.addLayer({
-    id: "ov-green-pt-ring",
-    type: "circle",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "greenPoint"],
-    paint: {
-      "circle-radius": 10,
-      "circle-color": "rgba(201,162,39,0.18)",
-      "circle-stroke-width": 1.5,
-      "circle-stroke-color": "rgba(245,230,168,0.55)",
-    },
-  });
-  map.addLayer({
-    id: "ov-tee-label",
-    type: "symbol",
-    source: OVERLAY_SOURCE,
-    filter: ["==", ["get", "kind"], "teePoint"],
-    layout: {
-      "text-field": "TEE",
       "text-size": 11,
       "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-      "text-offset": [0, 1.4],
-      "text-anchor": "top",
       "text-allow-overlap": true,
     },
     paint: {
-      "text-color": "#f5e6a8",
-      "text-halo-color": "rgba(0,0,0,0.92)",
-      "text-halo-width": 1.6,
+      "text-color": "#f8fafc",
+      "text-halo-color": "rgba(11,18,32,0.85)",
+      "text-halo-width": 0.6,
     },
   });
 }

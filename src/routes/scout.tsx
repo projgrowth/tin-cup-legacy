@@ -4,7 +4,7 @@ import { ChevronLeft, MoreHorizontal, Printer, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Shell } from "@/components/tin-cup/Shell";
-import { HoleStage } from "@/components/tin-cup/scout/HoleStage";
+import { HoleStage, type MapMode } from "@/components/tin-cup/scout/HoleStage";
 import { PlanSheet, useScoutPlanEditor } from "@/components/tin-cup/scout/PlanSheet";
 import { RoundPlanBoard } from "@/components/tin-cup/scout/RoundPlanBoard";
 import { useAuth } from "@/hooks/useAuth";
@@ -84,6 +84,7 @@ function ScoutPage() {
   const { user, loading: authLoading } = useAuth();
   const { data: tournament } = useTournament();
   const [playGpsOn, setPlayGpsOn] = useState(false);
+  const [mapMode, setMapMode] = useState<MapMode>("sat");
   const [cardMenu, setCardMenu] = useState(false);
   const [theaterMenu, setTheaterMenu] = useState(false);
 
@@ -141,8 +142,6 @@ function ScoutPage() {
     }
     return map;
   }, [tournament?.sideBets, tournament?.rounds, details.roundSlug]);
-
-  const currentContests = contestByHole.get(current.h) ?? [];
 
   const noteForDraft = (h: number): HoleNoteDraft | null => {
     if (user) {
@@ -202,8 +201,10 @@ function ScoutPage() {
             onNext={() => step(1)}
             canPrev={index > 0}
             canNext={index < course.holes.length - 1}
-            onPlayModeChange={setPlayGpsOn}
-            contests={currentContests}
+            gpsOn={playGpsOn}
+            mapMode={mapMode}
+            onMapMode={setMapMode}
+            onSatFailed={() => setPlayGpsOn(false)}
           />
 
           <Link
@@ -250,10 +251,36 @@ function ScoutPage() {
                 <button
                   type="button"
                   onClick={() => {
+                    setPlayGpsOn((v) => !v);
+                    if (!playGpsOn) setMapMode("sat");
+                    setTheaterMenu(false);
+                  }}
+                  className="press flex min-h-11 w-full items-center border-t border-border px-3 text-left t-body"
+                >
+                  {playGpsOn ? "Exit Play GPS" : "Play GPS"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (mapMode === "sat") {
+                      setMapMode("diagram");
+                      setPlayGpsOn(false);
+                    } else {
+                      setMapMode("sat");
+                    }
+                    setTheaterMenu(false);
+                  }}
+                  className="press flex min-h-11 w-full items-center px-3 text-left t-body"
+                >
+                  {mapMode === "sat" ? "Schematic" : "Satellite"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
                     setTheaterMenu(false);
                     void onSharePlan();
                   }}
-                  className="press flex min-h-11 w-full items-center gap-2 border-t border-border px-3 text-left t-body"
+                  className="press flex min-h-11 w-full items-center gap-2 px-3 text-left t-body"
                 >
                   <Share2 className="size-4 text-muted-foreground" />
                   Share

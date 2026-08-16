@@ -13,6 +13,7 @@ import {
   greenTarget,
   holeGreenTriple,
   holeOverlayCollection,
+  theaterOverlayCollection,
   holePlayBearing,
   spotlightMask,
 } from "@/lib/geo-courses";
@@ -93,6 +94,11 @@ describe("geo package — all holes", () => {
     const mask = spotlightMask(h);
     expect(mask).toBeTruthy();
     expect(mask!.length).toBeGreaterThan(1);
+    const theater = theaterOverlayCollection(h);
+    expect(theater.features.some((f) => f.properties.kind === "playLine")).toBe(true);
+    expect(theater.features.every((f) => f.properties.kind === "playLine" || f.properties.kind === "pill")).toBe(
+      true,
+    );
   });
 
   it("resolves greenTarget near OSM green when present", () => {
