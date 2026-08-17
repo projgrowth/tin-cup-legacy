@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { AvatarPair } from "@/components/tin-cup/Avatar";
 import { Countdown } from "@/components/tin-cup/Countdown";
 import { LiveWireTicker } from "@/components/tin-cup/LiveWireTicker";
-import { WhatsAppGroupButton } from "@/components/tin-cup/WhatsAppLinks";
+import { FieldChatLink } from "@/components/tin-cup/WhatsAppLinks";
 
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { BUY_IN, VENMO_IS_PLACEHOLDER, WEEKEND_SOCIAL, venmoUrl } from "@/lib/tin-cup";
@@ -121,13 +121,21 @@ export function PreTournamentPanel({
               Tonight · {tonight.title}
             </p>
           )}
-          <Link
-            to="/scout"
-            search={{ course: nextCourseId }}
-            className="press btn-quiet t-body flex min-h-11 w-full justify-center"
-          >
-            Open {COURSE_LABEL[nextCourseId]} plan
-          </Link>
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              to="/schedule"
+              className="press btn-quiet t-body flex min-h-11 justify-center"
+            >
+              Weekend
+            </Link>
+            <Link
+              to="/scout"
+              search={{ course: nextCourseId }}
+              className="press btn-quiet t-body flex min-h-11 justify-center"
+            >
+              {COURSE_LABEL[nextCourseId]} plan
+            </Link>
+          </div>
         </section>
       )}
 
@@ -145,7 +153,7 @@ export function PreTournamentPanel({
         toastEnabled={false}
       />
 
-      <WhatsAppGroupButton className="!min-h-11 w-full" />
+      <FieldChatLink className="!min-h-11 w-full" />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { Map } from "lucide-react";
 
 import type { Match, Player, Round, SideBet, Team } from "@/hooks/useTournament";
 import { LiveWireTicker } from "@/components/tin-cup/LiveWireTicker";
+import { FieldChatLink } from "@/components/tin-cup/WhatsAppLinks";
 import { PhotoVault } from "@/components/tin-cup/PhotoVault";
 import { roundStatus } from "@/lib/scoring";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
@@ -148,6 +149,8 @@ export function LivePanel({
         variant="live"
         limit={3}
       />
+
+      <FieldChatLink className="!min-h-11 w-full" />
 
       <StatusLine
         syncedAt={syncedAt}

@@ -19,9 +19,23 @@ export function WhatsAppGroupButton({ className = "" }: { className?: string }) 
       className={`press btn-quiet t-body inline-flex items-center justify-center gap-2 ${className}`}
     >
       <MessageCircle className="size-4" strokeWidth={1.7} />
-      Group chat
+      Field chat
     </a>
   );
+}
+
+/** Group invite if set; otherwise share the board into WhatsApp. Always visible. */
+export function FieldChatLink({
+  scoreLine,
+  className = "",
+}: {
+  scoreLine?: string;
+  className?: string;
+}) {
+  if (WHATSAPP_GROUP_CONFIGURED) {
+    return <WhatsAppGroupButton className={className} />;
+  }
+  return <ShareBoardButton scoreLine={scoreLine} className={className} />;
 }
 
 /** Share the board into WhatsApp / native share sheet. */
