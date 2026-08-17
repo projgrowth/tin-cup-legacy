@@ -109,17 +109,17 @@ export function PlanSheet({
         H{hole} · {filled ? "Plan" : "Add plan"}
         {pitLabel ? <span className="text-copper"> · {pitLabel}</span> : null}
       </span>
-      {!overlay && (
-        <span className="mt-1 flex items-center gap-2">
-          <StatusLED state={led} />
-          <span className="truncate text-sm text-white/55">
-            {filled ? summary : "Club · miss · line"}
-          </span>
-          <ChevronUp
-            className={`size-4 text-white/45 transition-transform ${expanded ? "" : "rotate-180"}`}
-          />
+      <span className="mt-1 flex max-w-full items-center justify-center gap-2">
+        {!overlay && <StatusLED state={led} />}
+        <span className="truncate text-sm text-white/55">
+          {filled ? summary : overlay ? "Club · miss · line" : "Club · miss · line"}
         </span>
-      )}
+        {!overlay && (
+          <ChevronUp
+            className={`size-4 shrink-0 text-white/45 transition-transform ${expanded ? "" : "rotate-180"}`}
+          />
+        )}
+      </span>
     </button>
   );
 

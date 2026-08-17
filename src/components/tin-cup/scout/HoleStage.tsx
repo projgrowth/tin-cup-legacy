@@ -24,6 +24,8 @@ export function HoleStage({
   mapMode,
   onMapMode,
   onSatFailed,
+  holeCount = 18,
+  courseLabel,
 }: {
   courseId: CourseId;
   hole: Hole;
@@ -36,6 +38,8 @@ export function HoleStage({
   mapMode: MapMode;
   onMapMode: (mode: MapMode) => void;
   onSatFailed?: () => void;
+  holeCount?: number;
+  courseLabel?: string;
 }) {
   const geo = useMemo(() => getGeoHole(courseId, hole.h), [courseId, hole.h]);
   const triple = useMemo(() => (geo ? holeGreenTriple(geo) : null), [geo]);
@@ -56,8 +60,17 @@ export function HoleStage({
 
   return (
     <section className="absolute inset-0 overflow-hidden bg-black">
+      <p className="sr-only" aria-live="polite">
+        Hole {hole.h} of {holeCount}, par {hole.par}, {liveYards} yards
+        {courseLabel ? ` · ${courseLabel}` : ""}
+      </p>
       <div className="pointer-events-none absolute left-4 z-20 drop-shadow-[0_2px_14px_oklch(0_0_0/80%)] pt-[max(4.75rem,calc(env(safe-area-inset-top)+3.35rem))]">
-        <p className="text-[0.62rem] font-bold uppercase tracking-[0.18em] text-white/55">Par</p>
+        <p className="text-[0.62rem] font-bold uppercase tracking-[0.18em] text-white/55">Hole</p>
+        <p className="hud-num mt-0.5 text-[2.45rem] leading-none text-white">
+          {hole.h}
+          <span className="ml-1 text-[1rem] font-semibold text-white/45">/{holeCount}</span>
+        </p>
+        <p className="mt-4 text-[0.62rem] font-bold uppercase tracking-[0.18em] text-white/55">Par</p>
         <p className="hud-num mt-0.5 text-[2.45rem] leading-none text-white">{hole.par}</p>
         {isSnake ? (
           <p className="mt-1 text-[0.62rem] font-bold uppercase tracking-[0.14em] text-copper">
@@ -107,7 +120,11 @@ export function HoleStage({
           />
         </div>
       ) : (
-        <div className="absolute inset-0">
+        <div
+          className="absolute inset-0"
+          role="img"
+          aria-label={`${courseLabel ?? "Course"} hole ${hole.h}, 3D`}
+        >
           <HoleMap3D hole={hole} className="size-full" />
         </div>
       )}

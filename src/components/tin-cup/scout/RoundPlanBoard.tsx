@@ -177,6 +177,7 @@ export function RoundPlanBoard({
   canSaveDay,
   savingDay,
   signedIn,
+  pairingLine = null,
 }: {
   courseId: CourseId;
   hole: number;
@@ -194,6 +195,7 @@ export function RoundPlanBoard({
   canSaveDay: boolean;
   savingDay: boolean;
   signedIn: boolean;
+  pairingLine?: string | null;
 }) {
   const details = COURSE_DETAILS[courseId];
   const split = nineSplit(lines);
@@ -207,6 +209,7 @@ export function RoundPlanBoard({
           {details.dayLabel} · first tee {details.firstTee}
         </p>
         <h1 className="t-title mt-1.5 text-foreground">{COURSE_LABEL[courseId]} game plan</h1>
+        {pairingLine ? <p className="t-micro mt-1.5 text-foreground">{pairingLine}</p> : null}
         <p className="t-micro mt-1.5">
           {details.format}
           <span className="mx-1.5 text-white/20">·</span>

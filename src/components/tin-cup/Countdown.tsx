@@ -1,3 +1,4 @@
+import { formatCountdown } from "@/lib/countdown";
 import { useLiveCountdown } from "@/lib/use-live-countdown";
 
 export function Countdown({ compact = false }: { compact?: boolean }) {
@@ -42,11 +43,12 @@ export function Countdown({ compact = false }: { compact?: boolean }) {
   }
 
   return (
-    <section className="panel overflow-hidden">
+    <section className="panel overflow-hidden" aria-live="polite">
       <p className="t-eyebrow border-b border-border px-4 py-2.5 text-center">
         First tee · Friday 12:19 PM
       </p>
-      <div className="grid grid-cols-3 divide-x divide-border">
+      <p className="sr-only">{formatCountdown(time.remaining)}</p>
+      <div className="grid grid-cols-3 divide-x divide-border" aria-hidden>
         {cells.map((cell) => (
           <div key={cell.label} className="py-5 text-center">
             <div className="t-hero tabular-nums text-foreground">

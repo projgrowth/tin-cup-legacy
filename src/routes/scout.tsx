@@ -8,8 +8,9 @@ import { HoleStage, type MapMode } from "@/components/tin-cup/scout/HoleStage";
 import { PlanSheet, useScoutPlanEditor } from "@/components/tin-cup/scout/PlanSheet";
 import { RoundPlanBoard } from "@/components/tin-cup/scout/RoundPlanBoard";
 import { useAuth } from "@/hooks/useAuth";
-import { useHoleNotes, useRoundPlan, type HoleNoteDraft } from "@/hooks/useJournal";
+import { useHoleNotes, useProfile, useRoundPlan, type HoleNoteDraft } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
+import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { SNAKE_PIT as SNAKE_PIT_TIPS } from "@/lib/tin-cup";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import {
@@ -83,10 +84,12 @@ function ScoutPage() {
   const search = Route.useSearch();
   const { user, loading: authLoading } = useAuth();
   const { data: tournament } = useTournament();
+  const { profile } = useProfile();
   const [playGpsOn, setPlayGpsOn] = useState(false);
   const [mapMode, setMapMode] = useState<MapMode>("mock3d");
   const [cardMenu, setCardMenu] = useState(false);
   const [theaterMenu, setTheaterMenu] = useState(false);
+  const [courseMenu, setCourseMenu] = useState(false);
 
   useEffect(() => {
     try {
@@ -145,6 +148,14 @@ function ScoutPage() {
     courseId === "copperhead" ? SNAKE_PIT_TIPS.find((t) => t.hole === current.h) : undefined;
   const isSnake = courseId === "copperhead" && SNAKE_PIT.includes(current.h);
   const todayCourse = defaultCourseId();
+  const claimedName = profile?.player_id
+    ? tournament?.players.find((p) => p.id === profile.player_id)?.name
+    : null;
+  const fridayGroup = claimedName ? day1GroupForPlayer(claimedName) : null;
+  const pairingLine =
+    courseId === "south" && fridayGroup
+      ? `You’re with ${fridayGroup.partner.split(" ")[0]} · vs ${fridayGroup.opponents}`
+      : null;
 
   const contestByHole = useMemo(() => {
     const map = new Map<number, Array<"ctp" | "ld">>();
@@ -208,8 +219,6 @@ function ScoutPage() {
     "press flex size-11 items-center justify-center rounded-full border border-white/15 bg-black/45 text-white shadow-[0_8px_24px_-12px_oklch(0_0_0/80%)] backdrop-blur-md";
   const mapChip =
     "press chip min-h-10 border-white/15 bg-black/45 text-white backdrop-blur-md";
-  const nextCourse =
-    COURSE_ORDER[(COURSE_ORDER.indexOf(courseId) + 1) % COURSE_ORDER.length] ?? courseId;
 
   if (showMap) {
     return (
@@ -227,6 +236,8 @@ function ScoutPage() {
             mapMode={mapMode}
             onMapMode={persistMode}
             onSatFailed={() => setPlayGpsOn(false)}
+            holeCount={course.holes.length}
+            courseLabel={COURSE_LABEL[courseId]}
           />
 
           <div
@@ -274,16 +285,41 @@ function ScoutPage() {
             className="absolute right-3 z-40 flex flex-col items-end gap-1.5"
             style={{ top: "max(4.25rem, calc(env(safe-area-inset-top) + 3.5rem))" }}
           >
+            <div className="relative">
+              <button
+                type="button"
+                aria-label={`Course, ${COURSE_LABEL[courseId]}. Change course`}
+                aria-expanded={courseMenu}
+                onClick={() => setCourseMenu((v) => !v)}
+                className={mapChip}
+              >
+                {COURSE_LABEL[courseId]}
+                {courseId === todayCourse ? " · today" : ""}
+              </button>
+              {courseMenu && (
+                <div className="panel absolute right-0 mt-1 min-w-36 overflow-hidden py-1">
+                  {COURSE_ORDER.map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => {
+                        setCourseMenu(false);
+                        setSelection({ course: id, hole: 1 });
+                      }}
+                      className={`press flex min-h-11 w-full items-center px-3 text-left t-body ${
+                        id === courseId ? "font-semibold text-foreground" : "text-muted-foreground"
+                      }`}
+                    >
+                      {COURSE_LABEL[id]}
+                      {id === todayCourse ? " · today" : ""}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <button
               type="button"
-              onClick={() => setSelection({ course: nextCourse, hole: 1 })}
-              className={mapChip}
-            >
-              {COURSE_LABEL[courseId]}
-              {courseId === todayCourse ? " · today" : ""}
-            </button>
-            <button
-              type="button"
+              aria-pressed={mapMode === "sat"}
               onClick={() => {
                 if (mapMode === "sat") {
                   persistMode("mock3d");
@@ -442,6 +478,7 @@ function ScoutPage() {
           canSaveDay={!roundPlan.save.isPending && dayDraft !== roundPlan.plan}
           savingDay={roundPlan.save.isPending}
           signedIn={Boolean(user)}
+          pairingLine={pairingLine}
         />
       </div>
     </Shell>
