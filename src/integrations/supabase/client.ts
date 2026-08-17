@@ -55,7 +55,8 @@ function createSupabaseClient() {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      flowType: "pkce",
+      // Implicit so reset/magic links work in Mail / another browser (no PKCE verifier).
+      flowType: "implicit",
       storageKey: "tc-auth-v1",
     },
   });

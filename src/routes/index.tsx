@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { CinematicIntro } from "@/components/tin-cup/CinematicIntro";
@@ -13,6 +13,7 @@ import { getEventPhase, phaseMode } from "@/lib/event-phase";
 import { type BoardMode } from "@/lib/tin-cup";
 import { tallyStandings } from "@/lib/scoring";
 import { shouldPlayIntro } from "@/lib/intro";
+import { hasAuthCallbackParams, parseAuthCallbackParams } from "@/lib/auth-recovery";
 
 const MODES: Array<{ key: BoardMode; label: string }> = [
   { key: "pre", label: "Weekend" },
@@ -25,13 +26,35 @@ const PHASE_OVERRIDE_KEY = "tin-cup-phase-override-v1";
 type HomeSearch = {
   /** Clubhouse / TV large-type board */
   board?: boolean;
+  /** Auth callback — must survive canonicalization or reset/magic codes die. */
+  code?: string;
+  token_hash?: string;
+  type?: string;
 };
+
+function authCallbackSearch(raw: Record<string, unknown>): Pick<
+  HomeSearch,
+  "code" | "token_hash" | "type"
+> {
+  const text = (key: "code" | "token_hash" | "type") => {
+    const value = raw[key];
+    return typeof value === "string" && value.trim() ? value.trim() : undefined;
+  };
+  return {
+    ...(text("code") ? { code: text("code") } : {}),
+    ...(text("token_hash") ? { token_hash: text("token_hash") } : {}),
+    ...(text("type") ? { type: text("type") } : {}),
+  };
+}
 
 export const Route = createFileRoute("/")({
   validateSearch: (raw: Record<string, unknown>): HomeSearch => {
     const board = raw.board === true || raw.board === "1" || raw.board === 1;
     // Omit `board: false` — a canonical redirect would drop auth `code` / hash.
-    return board ? { board: true } : {};
+    return {
+      ...(board ? { board: true } : {}),
+      ...authCallbackSearch(raw),
+    };
   },
   head: () => ({
     links: [{ rel: "preload", as: "image", href: "/tin-cup-intro-poster.jpg" }],
@@ -54,10 +77,43 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { board: displayMode } = Route.useSearch();
+  const search = Route.useSearch();
+  const { board: displayMode } = search;
+  const navigate = useNavigate();
+  const { user, loading: authLoading, passwordRecovery, canScore, isAdmin } = useAuth();
   const [autoMode, setAutoMode] = useState<BoardMode>("pre");
   const [override, setOverride] = useState<BoardMode | null>(null);
   const [introDone, setIntroDone] = useState(true);
+
+  useEffect(() => {
+    const params = parseAuthCallbackParams(window.location.href);
+    if (!hasAuthCallbackParams(params)) return;
+    // Search callbacks can move immediately. Hash tokens (implicit reset) must be
+    // consumed on this URL first — a replace would drop #access_token.
+    if (params.code || params.tokenHash) {
+      void navigate({
+        to: "/profile",
+        search: {
+          ...(params.code ? { code: params.code } : {}),
+          ...(params.tokenHash ? { token_hash: params.tokenHash } : {}),
+          ...(params.type ? { type: params.type } : {}),
+        },
+        replace: true,
+      });
+      return;
+    }
+    if (params.type === "recovery" && !authLoading && (user || passwordRecovery)) {
+      void navigate({ to: "/profile", replace: true });
+    }
+  }, [
+    navigate,
+    search.code,
+    search.token_hash,
+    search.type,
+    authLoading,
+    user,
+    passwordRecovery,
+  ]);
 
   useEffect(() => {
     setAutoMode(phaseMode(getEventPhase()));
@@ -102,7 +158,6 @@ function Index() {
     failedWrites,
     retryFailedWrites,
   } = useTournament();
-  const { canScore, isAdmin, user } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
   const stale = isError && Boolean(data);
   const needsClaim = Boolean(user && !profileLoading && !profile?.player_id);

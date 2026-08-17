@@ -11,6 +11,14 @@ import type { Session, User } from "@supabase/supabase-js";
 
 import { supabase } from "@/integrations/supabase/client";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
+import {
+  clearRecoveryFlag,
+  consumeRecoverySession,
+  isRecoveryCallback,
+  parseAuthCallbackParams,
+  readRecoveryFlag,
+  writeRecoveryFlag,
+} from "@/lib/auth-recovery";
 
 export type AuthState = {
   session: Session | null;
@@ -21,6 +29,8 @@ export type AuthState = {
   rolesLoading: boolean;
   rolesError: string | null;
   passwordRecovery: boolean;
+  recoveryBusy: boolean;
+  recoveryError: string | null;
   clearPasswordRecovery: () => void;
   /** Re-fetch captain/admin roles (e.g. after an admin grant or /ops sync). */
   refreshRoles: () => Promise<void>;
@@ -91,9 +101,25 @@ function useAuthState(): AuthState {
   const [rolesLoading, setRolesLoading] = useState(true);
   const [rolesError, setRolesError] = useState<string | null>(null);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
+  const [recoveryBusy, setRecoveryBusy] = useState(false);
+  const [recoveryError, setRecoveryError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
+    const params =
+      typeof window !== "undefined" ? parseAuthCallbackParams(window.location.href) : {};
+    if (isRecoveryCallback(params) || readRecoveryFlag()) {
+      setPasswordRecovery(true);
+      writeRecoveryFlag();
+    }
+    if (params.tokenHash) {
+      setRecoveryBusy(true);
+      void consumeRecoverySession(supabase, params).then((result) => {
+        if (!mounted) return;
+        if (result.error) setRecoveryError(result.error);
+        setRecoveryBusy(false);
+      });
+    }
     void supabase.auth.getSession().then(({ data }) => {
       if (mounted) {
         setSession(data.session);
@@ -103,11 +129,17 @@ function useAuthState(): AuthState {
     const { data } = supabase.auth.onAuthStateChange((event, next) => {
       setSession(next);
       setLoading(false);
-      if (event === "PASSWORD_RECOVERY") setPasswordRecovery(true);
+      if (event === "PASSWORD_RECOVERY") {
+        setPasswordRecovery(true);
+        writeRecoveryFlag();
+      }
       if (event === "SIGNED_IN" && next?.user) {
         void import("@/lib/seat").then(({ writeSeat }) => writeSeat("account"));
       }
-      if (event === "SIGNED_OUT") setPasswordRecovery(false);
+      if (event === "SIGNED_OUT") {
+        setPasswordRecovery(false);
+        clearRecoveryFlag();
+      }
     });
     return () => {
       mounted = false;
@@ -167,7 +199,13 @@ function useAuthState(): AuthState {
     rolesLoading,
     rolesError,
     passwordRecovery,
-    clearPasswordRecovery: () => setPasswordRecovery(false),
+    recoveryBusy,
+    recoveryError,
+    clearPasswordRecovery: () => {
+      setPasswordRecovery(false);
+      setRecoveryError(null);
+      clearRecoveryFlag();
+    },
     refreshRoles,
   };
 }
@@ -187,6 +225,8 @@ const SIGNED_OUT: AuthState = {
   rolesLoading: true,
   rolesError: null,
   passwordRecovery: false,
+  recoveryBusy: false,
+  recoveryError: null,
   clearPasswordRecovery: () => {},
   refreshRoles: async () => {},
 };

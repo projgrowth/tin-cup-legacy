@@ -22,7 +22,26 @@ import { formatPayout } from "@/lib/purse";
 import { formatRecord, playerRecord } from "@/lib/scoring";
 import { teamRailClass } from "@/lib/team-styles";
 
+type ProfileSearch = {
+  code?: string;
+  token_hash?: string;
+  type?: string;
+};
+
+function authSearch(raw: Record<string, unknown>): ProfileSearch {
+  const text = (key: "code" | "token_hash" | "type") => {
+    const value = raw[key];
+    return typeof value === "string" && value.trim() ? value.trim() : undefined;
+  };
+  return {
+    ...(text("code") ? { code: text("code") } : {}),
+    ...(text("token_hash") ? { token_hash: text("token_hash") } : {}),
+    ...(text("type") ? { type: text("type") } : {}),
+  };
+}
+
 export const Route = createFileRoute("/profile")({
+  validateSearch: (raw: Record<string, unknown>): ProfileSearch => authSearch(raw),
   head: () => ({
     meta: [
       { title: "Account — Tin Cup Invitational" },
@@ -53,6 +72,8 @@ function ProfilePage() {
     rolesLoading,
     refreshRoles,
     passwordRecovery,
+    recoveryBusy,
+    recoveryError,
     clearPasswordRecovery,
   } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
@@ -86,6 +107,30 @@ function ProfilePage() {
           </button>
         </div>
       )}
+      {passwordRecovery && user && <SetNewPassword onDone={clearPasswordRecovery} />}
+      {passwordRecovery && !user && recoveryBusy && (
+        <div className="panel mb-4 p-4">
+          <p className="t-title text-foreground">Opening your reset link…</p>
+          <p className="t-micro mt-1.5 text-muted-foreground">Set a new password in a moment.</p>
+        </div>
+      )}
+      {recoveryError && (
+        <div role="alert" className="panel mb-4 p-4">
+          <p className="t-title text-foreground">That reset link didn&apos;t work</p>
+          <p className="t-micro mt-1.5 text-muted-foreground">
+            {recoveryError} Request a new one below, then tap it in this browser.
+          </p>
+        </div>
+      )}
+      {passwordRecovery && !user && !recoveryBusy && !recoveryError && (
+        <div role="status" className="panel mb-4 p-4">
+          <p className="t-title text-foreground">Request a new reset</p>
+          <p className="t-micro mt-1.5 text-muted-foreground">
+            This link couldn&apos;t be opened here. Use Forgot password below, then tap the email
+            link in this same browser.
+          </p>
+        </div>
+      )}
       {loading || (user && profileLoading && !profile) ? (
         <LoadingForm fields={3} />
       ) : !user ? (
@@ -94,9 +139,6 @@ function ProfilePage() {
         </div>
       ) : (
         <div className="stack-page">
-          {passwordRecovery && (
-            <SetNewPassword onDone={clearPasswordRecovery} />
-          )}
           {claimedPlayer && claimedTeam ? (
             <MyHubCard
               player={claimedPlayer}

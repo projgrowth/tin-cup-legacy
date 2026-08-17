@@ -136,7 +136,7 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
       const { error } = await supabase.auth.resetPasswordForEmail(trimmed, { redirectTo });
       if (error) throw error;
       setSentTo(trimmed);
-      toast.success("Password reset email sent (if that account exists).");
+      toast.success("Reset email sent. Open it on this phone and tap Reset password.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Could not send reset email";
       if (isRateLimited(message)) {
@@ -167,7 +167,9 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
             Check {sentTo}
           </p>
           <p className="t-micro mt-1.5 text-muted-foreground">
-            Open the email on this phone. Spam if it&apos;s not there in a minute.
+            {mode === "magic"
+              ? "Open the email on this phone. Spam if it isn't there in a minute."
+              : "Open it on this phone and tap Reset password. Then set a new one. Check spam if it isn't there in a minute."}
           </p>
         </div>
       )}
