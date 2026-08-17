@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { AvatarPair } from "@/components/tin-cup/Avatar";
 import { Countdown } from "@/components/tin-cup/Countdown";
 import { LiveWireTicker } from "@/components/tin-cup/LiveWireTicker";
-import { PhotoVault } from "@/components/tin-cup/PhotoVault";
 
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { BUY_IN, VENMO_IS_PLACEHOLDER, venmoUrl } from "@/lib/tin-cup";
@@ -16,7 +15,7 @@ export function PreTournamentPanel({
   matches = [],
   players = [],
   teams = [],
-  canUpload = false,
+  canUpload: _canUpload = false,
   signedIn = false,
   claimedName = null,
   needsClaim = false,
@@ -30,7 +29,6 @@ export function PreTournamentPanel({
   claimedName?: string | null;
   needsClaim?: boolean;
 }) {
-  const firstName = claimedName?.trim().split(/\s+/)[0] ?? null;
   const isClaimed = signedIn && Boolean(claimedName) && !needsClaim;
   const myDay1 = claimedName ? day1GroupForPlayer(claimedName) : null;
   const avatars = usePlayerAvatars(players, teams);
@@ -57,27 +55,7 @@ export function PreTournamentPanel({
 
   return (
     <div className="stack-page pb-2">
-      {isClaimed && firstName ? (
-        <p className="t-micro text-center text-muted-foreground">Hey {firstName}</p>
-      ) : null}
-
-      <section className="relative -mx-4 overflow-hidden sm:-mx-5">
-        <img
-          src="/tin-cup-intro-poster.jpg"
-          alt=""
-          className="absolute inset-0 size-full object-cover object-[50%_28%]"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-gradient-to-t from-[oklch(0.11_0.02_165)] via-[oklch(0.11_0.02_165/50%)] to-[oklch(0.08_0.02_165/15%)]"
-        />
-        <div className="relative flex h-[200px] flex-col justify-end px-5 pb-4 sm:h-[220px]">
-          <Countdown cover />
-          <p className="mt-2 text-center t-micro text-white/70">
-            {COURSE_LABEL[nextCourseId]} · Innisbrook
-          </p>
-        </div>
-      </section>
+      <Countdown />
 
       <div className="stack-tight">
         {cta}
@@ -136,8 +114,6 @@ export function PreTournamentPanel({
         limit={3}
         toastEnabled={false}
       />
-
-      <PhotoVault canUpload={canUpload} variant="pulse" hideWhenEmpty />
     </div>
   );
 }

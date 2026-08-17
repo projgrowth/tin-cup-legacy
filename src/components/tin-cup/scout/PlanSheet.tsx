@@ -106,7 +106,7 @@ export function PlanSheet({
     >
       {overlay ? <span aria-hidden className="mb-2 h-1 w-8 rounded-full bg-white/30" /> : null}
       <span className="text-sm font-semibold tracking-tight text-white">
-        H{hole} · Plan
+        H{hole} · {filled ? "Plan" : "Add plan"}
         {pitLabel ? <span className="text-copper"> · {pitLabel}</span> : null}
       </span>
       {!overlay && (

@@ -206,6 +206,10 @@ function ScoutPage() {
 
   const orb =
     "press flex size-11 items-center justify-center rounded-full border border-white/15 bg-black/45 text-white shadow-[0_8px_24px_-12px_oklch(0_0_0/80%)] backdrop-blur-md";
+  const mapChip =
+    "press chip min-h-10 border-white/15 bg-black/45 text-white backdrop-blur-md";
+  const nextCourse =
+    COURSE_ORDER[(COURSE_ORDER.indexOf(courseId) + 1) % COURSE_ORDER.length] ?? courseId;
 
   if (showMap) {
     return (
@@ -225,87 +229,85 @@ function ScoutPage() {
             onSatFailed={() => setPlayGpsOn(false)}
           />
 
-          <Link
-            to="/scout"
-            search={{ course: courseId, hole, card: true }}
-            replace
-            aria-label="Card"
-            className={`${orb} absolute left-3 z-40`}
+          <div
+            className="absolute inset-x-3 z-40 flex items-start justify-between gap-2"
             style={{ top: "max(0.75rem, env(safe-area-inset-top))" }}
           >
-            <ChevronLeft className="size-5" />
-          </Link>
+            <Link
+              to="/scout"
+              search={{ course: courseId, hole, card: true }}
+              replace
+              className="press chip min-h-11 gap-1 border-white/15 bg-black/45 px-3 text-white backdrop-blur-md"
+            >
+              <ChevronLeft className="size-4" />
+              Card
+            </Link>
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setTheaterMenu((v) => !v)}
+                aria-label="Plan actions"
+                aria-expanded={theaterMenu}
+                className={orb}
+              >
+                <MoreHorizontal className="size-4" />
+              </button>
+              {theaterMenu && (
+                <div className="panel absolute right-0 mt-2 min-w-36 overflow-hidden py-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTheaterMenu(false);
+                      void onSharePlan();
+                    }}
+                    className="press flex min-h-11 w-full items-center gap-2 px-3 text-left t-body"
+                  >
+                    <Share2 className="size-4 text-muted-foreground" />
+                    Share
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
 
           <div
-            className="absolute right-3 z-40"
-            style={{ top: "max(0.75rem, env(safe-area-inset-top))" }}
+            className="absolute right-3 z-40 flex flex-col items-end gap-1.5"
+            style={{ top: "max(4.25rem, calc(env(safe-area-inset-top) + 3.5rem))" }}
           >
             <button
               type="button"
-              onClick={() => setTheaterMenu((v) => !v)}
-              aria-label="Plan actions"
-              aria-expanded={theaterMenu}
-              className={orb}
+              onClick={() => setSelection({ course: nextCourse, hole: 1 })}
+              className={mapChip}
             >
-              <MoreHorizontal className="size-4" />
+              {COURSE_LABEL[courseId]}
+              {courseId === todayCourse ? " · today" : ""}
             </button>
-            {theaterMenu && (
-              <div className="panel absolute right-0 mt-2 min-w-44 overflow-hidden py-1">
-                {COURSE_ORDER.map((id) => (
-                  <Link
-                    key={id}
-                    to="/scout"
-                    replace
-                    search={{ course: id, hole: 1 }}
-                    onClick={() => setTheaterMenu(false)}
-                    className={`press flex min-h-11 items-center px-3 t-body ${
-                      id === courseId ? "font-semibold text-foreground" : "text-muted-foreground"
-                    }`}
-                  >
-                    {COURSE_LABEL[id]}
-                    {id === todayCourse ? " · today" : ""}
-                  </Link>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const next = !playGpsOn;
-                    setPlayGpsOn(next);
-                    if (next) persistMode("sat");
-                    setTheaterMenu(false);
-                  }}
-                  className="press flex min-h-11 w-full items-center border-t border-border px-3 text-left t-body"
-                >
-                  {playGpsOn ? "Exit Play GPS" : "Play GPS"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (mapMode === "sat") {
-                      persistMode("mock3d");
-                      setPlayGpsOn(false);
-                    } else {
-                      persistMode("sat");
-                    }
-                    setTheaterMenu(false);
-                  }}
-                  className="press flex min-h-11 w-full items-center px-3 text-left t-body"
-                >
-                  {mapMode === "sat" ? "3D mockup" : "Satellite"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTheaterMenu(false);
-                    void onSharePlan();
-                  }}
-                  className="press flex min-h-11 w-full items-center gap-2 px-3 text-left t-body"
-                >
-                  <Share2 className="size-4 text-muted-foreground" />
-                  Share
-                </button>
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={() => {
+                if (mapMode === "sat") {
+                  persistMode("mock3d");
+                  setPlayGpsOn(false);
+                } else {
+                  persistMode("sat");
+                }
+              }}
+              className={`${mapChip} ${mapMode === "sat" ? "chip-on" : ""}`}
+            >
+              {mapMode === "sat" ? "Sat" : "3D"}
+            </button>
+            <button
+              type="button"
+              aria-pressed={playGpsOn}
+              onClick={() => {
+                const next = !playGpsOn;
+                setPlayGpsOn(next);
+                if (next) persistMode("sat");
+              }}
+              className={`${mapChip} ${playGpsOn ? "chip-on" : ""}`}
+            >
+              GPS
+            </button>
           </div>
 
           {!authLoading && (
@@ -340,7 +342,7 @@ function ScoutPage() {
             to="/scout"
             search={{ course: courseId, hole }}
             replace
-            className="press flex min-h-11 shrink-0 items-center gap-1 rounded-xl border border-gold/35 bg-gold/15 px-2.5 text-sm font-semibold text-gold-light"
+            className="press btn-quiet min-h-11 shrink-0 px-2.5 text-sm"
           >
             Hole
           </Link>
