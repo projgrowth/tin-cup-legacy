@@ -7,7 +7,7 @@ import { Camera, ChevronRight, Loader2 } from "lucide-react";
 import { AuthCard } from "@/components/tin-cup/AuthCard";
 import { Avatar } from "@/components/tin-cup/Avatar";
 import { PhotoPicker } from "@/components/tin-cup/PhotoPicker";
-import { LoadingForm, PageHeading, Shell } from "@/components/tin-cup/Shell";
+import { LoadingForm, Shell } from "@/components/tin-cup/Shell";
 import { WhatsAppGroupButton } from "@/components/tin-cup/WhatsAppLinks";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
@@ -67,8 +67,11 @@ function ProfilePage() {
   }, [claimedPlayer, tournament?.teams]);
   return (
     <Shell>
-      {!(user && claimedPlayer) && (
-        <PageHeading eyebrow="Account" title={user ? "Claim your name" : "Sign in"} />
+      {user && !claimedPlayer && (
+        <header className="mb-5">
+          <p className="t-eyebrow">Account</p>
+          <h1 className="t-title mt-1.5 text-foreground">Claim your name</h1>
+        </header>
       )}
       {user && rolesError && (
         <div role="alert" className="panel mb-4 flex items-center justify-between gap-3 p-4">

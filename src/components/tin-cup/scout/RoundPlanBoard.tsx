@@ -206,7 +206,7 @@ export function RoundPlanBoard({
         <p className="t-eyebrow">
           {details.dayLabel} · first tee {details.firstTee}
         </p>
-        <h1 className="t-display mt-1.5 text-foreground">{COURSE_LABEL[courseId]} game plan</h1>
+        <h1 className="t-title mt-1.5 text-foreground">{COURSE_LABEL[courseId]} game plan</h1>
         <p className="t-micro mt-1.5">
           {details.format}
           <span className="mx-1.5 text-white/20">·</span>

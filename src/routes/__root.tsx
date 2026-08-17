@@ -20,7 +20,7 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="panel fade-up w-full max-w-md px-6 py-10 text-center">
         <p className="t-eyebrow">404</p>
-        <h1 className="t-display mt-2 text-foreground">Page not found</h1>
+        <h1 className="t-title mt-2 text-foreground">Page not found</h1>
         <p className="t-body mt-2 text-muted-foreground">
           That link doesn&apos;t match anything in the weekend hub.
         </p>
@@ -108,7 +108,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap",
       },
       {
         rel: "stylesheet",

@@ -128,7 +128,7 @@ function SchedulePage() {
           <div className="flex items-start justify-between gap-3 p-4">
             <div className="min-w-0">
               <p className="t-eyebrow">Today</p>
-              <h1 className="t-display mt-1.5 text-foreground">
+              <h1 className="t-title mt-1.5 text-foreground">
                 {todayDetails.dayLabel} · {COURSE_LABEL[todayCourseId]}
               </h1>
               <p className="t-micro mt-1 text-muted-foreground">

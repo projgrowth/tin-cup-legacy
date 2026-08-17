@@ -53,7 +53,7 @@ export function Countdown({
     return (
       <section className="text-center">
         <p className="t-eyebrow text-white/70">First tee · Friday 12:19 PM</p>
-        <div className="mt-5 grid grid-cols-3 gap-2">
+        <div className="mt-3 grid grid-cols-3 gap-2">
           {cells.map((cell) => (
             <div key={cell.label}>
               <div className="t-hero text-white">{String(cell.value).padStart(2, "0")}</div>

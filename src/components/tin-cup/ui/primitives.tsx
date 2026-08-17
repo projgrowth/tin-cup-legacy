@@ -16,7 +16,7 @@ export function PageHeader({
     <header className="mb-4 flex items-start justify-between gap-3">
       <div className="min-w-0">
         {eyebrow ? <p className="t-eyebrow mb-1">{eyebrow}</p> : null}
-        <h1 className="t-display text-foreground">{title}</h1>
+        <h1 className="t-title text-foreground">{title}</h1>
         {meta ? <div className="t-micro mt-1.5 text-muted-foreground">{meta}</div> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}

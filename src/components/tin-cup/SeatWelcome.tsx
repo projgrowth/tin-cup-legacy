@@ -40,7 +40,7 @@ export function SeatWelcome() {
       <div className="panel w-full max-w-md space-y-4 p-5 shadow-[0_24px_80px_-24px_oklch(0_0_0/70%)]">
         <div>
           <p className="t-eyebrow">Tin Cup 2026</p>
-          <h2 className="t-display mt-2 text-foreground">Welcome to the weekend</h2>
+          <h2 className="t-title mt-2 text-foreground">Welcome to the weekend</h2>
           <p className="t-body mt-2 text-muted-foreground">
             Sign in if you&apos;re playing — or just look around.
           </p>

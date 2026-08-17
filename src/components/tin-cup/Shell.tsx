@@ -303,7 +303,7 @@ export function PageHeading({
   return (
     <header className="mb-5 sm:mb-6">
       <p className="t-eyebrow">{eyebrow}</p>
-      <h1 className="t-display mt-1.5 text-foreground">{title}</h1>
+      <h1 className="t-title mt-1.5 text-foreground">{title}</h1>
       {meta ? <div className="t-micro mt-1.5 text-muted-foreground">{meta}</div> : null}
     </header>
   );

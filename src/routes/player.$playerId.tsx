@@ -122,7 +122,7 @@ function PlayerPage() {
           />
           <div className="min-w-0 flex-1">
             <p className="t-eyebrow">{team.name}</p>
-            <h1 className="t-display mt-1 text-foreground">{player.name}</h1>
+            <h1 className="t-title mt-1 text-foreground">{player.name}</h1>
             <div className="mt-2 flex flex-wrap gap-2">
               {player.is_captain && (
                 <span className="pill border-border text-muted-foreground">Captain</span>

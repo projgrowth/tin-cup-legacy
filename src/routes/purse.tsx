@@ -51,7 +51,7 @@ function PursePage() {
         <section className="panel space-y-4 p-5">
           <div>
             <p className="t-eyebrow">Buy-in</p>
-            <h1 className="t-display mt-1.5 text-foreground">Pay ${BUY_IN}</h1>
+            <h1 className="t-title mt-1.5 text-foreground">Pay ${BUY_IN}</h1>
             <p className="t-micro mt-1.5 text-muted-foreground">
               @{VENMO_HANDLE} · {TOURNAMENT_BANK}
             </p>
@@ -79,11 +79,11 @@ function PursePage() {
         <section className="grid grid-cols-2 gap-3">
           <div className="surface-inset p-4">
             <p className="t-micro text-muted-foreground">Team win</p>
-            <p className="t-display mt-1.5 text-foreground">${cup.winnerPayout}</p>
+            <p className="t-hero mt-1.5 text-foreground">${cup.winnerPayout}</p>
           </div>
           <div className="surface-inset p-4">
             <p className="t-micro text-muted-foreground">Side cash</p>
-            <p className="t-display mt-1.5 text-foreground">${cash.pool}</p>
+            <p className="t-hero mt-1.5 text-foreground">${cash.pool}</p>
             {hasTbdPayouts && <p className="t-micro mt-1 text-muted-foreground">Holes TBD</p>}
           </div>
         </section>

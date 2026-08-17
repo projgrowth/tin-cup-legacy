@@ -100,7 +100,7 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
         } else {
           setSentTo(trimmed);
           setMode("password-in");
-          toast.success("Account created — confirm the email, then sign in.");
+          toast.success("Account created — check your email or just sign in.");
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: trimmed, password });
