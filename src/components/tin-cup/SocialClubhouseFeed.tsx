@@ -276,6 +276,7 @@ export function SocialClubhouseFeed({
         )}
       </div>
 
+      {story.clubhouseEnabled && (
       <div className="feed-composer surface-raised p-3 sm:p-4">
         <div className="flex gap-3">
           <Avatar
@@ -388,8 +389,9 @@ export function SocialClubhouseFeed({
           </div>
         </div>
       </div>
+      )}
 
-      {canModerate && (
+      {canModerate && story.clubhouseEnabled && (
         <details className="surface-inset overflow-hidden">
           <summary className="press flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
             <span className="flex items-center gap-2">
@@ -483,7 +485,7 @@ export function SocialClubhouseFeed({
       </div>
 
       <div className={compact ? "space-y-2" : "space-y-3"}>
-        {showClubhouse && (
+        {showClubhouse && story.clubhouseEnabled && (
           <ClubhouseEngagement
             userId={user?.id}
             playerId={profile?.player_id}
@@ -919,8 +921,14 @@ export function SocialClubhouseFeed({
 
       {story.clubhousePosts.length === 0 && moments.length === 0 && (
         <div className="px-1 py-10 text-center">
-          <p className="t-title text-foreground">The clubhouse is ready</p>
-          <p className="t-micro mt-1">Post the first update, photo, prediction, or result.</p>
+          <p className="t-title text-foreground">
+            {story.clubhouseEnabled ? "The clubhouse is ready" : "Results land here"}
+          </p>
+          <p className="t-micro mt-1">
+            {story.clubhouseEnabled
+              ? "Post the first update, photo, prediction, or result."
+              : "Photos and official scores will show up as the weekend starts."}
+          </p>
         </div>
       )}
       {matchSocial.unavailable && (

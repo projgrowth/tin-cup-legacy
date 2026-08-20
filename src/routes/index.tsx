@@ -254,6 +254,13 @@ function Index() {
         </div>
       );
     }
+    if (isError && !data) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-background px-4">
+          <BoardError onRetry={() => void refetch()} busy={isFetching} />
+        </div>
+      );
+    }
     return (
       <DisplayBoard
         rounds={data?.rounds ?? []}
@@ -316,6 +323,8 @@ function Index() {
             {mode === "live" &&
               (isPending && !data ? (
                 <BoardSkeleton />
+              ) : isError && !data ? (
+                <BoardError onRetry={() => void refetch()} busy={isFetching} />
               ) : (
                 <LivePanel
                   variant="hero"
@@ -368,6 +377,9 @@ function Index() {
                 claimedName={claimedPlayer?.name ?? null}
                 needsClaim={needsClaim}
               />
+            )}
+            {mode === "live" && isError && !data && (
+              <BoardError onRetry={() => void refetch()} busy={isFetching} />
             )}
             {mode === "live" && data && (
                 <LivePanel

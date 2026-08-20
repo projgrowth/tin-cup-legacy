@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Mail } from "lucide-react";
 
@@ -21,8 +22,20 @@ type Mode = "password-in" | "password-up" | "magic";
 /**
  * Password first — reliable on a phone when magic-link email is rate-limited.
  */
+function pathAfterAuth(redirectPath: string) {
+  if (
+    redirectPath.startsWith("/ops") ||
+    redirectPath.startsWith("/captain") ||
+    redirectPath.startsWith("/admin")
+  ) {
+    return redirectPath.split("?")[0] || "/";
+  }
+  return "/";
+}
+
 export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
   const formId = useId();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<Mode>("password-in");
@@ -31,6 +44,14 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
 
   const redirectTo =
     typeof window !== "undefined" ? `${window.location.origin}${redirectPath}` : redirectPath;
+
+  function goAfterAuth() {
+    const next = pathAfterAuth(redirectPath);
+    if (next === "/ops") void navigate({ to: "/ops" });
+    else if (next === "/captain") void navigate({ to: "/captain" });
+    else if (next === "/admin") void navigate({ to: "/admin" });
+    else void navigate({ to: "/" });
+  }
 
   function validEmail(value: string) {
     return value.includes("@") && value.includes(".");
@@ -95,7 +116,8 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
           toast.message("That email already has an account — sign in.");
         } else if (data.session) {
           writeSeat("account");
-          toast.success("You're in. Claim your roster name next.");
+          toast.success("You're in");
+          goAfterAuth();
         } else {
           setSentTo(trimmed);
           setMode("password-in");
@@ -106,6 +128,7 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
         if (error) throw error;
         writeSeat("account");
         toast.success("Signed in");
+        goAfterAuth();
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Authentication failed";
