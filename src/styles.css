@@ -865,6 +865,19 @@ html[data-appearance="team"][data-team="grass-roots"] {
   --ring: oklch(0.66 0.09 55 / 55%);
 }
 
+@keyframes tc-match-flash {
+  0% {
+    box-shadow: 0 0 0 0 oklch(0.82 0.12 85 / 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 0.7rem oklch(0.82 0.12 85 / 0);
+  }
+}
+
+.match-just-updated {
+  animation: tc-match-flash 1.1s ease-out 2;
+}
+
 @keyframes tc-fade-up {
   from {
     opacity: 0;
@@ -889,6 +902,9 @@ html[data-appearance="team"][data-team="grass-roots"] {
     animation: none;
   }
   .deep-link-target {
+    animation: none;
+  }
+  .match-just-updated {
     animation: none;
   }
 }

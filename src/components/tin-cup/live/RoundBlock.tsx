@@ -33,6 +33,7 @@ export function RoundBlock({
   canScore = false,
   pendingOnly = false,
   claimedName = null,
+  flashedMatchIds = [],
 }: {
   round: Round;
   matches: Match[];
@@ -41,6 +42,7 @@ export function RoundBlock({
   canScore?: boolean;
   pendingOnly?: boolean;
   claimedName?: string | null;
+  flashedMatchIds?: string[];
 }) {
   const status = roundStatus(round);
   const rows = matches.filter(
@@ -97,15 +99,18 @@ export function RoundBlock({
                   Boolean(claimedName) && playerInMatch(match, claimedName!);
                 const format = matchFormatChip(match.label);
                 const liveOpen = status === "live" && match.result === "pending";
+                const justUpdated = flashedMatchIds.includes(match.id);
                 return (
                   <li
                     key={match.id}
                     className={`rounded-xl border px-3 py-3 ${
-                      mine
-                        ? "border-gold/35 bg-gold/8"
-                        : liveOpen
-                          ? "border-[var(--hud-border)] bg-[var(--hud-bg)]"
-                          : "border-border/70 bg-background/40"
+                      justUpdated
+                        ? "match-just-updated border-gold/50 bg-gold/12"
+                        : mine
+                          ? "border-gold/35 bg-gold/8"
+                          : liveOpen
+                            ? "border-[var(--hud-border)] bg-[var(--hud-bg)]"
+                            : "border-border/70 bg-background/40"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">

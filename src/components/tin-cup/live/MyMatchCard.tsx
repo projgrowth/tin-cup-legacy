@@ -226,15 +226,13 @@ export function MyMatchCard({
           Plan {COURSE_LABEL[planCourse]} →
         </Link>
         {canScore && featured.kind === "match" && !decided ? (
-          <button
-            type="button"
+          <Link
+            to="/"
+            search={{ score: true, match: featured.match.id }}
             className="press t-micro font-semibold text-gold-light"
-            onClick={() =>
-              (document.querySelector("[aria-label='Captain score input']") as HTMLButtonElement | null)?.click()
-            }
           >
             Post result
-          </button>
+          </Link>
         ) : null}
         <Link
           to="/profile"

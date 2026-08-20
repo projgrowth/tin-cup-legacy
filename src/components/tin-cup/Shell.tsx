@@ -1,5 +1,4 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { AlertTriangle, CloudOff } from "lucide-react";
 
@@ -7,6 +6,7 @@ import { BottomNav } from "./BottomNav";
 import { SeatWelcome } from "./SeatWelcome";
 import { Avatar } from "./Avatar";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useJournal";
 import {
   usePendingWrites,
   useFailedWrites,
@@ -14,7 +14,6 @@ import {
   useTournament,
 } from "@/hooks/useTournament";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
-import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { tallyStandings } from "@/lib/scoring";
 import { retryFailed } from "@/lib/write-queue";
 import { playerInitials } from "@/lib/team-styles";
@@ -31,6 +30,7 @@ export function Shell({
   variant?: ShellVariant;
 }) {
   const { user, canScore, isAdmin } = useAuth();
+  const { profile } = useProfile();
   const { data: tournament, isError: tournamentError, isFetching } = useTournament();
   const pending = usePendingWrites();
   const failed = useFailedWrites();
@@ -38,22 +38,7 @@ export function Shell({
   const [online, setOnline] = useState(true);
   const [preview, setPreview] = useState(() => isPreviewMode());
   const staleBoard = tournamentError && Boolean(tournament);
-
-  const { data: myPlayerId } = useQuery({
-    queryKey: ["my-player", user?.id],
-    enabled: Boolean(user),
-    queryFn: async () => {
-      const res = await graphqlRequest<
-        { profiles_by_pk: { player_id: string | null } | null },
-        { id: string }
-      >(`query MyRosterSpot($id: uuid!) { profiles_by_pk(id: $id) { player_id } }`, {
-        id: user!.id,
-      });
-      return res.profiles_by_pk?.player_id ?? null;
-    },
-  });
-
-  const claimed = tournament?.players.find((p) => p.id === myPlayerId);
+  const claimed = tournament?.players.find((p) => p.id === profile?.player_id);
   const claimedTeam = claimed ? tournament?.teams.find((t) => t.id === claimed.team_id) : undefined;
   const avatars = usePlayerAvatars(tournament?.players ?? [], tournament?.teams ?? []);
   const face = claimed ? avatars.data?.byPlayerId.get(claimed.id) : undefined;
@@ -113,7 +98,7 @@ export function Shell({
       </a>
       <header
         className={`sticky top-0 z-30 ${
-          immersive ? "bg-background/55 backdrop-blur-xl" : "bg-background/80 backdrop-blur-md"
+          immersive ? "bg-background/90" : "bg-background"
         }`}
       >
         <div
@@ -145,7 +130,9 @@ export function Shell({
           </Link>
           <Link
             to="/profile"
-            aria-label={user ? (claimed ? "Your hub" : "Claim your roster name") : "Sign in"}
+            aria-label={
+              user ? (claimed || profile?.player_id ? "Your hub" : "Claim your roster name") : "Sign in"
+            }
             className="press relative shrink-0"
           >
             {claimed ? (
@@ -161,7 +148,7 @@ export function Shell({
                 {user ? playerInitials(user.email?.split("@")[0] || "P") : "?"}
               </span>
             )}
-            {user && !claimed && (
+            {user && !claimed && !profile?.player_id && (
               <span
                 aria-label="Claim your name"
                 className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border border-background bg-gold"

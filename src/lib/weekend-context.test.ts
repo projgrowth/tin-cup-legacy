@@ -29,6 +29,19 @@ const match = {
 };
 
 describe("buildWeekendContext", () => {
+  it("does not ask a claimed player to claim while identity is loading", () => {
+    expect(
+      buildWeekendContext({
+        phase: "pre",
+        signedIn: true,
+        identityPending: true,
+        rounds: [],
+        matches: [],
+        canScore: false,
+      }).nextAction.kind,
+    ).toBe("loading-identity");
+  });
+
   it("sends guests and unclaimed accounts through onboarding", () => {
     expect(
       buildWeekendContext({

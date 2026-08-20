@@ -6,6 +6,9 @@ import type { WeekendContext } from "@/lib/weekend-context";
 function ActionLink({ context }: { context: WeekendContext }) {
   const action = context.nextAction;
   const className = "press btn-gold t-body flex min-h-11 w-full items-center justify-center sm:min-w-48";
+  if (action.kind === "loading-identity") {
+    return <p className="t-micro text-muted-foreground">{action.label}</p>;
+  }
   if (action.kind === "sign-in" || action.kind === "claim-player") {
     return (
       <Link to="/profile" className={className}>
@@ -53,7 +56,9 @@ export function WeekendCommandCenter({ context }: { context: WeekendContext }) {
   const title = !context.player
     ? context.nextAction.kind === "claim-player"
       ? "Claim your roster name to post"
-      : "Sign in to join the Clubhouse"
+      : context.nextAction.kind === "loading-identity"
+        ? "Finding your roster spot"
+        : "Sign in to join the Clubhouse"
     : context.nextRound
       ? `${context.nextRound.day_label} · ${context.nextRound.course}`
       : `${context.player.name.split(" ")[0]}'s weekend`;

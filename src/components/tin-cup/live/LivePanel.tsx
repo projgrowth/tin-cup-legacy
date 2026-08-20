@@ -39,6 +39,7 @@ export function LivePanel({
   initialOpenOnly = false,
   claimedName = null,
   variant = "full",
+  flashedMatchIds = [],
 }: {
   rounds: Round[];
   matches: Match[];
@@ -55,6 +56,7 @@ export function LivePanel({
   initialOpenOnly?: boolean;
   claimedName?: string | null;
   variant?: "full" | "hero" | "board";
+  flashedMatchIds?: string[];
 }) {
   const ctp = sideBets.filter((b) => isCtp(b.kind));
   const ld = sideBets.filter((b) => isLongDrive(b.kind));
@@ -88,6 +90,15 @@ export function LivePanel({
           players={players}
           teams={teams}
           canScore={canScore}
+        />
+      )}
+      {variant === "hero" && (
+        <StatusLine
+          syncedAt={syncedAt}
+          pendingWrites={pendingWrites}
+          failedWrites={failedWrites}
+          onRetryFailed={onRetryFailed}
+          stale={stale}
         />
       )}
     </>
@@ -129,6 +140,7 @@ export function LivePanel({
             canScore={canScore}
             pendingOnly={needsResultOnly}
             claimedName={claimedName}
+            flashedMatchIds={flashedMatchIds}
           />
         ))}
       </section>

@@ -126,6 +126,9 @@ function useAuthState(): AuthState {
         setLoading(false);
       }
     });
+    const watchdog = window.setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 4000);
     const { data } = supabase.auth.onAuthStateChange((event, next) => {
       setSession(next);
       setLoading(false);
@@ -153,6 +156,7 @@ function useAuthState(): AuthState {
     document.addEventListener("visibilitychange", wake);
     return () => {
       mounted = false;
+      window.clearTimeout(watchdog);
       data.subscription.unsubscribe();
       window.removeEventListener("focus", wake);
       document.removeEventListener("visibilitychange", wake);

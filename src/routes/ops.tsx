@@ -133,7 +133,7 @@ function Row({
 
 function OpsPage() {
   const { user, loading, canScore, isAdmin, rolesError, refreshRoles } = useAuth();
-  const { data, isError, pendingWrites, failedWrites, conflicts } = useTournament();
+  const { data, isError, pendingWrites, failedWrites, conflicts, realtimeStatus } = useTournament();
   const syncCaptain = useServerFn(syncMyCaptainAccess);
   const [online, setOnline] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -396,6 +396,16 @@ function OpsPage() {
                   platform.pushConfigured
                     ? "Public VAPID key configured"
                     : "Push remains disabled until VAPID activation"
+                }
+              />
+              <Row
+                done={realtimeStatus === "ok"}
+                critical
+                label="Live scoring socket"
+                detail={
+                  realtimeStatus === "ok"
+                    ? "Realtime on matches / side cash / trophies"
+                    : "Socket not subscribed — phones will poll until it reconnects"
                 }
               />
               <Row

@@ -6,6 +6,7 @@ import { playerInMatch, roundStatus } from "@/lib/scoring";
 export type WeekendActionKind =
   | "sign-in"
   | "claim-player"
+  | "loading-identity"
   | "finish-plan"
   | "view-pairing"
   | "follow-match"
@@ -39,6 +40,7 @@ function teammateAndOpponents(match: Match, playerName: string) {
 export function buildWeekendContext(input: {
   phase: BoardMode;
   signedIn: boolean;
+  identityPending?: boolean;
   player?: Player | null;
   rounds: Round[];
   matches: Match[];
@@ -76,6 +78,8 @@ export function buildWeekendContext(input: {
   let nextAction: WeekendContext["nextAction"];
   if (!input.signedIn) {
     nextAction = { kind: "sign-in", label: "Sign in · claim your spot", href: "/profile" };
+  } else if (input.identityPending) {
+    nextAction = { kind: "loading-identity", label: "Loading your weekend…", href: "/" };
   } else if (!player) {
     nextAction = { kind: "claim-player", label: "Claim your roster name", href: "/profile" };
   } else if (input.phase === "post") {

@@ -1,5 +1,6 @@
 import { supabase } from "./client";
 import type { Database } from "./types";
+import { isMissingColumnError } from "@/lib/profile-identity";
 import { assertMutationAllowed } from "@/lib/runtime-mode";
 
 export type SupabaseDataError = Error & { code?: string };
@@ -67,17 +68,20 @@ export async function graphqlRequest<
   }
 
   if (operation === "MyRosterSpot" || operation === "MyProfile") {
-    const columns =
-      operation === "MyProfile"
-        ? "id,display_name,player_id,avatar_path,status_text,flair,created_at,updated_at"
-        : "player_id";
-    const { data, error } = await supabase
-      .from("profiles")
-      .select(columns)
-      .eq("id", v.id)
-      .maybeSingle();
-    if (error) fail(error);
-    return { profiles_by_pk: data } as TData;
+    const full =
+      "id,display_name,player_id,avatar_path,status_text,flair,created_at,updated_at";
+    const legacy = "id,display_name,player_id,avatar_path,created_at,updated_at";
+    const first = await supabase.from("profiles").select(full).eq("id", v.id).maybeSingle();
+    if (!first.error) {
+      return { profiles_by_pk: dataOrPlayerId(operation, first.data) } as TData;
+    }
+    if (!isMissingColumnError(first.error)) fail(first.error);
+    const fallback = await supabase.from("profiles").select(legacy).eq("id", v.id).maybeSingle();
+    if (fallback.error) fail(fallback.error);
+    const row = fallback.data
+      ? { ...fallback.data, status_text: null, flair: null }
+      : null;
+    return { profiles_by_pk: dataOrPlayerId(operation, row) } as TData;
   }
 
   if (operation === "MyRoles") {
@@ -103,13 +107,14 @@ export async function graphqlRequest<
     assertMutationAllowed("Profile update");
     const id = await userId();
     if (!id) throw new Error("Sign in again");
-    const { data, error } = await supabase
-      .from("profiles")
-      .upsert({ id, ...v.object })
-      .select("id")
-      .single();
-    if (error) fail(error);
-    return { insert_profiles_one: data } as TData;
+    const object = { id, ...v.object };
+    let result = await supabase.from("profiles").upsert(object).select("id").single();
+    if (result.error && isMissingColumnError(result.error)) {
+      const { status_text: _status, flair: _flair, ...legacy } = object;
+      result = await supabase.from("profiles").upsert(legacy).select("id").single();
+    }
+    if (result.error) fail(result.error);
+    return { insert_profiles_one: result.data } as TData;
   }
 
   if (operation === "MyHoleNotes") {
@@ -221,7 +226,11 @@ export async function graphqlRequest<
   throw new Error(`Unsupported Supabase compatibility operation: ${operation || "anonymous"}`);
 }
 
-export function subscribeGraphql(query: string, onData: () => void): () => void {
+export function subscribeGraphql(
+  query: string,
+  onData: () => void,
+  onStatus?: (status: "ok" | "stale") => void,
+): () => void {
   const tables: PublicTable[] = (
     [
       "matches",
@@ -239,8 +248,21 @@ export function subscribeGraphql(query: string, onData: () => void): () => void 
   for (const table of tables) {
     channel.on("postgres_changes", { event: "*", schema: "public", table }, onData);
   }
-  channel.subscribe();
+  channel.subscribe((status) => {
+    if (status === "SUBSCRIBED") onStatus?.("ok");
+    if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+      onStatus?.("stale");
+    }
+  });
   return () => {
     void supabase.removeChannel(channel);
   };
+}
+
+function dataOrPlayerId(
+  operation: string,
+  row: { player_id?: string | null } | null,
+) {
+  if (operation === "MyRosterSpot") return row ? { player_id: row.player_id ?? null } : null;
+  return row;
 }

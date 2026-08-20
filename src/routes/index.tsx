@@ -23,6 +23,7 @@ import { type BoardMode } from "@/lib/tin-cup";
 import { tallyStandings } from "@/lib/scoring";
 import { shouldPlayIntro } from "@/lib/intro";
 import { hasAuthCallbackParams, parseAuthCallbackParams } from "@/lib/auth-recovery";
+import { resolveIdentity } from "@/lib/profile-identity";
 import { buildWeekendContext } from "@/lib/weekend-context";
 import { smartHomeModules, type FeedFilter } from "@/lib/social-platform";
 
@@ -45,6 +46,8 @@ type HomeSearch = {
   post?: string;
   comment?: string;
   story?: "recap";
+  score?: boolean;
+  match?: string;
 };
 
 function authCallbackSearch(
@@ -71,6 +74,8 @@ export const Route = createFileRoute("/")({
     const comment =
       typeof raw.comment === "string" && raw.comment.trim() ? raw.comment.trim() : undefined;
     const story = raw.story === "recap" ? "recap" : undefined;
+    const score = raw.score === true || raw.score === "1" || raw.score === 1;
+    const match = typeof raw.match === "string" && raw.match.trim() ? raw.match.trim() : undefined;
     // Omit `board: false` — a canonical redirect would drop auth `code` / hash.
     return {
       ...(board ? { board: true } : {}),
@@ -78,6 +83,8 @@ export const Route = createFileRoute("/")({
       ...(post ? { post } : {}),
       ...(comment ? { comment } : {}),
       ...(story ? { story } : {}),
+      ...(score ? { score: true } : {}),
+      ...(match ? { match } : {}),
       ...authCallbackSearch(raw),
     };
   },
@@ -175,21 +182,32 @@ function Index() {
     failedWrites,
     conflicts,
     retryFailedWrites,
+    flashedMatchIds,
+    realtimeStatus,
   } = useTournament();
-  const { profile, loading: profileLoading } = useProfile();
+  const { profile, loading: profileLoading, error: profileError } = useProfile();
   const experience = useExperiencePreferences(user?.id);
   const planning = usePlanningProgress();
   const stale = isError && Boolean(data);
-  const needsClaim = Boolean(user && !profileLoading && !profile?.player_id);
   const claimedPlayer = profile?.player_id
     ? (data?.players ?? []).find((p) => p.id === profile.player_id)
     : undefined;
+  const identity = resolveIdentity({
+    signedIn: Boolean(user),
+    profilePending: profileLoading,
+    profileError: Boolean(profileError),
+    playerId: profile?.player_id ?? null,
+    tournamentPending: Boolean(profile?.player_id && isPending && !data),
+    playerOnRoster: Boolean(claimedPlayer),
+  });
+  const needsClaim = Boolean(user) && identity.kind === "claim";
   const standings = tallyStandings(data?.matches ?? []);
   const canonicalUrl =
     typeof window === "undefined" ? "https://www.tincupinv.com/" : window.location.href;
   const weekendContext = buildWeekendContext({
     phase: mode,
     signedIn: Boolean(user),
+    identityPending: Boolean(user) && identity.kind === "loading",
     player: claimedPlayer ?? null,
     rounds: data?.rounds ?? [],
     matches: data?.matches ?? [],
@@ -310,9 +328,10 @@ function Index() {
                   pendingWrites={pendingWrites}
                   failedWrites={failedWrites}
                   onRetryFailed={() => void retryFailedWrites()}
-                  stale={stale}
+                  stale={stale || (mode === "live" && realtimeStatus === "stale")}
                   canScore={canScore}
                   claimedName={claimedPlayer?.name ?? null}
+                  flashedMatchIds={flashedMatchIds}
                 />
               ))}
           </div>
@@ -362,10 +381,11 @@ function Index() {
                   pendingWrites={pendingWrites}
                   failedWrites={failedWrites}
                   onRetryFailed={() => void retryFailedWrites()}
-                  stale={stale}
+                  stale={stale || (mode === "live" && realtimeStatus === "stale")}
                   canScore={canScore}
                   initialOpenOnly={canScore}
                   claimedName={claimedPlayer?.name ?? null}
+                  flashedMatchIds={flashedMatchIds}
                 />
               )}
             <HomeSecondaryModules
@@ -405,6 +425,15 @@ function Index() {
             rounds={data?.rounds ?? []}
             players={data?.players ?? []}
             sideBets={data?.sideBets ?? []}
+            startOpen={Boolean(search.score)}
+            initialMatchId={search.match}
+            onCloseSearch={() =>
+              void navigate({
+                to: "/",
+                search: { ...search, score: undefined, match: undefined },
+                replace: true,
+              })
+            }
           />
         )}
       </Shell>

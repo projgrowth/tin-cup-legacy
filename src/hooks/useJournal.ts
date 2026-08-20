@@ -4,6 +4,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Tables } from "@/integrations/supabase/types";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  profileQueryKey,
+  readClaimedPlayerId,
+  writeClaimedPlayerId,
+} from "@/lib/profile-identity";
 import { assertMutationAllowed, isPreviewMode } from "@/lib/runtime-mode";
 
 export type Profile = Tables<"profiles">;
@@ -24,8 +29,9 @@ export function useProfile() {
   const userId = user?.id;
 
   const query = useQuery({
-    queryKey: ["profile", userId],
+    queryKey: profileQueryKey(userId),
     enabled: Boolean(userId),
+    retry: 2,
     queryFn: async () => {
       const data = await graphqlRequest<{ profiles_by_pk: Profile | null }, { id: string }>(
         `query MyProfile($id: uuid!) {
@@ -39,16 +45,21 @@ export function useProfile() {
     },
   });
 
-  // Every signed-in player gets a profile row the first time they land here.
   useEffect(() => {
-    if (!userId || query.isLoading || query.data || isPreviewMode()) return;
+    if (!userId || !query.isSuccess) return;
+    writeClaimedPlayerId(userId, query.data?.player_id ?? null);
+  }, [userId, query.isSuccess, query.data?.player_id]);
+
+  // Create a row only after a successful empty read — never after a failed select.
+  useEffect(() => {
+    if (!userId || isPreviewMode() || !query.isSuccess || query.data) return;
     void graphqlRequest(
       `mutation CreateMyProfile($displayName: String!) {
         insert_profiles_one(object: {display_name: $displayName}) { id }
       }`,
       { displayName: user?.email?.split("@")[0] ?? "" },
-    ).then(() => queryClient.invalidateQueries({ queryKey: ["profile", userId] }));
-  }, [userId, user?.email, query.isLoading, query.data, queryClient]);
+    ).then(() => queryClient.invalidateQueries({ queryKey: profileQueryKey(userId) }));
+  }, [userId, user?.email, query.isSuccess, query.data, queryClient]);
 
   const save = useMutation({
     mutationFn: async (
@@ -76,13 +87,36 @@ export function useProfile() {
       );
       return { saved: true as const };
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+    onSuccess: (_result, patch) => {
+      if (userId && patch.player_id) writeClaimedPlayerId(userId, patch.player_id);
+      void queryClient.invalidateQueries({ queryKey: profileQueryKey(userId) });
       void queryClient.invalidateQueries({ queryKey: ["player-avatars"] });
     },
   });
 
-  return { profile: query.data ?? null, loading: query.isLoading, save };
+  const cachedPlayerId = readClaimedPlayerId(userId);
+  const profile =
+    query.data ??
+    (userId && cachedPlayerId
+      ? ({
+          id: userId,
+          display_name: "",
+          player_id: cachedPlayerId,
+          avatar_path: null,
+          status_text: null,
+          flair: null,
+          created_at: "",
+          updated_at: "",
+        } satisfies Profile)
+      : null);
+
+  return {
+    profile,
+    loading: query.isPending && !profile,
+    error: query.isError && !profile,
+    refetch: query.refetch,
+    save,
+  };
 }
 
 export function useHoleNotes(courseId: string) {

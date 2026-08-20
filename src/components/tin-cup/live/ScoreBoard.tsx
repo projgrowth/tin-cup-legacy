@@ -50,10 +50,13 @@ export function StatusLine({
     );
   }
   if (!syncedAt) return null;
+  const ageSec = Math.max(0, Math.round((Date.now() - syncedAt) / 1000));
+  const relative =
+    ageSec < 10 ? "just now" : ageSec < 60 ? `${ageSec}s ago` : `${Math.round(ageSec / 60)}m ago`;
   return (
     <p className="t-micro text-center">
       {stale ? "Showing cached board · " : "Updated "}
-      {new Date(syncedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+      {relative}
     </p>
   );
 }

@@ -22,7 +22,15 @@ import { formatPayout } from "@/lib/purse";
 import { contestHoleLabel } from "@/lib/tin-cup";
 import { enqueueWrite, expectedVersionAfterWrite } from "@/lib/write-queue";
 
-type Props = { matches: Match[]; rounds: Round[]; players: Player[]; sideBets: SideBet[] };
+type Props = {
+  matches: Match[];
+  rounds: Round[];
+  players: Player[];
+  sideBets: SideBet[];
+  startOpen?: boolean;
+  initialMatchId?: string;
+  onCloseSearch?: () => void;
+};
 
 const RESULTS = [
   { value: "strong-mental", label: "Strong Mental" },
@@ -38,9 +46,17 @@ const RESULT_LABEL: Record<string, string> = {
   pending: "Not played",
 };
 
-export function ScoreModal({ matches, rounds, players, sideBets }: Props) {
+export function ScoreModal({
+  matches,
+  rounds,
+  players,
+  sideBets,
+  startOpen = false,
+  initialMatchId,
+  onCloseSearch,
+}: Props) {
   const queryClient = useQueryClient();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
   const [tab, setTab] = useState<"match" | "bet">("match");
   const [roundId, setRoundId] = useState<string | null>(null);
   const [matchId, setMatchId] = useState<string | null>(null);
@@ -53,6 +69,19 @@ export function ScoreModal({ matches, rounds, players, sideBets }: Props) {
 
   const rosterNames = players.map((p) => p.name);
   const isRosterName = (n: string) => rosterNames.includes(n.trim());
+
+  useEffect(() => {
+    if (!startOpen && !initialMatchId) return;
+    setOpen(true);
+    if (initialMatchId) {
+      const target = matches.find((match) => match.id === initialMatchId);
+      if (target) {
+        setRoundId(target.round_id);
+        setMatchId(target.id);
+        setTab("match");
+      }
+    }
+  }, [startOpen, initialMatchId, matches]);
 
   // Default to whichever round is on the course right now.
   useEffect(() => {
@@ -182,7 +211,10 @@ export function ScoreModal({ matches, rounds, players, sideBets }: Props) {
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        if (!next) reset();
+        if (!next) {
+          reset();
+          onCloseSearch?.();
+        }
       }}
     >
       <DialogTrigger

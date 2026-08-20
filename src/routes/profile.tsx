@@ -25,6 +25,7 @@ import { clearGuestNotes, countGuestNotes, listGuestNotes } from "@/lib/guest-no
 import { formatPayout } from "@/lib/purse";
 import { formatRecord, playerRecord } from "@/lib/scoring";
 import { teamRailClass } from "@/lib/team-styles";
+import { resolveIdentity } from "@/lib/profile-identity";
 import { assertMutationAllowed } from "@/lib/runtime-mode";
 
 type ProfileSearch = {
@@ -84,12 +85,21 @@ function ProfilePage() {
     recoveryError,
     clearPasswordRecovery,
   } = useAuth();
-  const { profile, loading: profileLoading } = useProfile();
-  const { data: tournament } = useTournament();
+  const { profile, loading: profileLoading, error: profileError, refetch } = useProfile();
+  const { data: tournament, isPending: tournamentPending, refetch: refetchTournament } =
+    useTournament();
   const claimedPlayer = useMemo(() => {
     if (!profile?.player_id) return null;
     return (tournament?.players ?? []).find((p) => p.id === profile.player_id) ?? null;
   }, [profile?.player_id, tournament?.players]);
+  const identity = resolveIdentity({
+    signedIn: Boolean(user),
+    profilePending: profileLoading,
+    profileError: Boolean(profileError),
+    playerId: profile?.player_id ?? null,
+    tournamentPending: Boolean(profile?.player_id && tournamentPending && !tournament),
+    playerOnRoster: Boolean(claimedPlayer),
+  });
   const claimedTeam = useMemo(() => {
     if (!claimedPlayer) return null;
     return (tournament?.teams ?? []).find((t) => t.id === claimedPlayer.team_id) ?? null;
@@ -107,7 +117,13 @@ function ProfilePage() {
       ) : (
         <PageHeading
           eyebrow="Account"
-          title={claimedPlayer ? "Your Tin Cup" : "Claim your name"}
+          title={
+            claimedPlayer
+              ? "Your Tin Cup"
+              : identity.kind === "claim"
+                ? "Claim your name"
+                : "Your account"
+          }
         />
       )}
       {user && rolesError && (
@@ -147,7 +163,7 @@ function ProfilePage() {
           </p>
         </div>
       )}
-      {loading || (user && profileLoading && !profile) ? (
+      {loading ? (
         <LoadingForm fields={3} />
       ) : !user ? (
         <div className="space-y-6">
@@ -160,9 +176,25 @@ function ProfilePage() {
             }
           />
         </div>
+      ) : identity.kind === "loading" ? (
+        <LoadingForm fields={3} />
+      ) : identity.kind === "error" ? (
+        <div role="alert" className="surface space-y-3 p-4">
+          <p className="t-title text-foreground">Couldn&apos;t load your account</p>
+          <p className="t-micro text-muted-foreground">
+            Check the connection and try again. This is not the roster claim step.
+          </p>
+          <button
+            type="button"
+            className="press btn-gold t-body min-h-11 w-full"
+            onClick={() => void refetch()}
+          >
+            Retry
+          </button>
+        </div>
       ) : (
         <div className="stack-page">
-          {claimedPlayer && claimedTeam ? (
+          {identity.kind === "hub" && claimedPlayer && claimedTeam ? (
             <MyHubCard
               player={claimedPlayer}
               teamSlug={claimedTeam.slug}
@@ -170,6 +202,21 @@ function ProfilePage() {
               matches={tournament?.matches ?? []}
               sideBets={tournament?.sideBets ?? []}
             />
+          ) : identity.kind === "hub" && identity.playerMissing ? (
+            <div role="alert" className="surface space-y-3 p-4">
+              <p className="t-title text-foreground">Couldn&apos;t load your roster</p>
+              <p className="t-micro text-muted-foreground">
+                You already claimed a name, but the field list didn&apos;t load. Retry before
+                picking a different player.
+              </p>
+              <button
+                type="button"
+                className="press btn-gold t-body min-h-11 w-full"
+                onClick={() => void refetchTournament()}
+              >
+                Retry
+              </button>
+            </div>
           ) : (
             <Identity
               email={user.email ?? ""}
@@ -601,7 +648,9 @@ function Identity({
         <button
           type="button"
           disabled={
-            save.isPending || Boolean(requestedClaimId && !profile?.player_id && !claimConfirmed)
+            save.isPending ||
+            players.length === 0 ||
+            Boolean(requestedClaimId && !profile?.player_id && !claimConfirmed)
           }
           onClick={() =>
             save.mutate(

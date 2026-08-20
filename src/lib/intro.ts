@@ -1,5 +1,6 @@
 import { DAY_COURSE, easternDateKey } from "@/lib/courses";
 import { getEventPhase } from "@/lib/event-phase";
+import { readSeat } from "@/lib/seat";
 
 /** Legacy session-only flag (still written for one-release compatibility). */
 export const INTRO_SESSION_KEY = "tc-intro-played";
@@ -60,6 +61,7 @@ export function shouldPlayIntro(now: number = Date.now()): boolean {
   // Whole tournament weekend (Eastern calendar), not only after Friday's first tee.
   if (DAY_COURSE[easternDateKey(now)]) return false;
   if (hasSeenCurrentIntro()) return false;
+  if (readSeat() === "account") return false;
   return true;
 }
 

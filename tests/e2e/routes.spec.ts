@@ -111,6 +111,14 @@ test("protected preview exposes the gallery and engagement prompt without produc
   await expectNoHorizontalOverflow(page);
 });
 
+test("profile guest sees sign-in instead of a stuck claim screen", async ({ page }) => {
+  await page.goto("/profile");
+  await expect(page.getByRole("heading", { name: /Join the weekend/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Claim your name" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Couldn't load your account" })).toHaveCount(0);
+});
+
 test("guest account and primary navigation meet the interaction baseline", async ({ page }) => {
   await page.goto("/profile");
   await expectTinCupIdentity(page);

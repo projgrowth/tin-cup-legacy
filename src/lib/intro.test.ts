@@ -71,6 +71,12 @@ describe("intro persistence", () => {
     expect(JSON.parse(window.localStorage.getItem(INTRO_STORAGE_KEY)!).version).toBe(INTRO_VERSION);
   });
 
+  it("does not play after a restored account seat", async () => {
+    const { shouldPlayIntro } = await loadIntro();
+    window.localStorage.setItem("tc-seat-v1", "account");
+    expect(shouldPlayIntro(FIRST_TEE - 86_400_000)).toBe(false);
+  });
+
   it("never auto-plays during the live tournament phase", async () => {
     const { clearIntroSeen, shouldPlayIntro } = await loadIntro();
     clearIntroSeen();

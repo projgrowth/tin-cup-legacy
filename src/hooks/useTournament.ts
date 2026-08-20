@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useSyncExternalStore } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { Tables } from "@/integrations/supabase/types";
 import { graphqlRequest, subscribeGraphql } from "@/integrations/supabase/graphql";
 import { applyDay1ContestHoles } from "@/lib/contest-holes";
+import { getEventPhase } from "@/lib/event-phase";
+import { tallyStandings } from "@/lib/scoring";
 import {
   applyPending,
   flushQueue,
@@ -128,6 +130,10 @@ export function useRowWriteStatus(table: QueueTable, rowId: string) {
 
 export function useTournament() {
   const queryClient = useQueryClient();
+  const lastRealtimeAt = useRef(0);
+  const prevMatchSig = useRef<Map<string, string>>(new Map());
+  const [realtimeStatus, setRealtimeStatus] = useState<"ok" | "stale">("stale");
+  const [flashedMatchIds, setFlashedMatchIds] = useState<string[]>([]);
 
   const query = useQuery({
     queryKey: tournamentQueryKey,
@@ -135,7 +141,12 @@ export function useTournament() {
     staleTime: 15_000,
     retry: 2,
     refetchOnWindowFocus: true,
-    refetchInterval: 15_000,
+    placeholderData: keepPreviousData,
+    refetchInterval: () => {
+      if (getEventPhase() !== "live") return 15_000;
+      if (Date.now() - lastRealtimeAt.current < 20_000) return 40_000;
+      return 5_000;
+    },
   });
 
   const pending = usePendingWrites();
@@ -160,10 +171,14 @@ export function useTournament() {
         trophies { id revision updated_at }
       }`,
       () => {
-        // Hasura sends an initial snapshot. The query already loaded that data,
-        // so only invalidate after the subscription is established.
+        lastRealtimeAt.current = Date.now();
+        setRealtimeStatus("ok");
         if (ready) void queryClient.invalidateQueries({ queryKey: tournamentQueryKey });
         ready = true;
+      },
+      (status) => {
+        setRealtimeStatus(status);
+        if (status === "ok") lastRealtimeAt.current = Date.now();
       },
     );
   }, [queryClient]);
@@ -197,6 +212,26 @@ export function useTournament() {
     return { ...query.data, matches, sideBets, trophies };
   }, [query.data, pending]);
 
+  useEffect(() => {
+    const matches = data?.matches ?? [];
+    const next = new Map(
+      matches.map((match) => [match.id, `${match.revision}:${match.updated_at}:${match.result}`]),
+    );
+    const prev = prevMatchSig.current;
+    const flashed: string[] = [];
+    if (prev.size > 0) {
+      for (const [id, sig] of next) {
+        const prior = prev.get(id);
+        if (prior && prior !== sig) flashed.push(id);
+      }
+    }
+    prevMatchSig.current = next;
+    if (flashed.length === 0) return;
+    setFlashedMatchIds(flashed);
+    const clear = window.setTimeout(() => setFlashedMatchIds([]), 3200);
+    return () => window.clearTimeout(clear);
+  }, [data?.matches]);
+
   return {
     ...query,
     data,
@@ -204,10 +239,11 @@ export function useTournament() {
     failedWrites: failedWrites.length,
     conflicts: conflicts.length,
     retryFailedWrites: retryFailed,
+    realtimeStatus,
+    lastRealtimeAt: lastRealtimeAt.current,
+    flashedMatchIds,
   };
 }
-
-import { tallyStandings } from "@/lib/scoring";
 
 export { tallyStandings };
 export type { Standings } from "@/lib/scoring";
