@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CaptainRouteImport } from './routes/captain'
 import { Route as OpsRouteImport } from './routes/ops'
+import { Route as PhotosRouteImport } from './routes/photos'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PurseRouteImport } from './routes/purse'
 import { Route as RostersRouteImport } from './routes/rosters'
@@ -38,6 +39,11 @@ const CaptainRoute = CaptainRouteImport.update({
 const OpsRoute = OpsRouteImport.update({
   id: '/ops',
   path: '/ops',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PhotosRoute = PhotosRouteImport.update({
+  id: '/photos',
+  path: '/photos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/captain': typeof CaptainRoute
   '/ops': typeof OpsRoute
+  '/photos': typeof PhotosRoute
   '/profile': typeof ProfileRoute
   '/purse': typeof PurseRoute
   '/rosters': typeof RostersRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/captain': typeof CaptainRoute
   '/ops': typeof OpsRoute
+  '/photos': typeof PhotosRoute
   '/profile': typeof ProfileRoute
   '/purse': typeof PurseRoute
   '/rosters': typeof RostersRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/captain': typeof CaptainRoute
   '/ops': typeof OpsRoute
+  '/photos': typeof PhotosRoute
   '/profile': typeof ProfileRoute
   '/purse': typeof PurseRoute
   '/rosters': typeof RostersRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/captain'
     | '/ops'
+    | '/photos'
     | '/profile'
     | '/purse'
     | '/rosters'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/captain'
     | '/ops'
+    | '/photos'
     | '/profile'
     | '/purse'
     | '/rosters'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/captain'
     | '/ops'
+    | '/photos'
     | '/profile'
     | '/purse'
     | '/rosters'
@@ -152,6 +164,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   CaptainRoute: typeof CaptainRoute
   OpsRoute: typeof OpsRoute
+  PhotosRoute: typeof PhotosRoute
   ProfileRoute: typeof ProfileRoute
   PurseRoute: typeof PurseRoute
   RostersRoute: typeof RostersRoute
@@ -188,6 +201,13 @@ declare module '@tanstack/react-router' {
       path: '/ops'
       fullPath: '/ops'
       preLoaderRoute: typeof OpsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/photos': {
+      id: '/photos'
+      path: '/photos'
+      fullPath: '/photos'
+      preLoaderRoute: typeof PhotosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -240,6 +260,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   CaptainRoute: CaptainRoute,
   OpsRoute: OpsRoute,
+  PhotosRoute: PhotosRoute,
   ProfileRoute: ProfileRoute,
   PurseRoute: PurseRoute,
   RostersRoute: RostersRoute,

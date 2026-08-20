@@ -24,4 +24,23 @@ describe("weekend calendar", () => {
     expect(ics).not.toContain("Tin Cup — Sunday");
     expect(ics).toContain("BEGIN:VCALENDAR");
   });
+
+  it("includes confirmed social events without inventing unknown times", () => {
+    const start = Date.parse("2026-08-29T19:00:00-04:00");
+    const ics = weekendIcs(
+      [],
+      [
+        {
+          id: "dinner",
+          title: "Tin Cup — Dinner",
+          location: "Steakhouse",
+          detail: "Reservation",
+          start,
+          end: start + 7_200_000,
+        },
+      ],
+    );
+    expect(ics).toContain("Tin Cup — Dinner");
+    expect(ics).toContain("LOCATION:Steakhouse");
+  });
 });

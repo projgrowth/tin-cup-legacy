@@ -2,18 +2,29 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { CinematicIntro } from "@/components/tin-cup/CinematicIntro";
+import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
+import { WeekendCommandCenter } from "@/components/tin-cup/WeekendCommandCenter";
+import { WeekendRecap } from "@/components/tin-cup/WeekendRecap";
+import { SocialClubhouseFeed } from "@/components/tin-cup/SocialClubhouseFeed";
+import { HomeSecondaryModules } from "@/components/tin-cup/HomeDashboard";
 import { ScoreModal } from "@/components/tin-cup/ScoreModal";
 import { Shell, SkeletonBlock } from "@/components/tin-cup/Shell";
 import { DisplayBoard } from "@/components/tin-cup/live/DisplayBoard";
-import { HallOfFamePanel, LivePanel, PreTournamentPanel } from "@/components/tin-cup/panels";
+import { Countdown } from "@/components/tin-cup/Countdown";
+import { LivePanel, PreTournamentPanel } from "@/components/tin-cup/panels";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
-import { useTournament, type Match } from "@/hooks/useTournament";
+import { useTournament } from "@/hooks/useTournament";
+import { usePlanningProgress } from "@/hooks/usePlanningProgress";
+import { useActivityFeed } from "@/hooks/useActivityFeed";
+import { useExperiencePreferences } from "@/hooks/useExperiencePreferences";
 import { getEventPhase, phaseMode } from "@/lib/event-phase";
 import { type BoardMode } from "@/lib/tin-cup";
 import { tallyStandings } from "@/lib/scoring";
 import { shouldPlayIntro } from "@/lib/intro";
 import { hasAuthCallbackParams, parseAuthCallbackParams } from "@/lib/auth-recovery";
+import { buildWeekendContext } from "@/lib/weekend-context";
+import { smartHomeModules, type FeedFilter } from "@/lib/social-platform";
 
 const MODES: Array<{ key: BoardMode; label: string }> = [
   { key: "pre", label: "Weekend" },
@@ -30,12 +41,15 @@ type HomeSearch = {
   code?: string;
   token_hash?: string;
   type?: string;
+  feed?: FeedFilter;
+  post?: string;
+  comment?: string;
+  story?: "recap";
 };
 
-function authCallbackSearch(raw: Record<string, unknown>): Pick<
-  HomeSearch,
-  "code" | "token_hash" | "type"
-> {
+function authCallbackSearch(
+  raw: Record<string, unknown>,
+): Pick<HomeSearch, "code" | "token_hash" | "type"> {
   const text = (key: "code" | "token_hash" | "type") => {
     const value = raw[key];
     return typeof value === "string" && value.trim() ? value.trim() : undefined;
@@ -50,9 +64,20 @@ function authCallbackSearch(raw: Record<string, unknown>): Pick<
 export const Route = createFileRoute("/")({
   validateSearch: (raw: Record<string, unknown>): HomeSearch => {
     const board = raw.board === true || raw.board === "1" || raw.board === 1;
+    const feed = ["all", "clubhouse", "scores", "photos"].includes(String(raw.feed))
+      ? (String(raw.feed) as FeedFilter)
+      : undefined;
+    const post = typeof raw.post === "string" && raw.post.trim() ? raw.post.trim() : undefined;
+    const comment =
+      typeof raw.comment === "string" && raw.comment.trim() ? raw.comment.trim() : undefined;
+    const story = raw.story === "recap" ? "recap" : undefined;
     // Omit `board: false` — a canonical redirect would drop auth `code` / hash.
     return {
       ...(board ? { board: true } : {}),
+      ...(feed && feed !== "all" ? { feed } : {}),
+      ...(post ? { post } : {}),
+      ...(comment ? { comment } : {}),
+      ...(story ? { story } : {}),
       ...authCallbackSearch(raw),
     };
   },
@@ -105,15 +130,7 @@ function Index() {
     if (params.type === "recovery" && !authLoading && (user || passwordRecovery)) {
       void navigate({ to: "/profile", replace: true });
     }
-  }, [
-    navigate,
-    search.code,
-    search.token_hash,
-    search.type,
-    authLoading,
-    user,
-    passwordRecovery,
-  ]);
+  }, [navigate, search.code, search.token_hash, search.type, authLoading, user, passwordRecovery]);
 
   useEffect(() => {
     setAutoMode(phaseMode(getEventPhase()));
@@ -134,7 +151,7 @@ function Index() {
     };
   }, []);
 
-  const mode = override ?? autoMode;
+  const mode = search.story === "recap" ? "post" : (override ?? autoMode);
 
   function selectMode(value: string) {
     if (value === "auto") {
@@ -156,14 +173,59 @@ function Index() {
     isFetching,
     pendingWrites,
     failedWrites,
+    conflicts,
     retryFailedWrites,
   } = useTournament();
   const { profile, loading: profileLoading } = useProfile();
+  const experience = useExperiencePreferences(user?.id);
+  const planning = usePlanningProgress();
   const stale = isError && Boolean(data);
   const needsClaim = Boolean(user && !profileLoading && !profile?.player_id);
   const claimedPlayer = profile?.player_id
     ? (data?.players ?? []).find((p) => p.id === profile.player_id)
     : undefined;
+  const standings = tallyStandings(data?.matches ?? []);
+  const canonicalUrl =
+    typeof window === "undefined" ? "https://www.tincupinv.com/" : window.location.href;
+  const weekendContext = buildWeekendContext({
+    phase: mode,
+    signedIn: Boolean(user),
+    player: claimedPlayer ?? null,
+    rounds: data?.rounds ?? [],
+    matches: data?.matches ?? [],
+    canScore,
+    plannedHoles: planning.best,
+    pendingWrites,
+    failedWrites,
+    conflicts,
+  });
+  const activity = useActivityFeed(data?.players ?? [], data?.teams ?? []);
+  const photoCount = (activity.data ?? []).filter(
+    (item) => item.kind === "photo" || item.kind === "avatar",
+  ).length;
+
+  useEffect(() => {
+    if (!claimedPlayer) return;
+    const team = (data?.teams ?? []).find((candidate) => candidate.id === claimedPlayer.team_id);
+    if (team) document.documentElement.dataset.team = team.slug;
+    return () => {
+      delete document.documentElement.dataset.team;
+    };
+  }, [claimedPlayer, data?.teams]);
+
+  useEffect(() => {
+    if (!introDone || !search.post) return;
+    const id = window.setTimeout(() => {
+      const target = search.comment
+        ? (document.getElementById(`comment-${search.comment}`) ??
+          document.getElementById(`post-${search.post}`))
+        : document.getElementById(`post-${search.post}`);
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+      target?.classList.add("deep-link-target");
+      window.setTimeout(() => target?.classList.remove("deep-link-target"), 2400);
+    }, 250);
+    return () => window.clearTimeout(id);
+  }, [introDone, search.comment, search.post]);
 
   // Clubhouse / TV large-type mode — no shell chrome
   if (displayMode) {
@@ -193,7 +255,7 @@ function Index() {
         {needsClaim && mode === "live" && (
           <Link
             to="/profile"
-            className="press panel mb-4 flex items-center justify-between gap-3 border border-gold/30 px-4 py-3"
+            className="press surface-raised mb-3 flex items-center justify-between gap-3 px-4 py-3"
           >
             <span className="min-w-0">
               <span className="t-body block font-medium text-foreground">
@@ -210,53 +272,132 @@ function Index() {
           <PhaseControl mode={mode} automatic={!override} onChange={selectMode} />
         )}
 
-        <div className={mode === "pre" ? "" : "mt-4"}>
-          {mode === "pre" && (
-            <PreTournamentPanel
-              rounds={data?.rounds ?? []}
-              matches={data?.matches ?? []}
-              players={data?.players ?? []}
-              teams={data?.teams ?? []}
-              canUpload={Boolean(user)}
-              signedIn={Boolean(user)}
-              claimedName={claimedPlayer?.name ?? null}
-              needsClaim={needsClaim}
-            />
-          )}
-          {mode === "live" &&
-            (isPending && !data ? (
+        {mode === "post" ? (
+          <div className="mt-3">
+            {isPending && !data ? (
               <BoardSkeleton />
             ) : isError && !data ? (
               <BoardError onRetry={() => void refetch()} busy={isFetching} />
-            ) : (
-              <LivePanel
+            ) : data ? (
+              <WeekendRecap
+                matches={data.matches}
+                players={data.players}
+                teams={data.teams}
+                sideBets={data.sideBets}
+                trophies={data.trophies}
+              />
+            ) : null}
+          </div>
+        ) : (
+        <div className="home-dashboard mt-3">
+          <div className="home-action">
+            <WeekendCommandCenter context={weekendContext} />
+          </div>
+          <div className="home-board min-w-0">
+            {mode === "pre" && <Countdown />}
+            {mode === "live" &&
+              (isPending && !data ? (
+                <BoardSkeleton />
+              ) : (
+                <LivePanel
+                  variant="hero"
+                  rounds={data?.rounds ?? []}
+                  matches={data?.matches ?? []}
+                  teams={data?.teams ?? []}
+                  players={data?.players ?? []}
+                  sideBets={data?.sideBets ?? []}
+                  syncedAt={data?.syncedAt}
+                  pendingWrites={pendingWrites}
+                  failedWrites={failedWrites}
+                  onRetryFailed={() => void retryFailedWrites()}
+                  stale={stale}
+                  canScore={canScore}
+                  claimedName={claimedPlayer?.name ?? null}
+                />
+              ))}
+          </div>
+          <div className="home-feed min-w-0">
+            <SocialClubhouseFeed
+              matches={data?.matches ?? []}
+              sideBets={data?.sideBets ?? []}
+              trophies={data?.trophies ?? []}
+              players={data?.players ?? []}
+              teams={data?.teams ?? []}
+              rounds={data?.rounds ?? []}
+              filter={search.feed ?? "all"}
+              onFilter={(feed) =>
+                void navigate({
+                  to: "/",
+                  search: { ...search, feed: feed === "all" ? undefined : feed },
+                  replace: true,
+                })
+              }
+              canModerate={canScore || isAdmin}
+              canUpload={Boolean(user)}
+              compact={experience.preferences.compactFeed}
+            />
+          </div>
+          <aside className="home-secondary min-w-0 space-y-5 lg:sticky lg:top-28 lg:self-start">
+            {mode === "pre" && (
+              <PreTournamentPanel
                 rounds={data?.rounds ?? []}
                 matches={data?.matches ?? []}
-                teams={data?.teams ?? []}
                 players={data?.players ?? []}
-                sideBets={data?.sideBets ?? []}
-                syncedAt={data?.syncedAt}
-                pendingWrites={pendingWrites}
-                failedWrites={failedWrites}
-                onRetryFailed={() => void retryFailedWrites()}
-                stale={stale}
-                canScore={canScore}
+                teams={data?.teams ?? []}
                 canUpload={Boolean(user)}
-                initialOpenOnly={canScore}
+                signedIn={Boolean(user)}
                 claimedName={claimedPlayer?.name ?? null}
+                needsClaim={needsClaim}
               />
-            ))}
-          {mode === "post" && (
-            <>
-              <LegacySummary matches={data?.matches ?? []} />
-              <HallOfFamePanel
-                canUpload={Boolean(user)}
-                canScore={canScore}
-                trophies={data?.trophies ?? []}
-              />
-            </>
-          )}
+            )}
+            {mode === "live" && data && (
+                <LivePanel
+                  variant="board"
+                  rounds={data.rounds}
+                  matches={data.matches}
+                  teams={data.teams}
+                  players={data.players}
+                  sideBets={data.sideBets}
+                  syncedAt={data.syncedAt}
+                  pendingWrites={pendingWrites}
+                  failedWrites={failedWrites}
+                  onRetryFailed={() => void retryFailedWrites()}
+                  stale={stale}
+                  canScore={canScore}
+                  initialOpenOnly={canScore}
+                  claimedName={claimedPlayer?.name ?? null}
+                />
+              )}
+            <HomeSecondaryModules
+              order={smartHomeModules(
+                mode,
+                experience.preferences.homeModules,
+                experience.preferences.layoutMode,
+              )}
+              context={weekendContext}
+              sideBets={data?.sideBets ?? []}
+              photoCount={photoCount}
+            />
+            <ShareMomentButton
+              className="w-full"
+              payload={{
+                kind: mode === "live" ? "score" : "score",
+                eyebrow: mode === "live" ? "Live Cup score" : "The fourth annual",
+                title: "Tin Cup Invitational",
+                primary:
+                  mode === "pre"
+                    ? "Aug 28–30"
+                    : `${standings.strongMental} – ${standings.grassRoots}`,
+                secondary:
+                  mode === "pre" ? "Innisbrook Golf Resort" : "Strong Mental · Grass Roots",
+                canonicalUrl,
+              }}
+            >
+              {mode === "live" ? "Share board" : "Share weekend"}
+            </ShareMomentButton>
+          </aside>
         </div>
+        )}
 
         {canScore && mode === "live" && (
           <ScoreModal
@@ -294,7 +435,7 @@ function PhaseControl({
         id="phase-view"
         value={automatic ? "auto" : mode}
         onChange={(event) => onChange(event.target.value)}
-        className="control t-micro min-h-10 w-auto py-1.5 pl-3 pr-8"
+        className="control t-micro min-h-11 w-auto py-1.5 pl-3 pr-8"
       >
         <option value="auto">Automatic</option>
         {MODES.map((item) => (
@@ -304,26 +445,6 @@ function PhaseControl({
         ))}
       </select>
     </div>
-  );
-}
-
-function LegacySummary({ matches }: { matches: Match[] }) {
-  const standings = tallyStandings(matches);
-  const winner =
-    standings.strongMental > standings.grassRoots
-      ? "Strong Mental"
-      : standings.grassRoots > standings.strongMental
-        ? "Grass Roots"
-        : "All square";
-  return (
-    <section className="mb-8 p-2 text-center">
-      <h1 className="t-display text-foreground">{winner}</h1>
-      <p className="t-hero mt-3 text-foreground">
-        <span className="text-gold-light">{standings.strongMental}</span>
-        <span className="text-muted-foreground">–</span>
-        <span className="text-copper">{standings.grassRoots}</span>
-      </p>
-    </section>
   );
 }
 
@@ -340,7 +461,7 @@ function BoardSkeleton() {
 
 function BoardError({ onRetry, busy }: { onRetry: () => void; busy: boolean }) {
   return (
-    <div className="panel p-6 text-center">
+    <div className="surface p-6 text-center">
       <p className="t-title text-foreground">The board didn't load</p>
       <p className="t-micro mt-1.5">No connection to the scoreboard right now.</p>
       <button

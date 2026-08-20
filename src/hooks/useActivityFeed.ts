@@ -2,9 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import type { Player, Team } from "@/hooks/useTournament";
+import { getRuntimeMode, isPreviewMode } from "@/lib/runtime-mode";
+import { readPreviewPhotos } from "@/lib/preview-media";
 
 export type ActivityItem = {
   id: string;
+  authorId?: string | null;
   kind: "claim" | "photo" | "avatar";
   at: string;
   title: string;
@@ -13,6 +16,13 @@ export type ActivityItem = {
   playerId?: string | null;
   teamSlug?: string | null;
   avatarPath?: string | null;
+  mediaPath?: string | null;
+  photoId?: string | null;
+  courseId?: string | null;
+  roundId?: string | null;
+  eventTag?: string | null;
+  featured?: boolean;
+  altText?: string | null;
 };
 
 function relativeTime(iso: string): string {
@@ -30,6 +40,36 @@ function relativeTime(iso: string): string {
 
 export function formatActivityTime(iso: string) {
   return relativeTime(iso);
+}
+
+function localUploadItems(): ActivityItem[] {
+  return readPreviewPhotos().map((photo) => ({
+    id: `photo-${photo.id}`,
+    photoId: photo.id,
+    authorId: photo.uploadedBy,
+    kind: "photo" as const,
+    at: photo.createdAt,
+    title: "Player posted a photo",
+    subtitle: photo.caption ?? undefined,
+    playerName: undefined,
+    playerId: null,
+    teamSlug: null,
+    mediaPath: `preview:${photo.id}`,
+    courseId: photo.courseId,
+    roundId: photo.roundId,
+    eventTag: photo.eventTag,
+    altText: photo.altText,
+    featured: Boolean(photo.featured),
+  }));
+}
+
+function mergeLocalUploads(items: ActivityItem[]): ActivityItem[] {
+  if (!isPreviewMode() && getRuntimeMode() !== "local") return items;
+  const existing = new Set(items.map((item) => item.photoId));
+  for (const photo of localUploadItems()) {
+    if (!existing.has(photo.photoId)) items.push(photo);
+  }
+  return items;
 }
 
 async function loadActivity(players: Player[], teams: Team[]): Promise<ActivityItem[]> {
@@ -51,6 +91,12 @@ async function loadActivity(players: Player[], teams: Team[]): Promise<ActivityI
     caption: string | null;
     created_at: string;
     uploaded_by: string | null;
+    storage_path: string;
+    course_id?: string | null;
+    round_id?: string | null;
+    event_tag?: string | null;
+    featured?: boolean;
+    alt_text?: string | null;
   }> = [];
 
   try {
@@ -61,13 +107,19 @@ async function loadActivity(players: Player[], teams: Team[]): Promise<ActivityI
         caption: string | null;
         created_at: string;
         uploaded_by: string | null;
+        storage_path: string;
+        course_id?: string | null;
+        round_id?: string | null;
+        event_tag?: string | null;
+        featured?: boolean;
+        alt_text?: string | null;
       }>;
     }>(`query ActivityFeed {
       profiles(where: { player_id: { _is_null: false } }) {
         id display_name player_id avatar_path created_at updated_at
       }
-      photos(order_by: { created_at: desc }, limit: 12) {
-        id caption created_at uploaded_by
+      photos(order_by: { created_at: desc }, limit: 60) {
+        id caption created_at uploaded_by storage_path course_id round_id event_tag featured alt_text
       }
     }`);
     profiles = data.profiles ?? [];
@@ -82,19 +134,20 @@ async function loadActivity(players: Player[], teams: Team[]): Promise<ActivityI
           caption: string | null;
           created_at: string;
           uploaded_by: string | null;
+          storage_path: string;
         }>;
       }>(`query ActivityFeedLite {
         profiles(where: { player_id: { _is_null: false } }) {
           id display_name player_id avatar_path
         }
-        photos(order_by: { created_at: desc }, limit: 12) {
-          id caption created_at uploaded_by
+        photos(order_by: { created_at: desc }, limit: 60) {
+          id caption created_at uploaded_by storage_path
         }
       }`);
       profiles = data.profiles ?? [];
       photos = data.photos ?? [];
     } catch {
-      throw primary;
+      if (!isPreviewMode() && getRuntimeMode() !== "local") throw primary;
     }
   }
 
@@ -109,6 +162,7 @@ async function loadActivity(players: Player[], teams: Team[]): Promise<ActivityI
     const at = p.created_at || p.updated_at || new Date(0).toISOString();
     items.push({
       id: `claim-${p.id}`,
+      authorId: p.id,
       kind: "claim",
       at,
       title: `${name.split(" ")[0]} joined the field`,
@@ -126,6 +180,7 @@ async function loadActivity(players: Player[], teams: Team[]): Promise<ActivityI
     if (p.avatar_path && p.updated_at && p.created_at && p.updated_at > p.created_at) {
       items.push({
         id: `avatar-${p.id}`,
+        authorId: p.id,
         kind: "avatar",
         at: p.updated_at,
         title: `${name.split(" ")[0]} added a photo`,
@@ -144,6 +199,7 @@ async function loadActivity(players: Player[], teams: Team[]): Promise<ActivityI
     const teamSlug = player ? (teamById.get(player.team_id) ?? null) : null;
     items.push({
       id: `photo-${ph.id}`,
+      authorId: ph.uploaded_by,
       kind: "photo",
       at: ph.created_at,
       title: `${name.split(" ")[0]} posted a photo`,
@@ -152,18 +208,26 @@ async function loadActivity(players: Player[], teams: Team[]): Promise<ActivityI
       playerId: author?.player_id,
       teamSlug,
       avatarPath: author?.avatar_path,
+      mediaPath: ph.storage_path,
+      photoId: ph.id,
+      courseId: ph.course_id ?? null,
+      roundId: ph.round_id ?? null,
+      eventTag: ph.event_tag ?? null,
+      featured: ph.featured ?? false,
+      altText: ph.alt_text ?? null,
     });
   }
 
+  mergeLocalUploads(items);
   items.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
-  return items.slice(0, 12);
+  return items.slice(0, 60);
 }
 
 export function useActivityFeed(players: Player[], teams: Team[]) {
   return useQuery({
     queryKey: ["activity-feed", players.map((p) => p.id).join(",")],
     queryFn: () => loadActivity(players, teams),
-    enabled: players.length > 0,
+    enabled: getRuntimeMode() !== "production" || players.length > 0,
     retry: 1,
     staleTime: 45_000,
   });

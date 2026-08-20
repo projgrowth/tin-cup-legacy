@@ -41,7 +41,7 @@ export function FormatSheet({ triggerClassName = "" }: { triggerClassName?: stri
   return (
     <Drawer>
       <DrawerTrigger
-        className={`press t-micro inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border px-3.5 text-muted-foreground ${triggerClassName}`}
+        className={`press t-micro inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border px-3.5 text-muted-foreground ${triggerClassName}`}
       >
         <CircleHelp className="size-3.5" strokeWidth={1.7} />
         How formats work
@@ -66,10 +66,8 @@ export function FormatSheet({ triggerClassName = "" }: { triggerClassName?: stri
               key={key}
               type="button"
               onClick={() => setTab(key)}
-              className={`press t-micro min-h-10 flex-1 rounded-t-lg px-2 font-semibold ${
-                tab === key
-                  ? "bg-secondary text-foreground"
-                  : "text-muted-foreground"
+              className={`press t-micro min-h-11 flex-1 rounded-t-lg px-2 font-semibold ${
+                tab === key ? "bg-secondary text-foreground" : "text-muted-foreground"
               }`}
             >
               {label}

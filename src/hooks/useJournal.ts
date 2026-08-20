@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Tables } from "@/integrations/supabase/types";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useAuth } from "@/hooks/useAuth";
+import { assertMutationAllowed, isPreviewMode } from "@/lib/runtime-mode";
 
 export type Profile = Tables<"profiles">;
 export type HoleNote = Tables<"hole_notes">;
@@ -29,7 +30,7 @@ export function useProfile() {
       const data = await graphqlRequest<{ profiles_by_pk: Profile | null }, { id: string }>(
         `query MyProfile($id: uuid!) {
           profiles_by_pk(id: $id) {
-            id display_name player_id avatar_path created_at updated_at
+            id display_name player_id avatar_path status_text flair created_at updated_at
           }
         }`,
         { id: userId! },
@@ -40,7 +41,7 @@ export function useProfile() {
 
   // Every signed-in player gets a profile row the first time they land here.
   useEffect(() => {
-    if (!userId || query.isLoading || query.data) return;
+    if (!userId || query.isLoading || query.data || isPreviewMode()) return;
     void graphqlRequest(
       `mutation CreateMyProfile($displayName: String!) {
         insert_profiles_one(object: {display_name: $displayName}) { id }
@@ -51,8 +52,11 @@ export function useProfile() {
 
   const save = useMutation({
     mutationFn: async (
-      patch: Partial<Pick<Profile, "display_name" | "player_id" | "avatar_path">>,
+      patch: Partial<
+        Pick<Profile, "display_name" | "player_id" | "avatar_path" | "status_text" | "flair">
+      >,
     ) => {
+      assertMutationAllowed("Profile save");
       await graphqlRequest<
         { insert_profiles_one: { id: string } | null },
         { object: Record<string, unknown> }
@@ -62,11 +66,13 @@ export function useProfile() {
             object: $object,
             on_conflict: {
               constraint: profiles_pkey,
-              update_columns: [display_name, player_id, avatar_path]
+              update_columns: [display_name, player_id, avatar_path, status_text, flair]
             }
           ) { id }
         }`,
-        { object: { display_name: patch.display_name ?? query.data?.display_name ?? "", ...patch } },
+        {
+          object: { display_name: patch.display_name ?? query.data?.display_name ?? "", ...patch },
+        },
       );
       return { saved: true as const };
     },
@@ -112,6 +118,7 @@ export function useHoleNotes(courseId: string) {
 
   const save = useMutation({
     mutationFn: async ({ hole, draft }: { hole: number; draft: HoleNoteDraft }) => {
+      assertMutationAllowed("Course-note save");
       await graphqlRequest(
         `mutation SaveHoleNote($object: hole_notes_insert_input!) {
           insert_hole_notes_one(
@@ -161,6 +168,7 @@ export function useRoundPlan(roundSlug: string) {
 
   const save = useMutation({
     mutationFn: async (plan: string) => {
+      assertMutationAllowed("Round-plan save");
       await graphqlRequest(
         `mutation SaveRoundPlan($object: round_plans_insert_input!) {
           insert_round_plans_one(

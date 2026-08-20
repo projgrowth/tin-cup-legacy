@@ -32,7 +32,7 @@ All tournament facts in the app must match **this** document.
 | Winner payout | $200 / player ($100 back + opponent money) | purse settlement | Match |
 | CTP | Deck $93; **Kevin admin → $100 each** (×6) | UI + DB $100 | Kevin override |
 | Long Drive | Deck $120; **Kevin admin → $100 each** (×2, fairway) | UI + DB $100 | Kevin override |
-| Contest holes | **Not named** / TBD | `CONTEST_HOLES_CONFIRMED = false` → “Hole TBD” | Captains set pairings only |
+| Contest holes | Friday CTP 3 & 18, LD 13; other days TBD | `DAY1_CONTESTS` overlay → “Hole N” / “Hole TBD” | Captains set pairings only |
 | Friday | South · 12:19–12:44 pm · Scramble / **Modified** Alternate Shot · 4/4 (8) | Round seed + format rules | Match (wording: Modified Alt Shot) |
 | Saturday | Copperhead · 9:54–10:20 am · Modified Stableford full team · 2/2/2 (6) | Round seed | Match |
 | Sunday | Island · 9:54–10:20 am · Shamble / Singles · 4/8 (12) | Round seed | Match |

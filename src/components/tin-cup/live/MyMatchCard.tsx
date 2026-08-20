@@ -108,12 +108,14 @@ export function MyMatchCard({
   matches,
   players,
   teams,
+  canScore = false,
 }: {
   claimedName: string;
   rounds: Round[];
   matches: Match[];
   players: Player[];
   teams: Team[];
+  canScore?: boolean;
 }) {
   const featured = useMemo(
     () => pickFeatured(claimedName, rounds, matches),
@@ -217,12 +219,23 @@ export function MyMatchCard({
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[var(--hud-border)] pt-3">
         <Link
           to="/scout"
-          search={{ course: planCourse }}
+          search={{ course: planCourse, card: true }}
           className="press t-micro inline-flex items-center gap-1.5 font-semibold text-foreground underline-offset-2 hover:underline"
         >
           <Map className="size-3.5 opacity-70" />
           Plan {COURSE_LABEL[planCourse]} →
         </Link>
+        {canScore && featured.kind === "match" && !decided ? (
+          <button
+            type="button"
+            className="press t-micro font-semibold text-gold-light"
+            onClick={() =>
+              (document.querySelector("[aria-label='Captain score input']") as HTMLButtonElement | null)?.click()
+            }
+          >
+            Post result
+          </button>
+        ) : null}
         <Link
           to="/profile"
           className="press t-micro text-muted-foreground underline-offset-2 hover:underline"

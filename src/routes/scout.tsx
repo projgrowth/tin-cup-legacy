@@ -1,10 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, MoreHorizontal, Printer, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Shell } from "@/components/tin-cup/Shell";
-import { HoleStage, type MapMode } from "@/components/tin-cup/scout/HoleStage";
+import type { MapMode } from "@/components/tin-cup/scout/HoleStage";
 import { PlanSheet, useScoutPlanEditor } from "@/components/tin-cup/scout/PlanSheet";
 import { RoundPlanBoard } from "@/components/tin-cup/scout/RoundPlanBoard";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,6 +33,12 @@ import {
   shareRoundSheet,
   type PlanLine,
 } from "@/lib/round-sheet";
+
+const HoleStage = lazy(() =>
+  import("@/components/tin-cup/scout/HoleStage").then((module) => ({
+    default: module.HoleStage,
+  })),
+);
 
 type ScoutSearch = {
   course?: CourseId;
@@ -112,8 +118,8 @@ function ScoutPage() {
   const courseId: CourseId = search.course ?? defaultCourseId();
   const course = getCourse(courseId);
   const hole = clampHole(search.hole ?? 1, course.holes.length);
-  const showCard = Boolean(search.card) && search.map !== true;
-  const showMap = !showCard;
+  const showMap = search.map === true;
+  const showCard = !showMap;
 
   const setSelection = (next: { course?: CourseId; hole?: number; card?: boolean }) => {
     const nextCourse = next.course ?? courseId;
@@ -124,7 +130,7 @@ function ScoutPage() {
       search: {
         course: nextCourse,
         hole: clampHole(nextHole, getCourse(nextCourse).holes.length),
-        ...(nextCard ? { card: true } : {}),
+        ...(showMap && nextCard === showCard ? { map: true } : { card: true }),
       },
       replace: true,
     });
@@ -216,43 +222,56 @@ function ScoutPage() {
   }
 
   const orb =
-    "press flex size-11 items-center justify-center rounded-full border border-white/15 bg-black/45 text-white shadow-[0_8px_24px_-12px_oklch(0_0_0/80%)] backdrop-blur-md";
-  const mapChip =
-    "press chip min-h-10 border-white/15 bg-black/45 text-white backdrop-blur-md";
+    "press flex size-11 items-center justify-center rounded-full border border-white/15 bg-black/45 text-white shadow-[var(--shadow-card)] backdrop-blur-md";
+  const mapChip = "press chip min-h-11 border-white/15 bg-black/45 text-white backdrop-blur-md";
 
   if (showMap) {
     return (
       <Shell variant="theater">
         <div className="relative h-svh w-full overflow-hidden bg-black">
-          <HoleStage
-            courseId={courseId}
-            hole={current}
-            isSnake={isSnake}
-            onPrev={() => step(-1)}
-            onNext={() => step(1)}
-            canPrev={index > 0}
-            canNext={index < course.holes.length - 1}
-            gpsOn={playGpsOn}
-            mapMode={mapMode}
-            onMapMode={persistMode}
-            onSatFailed={() => setPlayGpsOn(false)}
-            holeCount={course.holes.length}
-            courseLabel={COURSE_LABEL[courseId]}
-          />
+          <div className="absolute inset-0 lg:right-96">
+            <Suspense
+              fallback={
+                <div className="flex h-full items-center justify-center bg-[var(--turf-rough)] t-body text-white/70">
+                  Preparing course map…
+                </div>
+              }
+            >
+              <HoleStage
+                courseId={courseId}
+                hole={current}
+                isSnake={isSnake}
+                onPrev={() => step(-1)}
+                onNext={() => step(1)}
+                canPrev={index > 0}
+                canNext={index < course.holes.length - 1}
+                gpsOn={playGpsOn}
+                mapMode={mapMode}
+                onMapMode={persistMode}
+                onSatFailed={() => setPlayGpsOn(false)}
+                holeCount={course.holes.length}
+                courseLabel={COURSE_LABEL[courseId]}
+              />
+            </Suspense>
+          </div>
 
           <div
             className="absolute inset-x-3 z-40 flex items-start justify-between gap-2"
             style={{ top: "max(0.75rem, env(safe-area-inset-top))" }}
           >
-            <Link
-              to="/scout"
-              search={{ course: courseId, hole, card: true }}
-              replace
-              className="press chip min-h-11 gap-1 border-white/15 bg-black/45 px-3 text-white backdrop-blur-md"
-            >
-              <ChevronLeft className="size-4" />
-              Card
-            </Link>
+            <div className="flex gap-2">
+              <Link to="/" aria-label="Back to Live" className={orb}>
+                <ChevronLeft className="size-4" />
+              </Link>
+              <Link
+                to="/scout"
+                search={{ course: courseId, hole, card: true }}
+                replace
+                className="press chip min-h-11 gap-1 border-white/15 bg-black/45 px-3 text-white backdrop-blur-md"
+              >
+                Scorecard
+              </Link>
+            </div>
             <div className="relative shrink-0">
               <button
                 type="button"
@@ -264,7 +283,7 @@ function ScoutPage() {
                 <MoreHorizontal className="size-4" />
               </button>
               {theaterMenu && (
-                <div className="panel absolute right-0 mt-2 min-w-36 overflow-hidden py-1">
+                <div className="surface absolute right-0 mt-2 min-w-36 overflow-hidden py-1">
                   <button
                     type="button"
                     onClick={() => {
@@ -282,7 +301,7 @@ function ScoutPage() {
           </div>
 
           <div
-            className="absolute right-3 z-40 flex flex-col items-end gap-1.5"
+            className="absolute right-3 z-40 flex flex-col items-end gap-1.5 lg:right-[24.75rem]"
             style={{ top: "max(4.25rem, calc(env(safe-area-inset-top) + 3.5rem))" }}
           >
             <div className="relative">
@@ -297,7 +316,7 @@ function ScoutPage() {
                 {courseId === todayCourse ? " · today" : ""}
               </button>
               {courseMenu && (
-                <div className="panel absolute right-0 mt-1 min-w-36 overflow-hidden py-1">
+                <div className="surface absolute right-0 mt-1 min-w-36 overflow-hidden py-1">
                   {COURSE_ORDER.map((id) => (
                     <button
                       key={id}
@@ -347,7 +366,7 @@ function ScoutPage() {
           </div>
 
           {!authLoading && (
-            <div className="absolute inset-x-0 bottom-0 z-30 pb-[max(0.35rem,env(safe-area-inset-bottom))]">
+            <div className="absolute inset-x-0 bottom-0 z-30 pb-[max(0.35rem,env(safe-area-inset-bottom))] lg:hidden">
               <PlanSheet
                 courseId={courseId}
                 hole={current.h}
@@ -365,6 +384,33 @@ function ScoutPage() {
               />
             </div>
           )}
+
+          <aside className="absolute inset-y-0 right-0 z-30 hidden w-96 overflow-y-auto border-l border-border bg-background/98 px-3 pb-8 pt-20 lg:block">
+            <RoundPlanBoard
+              courseId={courseId}
+              hole={current.h}
+              holes={course.holes}
+              lines={planLines}
+              mode={planMode}
+              loading={authLoading || journal.loading}
+              editor={planEditor}
+              contestByHole={contestByHole}
+              onSelectHole={(h) => setSelection({ hole: h })}
+              onOpenMap={(h) => setSelection({ hole: h })}
+              dayDraft={dayDraft}
+              onDayDraft={setDayDraft}
+              onSaveDay={() =>
+                roundPlan.save.mutate(dayDraft, {
+                  onSuccess: () => toast.success("Day plan saved"),
+                  onError: () => toast.error("Could not save"),
+                })
+              }
+              canSaveDay={!roundPlan.save.isPending && dayDraft !== roundPlan.plan}
+              savingDay={roundPlan.save.isPending}
+              signedIn={Boolean(user)}
+              pairingLine={pairingLine}
+            />
+          </aside>
         </div>
       </Shell>
     );
@@ -376,11 +422,11 @@ function ScoutPage() {
         <div className="flex items-center gap-2">
           <Link
             to="/scout"
-            search={{ course: courseId, hole }}
+            search={{ course: courseId, hole, map: true }}
             replace
             className="press btn-quiet min-h-11 shrink-0 px-2.5 text-sm"
           >
-            Hole
+            Map
           </Link>
           <div
             className="grid min-w-0 flex-1 gap-1 rounded-2xl border border-border/60 bg-secondary/20 p-1"
@@ -410,7 +456,7 @@ function ScoutPage() {
                 >
                   {COURSE_LABEL[id]}
                   {id === todayCourse ? (
-                    <span className="mt-0.5 block text-[0.62rem] font-bold uppercase tracking-[0.1em] text-gold-light/90">
+                    <span className="event-kicker mt-0.5 block text-gold-light/90">
                       today
                     </span>
                   ) : null}
@@ -429,7 +475,7 @@ function ScoutPage() {
               <MoreHorizontal className="size-4" />
             </button>
             {cardMenu && (
-              <div className="panel absolute right-0 top-full z-20 mt-1 min-w-36 overflow-hidden py-1">
+              <div className="surface absolute right-0 top-full z-20 mt-1 min-w-36 overflow-hidden py-1">
                 <button
                   type="button"
                   onClick={() => {
@@ -457,6 +503,7 @@ function ScoutPage() {
           </div>
         </div>
         <RoundPlanBoard
+          hero
           courseId={courseId}
           hole={current.h}
           holes={course.holes}

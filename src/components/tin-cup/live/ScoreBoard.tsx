@@ -81,7 +81,7 @@ export function LiveHero({
   teams: Team[];
 }) {
   const now = useNow();
-  if (now === null) return <section className="panel h-[168px] animate-pulse" />;
+  if (now === null) return <section className="surface h-[168px] animate-pulse" />;
   const decided = matches.some((m) => m.result !== "pending");
   if (decided) return <ScoreBar matches={matches} teams={teams} />;
   const firstTee = new Date(EVENT.firstTee).getTime();
@@ -165,7 +165,7 @@ export function RoundStrip({ rounds, matches }: { rounds: Round[]; matches: Matc
         return (
           <div
             key={round.id}
-            className={`panel px-2.5 py-2 text-center ${
+            className={`surface px-2.5 py-2 text-center ${
               status === "live" ? "ring-1 ring-border" : ""
             }`}
           >
@@ -193,7 +193,7 @@ export function ScoreBar({ matches, teams }: { matches: Match[]; teams: Team[] }
   const nameFor = (slug: string) => teams.find((t) => t.slug === slug)?.name ?? slug;
 
   return (
-    <section className="panel p-4 sm:p-5">
+    <section className="surface p-4 sm:p-5">
       <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
         <div className="min-w-0">
           <p className="t-micro truncate text-gold-light">{nameFor("strong-mental")}</p>

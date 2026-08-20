@@ -3,9 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
 
 import { Avatar } from "@/components/tin-cup/Avatar";
+import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
 import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
+import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
@@ -68,6 +70,8 @@ function PlayerPage() {
   const isYou = Boolean(myPlayerId && myPlayerId === playerId);
   const avatars = usePlayerAvatars(data?.players ?? [], data?.teams ?? []);
   const face = avatars.data?.byPlayerId.get(playerId);
+  const publicProfiles = usePublicProfiles();
+  const socialProfile = publicProfiles.data?.find((candidate) => candidate.player_id === playerId);
 
   if (isPending && !data) {
     return (
@@ -107,19 +111,14 @@ function PlayerPage() {
     <Shell>
       <Link
         to="/rosters"
-        className="press t-micro mb-4 inline-flex items-center gap-1 text-muted-foreground"
+        className="press t-micro mb-4 inline-flex min-h-11 items-center gap-1 text-muted-foreground"
       >
         <ChevronLeft className="size-4" strokeWidth={1.7} /> Team hub
       </Link>
 
-      <header className={`panel ${teamRailClass(team.slug)} p-5`}>
+      <header className={`rounded-xl border border-border p-5 ${teamRailClass(team.slug)}`}>
         <div className="flex items-start gap-3">
-          <Avatar
-            name={player.name}
-            teamSlug={team.slug}
-            src={face?.url}
-            size="lg"
-          />
+          <Avatar name={player.name} teamSlug={team.slug} src={face?.url} size="lg" />
           <div className="min-w-0 flex-1">
             <p className="t-eyebrow">{team.name}</p>
             <h1 className="t-title mt-1 text-foreground">{player.name}</h1>
@@ -128,9 +127,19 @@ function PlayerPage() {
                 <span className="pill border-border text-muted-foreground">Captain</span>
               )}
               {isYou && (
-                <span className="pill border-border bg-secondary text-foreground">It&apos;s you</span>
+                <span className="pill border-border bg-secondary text-foreground">
+                  It&apos;s you
+                </span>
+              )}
+              {socialProfile?.flair && (
+                <span className="player-flair">
+                  {socialProfile.flair.replace("vibes", "vibes captain")}
+                </span>
               )}
             </div>
+            {socialProfile?.status_text && (
+              <p className="t-body mt-2 text-muted-foreground">“{socialProfile.status_text}”</p>
+            )}
             {d1 && (
               <p className="t-micro mt-2 text-muted-foreground">
                 Day 1 · w/ {d1.partner.split(" ")[0]} · vs {d1.opponents}
@@ -140,12 +149,29 @@ function PlayerPage() {
         </div>
         <p className="t-hero mt-4 text-foreground">
           {record.points}
-          <span className="t-micro ml-2 font-normal">pts won</span>
+          <span className="t-micro ml-2 font-normal text-muted-foreground">pts won</span>
         </p>
-        <p className="t-micro mt-1">
+        <p className="t-micro mt-1 text-muted-foreground">
           {shorthand ? `${shorthand} record` : "No results posted yet"}
         </p>
       </header>
+
+      <ShareMomentButton
+        className="mt-3 w-full"
+        payload={{
+          kind: "player",
+          eyebrow: team.name,
+          title: player.name,
+          primary: `${record.points} pts`,
+          secondary: shorthand
+            ? `${shorthand} record · ${formatPayout(cash)} side cash${socialProfile?.flair ? ` · ${socialProfile.flair.replace("vibes", "vibes captain")}` : ""}`
+            : "Tin Cup Invitational 2026",
+          canonicalUrl:
+            typeof window === "undefined" ? "https://www.tincupinv.com/" : window.location.href,
+        }}
+      >
+        Share player card
+      </ShareMomentButton>
 
       <div className="mt-6 grid grid-cols-3 gap-3">
         {[
@@ -153,12 +179,29 @@ function PlayerPage() {
           { label: "Halved", value: record.halved },
           { label: "Lost", value: record.lost },
         ].map((stat) => (
-          <div key={stat.label} className="panel p-4 text-center">
+          <div key={stat.label} className="surface-inset p-4 text-center">
             <p className="t-numeral text-foreground">{stat.value}</p>
             <p className="t-micro mt-0.5">{stat.label}</p>
           </div>
         ))}
       </div>
+
+      {(record.points > 0 || claims.length > 0 || player.is_captain) && (
+        <section className="mt-6" aria-labelledby="player-achievements">
+          <h2 id="player-achievements" className="t-eyebrow">
+            Weekend achievements
+          </h2>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {player.is_captain && <li className="player-flair">Team captain</li>}
+            {record.points > 0 && (
+              <li className="player-flair">On the board · {record.points} pts</li>
+            )}
+            {claims.length > 0 && (
+              <li className="player-flair">Side-pot winner · {claims.length}</li>
+            )}
+          </ul>
+        </section>
+      )}
 
       <section className="mt-8">
         <h2 className="t-eyebrow">Match timeline</h2>
@@ -231,9 +274,7 @@ function PlayerPage() {
                 </li>
               ))}
             </ul>
-            <p className="t-micro mt-2 text-copper">
-              {formatPayout(cash)} won on the side board
-            </p>
+            <p className="t-micro mt-2 text-copper">{formatPayout(cash)} won on the side board</p>
           </>
         )}
       </section>

@@ -5,6 +5,13 @@ Do these **before** anyone arrives at Innisbrook. Order matters.
 **Production domain:** `https://tincupinv.com`. Keep this URL and
 `https://www.tincupinv.com` in the Nhost Auth allowed redirects before testing sign-in.
 
+**Production social flags stay off** until the additive Clubhouse SQL is applied.
+Do not set `VITE_CLUBHOUSE_V1`, `VITE_WEEKEND_STORY_V2`, polls, check-ins, prompts,
+predictions, or gallery on Production. Preview Vercel env should set
+`VITE_RUNTIME_MODE=preview` so tournament writes stay simulated. Production omits
+that variable (defaults to live scoring). Friday contest holes 3 / 18 / 13 are
+client-overlaid even if the database still has `null`.
+
 **In-app helper:** open **`/ops`** after sign-in for live readiness lights, captain sync, and the safe two-phone test checklist.
 
 ## 0. Confirm the scoring-conflict guard
@@ -68,7 +75,7 @@ VITE_EXPECTED_PLAYER_COUNT=16
 |------|--------|--------|
 | **admin** | Kevin Maher (tournament bank / organizer) | Manages `/admin`; can score as admin. **Do not** grant him `captain`. |
 | **captain** | Zack Smith, Charles Grass | Set **match pairings**, post results, claim CTP/LD. |
-| Contest holes | TBD | Captains do **not** pick CTP/LD holes. |
+| Contest holes | Friday: CTP 3 & 18, long drive 13. Other days TBD | Captains do **not** pick CTP/LD holes. |
 
 ## 3. Grant captains
 

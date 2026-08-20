@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -6,8 +6,12 @@ import { Camera, ChevronRight, Loader2 } from "lucide-react";
 
 import { AuthCard } from "@/components/tin-cup/AuthCard";
 import { Avatar } from "@/components/tin-cup/Avatar";
+import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { PhotoPicker } from "@/components/tin-cup/PhotoPicker";
-import { LoadingForm, Shell } from "@/components/tin-cup/Shell";
+import { NotificationSettings } from "@/components/tin-cup/NotificationSettings";
+import { DeviceReadiness } from "@/components/tin-cup/DeviceReadiness";
+import { ExperienceCustomizer } from "@/components/tin-cup/ExperienceCustomizer";
+import { LoadingForm, PageHeading, Shell } from "@/components/tin-cup/Shell";
 import { WhatsAppGroupButton } from "@/components/tin-cup/WhatsAppLinks";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
@@ -21,15 +25,17 @@ import { clearGuestNotes, countGuestNotes, listGuestNotes } from "@/lib/guest-no
 import { formatPayout } from "@/lib/purse";
 import { formatRecord, playerRecord } from "@/lib/scoring";
 import { teamRailClass } from "@/lib/team-styles";
+import { assertMutationAllowed } from "@/lib/runtime-mode";
 
 type ProfileSearch = {
   code?: string;
   token_hash?: string;
   type?: string;
+  claim?: string;
 };
 
 function authSearch(raw: Record<string, unknown>): ProfileSearch {
-  const text = (key: "code" | "token_hash" | "type") => {
+  const text = (key: "code" | "token_hash" | "type" | "claim") => {
     const value = raw[key];
     return typeof value === "string" && value.trim() ? value.trim() : undefined;
   };
@@ -37,6 +43,7 @@ function authSearch(raw: Record<string, unknown>): ProfileSearch {
     ...(text("code") ? { code: text("code") } : {}),
     ...(text("token_hash") ? { token_hash: text("token_hash") } : {}),
     ...(text("type") ? { type: text("type") } : {}),
+    ...(text("claim") ? { claim: text("claim") } : {}),
   };
 }
 
@@ -63,6 +70,7 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfilePage() {
+  const search = Route.useSearch();
   const {
     user,
     loading,
@@ -88,14 +96,22 @@ function ProfilePage() {
   }, [claimedPlayer, tournament?.teams]);
   return (
     <Shell>
-      {user && !claimedPlayer && (
-        <header className="mb-5">
-          <p className="t-eyebrow">Account</p>
-          <h1 className="t-title mt-1.5 text-foreground">Claim your name</h1>
-        </header>
+      {!user ? (
+        <div className="mb-6">
+          <PageMasthead
+            kicker="Account"
+            title="Join the weekend"
+            meta="Sign in once for your player card and private course notes."
+          />
+        </div>
+      ) : (
+        <PageHeading
+          eyebrow="Account"
+          title={claimedPlayer ? "Your Tin Cup" : "Claim your name"}
+        />
       )}
       {user && rolesError && (
-        <div role="alert" className="panel mb-4 flex items-center justify-between gap-3 p-4">
+        <div role="alert" className="surface mb-4 flex items-center justify-between gap-3 p-4">
           <p className="t-micro">Your access level could not be refreshed.</p>
           <button
             type="button"
@@ -109,13 +125,13 @@ function ProfilePage() {
       )}
       {passwordRecovery && user && <SetNewPassword onDone={clearPasswordRecovery} />}
       {passwordRecovery && !user && recoveryBusy && (
-        <div className="panel mb-4 p-4">
+        <div className="surface mb-4 p-4">
           <p className="t-title text-foreground">Opening your reset link…</p>
           <p className="t-micro mt-1.5 text-muted-foreground">Set a new password in a moment.</p>
         </div>
       )}
       {recoveryError && (
-        <div role="alert" className="panel mb-4 p-4">
+        <div role="alert" className="surface mb-4 p-4">
           <p className="t-title text-foreground">That reset link didn&apos;t work</p>
           <p className="t-micro mt-1.5 text-muted-foreground">
             {recoveryError} Request a new one below, then tap it in this browser.
@@ -123,7 +139,7 @@ function ProfilePage() {
         </div>
       )}
       {passwordRecovery && !user && !recoveryBusy && !recoveryError && (
-        <div role="status" className="panel mb-4 p-4">
+        <div role="status" className="surface mb-4 p-4">
           <p className="t-title text-foreground">Request a new reset</p>
           <p className="t-micro mt-1.5 text-muted-foreground">
             This link couldn&apos;t be opened here. Use Forgot password below, then tap the email
@@ -135,7 +151,14 @@ function ProfilePage() {
         <LoadingForm fields={3} />
       ) : !user ? (
         <div className="space-y-6">
-          <AuthCard blurb="Claim your name. Password works if the email link is rate-limited." />
+          <AuthCard
+            redirectPath={`/profile${search.claim ? `?claim=${encodeURIComponent(search.claim)}` : ""}`}
+            blurb={
+              search.claim
+                ? "Sign in to confirm the roster spot from your claim link."
+                : "Claim your name. Password works if the email link is rate-limited."
+            }
+          />
         </div>
       ) : (
         <div className="stack-page">
@@ -148,10 +171,18 @@ function ProfilePage() {
               sideBets={tournament?.sideBets ?? []}
             />
           ) : (
-            <Identity email={user.email ?? ""} canScore={canScore} isAdmin={isAdmin} />
+            <Identity
+              email={user.email ?? ""}
+              canScore={canScore}
+              isAdmin={isAdmin}
+              requestedClaimId={search.claim}
+            />
           )}
           <GuestNotesMerge />
-          <ul className="panel divide-y divide-border overflow-hidden">
+          {claimedPlayer && <DeviceReadiness />}
+          {claimedPlayer && <ExperienceCustomizer userId={user.id} teamSlug={claimedTeam?.slug} />}
+          {claimedPlayer && <NotificationSettings userId={user.id} />}
+          <ul className="surface divide-y divide-border overflow-hidden">
             {claimedPlayer && (
               <li>
                 <Link
@@ -195,12 +226,18 @@ function ProfilePage() {
               <WhatsAppGroupButton className="!min-h-11 w-full" />
               <p>iPhone: Share → Add to Home Screen.</p>
               {canScore && (
-                <Link to="/ops" className="font-semibold text-gold-light">
+                <Link
+                  to="/ops"
+                  className="press inline-flex min-h-11 items-center font-semibold text-gold-light"
+                >
                   Ops
                 </Link>
               )}
               {isAdmin && (
-                <Link to="/admin" className="text-muted-foreground">
+                <Link
+                  to="/admin"
+                  className="press inline-flex min-h-11 items-center text-muted-foreground"
+                >
                   Admin
                 </Link>
               )}
@@ -223,6 +260,7 @@ function SetNewPassword({ onDone }: { onDone: () => void }) {
     }
     setBusy(true);
     try {
+      assertMutationAllowed("Password update");
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       toast.success("Password updated — you're signed in.");
@@ -235,10 +273,16 @@ function SetNewPassword({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <section className="panel space-y-3 p-4">
-      <p className="t-title text-foreground">Set a new password</p>
-      <p className="t-micro text-muted-foreground">You opened a reset link. Choose a password for this weekend.</p>
+    <section className="surface space-y-3 p-4">
+      <h2 className="t-title text-foreground">Set a new password</h2>
+      <p className="t-micro text-muted-foreground">
+        You opened a reset link. Choose a password for this weekend.
+      </p>
+      <label htmlFor="new-password" className="t-micro font-semibold text-foreground">
+        New password
+      </label>
       <input
+        id="new-password"
         type="password"
         autoComplete="new-password"
         value={password}
@@ -246,7 +290,12 @@ function SetNewPassword({ onDone }: { onDone: () => void }) {
         placeholder="New password"
         className="control t-body w-full"
       />
-      <button type="button" disabled={busy} onClick={() => void save()} className="press btn-gold t-body w-full">
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => void save()}
+        className="press btn-gold t-body w-full"
+      >
         {busy ? "Saving…" : "Save password"}
       </button>
     </section>
@@ -322,7 +371,7 @@ function MyHubCard({
   const src = localUrl || face?.url || null;
 
   return (
-    <section className={`panel p-4 ${teamRailClass(teamSlug)}`}>
+    <section className={`surface p-4 ${teamRailClass(teamSlug)}`}>
       <div className="flex items-start gap-3">
         <button
           type="button"
@@ -410,7 +459,7 @@ function GuestNotesMerge() {
   }
 
   return (
-    <div className="panel flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="surface flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
         <p className="t-title text-foreground">On-device notes found</p>
         <p className="t-micro mt-0.5 text-muted-foreground">
@@ -473,22 +522,26 @@ function Identity({
   email,
   canScore,
   isAdmin,
+  requestedClaimId,
 }: {
   email: string;
   canScore: boolean;
   isAdmin: boolean;
+  requestedClaimId?: string;
 }) {
+  const navigate = useNavigate();
   const { profile, save } = useProfile();
   const { data } = useTournament();
   const players = data?.players ?? [];
   const teams = data?.teams ?? [];
   const [name, setName] = useState("");
   const [playerId, setPlayerId] = useState("");
+  const [claimConfirmed, setClaimConfirmed] = useState(false);
 
   useEffect(() => {
     setName(profile?.display_name ?? "");
-    setPlayerId(profile?.player_id ?? "");
-  }, [profile]);
+    setPlayerId(profile?.player_id ?? requestedClaimId ?? "");
+  }, [profile, requestedClaimId]);
 
   const roleLabel = isAdmin ? "Admin" : canScore ? "Captain" : "Player";
 
@@ -500,7 +553,7 @@ function Identity({
         <h2 className="t-section text-foreground">{needsClaim ? "Claim your name" : "Identity"}</h2>
         <span className="pill t-micro text-muted-foreground">{roleLabel}</span>
       </div>
-      <div className={`space-y-3 p-4 ${needsClaim ? "surface-emphasized" : "panel"}`}>
+      <div className={`space-y-3 p-4 ${needsClaim ? "surface-raised" : "surface"}`}>
         <p className="t-micro truncate text-muted-foreground">{email}</p>
         <select
           value={playerId}
@@ -517,18 +570,39 @@ function Identity({
             </option>
           ))}
         </select>
+        {requestedClaimId &&
+          !profile?.player_id &&
+          players.some((player) => player.id === requestedClaimId) && (
+            <label className="flex min-h-11 items-center gap-3 rounded-xl border border-border bg-secondary px-3 py-2.5 t-body text-foreground">
+              <input
+                type="checkbox"
+                checked={claimConfirmed}
+                onChange={(event) => setClaimConfirmed(event.target.checked)}
+                className="size-5"
+              />
+              Confirm {players.find((player) => player.id === requestedClaimId)?.name} is me
+            </label>
+          )}
         {!needsClaim && (
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={60}
-            placeholder="Display name (optional)"
-            className="control t-body w-full"
-          />
+          <div className="space-y-1.5">
+            <label htmlFor="display-name" className="t-micro font-semibold text-foreground">
+              Display name
+            </label>
+            <input
+              id="display-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={60}
+              placeholder="Optional"
+              className="control t-body min-h-11 w-full"
+            />
+          </div>
         )}
         <button
           type="button"
-          disabled={save.isPending}
+          disabled={
+            save.isPending || Boolean(requestedClaimId && !profile?.player_id && !claimConfirmed)
+          }
           onClick={() =>
             save.mutate(
               {
@@ -540,8 +614,16 @@ function Identity({
                 player_id: playerId || null,
               },
               {
-                onSuccess: () => toast.success("Profile saved"),
-                onError: (error) => toast.error(error.message),
+                onSuccess: () => {
+                  toast.success("Roster spot claimed — welcome to your weekend");
+                  void navigate({ to: "/" });
+                },
+                onError: (error) =>
+                  toast.error(
+                    /unique|player_id/i.test(error.message)
+                      ? "That player has already been claimed. Choose your own roster name or ask an admin."
+                      : error.message,
+                  ),
               },
             )
           }
@@ -553,5 +635,3 @@ function Identity({
     </section>
   );
 }
-
-

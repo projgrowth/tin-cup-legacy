@@ -99,7 +99,7 @@ export function InstallHint({ prominent = false }: { prominent?: boolean }) {
   return (
     <div
       className={`flex items-start gap-3 p-3.5 ${
-        prominent ? "panel border border-gold/25" : "panel"
+        prominent ? "surface-raised" : "surface"
       }`}
     >
       <div className="min-w-0 flex-1">

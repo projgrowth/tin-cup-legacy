@@ -12,6 +12,7 @@
  *   with a manual retry, so a lost result is always visible to the captain.
  */
 import { graphqlRequest } from "@/integrations/supabase/graphql";
+import { isPreviewMode, PREVIEW_STORAGE_PREFIX } from "@/lib/runtime-mode";
 
 export type QueueTable = "matches" | "side_bets" | "trophies";
 
@@ -308,6 +309,19 @@ export async function enqueueWrite(
   patch: Record<string, unknown>,
   expectedVersion?: number | string,
 ): Promise<"saved" | "queued" | "rejected" | "conflict"> {
+  if (isPreviewMode()) {
+    try {
+      const key = `${PREVIEW_STORAGE_PREFIX}:writes`;
+      const current = JSON.parse(window.localStorage.getItem(key) ?? "[]") as unknown[];
+      window.localStorage.setItem(
+        key,
+        JSON.stringify([...current, { table, rowId, patch, simulatedAt: Date.now() }]),
+      );
+    } catch {
+      /* preview simulation is best effort */
+    }
+    return "saved";
+  }
   hydrateQueue();
   const incoming: QueuedWrite = {
     id: newId(),

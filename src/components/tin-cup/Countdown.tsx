@@ -27,7 +27,7 @@ export function Countdown({ compact = false }: { compact?: boolean }) {
       ? `${String(time.hours + time.days * 24).padStart(2, "0")}:${String(time.minutes).padStart(2, "0")}:${String(time.seconds).padStart(2, "0")}`
       : `${time.days}d ${String(time.hours).padStart(2, "0")}h ${String(time.minutes).padStart(2, "0")}m`;
     return (
-      <p className="t-micro tabular-nums text-muted-foreground">
+      <p suppressHydrationWarning className="t-micro tabular-nums text-muted-foreground">
         First tee · <span className="font-semibold text-foreground">{line}</span>
       </p>
     );
@@ -35,7 +35,7 @@ export function Countdown({ compact = false }: { compact?: boolean }) {
 
   if (time.done) {
     return (
-      <section className="panel px-4 py-6 text-center">
+      <section className="surface px-4 py-6 text-center">
         <p className="t-eyebrow">The cup is live</p>
         <p className="t-display mt-2 text-foreground">On the tee · South · 12:19</p>
       </section>
@@ -43,18 +43,18 @@ export function Countdown({ compact = false }: { compact?: boolean }) {
   }
 
   return (
-    <section className="panel overflow-hidden" aria-live="polite">
-      <p className="t-eyebrow border-b border-border px-4 py-2.5 text-center">
-        First tee · Friday 12:19 PM
+    <section aria-live="polite">
+      <p className="event-kicker text-center">First tee · Friday 12:19 PM</p>
+      <p suppressHydrationWarning className="sr-only">
+        {formatCountdown(time.remaining)}
       </p>
-      <p className="sr-only">{formatCountdown(time.remaining)}</p>
-      <div className="grid grid-cols-3 divide-x divide-border" aria-hidden>
+      <div className="mt-3 grid grid-cols-3" aria-hidden>
         {cells.map((cell) => (
-          <div key={cell.label} className="py-5 text-center">
-            <div className="t-hero tabular-nums text-foreground">
+          <div key={cell.label} className="text-center">
+            <div suppressHydrationWarning className="t-hero tabular-nums text-foreground">
               {String(cell.value).padStart(2, "0")}
             </div>
-            <div className="t-micro mt-2 uppercase tracking-[0.08em]">{cell.label}</div>
+            <div className="t-micro mt-2">{cell.label}</div>
           </div>
         ))}
       </div>

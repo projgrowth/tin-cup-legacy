@@ -1,7 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Map as MapIcon, Target } from "lucide-react";
 
+import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { HolePlanFields } from "@/components/tin-cup/scout/HolePlanFields";
+import { CourseDownloadButton } from "@/components/tin-cup/scout/CourseDownloadButton";
 import { StatusLED } from "@/components/tin-cup/scout/DistanceStack";
 import type { useHolePlanEditor } from "@/hooks/useHolePlanEditor";
 import {
@@ -93,14 +95,14 @@ function HoleRow({
           className="press flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left"
         >
           <span
-            className={`flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${
+            className={`flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${
               selected
                 ? "bg-gold/20 text-gold-light ring-1 ring-gold/40"
                 : snake
                   ? "bg-white/5 text-copper"
                   : planned
                     ? "bg-white/8 text-white"
-                    : "bg-white/5 text-white/45"
+                    : "bg-white/5 text-white/60"
             }`}
           >
             {line.hole}
@@ -178,6 +180,7 @@ export function RoundPlanBoard({
   savingDay,
   signedIn,
   pairingLine = null,
+  hero = false,
 }: {
   courseId: CourseId;
   hole: number;
@@ -196,14 +199,44 @@ export function RoundPlanBoard({
   savingDay: boolean;
   signedIn: boolean;
   pairingLine?: string | null;
+  hero?: boolean;
 }) {
   const details = COURSE_DETAILS[courseId];
   const split = nineSplit(lines);
   const holeByN = new Map(holes.map((h) => [h.h, h]));
   const contestCount = [...contestByHole.values()].reduce((n, list) => n + list.length, 0);
+  const [incompleteOnly, setIncompleteOnly] = useState(false);
+  const frontLines = incompleteOnly
+    ? split.front.filter((line) => !hasPlanContent(line.draft))
+    : split.front;
+  const backLines = incompleteOnly
+    ? split.back.filter((line) => !hasPlanContent(line.draft))
+    : split.back;
+  const nextIncomplete = lines.find((line) => !hasPlanContent(line.draft));
 
   return (
     <div className="space-y-3">
+      {hero ? (
+        <PageMasthead
+          kicker={`${details.dayLabel} · first tee ${details.firstTee}`}
+          title={`${COURSE_LABEL[courseId]} game plan`}
+          meta={
+            <>
+              {details.format}
+              <span className="mx-1.5 text-muted-foreground">·</span>
+              Black {details.blackTotal.toLocaleString()}
+              <span className="mx-1.5 text-muted-foreground">·</span>
+              {split.all.planned}/18 planned
+              {pairingLine ? <span className="mt-2 block text-foreground">{pairingLine}</span> : null}
+            </>
+          }
+        >
+          <p className="t-body mt-3 max-w-xl text-muted-foreground">{details.formatTip}</p>
+          <div className="mt-4">
+            <CourseDownloadButton courseId={courseId} />
+          </div>
+        </PageMasthead>
+      ) : (
       <header className="px-0.5">
         <p className="t-eyebrow">
           {details.dayLabel} · first tee {details.firstTee}
@@ -218,7 +251,31 @@ export function RoundPlanBoard({
           {split.all.planned}/18 planned
         </p>
         <p className="mt-3 text-sm leading-relaxed text-foreground/85">{details.formatTip}</p>
+        <div className="mt-3">
+          <CourseDownloadButton courseId={courseId} />
+        </div>
       </header>
+      )}
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          aria-pressed={incompleteOnly}
+          onClick={() => setIncompleteOnly((value) => !value)}
+          className={`press chip min-h-11 ${incompleteOnly ? "chip-on" : ""}`}
+        >
+          {incompleteOnly ? "Showing incomplete" : "Incomplete holes"}
+        </button>
+        {nextIncomplete && (
+          <button
+            type="button"
+            onClick={() => onSelectHole(nextIncomplete.hole)}
+            className="press chip min-h-11 flex-1"
+          >
+            Continue · hole {nextIncomplete.hole}
+          </button>
+        )}
+      </div>
 
       {contestCount > 0 && (
         <p className="flex items-center gap-1.5 px-0.5 t-micro">
@@ -227,14 +284,14 @@ export function RoundPlanBoard({
         </p>
       )}
 
-      <section className="panel overflow-hidden" aria-label="18-hole game plan">
+      <section className="surface overflow-hidden" aria-label="18-hole game plan">
         <NineRule
           label="Out"
           par={split.out.par}
           yards={split.out.yards}
           planned={split.out.planned}
         />
-        {split.front.map((line) => (
+        {frontLines.map((line) => (
           <HoleRow
             key={line.hole}
             line={line}
@@ -255,7 +312,7 @@ export function RoundPlanBoard({
           yards={split.inn.yards}
           planned={split.inn.planned}
         />
-        {split.back.map((line) => (
+        {backLines.map((line) => (
           <HoleRow
             key={line.hole}
             line={line}
@@ -280,7 +337,7 @@ export function RoundPlanBoard({
         </div>
       </section>
 
-      <details className="panel group">
+      <details className="surface group">
         <summary className="press cursor-pointer list-none px-4 py-3 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
           Day notes
           <span className="ml-2 font-normal text-muted-foreground">pairing · attack holes</span>

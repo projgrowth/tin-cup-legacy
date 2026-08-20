@@ -6,10 +6,14 @@ import { toast } from "sonner";
 import { CheckCircle2, Circle, ShieldCheck } from "lucide-react";
 
 import { AuthCard } from "@/components/tin-cup/AuthCard";
+import { ClaimQrSheet } from "@/components/tin-cup/ClaimQr";
+import { PlatformAdminPanel } from "@/components/tin-cup/PlatformAdminPanel";
 import { ErrorState, LoadingRows, PageHeading, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
+import { useTournament } from "@/hooks/useTournament";
 import { claimFirstAdmin, getRoleSetup, listMembers, setMemberRole } from "@/lib/roles.functions";
 import { VENMO_IS_PLACEHOLDER } from "@/lib/tin-cup";
+import { assertMutationAllowed } from "@/lib/runtime-mode";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -74,6 +78,7 @@ function AdminBody() {
   const fetchMembers = useServerFn(listMembers);
   const claim = useServerFn(claimFirstAdmin);
   const setRole = useServerFn(setMemberRole);
+  const tournament = useTournament();
 
   const setup = useQuery({ queryKey: ["role-setup"], queryFn: () => fetchSetup({}) });
   const members = useQuery({
@@ -83,7 +88,10 @@ function AdminBody() {
   });
 
   const claimMutation = useMutation({
-    mutationFn: () => claim({}),
+    mutationFn: () => {
+      assertMutationAllowed("Admin claim");
+      return claim({});
+    },
     onSuccess: () => {
       toast.success("You're the admin now");
       void qc.invalidateQueries({ queryKey: ["role-setup"] });
@@ -93,8 +101,10 @@ function AdminBody() {
   });
 
   const roleMutation = useMutation({
-    mutationFn: (v: { userId: string; role: "admin" | "captain"; grant: boolean }) =>
-      setRole({ data: v }),
+    mutationFn: (v: { userId: string; role: "admin" | "captain"; grant: boolean }) => {
+      assertMutationAllowed("Role update");
+      return setRole({ data: v });
+    },
     onSuccess: (_d, v) => {
       toast.success(v.grant ? `${v.role} access granted` : `${v.role} access removed`);
       void qc.invalidateQueries({ queryKey: ["members"] });
@@ -108,7 +118,7 @@ function AdminBody() {
 
   if (!setup.data?.adminExists) {
     return (
-      <div className="panel space-y-3 p-6 text-center">
+      <div className="surface space-y-3 p-6 text-center">
         <ShieldCheck className="mx-auto size-6 text-muted-foreground" strokeWidth={1.6} />
         <p className="t-title text-foreground">No admin yet</p>
         <p className="t-micro">
@@ -129,7 +139,7 @@ function AdminBody() {
 
   if (!setup.data.isAdmin) {
     return (
-      <div className="panel p-6 text-center">
+      <div className="surface p-6 text-center">
         <p className="t-title text-foreground">Admin only</p>
         <p className="t-micro mt-1.5">
           This account can't manage permissions. Ask the tournament admin for access.
@@ -150,7 +160,7 @@ function AdminBody() {
 
   return (
     <div className="space-y-6">
-      <section className="panel space-y-3 p-4">
+      <section className="surface space-y-3 p-4">
         <h2 className="t-eyebrow">Event readiness</h2>
         <ul className="space-y-2.5">
           <ChecklistItem done={!VENMO_IS_PLACEHOLDER}>
@@ -175,13 +185,25 @@ function AdminBody() {
         </p>
       </section>
 
+      {tournament.data && (
+        <ClaimQrSheet
+          players={tournament.data.players.map((player) => ({
+            id: player.id,
+            name: player.name,
+            teamName: tournament.data?.teams.find((team) => team.id === player.team_id)?.name,
+          }))}
+        />
+      )}
+
+      <PlatformAdminPanel />
+
       <p className="t-micro">
         Captains can post match results and log side bets. Admins can also manage access. Grant{" "}
         <strong className="text-foreground">captain</strong> to Zack Smith and Charles Grass after
         they sign in once.
       </p>
       {rows.map((m) => (
-        <div key={m.userId} className="panel space-y-3 p-4">
+        <div key={m.userId} className="surface space-y-3 p-4">
           <div className="min-w-0">
             <p className="t-body truncate text-foreground">
               {m.displayName || m.email || m.userId.slice(0, 8)}
@@ -211,7 +233,7 @@ function AdminBody() {
         </div>
       ))}
       {rows.length === 0 && (
-        <div className="panel p-6 text-center">
+        <div className="surface p-6 text-center">
           <p className="t-micro">No accounts yet — captains need to sign in once first.</p>
         </div>
       )}

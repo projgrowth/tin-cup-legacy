@@ -141,9 +141,21 @@ function useAuthState(): AuthState {
         clearRecoveryFlag();
       }
     });
+    const wake = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      void supabase.auth.startAutoRefresh();
+      void supabase.auth.getSession().then(({ data: next }) => {
+        if (!mounted) return;
+        if (next.session) setSession(next.session);
+      });
+    };
+    window.addEventListener("focus", wake);
+    document.addEventListener("visibilitychange", wake);
     return () => {
       mounted = false;
       data.subscription.unsubscribe();
+      window.removeEventListener("focus", wake);
+      document.removeEventListener("visibilitychange", wake);
     };
   }, []);
 

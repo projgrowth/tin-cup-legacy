@@ -1,19 +1,25 @@
 import { Link } from "@tanstack/react-router";
 
 import { AvatarPair } from "@/components/tin-cup/Avatar";
-import { Countdown } from "@/components/tin-cup/Countdown";
-import { LiveWireTicker } from "@/components/tin-cup/LiveWireTicker";
+import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { FieldChatLink } from "@/components/tin-cup/WhatsAppLinks";
 
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
-import { BUY_IN, VENMO_IS_PLACEHOLDER, WEEKEND_SOCIAL, venmoUrl } from "@/lib/tin-cup";
+import {
+  BUY_IN,
+  EVENT,
+  VENMO_IS_PLACEHOLDER,
+  WEEKEND_SOCIAL,
+  WHATSAPP_GROUP_CONFIGURED,
+  venmoUrl,
+} from "@/lib/tin-cup";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
 
 export function PreTournamentPanel({
   rounds: _rounds = [],
-  matches = [],
+  matches: _matches = [],
   players = [],
   teams = [],
   canUpload: _canUpload = false,
@@ -37,15 +43,7 @@ export function PreTournamentPanel({
   const today = COURSE_DETAILS[nextCourseId];
   const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
 
-  const cta = !signedIn ? (
-    <Link to="/profile" className="press btn-gold t-body flex min-h-11 w-full justify-center">
-      Sign in · claim your spot
-    </Link>
-  ) : needsClaim ? (
-    <Link to="/profile" className="press btn-gold t-body flex min-h-11 w-full justify-center">
-      Claim your roster name
-    </Link>
-  ) : (
+  const cta = isClaimed ? (
     <a
       href={venmoUrl}
       target="_blank"
@@ -54,12 +52,15 @@ export function PreTournamentPanel({
     >
       Pay ${BUY_IN}
     </a>
-  );
+  ) : null;
 
   return (
     <div className="stack-page pb-2">
-      <h1 className="t-title text-center text-foreground">Tin Cup · {today.dayLabel}</h1>
-      <Countdown />
+      <PageMasthead
+        kicker={`${EVENT.dates} · ${EVENT.location}`}
+        title={EVENT.title}
+        meta={EVENT.subtitle}
+      />
 
       <div className="stack-tight">
         {cta}
@@ -73,7 +74,7 @@ export function PreTournamentPanel({
             </Link>
             <Link
               to="/scout"
-              search={{ course: nextCourseId }}
+              search={{ course: nextCourseId, card: true }}
               className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
             >
               Plan the round
@@ -81,12 +82,14 @@ export function PreTournamentPanel({
           </p>
         )}
         {VENMO_IS_PLACEHOLDER && (
-          <p className="t-micro text-center text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>
+          <p className="t-micro text-center text-copper">
+            Set VITE_VENMO_HANDLE before the weekend.
+          </p>
         )}
       </div>
 
       {isClaimed && (
-        <section className="panel space-y-4 p-4">
+        <section className="surface space-y-4 p-4">
           <p className="t-eyebrow text-gold-light">Your weekend</p>
           {myDay1 ? (
             <div className="flex items-center gap-3">
@@ -106,7 +109,9 @@ export function PreTournamentPanel({
                 size="md"
               />
               <div className="min-w-0">
-                <p className="t-title text-foreground">Friday · Match {myDay1.pairing.matchIndex}</p>
+                <p className="t-title text-foreground">
+                  Friday · Match {myDay1.pairing.matchIndex}
+                </p>
                 <p className="t-micro mt-1 text-muted-foreground">
                   w/ {myDay1.partner.split(" ")[0]} · vs {myDay1.opponents}
                 </p>
@@ -116,21 +121,14 @@ export function PreTournamentPanel({
           <p className="t-micro text-muted-foreground">
             {today.dayLabel} · {COURSE_LABEL[nextCourseId]} · first tee {today.firstTee}
           </p>
-          {tonight && (
-            <p className="t-micro text-muted-foreground">
-              Tonight · {tonight.title}
-            </p>
-          )}
+          {tonight && <p className="t-micro text-muted-foreground">Tonight · {tonight.title}</p>}
           <div className="grid grid-cols-2 gap-2">
-            <Link
-              to="/schedule"
-              className="press btn-quiet t-body flex min-h-11 justify-center"
-            >
+            <Link to="/schedule" className="press btn-quiet t-body flex min-h-11 justify-center">
               Weekend
             </Link>
             <Link
               to="/scout"
-              search={{ course: nextCourseId }}
+              search={{ course: nextCourseId, card: true }}
               className="press btn-quiet t-body flex min-h-11 justify-center"
             >
               {COURSE_LABEL[nextCourseId]} plan
@@ -143,17 +141,7 @@ export function PreTournamentPanel({
         <p className="t-micro text-center text-muted-foreground">Tonight · {tonight.title}</p>
       )}
 
-      <LiveWireTicker
-        matches={matches}
-        sideBets={[]}
-        players={players}
-        teams={teams}
-        variant="pre"
-        limit={3}
-        toastEnabled={false}
-      />
-
-      <FieldChatLink className="!min-h-11 w-full" />
+      {WHATSAPP_GROUP_CONFIGURED && <FieldChatLink className="!min-h-11 w-full" />}
     </div>
   );
 }

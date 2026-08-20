@@ -3,9 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Map } from "lucide-react";
 
 import type { Match, Player, Round, SideBet, Team } from "@/hooks/useTournament";
-import { LiveWireTicker } from "@/components/tin-cup/LiveWireTicker";
 import { FieldChatLink } from "@/components/tin-cup/WhatsAppLinks";
-import { PhotoVault } from "@/components/tin-cup/PhotoVault";
 import { roundStatus } from "@/lib/scoring";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { formatPayout } from "@/lib/purse";
@@ -13,7 +11,7 @@ import { contestHoleLabel } from "@/lib/tin-cup";
 import { COURSE_LABEL, ROUND_COURSE, defaultCourseId, type CourseId } from "@/lib/courses";
 import { BetClaim } from "./MatchControls";
 import { MyMatchCard } from "./MyMatchCard";
-import { LiveHero, RoundStrip, StatusLine, StickyCupBar } from "./ScoreBoard";
+import { LiveHero, RoundStrip, StatusLine } from "./ScoreBoard";
 import { RoundBlock } from "./RoundBlock";
 
 function courseIdFromRound(round: Round): CourseId {
@@ -37,9 +35,10 @@ export function LivePanel({
   onRetryFailed,
   stale = false,
   canScore = false,
-  canUpload = false,
+  canUpload: _canUpload = false,
   initialOpenOnly = false,
   claimedName = null,
+  variant = "full",
 }: {
   rounds: Round[];
   matches: Match[];
@@ -55,6 +54,7 @@ export function LivePanel({
   canUpload?: boolean;
   initialOpenOnly?: boolean;
   claimedName?: string | null;
+  variant?: "full" | "hero" | "board";
 }) {
   const ctp = sideBets.filter((b) => isCtp(b.kind));
   const ld = sideBets.filter((b) => isLongDrive(b.kind));
@@ -76,14 +76,10 @@ export function LivePanel({
     orderedRounds[0];
   const planCourse = liveRound ? courseIdFromRound(liveRound) : defaultCourseId();
 
-  return (
-    <div className="stack-page">
+  const hero = (
+    <>
       <LiveHero rounds={rounds} matches={matches} teams={teams} />
-      {/* Always show race sticky — remaining points matter before any result posts */}
-      <StickyCupBar matches={matches} />
-      {decided && <RoundStrip rounds={rounds} matches={matches} />}
-
-      {/* Claimed player: who you play right now */}
+      {decided && variant !== "hero" && <RoundStrip rounds={rounds} matches={matches} />}
       {claimedName && (
         <MyMatchCard
           claimedName={claimedName}
@@ -91,8 +87,16 @@ export function LivePanel({
           matches={matches}
           players={players}
           teams={teams}
+          canScore={canScore}
         />
       )}
+    </>
+  );
+  if (variant === "hero") return <div className="stack-tight">{hero}</div>;
+
+  return (
+    <div className="stack-page">
+      {variant === "full" && hero}
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-2">
@@ -131,7 +135,7 @@ export function LivePanel({
 
       <Link
         to="/scout"
-        search={{ course: planCourse }}
+        search={{ course: planCourse, card: true }}
         className="press t-micro flex min-h-11 items-center justify-between gap-3 px-1 font-semibold text-foreground"
       >
         <span className="inline-flex items-center gap-2">
@@ -140,15 +144,6 @@ export function LivePanel({
         </span>
         <span className="text-muted-foreground">Open →</span>
       </Link>
-
-      <LiveWireTicker
-        matches={matches}
-        sideBets={sideBets}
-        players={players}
-        teams={teams}
-        variant="live"
-        limit={3}
-      />
 
       <FieldChatLink className="!min-h-11 w-full" />
 
@@ -160,7 +155,7 @@ export function LivePanel({
         stale={stale}
       />
 
-      <section className="panel overflow-hidden">
+      <section className="surface overflow-hidden">
         <button
           type="button"
           onClick={() => setSideOpen((v) => !v)}
@@ -217,8 +212,6 @@ export function LivePanel({
         )}
       </section>
 
-      {/* Photos after board — secondary during live play */}
-      <PhotoVault canUpload={canUpload} variant="pulse" hideWhenEmpty />
     </div>
   );
 }

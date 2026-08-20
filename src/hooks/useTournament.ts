@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { Tables } from "@/integrations/supabase/types";
 import { graphqlRequest, subscribeGraphql } from "@/integrations/supabase/graphql";
+import { applyDay1ContestHoles } from "@/lib/contest-holes";
 import {
   applyPending,
   flushQueue,
@@ -13,6 +14,7 @@ import {
   hydrateQueue,
   retryFailed,
   subscribeQueue,
+  type QueueTable,
 } from "@/lib/write-queue";
 export { dismissFailed, retryFailed } from "@/lib/write-queue";
 
@@ -84,7 +86,7 @@ async function fetchTournament(): Promise<TournamentData> {
     players: result.players,
     rounds: result.rounds,
     matches: result.matches,
-    sideBets: result.side_bets,
+    sideBets: applyDay1ContestHoles(result.side_bets, result.rounds),
     trophies: result.trophies,
     syncedAt: Date.now(),
   };
@@ -106,6 +108,22 @@ export function useFailedWrites() {
 
 export function useWriteConflicts() {
   return useSyncExternalStore(subscribeQueue, getConflicts, getServerQueue);
+}
+
+export function useRowWriteStatus(table: QueueTable, rowId: string) {
+  const pending = usePendingWrites();
+  const failed = useFailedWrites();
+  const conflicts = useWriteConflicts();
+  if (conflicts.some((write) => write.table === table && write.rowId === rowId)) {
+    return "conflict" as const;
+  }
+  if (failed.some((write) => write.table === table && write.rowId === rowId)) {
+    return "failed" as const;
+  }
+  if (pending.some((write) => write.table === table && write.rowId === rowId)) {
+    return "pending" as const;
+  }
+  return "clean" as const;
 }
 
 export function useTournament() {
@@ -168,13 +186,15 @@ export function useTournament() {
 
   const data = useMemo(() => {
     if (!query.data) return undefined;
-    if (pending.length === 0) return query.data;
-    return {
-      ...query.data,
-      matches: applyPending("matches", query.data.matches),
-      sideBets: applyPending("side_bets", query.data.sideBets),
-      trophies: applyPending("trophies", query.data.trophies),
-    };
+    const matches =
+      pending.length === 0 ? query.data.matches : applyPending("matches", query.data.matches);
+    const sideBets = applyDay1ContestHoles(
+      pending.length === 0 ? query.data.sideBets : applyPending("side_bets", query.data.sideBets),
+      query.data.rounds,
+    );
+    const trophies =
+      pending.length === 0 ? query.data.trophies : applyPending("trophies", query.data.trophies);
+    return { ...query.data, matches, sideBets, trophies };
   }, [query.data, pending]);
 
   return {

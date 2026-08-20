@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
 import { Mail } from "lucide-react";
 
@@ -22,6 +22,7 @@ type Mode = "password-in" | "password-up" | "magic";
  * Password first — reliable on a phone when magic-link email is rate-limited.
  */
 export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
+  const formId = useId();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<Mode>("password-in");
@@ -88,9 +89,7 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
         });
         if (error) throw error;
         const ghost =
-          Boolean(data.user) &&
-          !data.session &&
-          (data.user?.identities?.length ?? 1) === 0;
+          Boolean(data.user) && !data.session && (data.user?.identities?.length ?? 1) === 0;
         if (ghost) {
           setMode("password-in");
           toast.message("That email already has an account — sign in.");
@@ -152,12 +151,15 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
   }
 
   return (
-    <div className="panel space-y-4 p-5">
+    <div className="surface space-y-4 p-5">
       <div>
-        <p className="t-title text-foreground">
+        <h2 className="t-title text-foreground">
           {mode === "password-up" ? "Create account" : mode === "magic" ? "Email link" : "Sign in"}
-        </p>
+        </h2>
         <p className="t-micro mt-1.5 text-muted-foreground">{blurb}</p>
+        <p className="t-micro mt-1.5 text-muted-foreground">
+          Stay signed in on this phone until you sign out.
+        </p>
       </div>
 
       {sentTo && (
@@ -174,17 +176,23 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
         </div>
       )}
 
-      <input
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        type="email"
-        inputMode="email"
-        autoComplete="email"
-        autoCapitalize="none"
-        autoCorrect="off"
-        placeholder="Email"
-        className="control t-body w-full"
-      />
+      <div className="space-y-1.5">
+        <label htmlFor={`${formId}-email`} className="t-micro font-semibold text-foreground">
+          Email
+        </label>
+        <input
+          id={`${formId}-email`}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          placeholder="you@example.com"
+          className="control t-body min-h-12 w-full"
+        />
+      </div>
 
       {mode === "magic" ? (
         <button
@@ -197,14 +205,20 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
         </button>
       ) : (
         <>
-          <input
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            type="password"
-            autoComplete={mode === "password-in" ? "current-password" : "new-password"}
-            placeholder="Password"
-            className="control t-body w-full"
-          />
+          <div className="space-y-1.5">
+            <label htmlFor={`${formId}-password`} className="t-micro font-semibold text-foreground">
+              Password
+            </label>
+            <input
+              id={`${formId}-password`}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              autoComplete={mode === "password-in" ? "current-password" : "new-password"}
+              placeholder="At least 6 characters"
+              className="control t-body min-h-12 w-full"
+            />
+          </div>
           <button
             type="button"
             disabled={busy}
@@ -231,7 +245,7 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
             type="button"
             disabled={busy}
             onClick={() => setMode("magic")}
-            className="t-micro w-full text-center text-muted-foreground"
+            className="press t-micro min-h-11 w-full text-center text-muted-foreground"
           >
             Email me a link instead
           </button>
@@ -240,7 +254,7 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
           type="button"
           disabled={busy}
           onClick={() => setMode(mode === "password-up" ? "password-in" : "password-up")}
-          className="t-micro w-full text-center text-muted-foreground"
+          className="press t-micro min-h-11 w-full text-center text-muted-foreground"
         >
           {mode === "password-up"
             ? "Already have an account? Sign in"
@@ -251,7 +265,7 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
             type="button"
             disabled={busy}
             onClick={() => void resetPassword()}
-            className="t-micro w-full text-center text-muted-foreground"
+            className="press t-micro min-h-11 w-full text-center text-muted-foreground"
           >
             Forgot password?
           </button>

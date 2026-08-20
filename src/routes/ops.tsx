@@ -1,16 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2, Circle, Loader2, Smartphone, ExternalLink, Map, Radio } from "lucide-react";
 import { toast } from "sonner";
 
 import { AuthCard } from "@/components/tin-cup/AuthCard";
 import { PageHeading, Shell } from "@/components/tin-cup/Shell";
+import { ScoringRehearsal } from "@/components/tin-cup/ScoringRehearsal";
+import { PromptManager } from "@/components/tin-cup/EngagementPanels";
+import { SocialOpsHealth } from "@/components/tin-cup/SocialOpsHealth";
 import { useAuth } from "@/hooks/useAuth";
 import { useTournament } from "@/hooks/useTournament";
+import { supabase } from "@/integrations/supabase/client";
+import { getOfflineCourseState } from "@/lib/offline-course";
 import { evaluateReadiness, isEventReady, readinessScore } from "@/lib/ops-checks";
 import { getServiceWorkerStatus, type ServiceWorkerStatus } from "@/lib/register-sw";
 import { syncMyCaptainAccess } from "@/lib/roles.functions";
+import { REHEARSAL_KEY, rehearsalPassed, type RehearsalState } from "@/lib/scoring-rehearsal";
+import { assertMutationAllowed, getRuntimeMode } from "@/lib/runtime-mode";
+import { contestHoleOpsDetail, contestHoleStatus } from "@/lib/contest-holes";
 import {
   EXPECTED_PLAYER_COUNT,
   VENMO_HANDLE,
@@ -99,7 +108,7 @@ function Row({
     <li className="flex items-start gap-3 border-b border-border/60 py-3 last:border-0">
       {done ? (
         <CheckCircle2
-          className="mt-0.5 size-4 shrink-0 text-[oklch(0.72_0.12_155)]"
+          className="mt-0.5 size-4 shrink-0 text-[var(--status-live)]"
           strokeWidth={1.8}
         />
       ) : (
@@ -130,6 +139,20 @@ function OpsPage() {
   const [syncing, setSyncing] = useState(false);
   const [sw, setSw] = useState<ServiceWorkerStatus | null>(null);
   const [dryRun, setDryRun] = useState<Record<string, boolean>>({});
+  const [platformTick, setPlatformTick] = useState(0);
+  const claims = useQuery({
+    queryKey: ["ops-claims"],
+    enabled: Boolean(user),
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .not("player_id", "is", null);
+      if (error) throw error;
+      return count ?? 0;
+    },
+    retry: false,
+  });
 
   useEffect(() => {
     setOnline(navigator.onLine);
@@ -137,10 +160,15 @@ function OpsPage() {
     const off = () => setOnline(false);
     window.addEventListener("online", on);
     window.addEventListener("offline", off);
+    const platformChanged = () => setPlatformTick((value) => value + 1);
+    window.addEventListener("tin-cup-rehearsal", platformChanged);
+    window.addEventListener("tin-cup-course-cache", platformChanged);
     setDryRun(loadDryRun());
     return () => {
       window.removeEventListener("online", on);
       window.removeEventListener("offline", off);
+      window.removeEventListener("tin-cup-rehearsal", platformChanged);
+      window.removeEventListener("tin-cup-course-cache", platformChanged);
     };
   }, []);
 
@@ -197,11 +225,11 @@ function OpsPage() {
   const revisionGuardReady =
     Boolean(data?.matches.length) &&
     data!.matches.every((match) => Number.isInteger(match.revision));
-  const contestHolesSet = useMemo(() => {
-    const bets = data?.sideBets ?? [];
-    if (bets.length === 0) return false;
-    return bets.filter((b) => b.hole != null).length >= 4;
-  }, [data?.sideBets]);
+  const contestHoles = useMemo(
+    () => contestHoleStatus(data?.sideBets ?? [], data?.rounds ?? []),
+    [data?.sideBets, data?.rounds],
+  );
+  const contestHolesDetail = contestHoleOpsDetail(contestHoles);
   const decidedMatches = useMemo(
     () => (data?.matches ?? []).filter((m) => m.result !== "pending").length,
     [data?.matches],
@@ -209,10 +237,34 @@ function OpsPage() {
 
   const dryDone = DRY_RUN_STEPS.filter((s) => dryRun[s.id]).length;
   const dryComplete = dryDone === DRY_RUN_STEPS.length;
+  const platform = useMemo(() => {
+    void platformTick;
+    let rehearsalReady = false;
+    try {
+      const value = JSON.parse(localStorage.getItem(REHEARSAL_KEY) ?? "null") as RehearsalState;
+      rehearsalReady = Boolean(value && rehearsalPassed(value));
+    } catch {
+      rehearsalReady = false;
+    }
+    const courseStates = (["south", "copperhead", "island"] as const).map((course) =>
+      getOfflineCourseState(course),
+    );
+    const storyReady =
+      getRuntimeMode() === "preview" ||
+      String(import.meta.env.VITE_WEEKEND_STORY_V2 ?? "").toLowerCase() === "true";
+    return {
+      rehearsalReady,
+      coursesReady: courseStates.every((state) => state === "ready"),
+      courseStates,
+      storyReady,
+      pushConfigured: storyReady && Boolean(import.meta.env.VITE_VAPID_PUBLIC_KEY),
+    };
+  }, [platformTick]);
 
   async function trySyncCaptain() {
     setSyncing(true);
     try {
+      assertMutationAllowed("Captain access sync");
       const result = await syncCaptain({});
       await refreshRoles();
       if (result.granted) {
@@ -246,8 +298,8 @@ function OpsPage() {
         <div className="stack-page pb-4">
           {/* Score hero */}
           <section
-            className={`panel p-5 ${
-              ready && dryComplete ? "border border-[oklch(0.72_0.12_155/30%)]" : ""
+            className={`surface p-5 ${
+              ready && dryComplete ? "border border-[color:var(--status-live)]/40" : ""
             }`}
           >
             <div className="flex items-baseline justify-between gap-3">
@@ -292,8 +344,82 @@ function OpsPage() {
             )}
           </section>
 
+          <ScoringRehearsal />
+          <SocialOpsHealth />
+          {canScore && <PromptManager userId={user.id} rounds={data?.rounds ?? []} />}
+
+          <section className="surface p-4">
+            <h2 className="t-eyebrow">Launch blockers</h2>
+            <ul className="mt-1">
+              <Row
+                done={platform.rehearsalReady}
+                critical
+                label="Revision-safe two-device rehearsal"
+                detail={
+                  platform.rehearsalReady ? "Passed on this device" : "Run the simulation above"
+                }
+              />
+              <Row
+                done={platform.coursesReady}
+                critical
+                label="All three offline course bundles"
+                detail={`South ${platform.courseStates[0]} · Copperhead ${platform.courseStates[1]} · Island ${platform.courseStates[2]}`}
+              />
+              <Row
+                done={contestHoles.fridayPosted}
+                critical
+                label="Side-pot amounts and Friday holes"
+                detail={
+                  contestHoles.fridayPosted
+                    ? contestHolesDetail
+                    : "Amounts are set; Friday contest holes remain TBD"
+                }
+              />
+              <Row
+                done={(claims.data ?? 0) === EXPECTED_PLAYER_COUNT}
+                label="Roster claims"
+                detail={`${claims.data ?? 0}/${EXPECTED_PLAYER_COUNT} players claimed`}
+              />
+              <Row
+                done={platform.storyReady}
+                label="Weekend Story schema"
+                detail={
+                  platform.storyReady
+                    ? "Enabled for this runtime"
+                    : "Disabled; derived story remains read-only"
+                }
+              />
+              <Row
+                done={platform.pushConfigured}
+                label="Push worker credentials"
+                detail={
+                  platform.pushConfigured
+                    ? "Public VAPID key configured"
+                    : "Push remains disabled until VAPID activation"
+                }
+              />
+              <Row
+                done={Boolean(sw?.registered || (sw && !sw.shouldRegister))}
+                critical
+                label="Valid service worker"
+                detail={
+                  sw?.reason ||
+                  (sw?.controlling ? "Registered and controlling" : "Checking registration")
+                }
+              />
+            </ul>
+            <p className="t-micro mt-3 border-t border-border pt-3">
+              Runtime: <span className="text-foreground">{getRuntimeMode()}</span>. Two captain
+              roles and delivery retries are inspected in{" "}
+              <Link to="/admin" className="text-foreground underline underline-offset-2">
+                Admin
+              </Link>
+              .
+            </p>
+          </section>
+
           {/* Dual-phone interactive checklist */}
-          <section className="panel overflow-hidden">
+          <section className="surface overflow-hidden">
             <div className="border-b border-border/60 px-4 py-3">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
@@ -327,7 +453,7 @@ function OpsPage() {
                     >
                       {done ? (
                         <CheckCircle2
-                          className="mt-0.5 size-5 shrink-0 text-[oklch(0.72_0.12_155)]"
+                          className="mt-0.5 size-5 shrink-0 text-[var(--status-live)]"
                           strokeWidth={1.8}
                         />
                       ) : (
@@ -360,7 +486,7 @@ function OpsPage() {
           </section>
 
           {/* Live readiness gates */}
-          <section className="panel p-4">
+          <section className="surface p-4">
             <h2 className="t-eyebrow">System gates</h2>
             <ul className="mt-1">
               <Row
@@ -489,13 +615,9 @@ function OpsPage() {
                 }
               />
               <Row
-                done={contestHolesSet}
+                done={contestHoles.fridayPosted}
                 label="Contest holes posted"
-                detail={
-                  contestHolesSet
-                    ? "CTP/LD holes numbered — Scout badges them"
-                    : "Still TBD — do not invent; post when known"
-                }
+                detail={contestHolesDetail}
               />
               <Row
                 done={decidedMatches > 0 || dryComplete}
@@ -511,7 +633,7 @@ function OpsPage() {
             </ul>
           </section>
 
-          <section className="panel space-y-3 p-4">
+          <section className="surface space-y-3 p-4">
             <h2 className="t-eyebrow">Captain access</h2>
             <p className="t-micro text-muted-foreground">
               Zack & Charles: sign in once → Kevin grants captain on{" "}
@@ -547,20 +669,20 @@ function OpsPage() {
             </div>
           </section>
 
-          <section className="panel space-y-2 p-4">
+          <section className="surface space-y-2 p-4">
             <h2 className="t-eyebrow mb-1">Field shortcuts</h2>
             <a
               href={venmoUrl}
               target="_blank"
               rel="noreferrer"
-              className="press panel flex min-h-12 items-center justify-between gap-3 border border-border/60 px-4 py-3"
+              className="press surface flex min-h-12 items-center justify-between gap-3 border border-border/60 px-4 py-3"
             >
               <span className="t-body font-medium text-foreground">Test Venmo $150</span>
               <ExternalLink className="size-4 text-muted-foreground" />
             </a>
             <Link
               to="/"
-              className="press panel flex min-h-12 items-center justify-between gap-3 border border-border/60 px-4 py-3"
+              className="press surface flex min-h-12 items-center justify-between gap-3 border border-border/60 px-4 py-3"
             >
               <span className="inline-flex items-center gap-2 t-body font-medium text-foreground">
                 <Radio className="size-4 opacity-70" /> Live board
@@ -570,7 +692,7 @@ function OpsPage() {
             <Link
               to="/"
               search={{ board: true }}
-              className="press panel flex min-h-12 items-center justify-between gap-3 border border-border/60 px-4 py-3"
+              className="press surface flex min-h-12 items-center justify-between gap-3 border border-border/60 px-4 py-3"
             >
               <span className="t-body font-medium text-foreground">Clubhouse display</span>
               <span className="t-micro text-muted-foreground">TV →</span>
@@ -578,7 +700,7 @@ function OpsPage() {
             <Link
               to="/scout"
               search={{ course: "south" }}
-              className="press panel flex min-h-12 items-center justify-between gap-3 border border-border/60 px-4 py-3"
+              className="press surface flex min-h-12 items-center justify-between gap-3 border border-border/60 px-4 py-3"
             >
               <span className="inline-flex items-center gap-2 t-body font-medium text-foreground">
                 <Map className="size-4 opacity-70" /> South planner
@@ -587,7 +709,7 @@ function OpsPage() {
             </Link>
           </section>
 
-          <section className="panel space-y-3 p-4">
+          <section className="surface space-y-3 p-4">
             <h2 className="t-eyebrow">Pre-Friday freeze</h2>
             <ol className="t-micro list-decimal space-y-2 pl-4 text-muted-foreground">
               <li>Smoke Live, Plan, claim, captain score on production.</li>

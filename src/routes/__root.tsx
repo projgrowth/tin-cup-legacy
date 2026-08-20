@@ -12,15 +12,16 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { registerServiceWorker } from "@/lib/register-sw";
+import { installClientErrorReporting } from "@/lib/client-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
 
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="panel fade-up w-full max-w-md px-6 py-10 text-center">
+      <div className="surface fade-up w-full max-w-md px-6 py-10 text-center">
         <p className="t-eyebrow">404</p>
-        <h1 className="t-title mt-2 text-foreground">Page not found</h1>
+        <h1 className="t-display mt-2 text-foreground">Page not found</h1>
         <p className="t-body mt-2 text-muted-foreground">
           That link doesn&apos;t match anything in the weekend hub.
         </p>
@@ -43,8 +44,8 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="panel fade-up w-full max-w-md px-6 py-10 text-center">
-        <h1 className="t-title text-foreground">This page didn&apos;t load</h1>
+      <div className="surface fade-up w-full max-w-md px-6 py-10 text-center">
+        <h1 className="t-display text-foreground">This page didn&apos;t load</h1>
         <p className="t-body mt-2 text-muted-foreground">
           Something went wrong on our end. Try again or head back to Live.
         </p>
@@ -144,6 +145,7 @@ function RootComponent() {
 
   useEffect(() => {
     registerServiceWorker();
+    return installClientErrorReporting();
   }, []);
 
   return (

@@ -32,14 +32,13 @@ export default defineConfig({
         devOptions: { enabled: false },
         workbox: {
           // Include JSON (course data chunks), fonts, icons — enough for Scout offline.
-          globPatterns: [
-            "**/*.{js,css,html,json,woff2,png,jpg,jpeg,svg,ico,webmanifest}",
-          ],
+          globPatterns: ["**/*.{js,css,html,json,woff2,png,jpg,jpeg,svg,ico,webmanifest}"],
           // Don't precache the cinematic intro video (large; not required offline).
           globIgnores: ["**/tin-cup-intro.mp4", "**/tin-cup-intro-720*"],
           navigateFallback: "/",
           navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /^\/_serverFn\//],
           cleanupOutdatedCaches: true,
+          importScripts: ["/course-cache-worker.js"],
           // Fail the build if the precache is empty (event-day offline depends on it).
           maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
           runtimeCaching: [

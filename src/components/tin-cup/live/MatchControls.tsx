@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -8,6 +8,7 @@ import {
   type Player,
   type SideBet,
   type Team,
+  useRowWriteStatus,
 } from "@/hooks/useTournament";
 import { enqueueWrite, expectedVersionAfterWrite } from "@/lib/write-queue";
 
@@ -22,6 +23,13 @@ const RESULT_LABEL: Record<string, string> = {
 export function MatchResultButtons({ match, teams }: { match: Match; teams: Team[] }) {
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState<string | null>(null);
+  const [recentlySaved, setRecentlySaved] = useState(false);
+  const writeStatus = useRowWriteStatus("matches", match.id);
+  useEffect(() => {
+    if (!recentlySaved) return;
+    const id = window.setTimeout(() => setRecentlySaved(false), 3_000);
+    return () => window.clearTimeout(id);
+  }, [recentlySaved]);
   const shortName = (slug: string) => {
     const name = teams.find((t) => t.slug === slug)?.name ?? slug;
     return name.split(" ")[0] ?? name;
@@ -51,6 +59,7 @@ export function MatchResultButtons({ match, teams }: { match: Match; teams: Team
         ? `${match.label}: ${RESULT_LABEL[result]}`
         : "Saved offline — syncs when you get signal",
       {
+        duration: 10_000,
         action: {
           label: "Undo",
           onClick: () => {
@@ -64,6 +73,7 @@ export function MatchResultButtons({ match, teams }: { match: Match; teams: Team
         },
       },
     );
+    setRecentlySaved(true);
     void queryClient.invalidateQueries({ queryKey: tournamentQueryKey });
   }
 
@@ -74,36 +84,56 @@ export function MatchResultButtons({ match, teams }: { match: Match; teams: Team
   ];
 
   return (
-    <div className="mt-2 grid grid-cols-4 gap-1.5">
-      {options.map((option) => {
-        const active = match.result === option.value;
-        return (
+    <div className="mt-2 space-y-1.5">
+      <p
+        className={`t-micro ${writeStatus === "conflict" || writeStatus === "failed" ? "text-copper" : "text-muted-foreground"}`}
+        role="status"
+      >
+        {saving
+          ? "Saving…"
+          : writeStatus === "conflict"
+            ? "Conflict · review before scoring again"
+            : writeStatus === "failed"
+              ? "Failed · retry from the sync banner"
+              : writeStatus === "pending"
+                ? "Saved offline · waiting to sync"
+                : recentlySaved
+                  ? "Saved"
+                  : match.result === "pending"
+                    ? "Not reported"
+                    : "Result synced"}
+      </p>
+      <div className="grid grid-cols-4 gap-1.5">
+        {options.map((option) => {
+          const active = match.result === option.value;
+          return (
+            <button
+              key={option.value}
+              type="button"
+              disabled={saving !== null}
+              aria-pressed={active}
+              onClick={() => void post(option.value)}
+              className={`press min-h-12 w-full rounded-xl border t-body font-semibold disabled:opacity-50 ${
+                active
+                  ? "border-foreground/30 bg-secondary text-foreground"
+                  : "border-border text-muted-foreground"
+              }`}
+            >
+              {saving === option.value ? "…" : option.label}
+            </button>
+          );
+        })}
+        {match.result !== "pending" && (
           <button
-            key={option.value}
             type="button"
             disabled={saving !== null}
-            aria-pressed={active}
-            onClick={() => void post(option.value)}
-            className={`press min-h-12 w-full rounded-xl border t-body font-semibold disabled:opacity-50 ${
-              active
-                ? "border-foreground/30 bg-secondary text-foreground"
-                : "border-border text-muted-foreground"
-            }`}
+            onClick={() => void post("pending")}
+            className="press min-h-12 w-full rounded-xl border border-border t-body text-muted-foreground disabled:opacity-50"
           >
-            {saving === option.value ? "…" : option.label}
+            Clear
           </button>
-        );
-      })}
-      {match.result !== "pending" && (
-        <button
-          type="button"
-          disabled={saving !== null}
-          onClick={() => void post("pending")}
-          className="press min-h-12 w-full rounded-xl border border-border t-body text-muted-foreground disabled:opacity-50"
-        >
-          Clear
-        </button>
-      )}
+        )}
+      </div>
     </div>
   );
 }

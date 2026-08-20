@@ -1,5 +1,6 @@
 import { supabase } from "./client";
 import type { Database } from "./types";
+import { assertMutationAllowed } from "@/lib/runtime-mode";
 
 export type SupabaseDataError = Error & { code?: string };
 
@@ -16,6 +17,7 @@ async function userId() {
 }
 
 type PublicTable = keyof Database["public"]["Tables"];
+type QueuedPublicTable = "matches" | "side_bets" | "trophies";
 
 async function rows(table: PublicTable, columns = "*", configure?: (query: any) => any) {
   let query: any = supabase.from(table).select(columns);
@@ -67,7 +69,7 @@ export async function graphqlRequest<
   if (operation === "MyRosterSpot" || operation === "MyProfile") {
     const columns =
       operation === "MyProfile"
-        ? "id,display_name,player_id,avatar_path,created_at,updated_at"
+        ? "id,display_name,player_id,avatar_path,status_text,flair,created_at,updated_at"
         : "player_id";
     const { data, error } = await supabase
       .from("profiles")
@@ -85,6 +87,7 @@ export async function graphqlRequest<
   }
 
   if (operation === "CreateMyProfile") {
+    assertMutationAllowed("Profile creation");
     const id = await userId();
     if (!id) throw new Error("Sign in again");
     const { data, error } = await supabase
@@ -97,6 +100,7 @@ export async function graphqlRequest<
   }
 
   if (operation === "SaveMyProfile") {
+    assertMutationAllowed("Profile update");
     const id = await userId();
     if (!id) throw new Error("Sign in again");
     const { data, error } = await supabase
@@ -116,6 +120,7 @@ export async function graphqlRequest<
     } as TData;
   }
   if (operation === "SaveHoleNote") {
+    assertMutationAllowed("Course note save");
     const id = await userId();
     if (!id) throw new Error("Sign in again");
     const object = { user_id: id, ...v.object };
@@ -135,6 +140,7 @@ export async function graphqlRequest<
     } as TData;
   }
   if (operation === "SaveRoundPlan") {
+    assertMutationAllowed("Round plan save");
     const id = await userId();
     if (!id) throw new Error("Sign in again");
     const { data, error } = await supabase
@@ -160,7 +166,7 @@ export async function graphqlRequest<
         : "id,display_name,player_id,avatar_path";
     const [profiles, photos] = await Promise.all([
       rows("profiles", profileCols, (q) => q.not("player_id", "is", null)),
-      rows("photos", "id,caption,created_at,uploaded_by", (q) =>
+      rows("photos", "id,caption,created_at,uploaded_by,storage_path", (q) =>
         q.order("created_at", { ascending: false }).limit(12),
       ),
     ]);
@@ -177,6 +183,7 @@ export async function graphqlRequest<
     return { photos, profiles, players } as TData;
   }
   if (operation === "AddPhoto") {
+    assertMutationAllowed("Photo upload");
     const id = await userId();
     if (!id) throw new Error("Sign in again");
     const { data, error } = await supabase
@@ -188,6 +195,7 @@ export async function graphqlRequest<
     return { insert_photos_one: data } as TData;
   }
   if (operation === "RemovePhoto") {
+    assertMutationAllowed("Photo removal");
     const { data, error } = await supabase
       .from("photos")
       .delete()
@@ -200,7 +208,7 @@ export async function graphqlRequest<
 
   if (operation === "QueueWrite") {
     const table = query.match(/update_(matches|side_bets|trophies)/)?.[1] as
-      PublicTable | undefined;
+      QueuedPublicTable | undefined;
     if (!table) throw new Error("Unsupported queued table");
     let update: any = supabase.from(table).update(v.patch).eq("id", v.where.id._eq);
     if (v.where.revision?._eq != null) update = update.eq("revision", v.where.revision._eq);
@@ -214,9 +222,19 @@ export async function graphqlRequest<
 }
 
 export function subscribeGraphql(query: string, onData: () => void): () => void {
-  const tables: PublicTable[] = (["matches", "side_bets", "trophies", "photos"] as const).filter(
-    (table) => query.includes(table),
-  );
+  const tables: PublicTable[] = (
+    [
+      "matches",
+      "side_bets",
+      "trophies",
+      "photos",
+      "story_comments",
+      "story_reactions",
+      "story_reports",
+      "match_predictions",
+      "match_confirmations",
+    ] as const
+  ).filter((table) => query.includes(table));
   const channel = supabase.channel(`live:${tables.join(":")}:${crypto.randomUUID()}`);
   for (const table of tables) {
     channel.on("postgres_changes", { event: "*", schema: "public", table }, onData);

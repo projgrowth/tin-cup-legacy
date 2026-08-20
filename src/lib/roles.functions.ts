@@ -15,6 +15,12 @@ async function adminClient() {
   return supabaseAdmin;
 }
 
+function assertServerMutationAllowed() {
+  if (process.env.VITE_RUNTIME_MODE === "preview") {
+    throw new Error("Preview is read-only. Access changes were not applied.");
+  }
+}
+
 async function assertAdmin(userId: string) {
   const admin = await adminClient();
   const { data, error } = await admin
@@ -53,6 +59,7 @@ export const getRoleSetup = createServerFn({ method: "GET" })
 export const claimFirstAdmin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    assertServerMutationAllowed();
     const email = claimEmail(context.claims as Record<string, unknown>);
     const allowlist = (process.env.INITIAL_ADMIN_EMAILS ?? "")
       .split(",")
@@ -82,12 +89,15 @@ export const listMembers = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<MemberRow[]> => {
     await assertAdmin(context.userId);
     const admin = await adminClient();
-    const [{ data: authData, error: authError }, { data: roles, error: rolesError }, { data: profiles, error: profilesError }] =
-      await Promise.all([
-        admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
-        admin.from("user_roles").select("user_id, role"),
-        admin.from("profiles").select("id, display_name"),
-      ]);
+    const [
+      { data: authData, error: authError },
+      { data: roles, error: rolesError },
+      { data: profiles, error: profilesError },
+    ] = await Promise.all([
+      admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+      admin.from("user_roles").select("user_id, role"),
+      admin.from("profiles").select("id, display_name"),
+    ]);
     if (authError) throw authError;
     if (rolesError) throw rolesError;
     if (profilesError) throw profilesError;
@@ -112,21 +122,20 @@ export const setMemberRole = createServerFn({ method: "POST" })
   )
   .middleware([requireSupabaseAuth])
   .handler(async ({ context, data }) => {
+    assertServerMutationAllowed();
     await assertAdmin(context.userId);
     if (!data.grant && data.userId === context.userId && data.role === "admin") {
       throw new Error("You can't remove your own admin access");
     }
     const admin = await adminClient();
     const result = data.grant
-      ? await admin.from("user_roles").upsert(
-          { user_id: data.userId, role: data.role },
-          { onConflict: "user_id,role", ignoreDuplicates: true },
-        )
-      : await admin
+      ? await admin
           .from("user_roles")
-          .delete()
-          .eq("user_id", data.userId)
-          .eq("role", data.role);
+          .upsert(
+            { user_id: data.userId, role: data.role },
+            { onConflict: "user_id,role", ignoreDuplicates: true },
+          )
+      : await admin.from("user_roles").delete().eq("user_id", data.userId).eq("role", data.role);
     if (result.error) throw result.error;
     return { ok: true as const };
   });
@@ -134,6 +143,7 @@ export const setMemberRole = createServerFn({ method: "POST" })
 export const syncMyCaptainAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    assertServerMutationAllowed();
     const email = claimEmail(context.claims as Record<string, unknown>);
     const allowlist = (process.env.CAPTAIN_EMAILS ?? "")
       .split(",")
@@ -143,10 +153,12 @@ export const syncMyCaptainAccess = createServerFn({ method: "POST" })
       return { granted: false as const, reason: "not_allowlisted" as const };
     }
     const admin = await adminClient();
-    const { error } = await admin.from("user_roles").upsert(
-      { user_id: context.userId, role: "captain" },
-      { onConflict: "user_id,role", ignoreDuplicates: true },
-    );
+    const { error } = await admin
+      .from("user_roles")
+      .upsert(
+        { user_id: context.userId, role: "captain" },
+        { onConflict: "user_id,role", ignoreDuplicates: true },
+      );
     if (error) throw error;
     return { granted: true as const, reason: "email" as const };
   });

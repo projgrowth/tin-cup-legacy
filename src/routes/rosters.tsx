@@ -4,13 +4,17 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronRight } from "lucide-react";
 
 import { Avatar } from "@/components/tin-cup/Avatar";
+import { ClaimQrButton } from "@/components/tin-cup/ClaimQr";
+import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
+import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
 import { tallyStandings } from "@/lib/scoring";
 import { teamRailClass } from "@/lib/team-styles";
+import { EXPECTED_PLAYER_COUNT } from "@/lib/tin-cup";
 
 export const Route = createFileRoute("/rosters")({
   head: () => ({
@@ -38,6 +42,7 @@ function RostersPage() {
   const teams = data?.teams ?? [];
   const players = data?.players ?? [];
   const avatars = usePlayerAvatars(players, teams);
+  const publicProfiles = usePublicProfiles();
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
 
   const { data: myPlayerId } = useQuery({
@@ -77,6 +82,11 @@ function RostersPage() {
   return (
     <Shell variant="dashboard">
       <div className="stack-page">
+        <PageMasthead
+          kicker="The field"
+          title="Two teams. One Cup."
+          meta={`Meet the ${EXPECTED_PLAYER_COUNT} players chasing 13.5 points.`}
+        />
         {teams.length === 2 && (
           <section className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
             {teams.map((team, index) => {
@@ -114,7 +124,7 @@ function RostersPage() {
         {!myPlayerId && (
           <Link
             to="/profile"
-            className="press panel flex items-center justify-between gap-3 px-4 py-3"
+            className="press surface flex items-center justify-between gap-3 px-4 py-3"
           >
             <span className="t-body font-medium text-foreground">Claim your spot</span>
             <ChevronRight className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.7} />
@@ -125,7 +135,7 @@ function RostersPage() {
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
         {selected && (
-          <section className={`panel overflow-hidden ${teamRailClass(selected.slug)}`}>
+          <section className={`surface overflow-hidden ${teamRailClass(selected.slug)}`}>
             <div className="border-b border-border px-4 py-3">
               <div className="flex items-baseline justify-between gap-3">
                 <div className="min-w-0">
@@ -146,42 +156,64 @@ function RostersPage() {
                 </span>
               </div>
             </div>
-            <ul className="divide-y divide-border">
+            <ul className="divide-y divide-border lg:grid lg:grid-cols-2 lg:divide-y-0">
               {players
                 .filter((p) => p.team_id === selected.id)
                 .map((player) => {
                   const isYou = myPlayerId === player.id;
+                  const social = publicProfiles.data?.find(
+                    (candidate) => candidate.player_id === player.id,
+                  );
                   return (
-                    <li key={player.id} className={isYou ? "bg-secondary/40" : ""}>
-                      <Link
-                        to="/player/$playerId"
-                        params={{ playerId: player.id }}
-                        className="press flex items-center justify-between gap-3 px-4 py-3.5"
-                      >
-                        <span className="flex min-w-0 flex-1 items-center gap-3">
-                          <Avatar
-                            name={player.name}
-                            teamSlug={selected.slug}
-                            src={avatars.data?.byPlayerId.get(player.id)?.url}
-                            size="sm"
-                          />
-                          <span className="min-w-0 flex-1">
-                            <span className="t-body flex items-center gap-2 truncate font-medium text-foreground">
-                              <span className="truncate">{player.name}</span>
-                              {player.is_captain && (
-                                <span className="t-micro text-muted-foreground">C</span>
-                              )}
-                              {isYou && (
-                                <span className="t-micro shrink-0 text-muted-foreground">You</span>
+                    <li
+                      key={player.id}
+                      className={`border-b border-border lg:[&:nth-child(odd)]:border-r ${isYou ? "bg-secondary/40" : ""}`}
+                    >
+                      <div className="flex items-center pr-1">
+                        <Link
+                          to="/player/$playerId"
+                          params={{ playerId: player.id }}
+                          className="press flex min-h-14 min-w-0 flex-1 items-center justify-between gap-3 px-4 py-3.5"
+                        >
+                          <span className="flex min-w-0 flex-1 items-center gap-3">
+                            <Avatar
+                              name={player.name}
+                              teamSlug={selected.slug}
+                              src={avatars.data?.byPlayerId.get(player.id)?.url}
+                              size="md"
+                            />
+                            <span className="min-w-0 flex-1">
+                              <span className="t-body flex items-center gap-2 truncate font-medium text-foreground">
+                                <span className="truncate">{player.name}</span>
+                                {player.is_captain && (
+                                  <span className="t-micro text-muted-foreground">C</span>
+                                )}
+                                {isYou && (
+                                  <span className="t-micro shrink-0 text-muted-foreground">
+                                    You
+                                  </span>
+                                )}
+                              </span>
+                              {(social?.flair || social?.status_text) && (
+                                <span className="t-micro mt-0.5 block truncate">
+                                  {social.flair
+                                    ? social.flair.replace("vibes", "vibes captain")
+                                    : ""}
+                                  {social.flair && social.status_text ? " · " : ""}
+                                  {social.status_text ?? ""}
+                                </span>
                               )}
                             </span>
                           </span>
-                        </span>
-                        <ChevronRight
-                          className="size-4 shrink-0 text-muted-foreground"
-                          strokeWidth={1.7}
+                          <ChevronRight
+                            className="size-4 shrink-0 text-muted-foreground"
+                            strokeWidth={1.7}
+                          />
+                        </Link>
+                        <ClaimQrButton
+                          player={{ id: player.id, name: player.name, teamName: selected.name }}
                         />
-                      </Link>
+                      </div>
                     </li>
                   );
                 })}

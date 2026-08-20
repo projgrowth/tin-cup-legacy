@@ -35,7 +35,7 @@ export function Panel({
   raised?: boolean;
 }) {
   return (
-    <section className={`${raised ? "surface-raised" : "panel"} ${className}`.trim()}>
+    <section className={`${raised ? "surface-raised" : "surface"} ${className}`.trim()}>
       {children}
     </section>
   );
@@ -77,7 +77,7 @@ export function Segmented<T extends string>({
           >
             {opt.label}
             {opt.hint ? (
-              <span className="mt-0.5 block text-[0.62rem] font-bold uppercase tracking-[0.1em] text-gold-light/90">
+              <span className="event-kicker mt-0.5 block text-gold-light/90">
                 {opt.hint}
               </span>
             ) : null}
@@ -124,7 +124,7 @@ export function EmptyState({
   icon?: ReactNode;
 }) {
   return (
-    <div className="panel flex flex-col items-center px-5 py-8 text-center">
+    <div className="surface flex flex-col items-center px-5 py-8 text-center">
       {icon ? (
         <div className="mb-3 flex size-10 items-center justify-center rounded-full bg-white/5 text-muted-foreground">
           {icon}

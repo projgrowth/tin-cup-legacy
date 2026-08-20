@@ -1,6 +1,10 @@
 import { useState } from "react";
 
 import { AvatarPair } from "@/components/tin-cup/Avatar";
+import { MatchSocialActions } from "@/components/tin-cup/MatchSocialActions";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useJournal";
+import { useMatchSocial } from "@/hooks/useMatchSocial";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { matchFormatChip, playerInMatch, roundStatus, roundTally } from "@/lib/scoring";
@@ -49,11 +53,15 @@ export function RoundBlock({
   // Default open only for the live round; completed / upcoming stay collapsed.
   const [open, setOpen] = useState(status === "live");
   const avatars = usePlayerAvatars(players, teams);
+  const { user } = useAuth();
+  const { profile } = useProfile();
+  const player = players.find((candidate) => candidate.id === profile?.player_id) ?? null;
+  const social = useMatchSocial(user?.id, player?.id);
 
   if (rows.length === 0 && pendingOnly) return null;
 
   return (
-    <article className="panel overflow-hidden">
+    <article className="surface overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -173,6 +181,12 @@ export function RoundBlock({
                         />
                       </>
                     )}
+                    <MatchSocialActions
+                      match={match}
+                      userId={user?.id}
+                      player={player}
+                      social={social}
+                    />
                   </li>
                 );
               })}

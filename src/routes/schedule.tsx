@@ -3,13 +3,15 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarPlus, Map } from "lucide-react";
 
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
+import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { PairingRow } from "@/components/tin-cup/PairingRow";
 import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
 import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { useTournament } from "@/hooks/useTournament";
 import { roundStart, roundStatus, roundTally } from "@/lib/scoring";
-import { downloadWeekendIcs } from "@/lib/calendar";
+import { downloadRoundIcs, downloadWeekendIcs } from "@/lib/calendar";
+import { trackProductEvent } from "@/lib/product-analytics";
 import { formatCountdown } from "@/lib/countdown";
 import { DAY1_META, DAY1_PAIRINGS } from "@/lib/day1-pairings";
 import {
@@ -35,7 +37,7 @@ function useNow() {
 function courseRail(course: string): string {
   const c = course.toLowerCase();
   if (c.includes("copperhead")) return "border-l-2 border-l-copper/60";
-  if (c.includes("island")) return "border-l-2 border-l-[oklch(0.55_0.08_230)]";
+  if (c.includes("island")) return "border-l-2 border-l-[color:var(--border-strong)]";
   return "border-l-2 border-l-muted-foreground/40";
 }
 
@@ -68,7 +70,7 @@ export const Route = createFileRoute("/schedule")({
 });
 
 const STATUS_PILL: Record<string, string> = {
-  live: "border-[color:oklch(0.72_0.12_155/45%)] text-[oklch(0.78_0.1_155)]",
+  live: "border-[color:var(--status-live)] text-[var(--status-live)]",
   complete: "border-border text-muted-foreground",
   upcoming: "border-border text-muted-foreground",
 };
@@ -122,27 +124,30 @@ function SchedulePage() {
   const pairingsInToday = showDay1Pairings && todayCourseId === "south";
 
   return (
-    <Shell>
+    <Shell variant="dashboard">
       <div className="stack-page pb-4">
-        <section className="panel overflow-hidden">
-          <div className="flex items-start justify-between gap-3 p-4">
-            <div className="min-w-0">
-              <p className="t-eyebrow">Today</p>
-              <h1 className="t-title mt-1.5 text-foreground">
+        <section>
+          <PageMasthead
+            kicker="Today"
+            title={
+              <>
                 {todayDetails.dayLabel} · {COURSE_LABEL[todayCourseId]}
-              </h1>
-              <p className="t-micro mt-1 text-muted-foreground">
+              </>
+            }
+            meta={
+              <>
                 First tee {todayDetails.firstTee} · {todayDetails.format}
                 {todayCourseId === "south" ? ` · ${DAY1_META.tee}` : ""}
-              </p>
-            </div>
+              </>
+            }
+          >
             {todayRound && (
-              <span className="t-numeral shrink-0 text-2xl text-foreground">
+              <p className="t-numeral mt-4 text-3xl text-foreground">
                 {todayRound.points}
                 <span className="t-micro ml-1 font-normal text-muted-foreground">pts</span>
-              </span>
+              </p>
             )}
-          </div>
+          </PageMasthead>
 
           {pairingsInToday && (
             <ul className="divide-y divide-border border-t border-border">
@@ -174,14 +179,28 @@ function SchedulePage() {
           )}
 
           <div className="border-t border-border px-4 py-3">
-            <Link
-              to="/scout"
-              search={{ course: todayCourseId }}
-              className="press btn-gold t-body inline-flex min-h-11 items-center gap-2 px-4"
-            >
-              <Map className="size-4" />
-              Open planner
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                to="/scout"
+                search={{ course: todayCourseId, card: true }}
+                className="press btn-gold t-body inline-flex min-h-11 items-center gap-2 px-4"
+              >
+                <Map className="size-4" />
+                Open planner
+              </Link>
+              {todayRound && roundStart(todayRound) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    downloadRoundIcs(todayRound);
+                    void trackProductEvent("calendar_downloaded", { kind: "round" });
+                  }}
+                  className="press btn-quiet t-body inline-flex min-h-11 items-center gap-2 px-4"
+                >
+                  <CalendarPlus className="size-4" /> Add this round
+                </button>
+              )}
+            </div>
           </div>
         </section>
 
@@ -206,7 +225,7 @@ function SchedulePage() {
                   className={`overflow-hidden surface-inset ${courseRail(round.course)}`}
                 >
                   <div className="flex items-start justify-between gap-3 p-4">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="t-title text-foreground">{round.day_label}</h3>
                         <span
@@ -231,8 +250,8 @@ function SchedulePage() {
                       {courseId && (
                         <Link
                           to="/scout"
-                          search={{ course: courseId }}
-                          className="press t-micro mt-2 inline-block font-semibold text-foreground underline-offset-2 hover:underline"
+                          search={{ course: courseId, card: true }}
+                          className="press t-micro mt-1 inline-flex min-h-11 items-center font-semibold text-foreground underline-offset-2 hover:underline"
                         >
                           {COURSE_LABEL[courseId]} planner →
                         </Link>
@@ -261,7 +280,10 @@ function SchedulePage() {
             {rounds.length > 0 && (
               <button
                 type="button"
-                onClick={() => downloadWeekendIcs(rounds)}
+                onClick={() => {
+                  downloadWeekendIcs(rounds);
+                  void trackProductEvent("calendar_downloaded", { kind: "weekend" });
+                }}
                 className="press t-micro inline-flex min-h-11 items-center gap-2 font-semibold text-foreground"
               >
                 <CalendarPlus className="size-3.5" /> Add to calendar

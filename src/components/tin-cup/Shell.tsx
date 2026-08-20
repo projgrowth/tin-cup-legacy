@@ -18,6 +18,8 @@ import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { tallyStandings } from "@/lib/scoring";
 import { retryFailed } from "@/lib/write-queue";
 import { playerInitials } from "@/lib/team-styles";
+import { getEventPhase } from "@/lib/event-phase";
+import { isPreviewMode } from "@/lib/runtime-mode";
 
 type ShellVariant = "compact" | "content" | "dashboard" | "immersive" | "theater";
 
@@ -34,6 +36,7 @@ export function Shell({
   const failed = useFailedWrites();
   const conflicts = useWriteConflicts();
   const [online, setOnline] = useState(true);
+  const [preview, setPreview] = useState(() => isPreviewMode());
   const staleBoard = tournamentError && Boolean(tournament);
 
   const { data: myPlayerId } = useQuery({
@@ -55,10 +58,11 @@ export function Shell({
   const avatars = usePlayerAvatars(tournament?.players ?? [], tournament?.teams ?? []);
   const face = claimed ? avatars.data?.byPlayerId.get(claimed.id) : undefined;
   const standings = tallyStandings(tournament?.matches ?? []);
-  const cupLive = standings.played > 0;
+  const cupLive = standings.played > 0 || getEventPhase() === "live";
   const fmtPts = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
   useEffect(() => {
+    setPreview(isPreviewMode());
     setOnline(navigator.onLine);
     const connected = () => setOnline(true);
     const disconnected = () => setOnline(false);
@@ -97,8 +101,8 @@ export function Shell({
     <div
       className={`min-h-screen ${
         immersive
-          ? "pb-[calc(5.5rem+env(safe-area-inset-bottom))]"
-          : "pb-[calc(6.5rem+env(safe-area-inset-bottom))]"
+          ? "pb-[calc(var(--nav-height)+var(--space-4)+env(safe-area-inset-bottom))] md:pb-10"
+          : "pb-[calc(var(--nav-height)+var(--space-5)+env(safe-area-inset-bottom))] lg:pb-24"
       }`}
     >
       <a
@@ -113,7 +117,7 @@ export function Shell({
         }`}
       >
         <div
-          className={`mx-auto grid w-full ${width} grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 ${
+          className={`mx-auto grid w-full ${width} min-h-[var(--header-height)] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 ${
             immersive ? "py-1.5" : "py-2"
           } sm:px-5`}
         >
@@ -121,15 +125,21 @@ export function Shell({
             <img
               src="/tin-cup-logo.png"
               alt="The Tin Cup Invitational"
-              width={28}
-              height={28}
-              className="size-7 shrink-0 object-contain"
+              width={34}
+              height={34}
+              className="size-8.5 shrink-0 object-contain"
             />
             {cupLive ? (
-              <span className="t-numeral text-[0.95rem] tracking-tight">
-                <span className="text-gold-light">{fmtPts(standings.strongMental)}</span>
-                <span className="mx-0.5 text-muted-foreground">–</span>
-                <span className="text-copper">{fmtPts(standings.grassRoots)}</span>
+              <span className="flex items-center gap-2">
+                <span
+                  className="size-1.5 animate-pulse rounded-full bg-[var(--status-live)]"
+                  aria-label="Cup live"
+                />
+                <span className="t-numeral text-[0.95rem] tracking-tight">
+                  <span className="text-gold-light">{fmtPts(standings.strongMental)}</span>
+                  <span className="mx-0.5 text-muted-foreground">–</span>
+                  <span className="text-copper">{fmtPts(standings.grassRoots)}</span>
+                </span>
               </span>
             ) : null}
           </Link>
@@ -142,7 +152,7 @@ export function Shell({
               <Avatar name={claimed.name} teamSlug={claimedTeam?.slug} src={face?.url} size="md" />
             ) : (
               <span
-                className={`flex size-10 items-center justify-center rounded-full border text-sm font-semibold uppercase ${
+                className={`flex size-11 items-center justify-center rounded-full border text-sm font-semibold uppercase ${
                   user
                     ? "border-border bg-secondary text-foreground"
                     : "border-border text-muted-foreground"
@@ -169,6 +179,14 @@ export function Shell({
         </div>
         <div className={`mx-auto h-px w-full ${width} bg-border`} />
       </header>
+      {preview && (
+        <div
+          role="status"
+          className="bg-gold/10 px-4 py-2 text-center text-xs font-semibold text-gold-light"
+        >
+          Protected preview · writes are simulated and tournament data stays read-only
+        </div>
+      )}
       <GlobalSyncStatus
         pending={pending.length}
         failed={failed.length}
@@ -180,11 +198,11 @@ export function Shell({
       />
       <main
         id="main-content"
-        className={`fade-up mx-auto w-full ${width} px-4 pt-3.5 sm:px-5 sm:pt-5`}
+        className={`mx-auto w-full ${width} px-4 pt-3 sm:px-5 sm:pt-4`}
       >
         {children}
       </main>
-      <BottomNav />
+      <BottomNav live={cupLive} />
       <SeatWelcome />
     </div>
   );
@@ -214,7 +232,7 @@ function GlobalSyncStatus({
 }) {
   const when = formatSyncTime(syncedAt);
   const banner =
-    "sticky top-[3.25rem] z-20 mx-auto mt-0 flex w-full max-w-6xl items-center gap-2 border-b px-4 py-2.5 sm:px-5";
+    "sticky top-[var(--header-height)] z-20 mx-auto mt-0 flex w-full max-w-6xl items-center gap-2 border-b px-4 py-2.5 sm:px-5";
 
   if (conflicts > 0) {
     return (
@@ -303,8 +321,8 @@ export function PageHeading({
   return (
     <header className="mb-5 sm:mb-6">
       <p className="t-eyebrow">{eyebrow}</p>
-      <h1 className="t-title mt-1.5 text-foreground">{title}</h1>
-      {meta ? <div className="t-micro mt-1.5 text-muted-foreground">{meta}</div> : null}
+      <h1 className="t-display mt-2 text-foreground">{title}</h1>
+      {meta ? <div className="t-body mt-2 max-w-2xl text-muted-foreground">{meta}</div> : null}
     </header>
   );
 }
@@ -337,7 +355,7 @@ export function LoadingForm({ fields = 4 }: { fields?: number }) {
   return (
     <div className="space-y-4" aria-busy="true" aria-live="polite">
       <SkeletonBlock height={20} className="w-1/3" />
-      <div className="panel space-y-3 p-4">
+      <div className="surface space-y-3 p-4">
         {Array.from({ length: fields }).map((_, i) => (
           <SkeletonBlock key={i} height={42} />
         ))}
@@ -361,7 +379,7 @@ export function ErrorState({
   busy?: boolean;
 }) {
   return (
-    <div className="panel fade-up px-5 py-8 text-center" role="alert">
+    <div className="surface fade-up px-5 py-8 text-center" role="alert">
       <p className="t-title text-foreground">{title}</p>
       <p className="t-micro mt-1.5 max-w-sm mx-auto text-muted-foreground">{detail}</p>
       {onRetry && (

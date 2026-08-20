@@ -103,6 +103,7 @@ export function ScoreModal({ matches, rounds, players, sideBets }: Props) {
         ? `${target.label}: ${RESULT_LABEL[result]}`
         : "Saved offline — syncs when you get signal",
       {
+        duration: 10_000,
         action: {
           label: "Undo",
           onClick: () => {
@@ -152,6 +153,7 @@ export function ScoreModal({ matches, rounds, players, sideBets }: Props) {
       return;
     }
     toast.success(status === "saved" ? "Side bet logged" : "Saved offline — syncs later", {
+      duration: 10_000,
       action: {
         label: "Undo",
         onClick: () => {
@@ -183,7 +185,10 @@ export function ScoreModal({ matches, rounds, players, sideBets }: Props) {
         if (!next) reset();
       }}
     >
-      <DialogTrigger className="press fixed bottom-24 right-4 z-40 inline-flex size-14 items-center justify-center rounded-full bg-gold text-primary-foreground shadow-[0_4px_16px_-6px_oklch(0_0_0/55%)]">
+      <DialogTrigger
+        aria-label="Captain score input"
+        className="press fixed bottom-24 right-4 z-40 inline-flex size-14 items-center justify-center rounded-full bg-gold text-primary-foreground shadow-[0_4px_16px_-6px_oklch(0_0_0/55%)]"
+      >
         <Plus className="size-6" />
         <span className="sr-only">Captain score input</span>
       </DialogTrigger>

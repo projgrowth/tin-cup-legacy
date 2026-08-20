@@ -99,23 +99,38 @@ export type Database = {
       };
       photos: {
         Row: {
+          alt_text: string | null;
           caption: string | null;
+          course_id: string | null;
           created_at: string;
+          event_tag: string | null;
+          featured: boolean;
           id: string;
+          round_id: string | null;
           storage_path: string;
           uploaded_by: string | null;
         };
         Insert: {
+          alt_text?: string | null;
           caption?: string | null;
+          course_id?: string | null;
           created_at?: string;
+          event_tag?: string | null;
+          featured?: boolean;
           id?: string;
+          round_id?: string | null;
           storage_path: string;
           uploaded_by?: string | null;
         };
         Update: {
+          alt_text?: string | null;
           caption?: string | null;
+          course_id?: string | null;
           created_at?: string;
+          event_tag?: string | null;
+          featured?: boolean;
           id?: string;
+          round_id?: string | null;
           storage_path?: string;
           uploaded_by?: string | null;
         };
@@ -158,24 +173,30 @@ export type Database = {
           avatar_path: string | null;
           created_at: string;
           display_name: string;
+          flair: string | null;
           id: string;
           player_id: string | null;
+          status_text: string | null;
           updated_at: string;
         };
         Insert: {
           avatar_path?: string | null;
           created_at?: string;
           display_name?: string;
+          flair?: string | null;
           id: string;
           player_id?: string | null;
+          status_text?: string | null;
           updated_at?: string;
         };
         Update: {
           avatar_path?: string | null;
           created_at?: string;
           display_name?: string;
+          flair?: string | null;
           id?: string;
           player_id?: string | null;
+          status_text?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -187,6 +208,135 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      push_subscriptions: {
+        Row: {
+          auth: string;
+          created_at: string;
+          enabled: boolean;
+          endpoint: string;
+          failure_count: number;
+          id: string;
+          last_success_at: string | null;
+          p256dh: string;
+          updated_at: string;
+          user_agent: string | null;
+          user_id: string;
+        };
+        Insert: {
+          auth: string;
+          created_at?: string;
+          enabled?: boolean;
+          endpoint: string;
+          failure_count?: number;
+          id?: string;
+          last_success_at?: string | null;
+          p256dh: string;
+          updated_at?: string;
+          user_agent?: string | null;
+          user_id: string;
+        };
+        Update: {
+          auth?: string;
+          created_at?: string;
+          enabled?: boolean;
+          endpoint?: string;
+          failure_count?: number;
+          id?: string;
+          last_success_at?: string | null;
+          p256dh?: string;
+          updated_at?: string;
+          user_agent?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      notification_preferences: {
+        Row: {
+          final_result: boolean;
+          lead_changes: boolean;
+          mentions: boolean;
+          my_match: boolean;
+          organizer_announcements: boolean;
+          match_reviews: boolean;
+          tee_reminders: boolean;
+          quiet_start: string | null;
+          quiet_end: string | null;
+          timezone: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          final_result?: boolean;
+          lead_changes?: boolean;
+          mentions?: boolean;
+          my_match?: boolean;
+          organizer_announcements?: boolean;
+          match_reviews?: boolean;
+          tee_reminders?: boolean;
+          quiet_start?: string | null;
+          quiet_end?: string | null;
+          timezone?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          final_result?: boolean;
+          lead_changes?: boolean;
+          mentions?: boolean;
+          my_match?: boolean;
+          organizer_announcements?: boolean;
+          match_reviews?: boolean;
+          tee_reminders?: boolean;
+          quiet_start?: string | null;
+          quiet_end?: string | null;
+          timezone?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      notification_outbox: {
+        Row: {
+          attempts: number;
+          available_at: string;
+          created_at: string;
+          dedupe_key: string;
+          id: string;
+          kind: string;
+          last_error: string | null;
+          payload: Json;
+          recipient_id: string | null;
+          sent_at: string | null;
+          status: string;
+        };
+        Insert: {
+          attempts?: number;
+          available_at?: string;
+          created_at?: string;
+          dedupe_key: string;
+          id?: string;
+          kind: string;
+          last_error?: string | null;
+          payload?: Json;
+          recipient_id?: string | null;
+          sent_at?: string | null;
+          status?: string;
+        };
+        Update: {
+          attempts?: number;
+          available_at?: string;
+          created_at?: string;
+          dedupe_key?: string;
+          id?: string;
+          kind?: string;
+          last_error?: string | null;
+          payload?: Json;
+          recipient_id?: string | null;
+          sent_at?: string | null;
+          status?: string;
+        };
+        Relationships: [];
       };
       round_plans: {
         Row: {
@@ -309,6 +459,350 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      score_history: {
+        Row: {
+          actor_id: string | null;
+          after_state: Json;
+          before_state: Json;
+          created_at: string;
+          entity_id: string;
+          entity_type: string;
+          id: string;
+          revision: number | null;
+        };
+        Insert: {
+          actor_id?: string | null;
+          after_state: Json;
+          before_state: Json;
+          created_at?: string;
+          entity_id: string;
+          entity_type: string;
+          id?: string;
+          revision?: number | null;
+        };
+        Update: {
+          actor_id?: string | null;
+          after_state?: Json;
+          before_state?: Json;
+          created_at?: string;
+          entity_id?: string;
+          entity_type?: string;
+          id?: string;
+          revision?: number | null;
+        };
+        Relationships: [];
+      };
+      story_comments: {
+        Row: {
+          id: string;
+          moment_key: string;
+          author_id: string;
+          body: string;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+          moderated_by: string | null;
+          pinned_at: string | null;
+          pinned_by: string | null;
+          announcement_expires_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          moment_key: string;
+          author_id: string;
+          body: string;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+          moderated_by?: string | null;
+          pinned_at?: string | null;
+          pinned_by?: string | null;
+          announcement_expires_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          moment_key?: string;
+          author_id?: string;
+          body?: string;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+          moderated_by?: string | null;
+          pinned_at?: string | null;
+          pinned_by?: string | null;
+          announcement_expires_at?: string | null;
+        };
+        Relationships: [];
+      };
+      story_reactions: {
+        Row: { moment_key: string; user_id: string; kind: string; created_at: string };
+        Insert: { moment_key: string; user_id: string; kind: string; created_at?: string };
+        Update: { moment_key?: string; user_id?: string; kind?: string; created_at?: string };
+        Relationships: [];
+      };
+      comment_mentions: {
+        Row: { comment_id: string; mentioned_user_id: string; created_at: string };
+        Insert: { comment_id: string; mentioned_user_id: string; created_at?: string };
+        Update: { comment_id?: string; mentioned_user_id?: string; created_at?: string };
+        Relationships: [];
+      };
+      story_reports: {
+        Row: {
+          comment_id: string;
+          reporter_id: string;
+          reason: string;
+          created_at: string;
+          resolved_at: string | null;
+          resolved_by: string | null;
+        };
+        Insert: {
+          comment_id: string;
+          reporter_id: string;
+          reason?: string;
+          created_at?: string;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+        };
+        Update: {
+          reason?: string;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+        };
+        Relationships: [];
+      };
+      clubhouse_reads: {
+        Row: { user_id: string; last_read_at: string };
+        Insert: { user_id: string; last_read_at?: string };
+        Update: { last_read_at?: string };
+        Relationships: [];
+      };
+      user_experience_preferences: {
+        Row: {
+          user_id: string;
+          appearance: string;
+          home_modules: string[];
+          compact_feed: boolean;
+          layout_mode: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          appearance?: string;
+          home_modules?: string[];
+          compact_feed?: boolean;
+          layout_mode?: string;
+          updated_at?: string;
+        };
+        Update: {
+          appearance?: string;
+          home_modules?: string[];
+          compact_feed?: boolean;
+          layout_mode?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      match_predictions: {
+        Row: {
+          match_id: string;
+          user_id: string;
+          choice: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          match_id: string;
+          user_id: string;
+          choice: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: { choice?: string; updated_at?: string };
+        Relationships: [];
+      };
+      match_confirmations: {
+        Row: {
+          match_id: string;
+          player_id: string;
+          user_id: string;
+          state: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          match_id: string;
+          player_id: string;
+          user_id: string;
+          state: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: { state?: string; updated_at?: string };
+        Relationships: [];
+      };
+      clubhouse_polls: {
+        Row: {
+          id: string;
+          author_id: string;
+          question: string;
+          created_at: string;
+          updated_at: string;
+          closes_at: string | null;
+          closed_at: string | null;
+          deleted_at: string | null;
+          moderated_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          author_id: string;
+          question: string;
+          created_at?: string;
+          updated_at?: string;
+          closes_at?: string | null;
+          closed_at?: string | null;
+          deleted_at?: string | null;
+          moderated_by?: string | null;
+        };
+        Update: {
+          question?: string;
+          updated_at?: string;
+          closes_at?: string | null;
+          closed_at?: string | null;
+          deleted_at?: string | null;
+          moderated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      clubhouse_poll_options: {
+        Row: { id: string; poll_id: string; label: string; sort_order: number };
+        Insert: { id?: string; poll_id: string; label: string; sort_order?: number };
+        Update: { label?: string; sort_order?: number };
+        Relationships: [];
+      };
+      clubhouse_poll_votes: {
+        Row: {
+          poll_id: string;
+          option_id: string;
+          user_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          poll_id: string;
+          option_id: string;
+          user_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: { option_id?: string; updated_at?: string };
+        Relationships: [];
+      };
+      player_checkins: {
+        Row: {
+          user_id: string;
+          player_id: string;
+          status: string;
+          created_at: string;
+          expires_at: string;
+        };
+        Insert: {
+          user_id: string;
+          player_id: string;
+          status: string;
+          created_at?: string;
+          expires_at: string;
+        };
+        Update: { status?: string; created_at?: string; expires_at?: string };
+        Relationships: [];
+      };
+      engagement_prompts: {
+        Row: {
+          id: string;
+          author_id: string;
+          kind: string;
+          title: string;
+          detail: string | null;
+          starts_at: string;
+          ends_at: string;
+          round_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          author_id: string;
+          kind: string;
+          title: string;
+          detail?: string | null;
+          starts_at: string;
+          ends_at: string;
+          round_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          title?: string;
+          detail?: string | null;
+          starts_at?: string;
+          ends_at?: string;
+          round_id?: string | null;
+        };
+        Relationships: [];
+      };
+      photo_favorites: {
+        Row: { photo_id: string; user_id: string; created_at: string };
+        Insert: { photo_id: string; user_id: string; created_at?: string };
+        Update: { created_at?: string };
+        Relationships: [];
+      };
+      product_events: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          name: string;
+          route: string;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          name: string;
+          route: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: { name?: string; route?: string; metadata?: Json };
+        Relationships: [];
+      };
+      client_error_events: {
+        Row: {
+          id: string;
+          route: string;
+          release: string;
+          browser_category: string;
+          message: string;
+          stack_excerpt: string | null;
+          session_hash: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          route: string;
+          release: string;
+          browser_category: string;
+          message: string;
+          stack_excerpt?: string | null;
+          session_hash: string;
+          created_at?: string;
+        };
+        Update: {
+          route?: string;
+          release?: string;
+          browser_category?: string;
+          message?: string;
+          stack_excerpt?: string | null;
+        };
+        Relationships: [];
       };
       teams: {
         Row: {

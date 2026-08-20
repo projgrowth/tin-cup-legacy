@@ -1,4 +1,6 @@
 import { supabase } from "./client";
+import { assertMutationAllowed } from "@/lib/runtime-mode";
+import { previewMediaUrl } from "@/lib/preview-media";
 
 const VAULT_BUCKET = "vault";
 
@@ -13,6 +15,7 @@ export async function currentUserId() {
 }
 
 export async function uploadVaultImage(file: File, folder = "photos") {
+  assertMutationAllowed("Photo upload");
   const userId = await currentUserId();
   if (!userId) throw new Error("Sign in again");
   const path = `${userId}/${folder}/${crypto.randomUUID()}-${safeName(file.name)}`;
@@ -27,6 +30,8 @@ export async function uploadVaultImage(file: File, folder = "photos") {
 
 export async function signedVaultUrl(path: string, expiresIn = 60 * 60) {
   if (!path.trim()) return null;
+  const preview = previewMediaUrl(path);
+  if (preview) return preview;
   const { data, error } = await supabase.storage
     .from(VAULT_BUCKET)
     .createSignedUrl(path, expiresIn);
@@ -35,6 +40,7 @@ export async function signedVaultUrl(path: string, expiresIn = 60 * 60) {
 }
 
 export async function deleteVaultObject(path: string) {
+  assertMutationAllowed("Photo removal");
   const { error } = await supabase.storage.from(VAULT_BUCKET).remove([path]);
   if (error) throw error;
 }

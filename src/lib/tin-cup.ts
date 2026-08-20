@@ -17,14 +17,10 @@ export const TOURNAMENT_BANK = "Kevin Maher";
  * Launch gates for side-cash display.
  * Buy-in / formats: Desktop deck `4th Annual Tin Cup Invitational 2026.pdf`.
  * Contest pots: Kevin (admin) 2026-08 — $100 CTP × 6, $100 LD × 2 (fairway required).
- * Holes: still TBD — captains set match pairings, not contest holes.
+ * Day 1 (Friday / South): CTP 3 & 18, long drive 13. Other contest holes TBD.
  */
 export const SIDE_BET_PAYOUTS_CONFIRMED = true;
-export const CONTEST_HOLES_CONFIRMED = false;
-
-export function contestHoleLabel(hole: number | null): string {
-  return CONTEST_HOLES_CONFIRMED && hole ? `Hole ${hole}` : "Hole TBD";
-}
+export { contestHoleLabel, DAY1_CONTESTS } from "@/lib/contest-holes";
 
 /** Launch gate: override for a different field size without editing UI copy. */
 export const EXPECTED_PLAYER_COUNT = Number(import.meta.env?.VITE_EXPECTED_PLAYER_COUNT ?? 16);
@@ -135,12 +131,12 @@ export const PURSE = [
   {
     title: "Closest to the Pin",
     amount: "$100",
-    detail: "Six opportunities (one per nine). Contest holes TBD.",
+    detail: "Six opportunities (one per nine). Friday: holes 3 and 18. Other days TBD.",
   },
   {
     title: "Long Drive",
     amount: "$100",
-    detail: "Two opportunities (Friday & Saturday). Holes TBD; ball must finish in the fairway.",
+    detail: "Two opportunities (Friday & Saturday). Friday: hole 13. Saturday TBD. Ball must finish in the fairway.",
   },
   {
     title: "Side Skins",
@@ -177,7 +173,7 @@ export const MONEY_RULES = [
   `$${BUY_IN} buy-in includes auto entry into CTP and long-drive pots ($100 team money + $50 side cash).`,
   "Winning side: $200 per player ($100 returned + $100 opponent money).",
   "Six CTPs pay $100 each; two Long Drives pay $100 each (Friday & Saturday).",
-  "CTP and Long Drive holes are TBD — captains do not pick contest holes.",
+  "Friday contest holes: CTP 3 and 18, long drive 13. Saturday and Sunday holes TBD — captains do not pick them.",
   "Long Drive only counts if the ball finishes in the fairway.",
   "Side skins are optional separate buy-ins on Stableford and Singles — not part of the $150.",
 ];

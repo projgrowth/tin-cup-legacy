@@ -140,7 +140,7 @@ export function PlanSheet({
             type="button"
             onClick={() => onSelectHole(h.h)}
             aria-current={active ? "true" : undefined}
-            className={`press relative size-10 shrink-0 rounded-full text-sm font-bold tabular-nums transition-colors ${
+            className={`press relative size-11 shrink-0 rounded-full text-sm font-bold tabular-nums transition-colors ${
               active
                 ? "bg-gold/20 text-gold-light ring-1 ring-gold/40"
                 : snake

@@ -383,7 +383,7 @@ export function PhotoVault({
         </div>
       )}
       {isError && (
-        <div className="panel p-5 text-center" role="alert">
+        <div className="surface p-5 text-center" role="alert">
           <p className="t-body text-foreground">The photo vault didn&apos;t load.</p>
           <button
             type="button"
@@ -435,7 +435,7 @@ export function PhotoVault({
           ))}
         </div>
       ) : !isPending && !isError ? (
-        <div className="panel flex flex-col items-center px-5 py-8 text-center">
+        <div className="surface flex flex-col items-center px-5 py-8 text-center">
           <p className="t-title text-foreground">No photos yet</p>
           <p className="t-micro mt-1.5 max-w-xs text-muted-foreground">
             {canUpload

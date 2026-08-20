@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
 import { useTournament } from "@/hooks/useTournament";
 import { sideCash, sideCashByPlayer, settlement, formatPayout } from "@/lib/purse";
@@ -46,25 +47,27 @@ function PursePage() {
   const cup = settlement(data?.matches ?? []);
 
   return (
-    <Shell>
+    <Shell variant="dashboard">
       <div className="stack-page pb-4">
-        <section className="panel space-y-4 p-5">
-          <div>
-            <p className="t-eyebrow">Buy-in</p>
-            <h1 className="t-title mt-1.5 text-foreground">Pay ${BUY_IN}</h1>
-            <p className="t-micro mt-1.5 text-muted-foreground">
+        <PageMasthead
+          kicker="Buy-in"
+          title="The purse"
+          meta={
+            <>
               @{VENMO_HANDLE} · {TOURNAMENT_BANK}
-            </p>
-          </div>
+              <span className="mt-2 block text-white">$100 team pot + $50 side cash</span>
+            </>
+          }
+        >
           <a
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className="press btn-gold t-body flex w-full justify-center"
+            className="press btn-gold t-body mt-5 flex min-h-11 w-full max-w-sm justify-center"
           >
             Pay ${BUY_IN}
           </a>
-        </section>
+        </PageMasthead>
 
         {isPending && !data && <LoadingRows rows={2} height={100} />}
         {isError && !data && (

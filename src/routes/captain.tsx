@@ -27,7 +27,7 @@ export const Route = createFileRoute("/captain")({
 function RoleBadge({ canScore, isAdmin }: { canScore: boolean; isAdmin: boolean }) {
   const label = isAdmin ? "Admin" : canScore ? "Captain" : "No score access";
   const tone = canScore
-    ? "border-[oklch(0.72_0.12_155/40%)] bg-[oklch(0.72_0.12_155/12%)] text-[oklch(0.82_0.1_155)]"
+    ? "border-[color:var(--status-live)]/40 bg-[color:var(--status-live)]/12 text-[var(--status-live)]"
     : "border-border text-muted-foreground";
   return <span className={`pill t-micro font-semibold ${tone}`}>{label}</span>;
 }
@@ -54,7 +54,7 @@ function CaptainPage() {
           meta="Zack & Charles post results · Kevin is admin only"
         />
         {rolesError && (
-          <div role="alert" className="panel mb-4 flex items-center justify-between gap-3 p-4">
+          <div role="alert" className="surface mb-4 flex items-center justify-between gap-3 p-4">
             <p className="t-micro">Scorekeeping access could not be refreshed.</p>
             <button
               type="button"
@@ -67,7 +67,7 @@ function CaptainPage() {
           </div>
         )}
         <div className="stack-page">
-          <div className="panel space-y-4 p-5">
+          <div className="surface space-y-4 p-5">
             <div className="flex items-center justify-between gap-3">
               <p className="t-body min-w-0 truncate text-muted-foreground">
                 Signed in as <span className="font-medium text-foreground">{user.email}</span>

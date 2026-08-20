@@ -43,6 +43,13 @@ export const COURSE_LABEL: Record<CourseId, string> = {
   island: "Island",
 };
 
+/** No course stills — trophy poster is intro/recap only, not wallpaper. */
+export const COURSE_STILL: Record<CourseId, string | undefined> = {
+  south: undefined,
+  copperhead: undefined,
+  island: undefined,
+};
+
 /** Scorecard tee colors we surface. Hole-by-hole yards are confirmed for Black only. */
 export const TEE_ORDER = ["black"] as const;
 export type TeeColor = (typeof TEE_ORDER)[number];
