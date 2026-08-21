@@ -313,7 +313,7 @@ function Index() {
             ) : null}
           </div>
         ) : (
-        <div className={`home-dashboard mt-3 ${mode === "pre" ? "home-dashboard-pre" : ""}`}>
+        <div className={`home-dashboard mt-1 ${mode === "pre" ? "home-dashboard-pre" : ""}`}>
           {mode === "pre" && (
             <div className="home-action">
               <PreTournamentPanel

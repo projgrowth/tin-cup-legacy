@@ -162,6 +162,9 @@ function PursePage() {
               ))}
             </ul>
           </details>
+          <p className="t-micro px-1 text-muted-foreground">
+            Official scoring stays captain-controlled. Predictions are social signals only.
+          </p>
         </section>
       </div>
     </Shell>

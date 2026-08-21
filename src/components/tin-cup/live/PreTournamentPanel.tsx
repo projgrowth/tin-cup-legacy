@@ -50,18 +50,22 @@ export function PreTournamentPanel({
 
   return (
     <section className="stack-page pb-2" aria-label="This weekend">
-      <PageMasthead
-        kicker={`${EVENT.dates} · ${EVENT.location}`}
-        title={EVENT.title}
-        meta={EVENT.subtitle}
-      />
+      <div className="fade-up">
+        <PageMasthead
+          kicker={`${EVENT.dates} · ${EVENT.location}`}
+          title={EVENT.title}
+          meta={EVENT.subtitle}
+        />
+      </div>
 
-      <Countdown />
+      <div className="fade-up" style={{ animationDelay: "80ms" }}>
+        <Countdown />
+      </div>
 
       {isClaimed && context ? (
         <WeekendCommandCenter context={context} />
       ) : (
-        <div className="stack-tight">
+        <div className="fade-up stack-tight" style={{ animationDelay: "160ms" }}>
           <Link
             to="/schedule"
             className="press btn-gold t-body flex min-h-11 w-full items-center justify-center"
@@ -85,23 +89,16 @@ export function PreTournamentPanel({
               Pay ${BUY_IN}
             </a>
           </div>
-          <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-            {!signedIn ? (
-              <Link
-                to="/profile"
-                className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
-              >
-                Sign in
-              </Link>
-            ) : needsClaim ? (
+          {needsClaim ? (
+            <p className="flex flex-wrap items-center justify-center">
               <Link
                 to="/profile"
                 className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
               >
                 Claim your name
               </Link>
-            ) : null}
-          </p>
+            </p>
+          ) : null}
         </div>
       )}
 
@@ -154,7 +151,7 @@ export function PreTournamentPanel({
       )}
 
       {!isClaimed && tonight && (
-        <p className="t-micro text-center text-muted-foreground">Tonight · {tonight.title}</p>
+        <p className="t-micro mt-2 text-center text-muted-foreground">Tonight · {tonight.title}</p>
       )}
 
       {WHATSAPP_GROUP_CONFIGURED && <FieldChatLink className="!min-h-11 w-full" />}

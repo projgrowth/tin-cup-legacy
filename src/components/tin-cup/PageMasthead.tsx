@@ -44,9 +44,9 @@ export function PageMasthead({
         }
       >
         <p className={`event-kicker ${photo ? "text-gold-light" : ""}`}>{kicker}</p>
-        <h1 className={`t-display mt-2 ${photo ? "text-white" : "text-foreground"}`}>{title}</h1>
+        <h1 className={`t-display mt-1.5 ${photo ? "text-white" : "text-foreground"}`}>{title}</h1>
         {meta ? (
-          <div className={`t-body mt-2 max-w-xl ${photo ? "text-white/78" : "text-muted-foreground"}`}>
+          <div className={`t-body mt-1 max-w-xl ${photo ? "text-white/78" : "text-muted-foreground"}`}>
             {meta}
           </div>
         ) : null}

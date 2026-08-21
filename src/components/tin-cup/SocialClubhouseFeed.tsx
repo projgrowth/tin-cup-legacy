@@ -261,6 +261,13 @@ export function SocialClubhouseFeed({
     );
   }
 
+  const quietEmpty = emptyFeed && !story.clubhouseEnabled && filter === "all";
+  if (quietEmpty) {
+    return (
+      <p className="t-micro px-1">Clubhouse opens with the weekend.</p>
+    );
+  }
+
   return (
     <section aria-labelledby="clubhouse-feed-title" className="space-y-4">
       <div className="flex items-end justify-between gap-3">
@@ -278,7 +285,7 @@ export function SocialClubhouseFeed({
       </div>
 
       {story.clubhouseEnabled && (
-      <div className="feed-composer surface-raised p-3 sm:p-4">
+      <div className="feed-composer surface-raised p-2.5 sm:p-3">
         <div className="flex gap-3">
           <Avatar
             name={profile?.display_name || "You"}

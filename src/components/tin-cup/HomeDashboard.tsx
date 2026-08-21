@@ -4,6 +4,7 @@ import { CalendarDays, Camera, Map, Wallet } from "lucide-react";
 import type { SideBet } from "@/hooks/useTournament";
 import type { WeekendContext } from "@/lib/weekend-context";
 import { formatPayout } from "@/lib/purse";
+import { BUY_IN } from "@/lib/tin-cup";
 import type { HomeModuleKey } from "@/lib/social-platform";
 
 export function HomeSecondaryModules({
@@ -47,11 +48,12 @@ export function HomeSecondaryModules({
     purse: {
       icon: Wallet,
       label: "Purse",
-      hint: formatPayout(claimed),
+      hint: claimed > 0 ? formatPayout(claimed) : `$${BUY_IN}`,
       to: "/purse",
     },
   };
   const keys = order.filter((key) => {
+    if (key === "photos" && photoCount === 0) return false;
     if (context.player) return true;
     return key === "photos" || key === "purse";
   });
@@ -70,9 +72,11 @@ export function HomeSecondaryModules({
           );
         })}
       </div>
-      <p className="t-micro">
-        Official scoring stays captain-controlled. Predictions are social signals only.
-      </p>
+      {context.phase !== "pre" ? (
+        <p className="t-micro">
+          Official scoring stays captain-controlled. Predictions are social signals only.
+        </p>
+      ) : null}
     </section>
   );
 }

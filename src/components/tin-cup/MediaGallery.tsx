@@ -164,7 +164,9 @@ export function MediaGallery({
           type="button"
           disabled={downloading || filtered.length === 0}
           onClick={() => void downloadZip(filtered)}
-          className="press btn-gold flex min-h-11 items-center gap-2 px-4 text-sm font-semibold"
+          className={`press flex min-h-11 items-center gap-2 px-4 text-sm font-semibold ${
+            filtered.length === 0 ? "btn-quiet" : "btn-gold"
+          }`}
         >
           {downloading ? (
             <Loader2 className="size-4 animate-spin" />

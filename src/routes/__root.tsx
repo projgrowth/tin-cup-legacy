@@ -16,6 +16,7 @@ import { installClientErrorReporting } from "@/lib/client-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
 import { prefetchTournament } from "@/hooks/useTournament";
+import { getEventPhase } from "@/lib/event-phase";
 
 function NotFoundComponent() {
   return (
@@ -28,7 +29,7 @@ function NotFoundComponent() {
         </p>
         <div className="mt-6">
           <Link to="/" className="press btn-gold t-body inline-flex min-h-11 px-5">
-            Back to Live
+            Back to Home
           </Link>
         </div>
       </div>
@@ -48,7 +49,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
       <div className="surface fade-up w-full max-w-md px-6 py-10 text-center">
         <h1 className="t-display text-foreground">This page didn&apos;t load</h1>
         <p className="t-body mt-2 text-muted-foreground">
-          Something went wrong on our end. Try again or head back to Live.
+          Something went wrong on our end. Try again or head back to Home.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
@@ -62,7 +63,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             Try again
           </button>
           <Link to="/" className="press btn-quiet t-body min-h-11 px-5">
-            Back to Live
+            Back to Home
           </Link>
         </div>
       </div>
@@ -71,30 +72,35 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
+  head: () => {
+    const pre = getEventPhase() === "before";
+    const title = pre
+      ? "Tin Cup Invitational 2026 — August 28–30, Innisbrook"
+      : "Tin Cup Invitational 2026 — Live Cup Standings";
+    const description = pre
+      ? "The 4th Annual Tin Cup Invitational at Innisbrook Golf Resort, August 28–30, 2026. Pairings, course plans, purse and the Snake Pit."
+      : "The 4th Annual Tin Cup Invitational at Innisbrook Golf Resort, August 28–30, 2026. Live 26-point scoreboard, side cash, rosters and the Snake Pit guide.";
+    return {
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Tin Cup Invitational 2026 — Live Cup Standings" },
+      { title },
       {
         name: "description",
-        content:
-          "The 4th Annual Tin Cup Invitational at Innisbrook Golf Resort, August 28–30, 2026. Live 26-point scoreboard, side cash, rosters and the Snake Pit guide.",
+        content: description,
       },
       { name: "theme-color", content: "#0c1412" },
-      { property: "og:title", content: "Tin Cup Invitational 2026 — Live Cup Standings" },
+      { property: "og:title", content: title },
       {
         property: "og:description",
-        content:
-          "The 4th Annual Tin Cup Invitational at Innisbrook Golf Resort, August 28–30, 2026. Live 26-point scoreboard, side cash, rosters and the Snake Pit guide.",
+        content: description,
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Tin Cup Invitational 2026 — Live Cup Standings" },
+      { name: "twitter:title", content: title },
       {
         name: "twitter:description",
-        content:
-          "The 4th Annual Tin Cup Invitational at Innisbrook Golf Resort, August 28–30, 2026. Live 26-point scoreboard, side cash, rosters and the Snake Pit guide.",
+        content: description,
       },
       {
         property: "og:image",
@@ -120,7 +126,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "apple-touch-icon", href: "/app-icon-512.png" },
     ],
-  }),
+    };
+  },
   beforeLoad: ({ context }) => {
     void prefetchTournament(context.queryClient).catch(() => undefined);
   },

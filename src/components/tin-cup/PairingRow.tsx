@@ -26,7 +26,7 @@ export function PairingRow({
 }) {
   return (
     <li
-      className={`flex items-center gap-2.5 px-3.5 py-3 ${
+      className={`flex items-center gap-2.5 px-3 py-2.5 ${
         highlight ? "bg-secondary/45" : ""
       }`}
     >
@@ -35,7 +35,7 @@ export function PairingRow({
       )}
       <AvatarPair people={sideAPeople} size="sm" />
       <div className="min-w-0 flex-1">
-        <p className="t-body truncate font-medium leading-tight text-foreground">
+        <p className="t-body font-medium leading-snug text-foreground">
           <span className="text-gold-light">{sideALabel}</span>
           <span className="mx-1.5 text-muted-foreground">vs</span>
           <span className="text-copper">{sideBLabel}</span>

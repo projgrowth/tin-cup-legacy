@@ -61,17 +61,17 @@
 }
 
 :root {
-  --radius: 0.75rem;
-  --radius-card: 1rem;
+  --radius: 0.625rem;
+  --radius-card: 0.75rem;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --header-height: 3.25rem;
-  --nav-height: 4.25rem;
-  --text-display: clamp(1.5rem, 5vw, 1.85rem);
+  --space-5: 1rem;
+  --space-6: 1.25rem;
+  --header-height: 2.85rem;
+  --nav-height: 3.75rem;
+  --text-display: clamp(1.5rem, 5.4vw, 1.95rem);
   --text-hero: clamp(1.75rem, 7vw, 2.35rem);
   --text-title: 1.125rem;
   --text-body: 0.9375rem;
@@ -80,9 +80,7 @@
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  --shadow-card:
-    0 1px 0 oklch(1 0 0 / 4%) inset,
-    0 8px 24px -20px oklch(0 0 0 / 40%);
+  --shadow-card: 0 1px 0 oklch(1 0 0 / 4%) inset;
   --background: oklch(0.11 0.016 165);
   --foreground: oklch(0.97 0.008 100);
   --card: oklch(0.18 0.016 165);
@@ -99,7 +97,7 @@
   --accent-foreground: oklch(0.98 0.008 100);
   --destructive: oklch(0.6 0.19 25);
   --destructive-foreground: oklch(0.98 0.008 100);
-  --border: oklch(1 0 0 / 10%);
+  --border: oklch(1 0 0 / 7%);
   --border-strong: oklch(1 0 0 / 16%);
   --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.84 0.085 92 / 45%);
@@ -330,6 +328,26 @@
     text-rendering: optimizeLegibility;
   }
 
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(
+      90% 50% at 50% -8%,
+      oklch(from var(--gold) l c h / 22%) 0%,
+      transparent 62%
+    );
+    transition: opacity 1.6s ease;
+  }
+
+  html.tc-afterglow body::before {
+    opacity: 1;
+    transition: opacity 0.35s ease;
+  }
+
   body::after {
     content: "";
     position: fixed;
@@ -354,9 +372,9 @@
 @utility t-display {
   font-family: var(--font-sans);
   font-size: var(--text-display);
-  line-height: 1.08;
+  line-height: 1.04;
   font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.045em;
 }
 
 @utility t-hero {
@@ -432,7 +450,6 @@
   background-color: oklch(from var(--card) calc(l + 0.02) c h);
   border: 1px solid oklch(from var(--gold) l c h / 12%);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
 }
 
 @utility surface-inset {
@@ -457,6 +474,10 @@
 
 @utility hairline {
   border-top: 1px solid var(--border);
+}
+
+@utility hairline-gold {
+  background: oklch(from var(--gold) l c h / 12%);
 }
 
 @utility stack-page {
@@ -484,8 +505,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  border: 1px solid oklch(1 0 0 / 10%);
-  padding-inline: 0.875rem;
+  border: 1px solid oklch(1 0 0 / 8%);
+  padding-inline: 0.75rem;
   font-size: var(--text-caption);
   font-weight: var(--font-weight-semibold);
   color: var(--muted-foreground);
@@ -561,7 +582,7 @@
   background-color: var(--gold);
   color: var(--primary-foreground) !important;
   font-weight: var(--font-weight-semibold) !important;
-  padding: 0.75rem 1.05rem;
+  padding: 0.625rem 0.95rem;
   &:disabled {
     opacity: 0.5;
   }
@@ -577,7 +598,7 @@
   background-color: transparent;
   color: oklch(from var(--foreground) l c h / 88%);
   font-weight: var(--font-weight-medium);
-  padding: 0.75rem 1.05rem;
+  padding: 0.625rem 0.95rem;
   &:disabled {
     opacity: 0.5;
   }
@@ -700,12 +721,16 @@
     "action"
     "feed"
     "secondary";
+  max-width: 42rem;
+  margin-inline: auto;
 }
 @media (min-width: 64rem) {
   .home-dashboard.home-dashboard-pre {
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
-      "action action"
-      "feed secondary";
+      "action"
+      "feed"
+      "secondary";
   }
 }
 
@@ -714,7 +739,7 @@
   background: transparent;
   border-radius: 0;
   box-shadow: none;
-  padding-block: 1rem;
+  padding-block: 0.75rem;
   transition: background-color 180ms ease;
 }
 .feed-card:last-child {
@@ -873,6 +898,11 @@ html[data-appearance="team"][data-team="grass-roots"] {
   }
   .match-just-updated {
     animation: none;
+  }
+  html.tc-afterglow body::before,
+  body::before {
+    opacity: 0;
+    transition: none;
   }
 }
 

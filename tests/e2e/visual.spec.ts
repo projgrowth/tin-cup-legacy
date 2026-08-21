@@ -10,7 +10,11 @@ test.beforeEach(async ({ page }) => {
 
 test("responsive Home and gallery compose without overflow", async ({ page }, testInfo) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Around the weekend" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Around the weekend" }).or(
+      page.getByText("Clubhouse opens with the weekend."),
+    ),
+  ).toBeVisible();
   await expect(page.getByText("Welcome to the Clubhouse")).toHaveCount(0);
   expect(
     await page.evaluate(

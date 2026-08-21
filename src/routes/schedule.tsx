@@ -177,7 +177,7 @@ function SchedulePage() {
             </p>
           )}
 
-          <div className="border-t border-border px-4 py-3">
+          <div className="border-t border-border px-4 py-2">
             <div className="flex flex-wrap gap-2">
               <Link
                 to="/scout"
@@ -207,8 +207,8 @@ function SchedulePage() {
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
         {otherRounds.length > 0 && (
-          <section className="stack-tight">
-            <h2 className="t-section text-foreground">Also this weekend</h2>
+          <section className="stack-tight lg:grid lg:grid-cols-2 lg:gap-3">
+            <h2 className="t-section text-foreground lg:col-span-2">Also this weekend</h2>
             {otherRounds.map((round) => {
               const status = roundStatus(round, now ?? undefined);
               const start = roundStart(round);
@@ -223,7 +223,7 @@ function SchedulePage() {
                   key={round.id}
                   className={`overflow-hidden surface-inset ${courseRail(round.course)}`}
                 >
-                  <div className="flex items-start justify-between gap-3 p-4">
+                  <div className="flex items-start justify-between gap-3 px-3.5 py-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="t-title text-foreground">{round.day_label}</h3>
@@ -256,7 +256,7 @@ function SchedulePage() {
                         </Link>
                       )}
                     </div>
-                    <span className="t-numeral shrink-0 text-[1.5rem] text-foreground">
+                    <span className="t-numeral shrink-0 text-[1.25rem] text-foreground">
                       {round.points}
                     </span>
                   </div>

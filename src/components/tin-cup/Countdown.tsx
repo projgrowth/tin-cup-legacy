@@ -48,13 +48,13 @@ export function Countdown({ compact = false }: { compact?: boolean }) {
       <p suppressHydrationWarning className="sr-only">
         {formatCountdown(time.remaining)}
       </p>
-      <div className="mt-3 grid grid-cols-3" aria-hidden>
+      <div className="mt-2 grid grid-cols-3" aria-hidden>
         {cells.map((cell) => (
           <div key={cell.label} className="text-center">
             <div suppressHydrationWarning className="t-hero tabular-nums text-foreground">
               {String(cell.value).padStart(2, "0")}
             </div>
-            <div className="t-micro mt-2">{cell.label}</div>
+            <div className="t-micro mt-1">{cell.label}</div>
           </div>
         ))}
       </div>

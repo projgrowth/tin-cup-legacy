@@ -40,6 +40,15 @@ export function CinematicIntro({ onDone }: { onDone: () => void }) {
     markIntroSeen();
     writeSeat("guest");
 
+    try {
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        document.documentElement.classList.add("tc-afterglow");
+        window.setTimeout(() => document.documentElement.classList.remove("tc-afterglow"), 2200);
+      }
+    } catch {
+      /* ignore */
+    }
+
     setShowMark(true);
     setCollapsing(true);
     window.setTimeout(() => onDoneRef.current(), COLLAPSE_MS);

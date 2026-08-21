@@ -103,9 +103,7 @@ export function Shell({
         }`}
       >
         <div
-          className={`mx-auto grid w-full ${width} min-h-[var(--header-height)] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 ${
-            immersive ? "py-1.5" : "py-2"
-          } sm:px-5`}
+          className={`mx-auto grid w-full ${width} min-h-[var(--header-height)] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-1.5 sm:px-5`}
         >
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
             <img
@@ -136,22 +134,27 @@ export function Shell({
             aria-label={
               user ? (claimed || profile?.player_id ? "Your hub" : "Claim your roster name") : "Sign in"
             }
-            className="press relative shrink-0"
+            className="press relative flex shrink-0 items-center gap-2"
           >
             {claimed ? (
               <Avatar name={claimed.name} teamSlug={claimedTeam?.slug} src={face?.url} size="md" />
             ) : (
-              <span
-                className={`flex size-11 items-center justify-center rounded-full border ${
-                  user
-                    ? "border-border bg-secondary text-sm font-semibold uppercase text-foreground"
-                    : "border-border text-muted-foreground"
-                }`}
-              >
-                {user ? playerInitials(user.email?.split("@")[0] || "P") : (
-                  <User className="size-4" strokeWidth={1.7} aria-hidden />
-                )}
-              </span>
+              <>
+                <span
+                  className={`flex size-11 items-center justify-center rounded-full border ${
+                    user
+                      ? "border-border bg-secondary text-sm font-semibold uppercase text-foreground"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {user ? playerInitials(user.email?.split("@")[0] || "P") : (
+                    <User className="size-4" strokeWidth={1.7} aria-hidden />
+                  )}
+                </span>
+                {!user ? (
+                  <span className="t-micro hidden text-muted-foreground sm:inline">Sign in</span>
+                ) : null}
+              </>
             )}
             {user && !claimed && !profile?.player_id && (
               <span
@@ -169,7 +172,7 @@ export function Shell({
             )}
           </Link>
         </div>
-        <div className={`mx-auto h-px w-full ${width} bg-border`} />
+        <div className={`mx-auto h-px w-full ${width} hairline-gold`} />
       </header>
       {preview && (
         <div
