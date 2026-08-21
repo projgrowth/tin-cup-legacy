@@ -141,7 +141,7 @@ function SchedulePage() {
             }
           >
             {todayRound && (
-              <p className="t-numeral mt-4 text-3xl text-foreground">
+              <p className="t-numeral mt-4 text-[1.85rem] text-foreground">
                 {todayRound.points}
                 <span className="t-micro ml-1 font-normal text-muted-foreground">pts</span>
               </p>
@@ -149,7 +149,7 @@ function SchedulePage() {
           </PageMasthead>
 
           {pairingsInToday && (
-            <ul className="divide-y divide-border border-t border-border">
+            <ul className="surface mt-3 divide-y divide-border overflow-hidden">
               {DAY1_PAIRINGS.map((p) => (
                 <PairingRow
                   key={p.matchIndex}
@@ -256,7 +256,7 @@ function SchedulePage() {
                         </Link>
                       )}
                     </div>
-                    <span className="t-numeral shrink-0 text-2xl text-foreground">
+                    <span className="t-numeral shrink-0 text-[1.5rem] text-foreground">
                       {round.points}
                     </span>
                   </div>

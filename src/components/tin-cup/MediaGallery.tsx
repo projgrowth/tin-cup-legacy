@@ -151,7 +151,7 @@ export function MediaGallery({
     <section className="space-y-4" aria-labelledby="media-gallery-title">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="event-kicker text-gold-light">Weekend gallery</p>
+          <p className="event-kicker">Weekend gallery</p>
           <h1 id="media-gallery-title" className="t-display mt-1">
             The camera roll
           </h1>

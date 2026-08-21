@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 
 import type { Tables } from "@/integrations/supabase/types";
 import { graphqlRequest, subscribeGraphql } from "@/integrations/supabase/graphql";
@@ -97,6 +97,14 @@ async function fetchTournament(): Promise<TournamentData> {
 }
 
 export const tournamentQueryKey = ["tournament"] as const;
+
+export function prefetchTournament(queryClient: QueryClient) {
+  return queryClient.prefetchQuery({
+    queryKey: tournamentQueryKey,
+    queryFn: fetchTournament,
+    staleTime: 15_000,
+  });
+}
 
 /** Pending offline writes, re-rendered whenever the queue changes. */
 export function usePendingWrites() {

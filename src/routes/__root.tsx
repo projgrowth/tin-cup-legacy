@@ -15,6 +15,7 @@ import { registerServiceWorker } from "@/lib/register-sw";
 import { installClientErrorReporting } from "@/lib/client-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
+import { prefetchTournament } from "@/hooks/useTournament";
 
 function NotFoundComponent() {
   return (
@@ -120,6 +121,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "apple-touch-icon", href: "/app-icon-512.png" },
     ],
   }),
+  beforeLoad: ({ context }) => {
+    void prefetchTournament(context.queryClient).catch(() => undefined);
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,

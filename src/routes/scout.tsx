@@ -458,9 +458,7 @@ function ScoutPage() {
                 >
                   {COURSE_LABEL[id]}
                   {id === todayCourse ? (
-                    <span className="event-kicker mt-0.5 block text-gold-light/90">
-                      today
-                    </span>
+                    <span className="ml-1 t-micro font-semibold text-gold-light">· today</span>
                   ) : null}
                 </Link>
               );

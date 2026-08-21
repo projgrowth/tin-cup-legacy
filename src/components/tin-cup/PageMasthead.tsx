@@ -22,7 +22,7 @@ export function PageMasthead({
         embedded
           ? "relative overflow-hidden"
           : photo
-            ? "relative overflow-hidden rounded-xl border border-border bg-emerald-deep"
+            ? "relative overflow-hidden rounded-xl border border-border bg-[var(--turf-rough)]"
             : "relative"
       }
     >

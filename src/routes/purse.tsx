@@ -55,7 +55,7 @@ function PursePage() {
           meta={
             <>
               @{VENMO_HANDLE} · {TOURNAMENT_BANK}
-              <span className="mt-2 block text-white">$100 team pot + $50 side cash</span>
+              <span className="mt-2 block text-foreground">$100 team pot + $50 side cash</span>
             </>
           }
         >

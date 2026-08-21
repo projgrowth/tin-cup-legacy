@@ -87,7 +87,7 @@ function YardCol({
       : tone === "sky"
         ? "text-sky-100"
         : "text-white/80";
-  const size = hero ? "text-3xl sm:text-4xl" : "text-xl sm:text-2xl";
+  const size = hero ? "text-[1.65rem] sm:text-[1.85rem]" : "text-[1.15rem] sm:text-[1.35rem]";
   return (
     <div className="min-w-[2.75rem] text-center">
       <p

@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { AlertTriangle, CloudOff, User } from "lucide-react";
 
 import { BottomNav } from "./BottomNav";
+import { PageMasthead } from "./PageMasthead";
 import { SeatWelcome } from "./SeatWelcome";
 import { Avatar } from "./Avatar";
 import { useAuth } from "@/hooks/useAuth";
@@ -310,11 +311,9 @@ export function PageHeading({
   meta?: ReactNode;
 }) {
   return (
-    <header className="mb-5 sm:mb-6">
-      <p className="t-eyebrow">{eyebrow}</p>
-      <h1 className="t-display mt-2 text-foreground">{title}</h1>
-      {meta ? <div className="t-body mt-2 max-w-2xl text-muted-foreground">{meta}</div> : null}
-    </header>
+    <div className="mb-5 sm:mb-6">
+      <PageMasthead kicker={eyebrow} title={title} meta={meta} />
+    </div>
   );
 }
 

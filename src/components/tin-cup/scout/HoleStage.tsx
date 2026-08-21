@@ -4,9 +4,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { HoleMap } from "@/components/tin-cup/HoleMap";
 import { SatelliteHoleMap } from "@/components/tin-cup/SatelliteHoleMap";
+import { DistanceStack } from "@/components/tin-cup/scout/DistanceStack";
 import type { CourseId, Hole } from "@/lib/courses";
 import { getGeoHole, holeGreenTriple } from "@/lib/geo-courses";
-import { haversineYards } from "@/lib/geo";
+import { bboxContains, haversineYards } from "@/lib/geo";
 import { useGeolocation } from "@/hooks/useGeolocation";
 
 export type MapMode = "sat" | "schematic";
@@ -46,7 +47,7 @@ export function HoleStage({
   const geo = useMemo(() => getGeoHole(courseId, hole.h), [courseId, hole.h]);
   const triple = useMemo(() => (geo ? holeGreenTriple(geo) : null), [geo]);
   const hasSat = Boolean(geo);
-  const { fix, active: gpsActive } = useGeolocation(gpsOn);
+  const { fix, error: gpsError, active: gpsActive } = useGeolocation(gpsOn);
   const swipeRef = useRef<{ x: number; y: number; t: number } | null>(null);
 
   useEffect(() => {
@@ -66,6 +67,22 @@ export function HoleStage({
     gpsOn && gpsActive && fix && triple
       ? Math.round(haversineYards(fix.point, triple.center))
       : hole.yards;
+  const liveStack =
+    gpsOn && gpsActive && fix && triple
+      ? {
+          front: Math.round(haversineYards(fix.point, triple.front)),
+          center: Math.round(haversineYards(fix.point, triple.center)),
+          back: Math.round(haversineYards(fix.point, triple.back)),
+        }
+      : triple
+        ? {
+            front: triple.yardsFromTee.front,
+            center: triple.yardsFromTee.center,
+            back: triple.yardsFromTee.back,
+          }
+        : null;
+  const gpsNearHole =
+    gpsOn && fix && geo ? bboxContains(geo.bounds, fix.point, 0.002) : null;
 
   const showSat = mapMode === "sat" && hasSat;
 
@@ -88,6 +105,26 @@ export function HoleStage({
         </p>
         <p className="sr-only">Black {hole.yards}</p>
       </div>
+
+      {gpsOn && liveStack ? (
+        <div
+          className="pointer-events-none absolute left-3 z-20 w-[min(100%-1.5rem,16rem)]"
+          style={{
+            bottom: "max(8.25rem, calc(env(safe-area-inset-bottom) + 6.75rem))",
+          }}
+        >
+          <DistanceStack
+            front={liveStack.front}
+            center={liveStack.center}
+            back={liveStack.back}
+            blackYards={hole.yards}
+            gpsEnabled={gpsOn}
+            gpsActive={gpsActive}
+            gpsError={gpsError}
+            gpsNearHole={gpsNearHole}
+          />
+        </div>
+      ) : null}
 
       {showSat && geo ? (
         <div

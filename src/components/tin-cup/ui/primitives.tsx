@@ -1,29 +1,5 @@
 import type { ReactNode } from "react";
 
-/** Quiet page title block — one line hierarchy. */
-export function PageHeader({
-  eyebrow,
-  title,
-  meta,
-  action,
-}: {
-  eyebrow?: string;
-  title: string;
-  meta?: ReactNode;
-  action?: ReactNode;
-}) {
-  return (
-    <header className="mb-4 flex items-start justify-between gap-3">
-      <div className="min-w-0">
-        {eyebrow ? <p className="t-eyebrow mb-1">{eyebrow}</p> : null}
-        <h1 className="t-title text-foreground">{title}</h1>
-        {meta ? <div className="t-micro mt-1.5 text-muted-foreground">{meta}</div> : null}
-      </div>
-      {action ? <div className="shrink-0">{action}</div> : null}
-    </header>
-  );
-}
-
 /** Standard content panel. */
 export function Panel({
   children,
@@ -77,7 +53,7 @@ export function Segmented<T extends string>({
           >
             {opt.label}
             {opt.hint ? (
-              <span className="event-kicker mt-0.5 block text-gold-light/90">
+              <span className="mt-0.5 block t-micro text-gold-light">
                 {opt.hint}
               </span>
             ) : null}

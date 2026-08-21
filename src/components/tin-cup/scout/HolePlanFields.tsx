@@ -103,7 +103,7 @@ export function HolePlanFields({
           </span>
         </p>
       )}
-      {loading && mode === "cloud" && <p className="text-xs text-muted-foreground">Loading…</p>}
+      {loading && mode === "cloud" && <p className="t-micro">Loading…</p>}
     </div>
   );
 }
