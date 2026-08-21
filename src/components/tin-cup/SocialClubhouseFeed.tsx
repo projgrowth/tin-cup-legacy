@@ -141,6 +141,7 @@ export function SocialClubhouseFeed({
       );
   }, [activity.data, filter, matchSocial.predictions, matches, sideBets, trophies]);
   const showClubhouse = filter === "all" || filter === "clubhouse";
+  const emptyFeed = story.clubhousePosts.length === 0 && moments.length === 0;
   const mediaPaths = moments
     .map((moment) => moment.mediaPath)
     .filter((path): path is string => Boolean(path));
@@ -458,6 +459,7 @@ export function SocialClubhouseFeed({
         </details>
       )}
 
+      {(!emptyFeed || filter !== "all") && (
       <div
         className="no-scrollbar flex gap-2 overflow-x-auto pb-1"
         role="tablist"
@@ -483,6 +485,7 @@ export function SocialClubhouseFeed({
           </button>
         ))}
       </div>
+      )}
 
       <div className={compact ? "space-y-2" : "space-y-3"}>
         {showClubhouse && story.clubhouseEnabled && (
@@ -919,11 +922,11 @@ export function SocialClubhouseFeed({
         })}
       </div>
 
-      {story.clubhousePosts.length === 0 && moments.length === 0 && (
-        <p className="t-micro px-1 py-4">
+      {emptyFeed && (
+        <p className="t-micro px-1 py-2">
           {story.clubhouseEnabled
             ? "Post the first update, photo, or prediction."
-            : "Photos and scores show up as the weekend starts."}
+            : "Clubhouse opens as the weekend starts."}
         </p>
       )}
       {matchSocial.unavailable && (

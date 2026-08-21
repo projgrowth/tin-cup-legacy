@@ -86,23 +86,24 @@ export const Route = createFileRoute("/")({
       ...authCallbackSearch(raw),
     };
   },
-  head: () => ({
-    links: [{ rel: "preload", as: "image", href: "/tin-cup-intro-poster.jpg" }],
-    meta: [
-      { title: "Tin Cup Invitational 2026 — Live Cup Standings" },
-      {
-        name: "description",
-        content:
-          "The 4th Annual Tin Cup Invitational at Innisbrook Golf Resort, August 28–30, 2026. Live 26-point scoreboard, side cash, rosters and the Snake Pit guide.",
-      },
-      { property: "og:title", content: "Tin Cup Invitational 2026 — Live Cup Standings" },
-      {
-        property: "og:description",
-        content:
-          "The 4th Annual Tin Cup Invitational at Innisbrook Golf Resort, August 28–30, 2026. Live 26-point scoreboard, side cash, rosters and the Snake Pit guide.",
-      },
-    ],
-  }),
+  head: () => {
+    const pre = getEventPhase() === "before";
+    const title = pre
+      ? "Tin Cup Invitational 2026 — August 28–30, Innisbrook"
+      : "Tin Cup Invitational 2026 — Live Cup Standings";
+    const description = pre
+      ? "The 4th Annual Tin Cup Invitational at Innisbrook Golf Resort, August 28–30, 2026. Pairings, course plans, purse and the Snake Pit."
+      : "The 4th Annual Tin Cup Invitational at Innisbrook Golf Resort, August 28–30, 2026. Live 26-point scoreboard, side cash, rosters and the Snake Pit guide.";
+    return {
+      links: [{ rel: "preload", as: "image", href: "/tin-cup-intro-poster.jpg" }],
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+      ],
+    };
+  },
   component: Index,
 });
 

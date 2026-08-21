@@ -263,16 +263,14 @@ function ScoutPage() {
             style={{ top: "max(0.75rem, env(safe-area-inset-top))" }}
           >
             <div className="flex gap-2">
-              <Link to="/" aria-label="Back to Live" className={orb}>
-                <ChevronLeft className="size-4" />
-              </Link>
               <Link
                 to="/scout"
                 search={{ course: courseId, hole, card: true }}
                 replace
-                className="press chip min-h-11 gap-1 border-white/15 bg-black/45 px-3 text-white backdrop-blur-md"
+                aria-label="Back to scorecard"
+                className={orb}
               >
-                Scorecard
+                <ChevronLeft className="size-4" />
               </Link>
             </div>
             <div className="relative shrink-0">
@@ -339,21 +337,18 @@ function ScoutPage() {
                 </div>
               )}
             </div>
-            <button
-              type="button"
-              aria-pressed={mapMode === "sat"}
-              onClick={() => {
-                if (mapMode === "sat") {
-                  persistMode("schematic");
-                  setPlayGpsOn(false);
-                } else {
-                  persistMode("sat");
-                }
-              }}
-              className={`${mapChip} ${mapMode === "sat" ? "chip-on" : ""}`}
-            >
-              {mapMode === "sat" ? "Sat" : "2D"}
-            </button>
+            {!playGpsOn && (
+              <button
+                type="button"
+                aria-pressed={mapMode === "sat"}
+                onClick={() => {
+                  persistMode(mapMode === "sat" ? "schematic" : "sat");
+                }}
+                className={`${mapChip} ${mapMode === "sat" ? "chip-on" : ""}`}
+              >
+                {mapMode === "sat" ? "Sat" : "2D"}
+              </button>
+            )}
             <button
               type="button"
               aria-pressed={playGpsOn}

@@ -37,6 +37,8 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByText("First tee · Friday 12:19 PM")).toBeVisible();
   await expect(page.getByRole("link", { name: "Weekend", exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Plan", exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /Pay \$150/ }).first()).toBeVisible();
   await expect(page.getByText("Sign in to join the Clubhouse")).toHaveCount(0);
   await expect(page.getByText("Today at Tin Cup")).toHaveCount(0);
   expect((await logoRequest).ok()).toBe(true);
@@ -112,11 +114,11 @@ test("plan hole map opens the 2D theater and pages holes", async ({ page }) => {
   await expect(page.getByRole("img", { name: /Schematic layout of hole 7/i })).toBeVisible({
     timeout: 15_000,
   });
-  await expect(page.getByRole("link", { name: "Scorecard" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to scorecard" })).toBeVisible();
   await page.getByRole("link", { name: "Next hole" }).click();
   await expect(page).toHaveURL(/hole=8/);
   await expect(page.getByRole("img", { name: /Schematic layout of hole 8/i })).toBeVisible();
-  await page.getByRole("link", { name: "Scorecard" }).click();
+  await page.getByRole("link", { name: "Back to scorecard" }).click();
   await expect(page).toHaveURL(/card=true/);
   await expect(page.getByRole("heading", { name: /South game plan/i })).toBeVisible();
 });

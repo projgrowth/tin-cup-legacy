@@ -68,14 +68,24 @@ export function PreTournamentPanel({
           >
             Weekend
           </Link>
-          <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+          <div className="grid grid-cols-2 gap-2">
             <Link
               to="/scout"
               search={{ course: nextCourseId, card: true }}
-              className="press t-micro inline-flex min-h-11 items-center font-semibold text-foreground"
+              className="press btn-quiet t-body flex min-h-11 items-center justify-center"
             >
-              Plan the round
+              Plan
             </Link>
+            <a
+              href={venmoUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="press btn-quiet t-body flex min-h-11 items-center justify-center"
+            >
+              Pay ${BUY_IN}
+            </a>
+          </div>
+          <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
             {!signedIn ? (
               <Link
                 to="/profile"
