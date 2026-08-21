@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, CloudOff } from "lucide-react";
+import { AlertTriangle, CloudOff, User } from "lucide-react";
 
 import { BottomNav } from "./BottomNav";
 import { SeatWelcome } from "./SeatWelcome";
@@ -126,7 +126,9 @@ export function Shell({
                   <span className="text-copper">{fmtPts(standings.grassRoots)}</span>
                 </span>
               </span>
-            ) : null}
+            ) : (
+              <span className="t-title truncate text-foreground">Tin Cup</span>
+            )}
           </Link>
           <Link
             to="/profile"
@@ -139,13 +141,15 @@ export function Shell({
               <Avatar name={claimed.name} teamSlug={claimedTeam?.slug} src={face?.url} size="md" />
             ) : (
               <span
-                className={`flex size-11 items-center justify-center rounded-full border text-sm font-semibold uppercase ${
+                className={`flex size-11 items-center justify-center rounded-full border ${
                   user
-                    ? "border-border bg-secondary text-foreground"
+                    ? "border-border bg-secondary text-sm font-semibold uppercase text-foreground"
                     : "border-border text-muted-foreground"
                 }`}
               >
-                {user ? playerInitials(user.email?.split("@")[0] || "P") : "?"}
+                {user ? playerInitials(user.email?.split("@")[0] || "P") : (
+                  <User className="size-4" strokeWidth={1.7} aria-hidden />
+                )}
               </span>
             )}
             {user && !claimed && !profile?.player_id && (

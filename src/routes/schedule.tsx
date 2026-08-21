@@ -13,7 +13,7 @@ import { roundStart, roundStatus, roundTally } from "@/lib/scoring";
 import { downloadRoundIcs, downloadWeekendIcs } from "@/lib/calendar";
 import { trackProductEvent } from "@/lib/product-analytics";
 import { formatCountdown } from "@/lib/countdown";
-import { DAY1_META, DAY1_PAIRINGS } from "@/lib/day1-pairings";
+import { DAY1_PAIRINGS } from "@/lib/day1-pairings";
 import {
   COURSE_DETAILS,
   COURSE_LABEL,
@@ -137,7 +137,6 @@ function SchedulePage() {
             meta={
               <>
                 First tee {todayDetails.firstTee} · {todayDetails.format}
-                {todayCourseId === "south" ? ` · ${DAY1_META.tee}` : ""}
               </>
             }
           >

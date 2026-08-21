@@ -1,8 +1,10 @@
 import { Link } from "@tanstack/react-router";
 
 import { AvatarPair } from "@/components/tin-cup/Avatar";
+import { Countdown } from "@/components/tin-cup/Countdown";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { FieldChatLink } from "@/components/tin-cup/WhatsAppLinks";
+import { WeekendCommandCenter } from "@/components/tin-cup/WeekendCommandCenter";
 
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import {
@@ -16,6 +18,7 @@ import {
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
+import type { WeekendContext } from "@/lib/weekend-context";
 
 export function PreTournamentPanel({
   rounds: _rounds = [],
@@ -26,6 +29,7 @@ export function PreTournamentPanel({
   signedIn = false,
   claimedName = null,
   needsClaim = false,
+  context,
 }: {
   rounds?: Round[];
   matches?: Match[];
@@ -35,6 +39,7 @@ export function PreTournamentPanel({
   signedIn?: boolean;
   claimedName?: string | null;
   needsClaim?: boolean;
+  context?: WeekendContext;
 }) {
   const isClaimed = signedIn && Boolean(claimedName) && !needsClaim;
   const myDay1 = claimedName ? day1GroupForPlayer(claimedName) : null;
@@ -43,54 +48,59 @@ export function PreTournamentPanel({
   const today = COURSE_DETAILS[nextCourseId];
   const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
 
-  const cta = isClaimed ? (
-    <a
-      href={venmoUrl}
-      target="_blank"
-      rel="noreferrer"
-      className="press btn-gold t-body flex min-h-11 w-full items-center justify-center"
-    >
-      Pay ${BUY_IN}
-    </a>
-  ) : null;
-
   return (
-    <div className="stack-page pb-2">
+    <section className="stack-page pb-2" aria-label="This weekend">
       <PageMasthead
         kicker={`${EVENT.dates} · ${EVENT.location}`}
         title={EVENT.title}
         meta={EVENT.subtitle}
       />
 
-      <div className="stack-tight">
-        {cta}
-        {!isClaimed && (
+      <Countdown />
+
+      {isClaimed && context ? (
+        <WeekendCommandCenter context={context} />
+      ) : (
+        <div className="stack-tight">
+          <Link
+            to="/schedule"
+            className="press btn-gold t-body flex min-h-11 w-full items-center justify-center"
+          >
+            Weekend
+          </Link>
           <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-            <Link
-              to="/schedule"
-              className="press t-micro inline-flex min-h-11 items-center font-semibold text-foreground"
-            >
-              Weekend →
-            </Link>
             <Link
               to="/scout"
               search={{ course: nextCourseId, card: true }}
-              className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
+              className="press t-micro inline-flex min-h-11 items-center font-semibold text-foreground"
             >
               Plan the round
             </Link>
+            {!signedIn ? (
+              <Link
+                to="/profile"
+                className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
+              >
+                Sign in
+              </Link>
+            ) : needsClaim ? (
+              <Link
+                to="/profile"
+                className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
+              >
+                Claim your name
+              </Link>
+            ) : null}
           </p>
-        )}
-        {VENMO_IS_PLACEHOLDER && (
-          <p className="t-micro text-center text-copper">
-            Set VITE_VENMO_HANDLE before the weekend.
-          </p>
-        )}
-      </div>
+        </div>
+      )}
+
+      {VENMO_IS_PLACEHOLDER && (
+        <p className="t-micro text-center text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>
+      )}
 
       {isClaimed && (
         <section className="surface space-y-4 p-4">
-          <p className="t-eyebrow text-gold-light">Your weekend</p>
           {myDay1 ? (
             <div className="flex items-center gap-3">
               <AvatarPair
@@ -122,18 +132,14 @@ export function PreTournamentPanel({
             {today.dayLabel} · {COURSE_LABEL[nextCourseId]} · first tee {today.firstTee}
           </p>
           {tonight && <p className="t-micro text-muted-foreground">Tonight · {tonight.title}</p>}
-          <div className="grid grid-cols-2 gap-2">
-            <Link to="/schedule" className="press btn-quiet t-body flex min-h-11 justify-center">
-              Weekend
-            </Link>
-            <Link
-              to="/scout"
-              search={{ course: nextCourseId, card: true }}
-              className="press btn-quiet t-body flex min-h-11 justify-center"
-            >
-              {COURSE_LABEL[nextCourseId]} plan
-            </Link>
-          </div>
+          <a
+            href={venmoUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="press btn-quiet t-body flex min-h-11 w-full items-center justify-center"
+          >
+            Pay ${BUY_IN}
+          </a>
         </section>
       )}
 
@@ -142,6 +148,6 @@ export function PreTournamentPanel({
       )}
 
       {WHATSAPP_GROUP_CONFIGURED && <FieldChatLink className="!min-h-11 w-full" />}
-    </div>
+    </section>
   );
 }

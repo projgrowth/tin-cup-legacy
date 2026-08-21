@@ -73,8 +73,8 @@ export function WeekendCommandCenter({ context }: { context: WeekendContext }) {
       aria-label="Your weekend"
     >
       <div className="min-w-0 flex-1">
-        <p className="event-kicker text-gold-light">Your next move</p>
-        <h2 id="my-weekend-title" className="mt-1 text-base font-semibold tracking-tight text-foreground">
+        <p className="t-eyebrow">Your next move</p>
+        <h2 id="my-weekend-title" className="t-title mt-1 text-foreground">
           {title}
         </h2>
         {detail ? <p className="t-micro mt-0.5">{detail}</p> : null}

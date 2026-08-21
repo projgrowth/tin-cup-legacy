@@ -43,9 +43,9 @@ const HoleStage = lazy(() =>
 type ScoutSearch = {
   course?: CourseId;
   hole?: number;
-  /** 18-hole sheet. Default is hole satellite. */
+  /** 18-hole yardage book. Plan tab default. */
   card?: boolean;
-  /** @deprecated Prefer omitting `card`. Still accepted. */
+  /** Full-bleed hole theater. Opened from the Map control on each hole. */
   map?: boolean;
 };
 
@@ -86,30 +86,33 @@ export const Route = createFileRoute("/scout")({
 });
 
 function ScoutPage() {
-  const navigate = useNavigate({ from: "/scout" });
+  const navigate = useNavigate();
   const search = Route.useSearch();
   const { user, loading: authLoading } = useAuth();
   const { data: tournament } = useTournament();
   const { profile } = useProfile();
   const [playGpsOn, setPlayGpsOn] = useState(false);
-  const [mapMode, setMapMode] = useState<MapMode>("mock3d");
+  const [mapMode, setMapMode] = useState<MapMode>("schematic");
   const [cardMenu, setCardMenu] = useState(false);
   const [theaterMenu, setTheaterMenu] = useState(false);
   const [courseMenu, setCourseMenu] = useState(false);
 
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem("tc-hole-map-mode-v6");
-      if (saved === "sat" || saved === "mock3d") setMapMode(saved);
+      const saved =
+        window.localStorage.getItem("tc-hole-map-mode-v7") ??
+        window.localStorage.getItem("tc-hole-map-mode-v6");
+      if (saved === "sat") setMapMode("sat");
+      else setMapMode("schematic");
     } catch {
-      /* first visit stays 3D */
+      /* first visit stays 2D aerial */
     }
   }, []);
 
   function persistMode(next: MapMode) {
     setMapMode(next);
     try {
-      window.localStorage.setItem("tc-hole-map-mode-v6", next);
+      window.localStorage.setItem("tc-hole-map-mode-v7", next);
     } catch {
       /* ignore */
     }
@@ -119,20 +122,20 @@ function ScoutPage() {
   const course = getCourse(courseId);
   const hole = clampHole(search.hole ?? 1, course.holes.length);
   const showMap = search.map === true;
-  const showCard = !showMap;
 
-  const setSelection = (next: { course?: CourseId; hole?: number; card?: boolean }) => {
+  const setSelection = (next: { course?: CourseId; hole?: number; map?: boolean }) => {
     const nextCourse = next.course ?? courseId;
     const nextHole = next.hole ?? (next.course && next.course !== courseId ? 1 : hole);
-    const nextCard = next.card ?? showCard;
+    const nextMap = next.map ?? showMap;
     void navigate({
       to: "/scout",
       search: {
         course: nextCourse,
         hole: clampHole(nextHole, getCourse(nextCourse).holes.length),
-        ...(showMap && nextCard === showCard ? { map: true } : { card: true }),
+        ...(nextMap ? { map: true } : { card: true }),
       },
       replace: true,
+      resetScroll: false,
     });
   };
 
@@ -148,7 +151,7 @@ function ScoutPage() {
   const index = course.holes.findIndex((h) => h.h === current.h);
   const step = (delta: number) => {
     const next = course.holes[index + delta];
-    if (next) setSelection({ hole: next.h });
+    if (next) setSelection({ hole: next.h, map: true });
   };
   const tip =
     courseId === "copperhead" ? SNAKE_PIT_TIPS.find((t) => t.hole === current.h) : undefined;
@@ -341,7 +344,7 @@ function ScoutPage() {
               aria-pressed={mapMode === "sat"}
               onClick={() => {
                 if (mapMode === "sat") {
-                  persistMode("mock3d");
+                  persistMode("schematic");
                   setPlayGpsOn(false);
                 } else {
                   persistMode("sat");
@@ -349,7 +352,7 @@ function ScoutPage() {
               }}
               className={`${mapChip} ${mapMode === "sat" ? "chip-on" : ""}`}
             >
-              {mapMode === "sat" ? "Sat" : "3D"}
+              {mapMode === "sat" ? "Sat" : "2D"}
             </button>
             <button
               type="button"
@@ -396,7 +399,6 @@ function ScoutPage() {
               editor={planEditor}
               contestByHole={contestByHole}
               onSelectHole={(h) => setSelection({ hole: h })}
-              onOpenMap={(h) => setSelection({ hole: h })}
               dayDraft={dayDraft}
               onDayDraft={setDayDraft}
               onSaveDay={() =>
@@ -512,8 +514,7 @@ function ScoutPage() {
           loading={authLoading || journal.loading}
           editor={planEditor}
           contestByHole={contestByHole}
-          onSelectHole={(h) => setSelection({ hole: h, card: true })}
-          onOpenMap={(h) => setSelection({ hole: h, card: false })}
+          onSelectHole={(h) => setSelection({ hole: h, map: false })}
           dayDraft={dayDraft}
           onDayDraft={setDayDraft}
           onSaveDay={() =>

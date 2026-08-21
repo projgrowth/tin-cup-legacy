@@ -264,7 +264,7 @@ export function SocialClubhouseFeed({
     <section aria-labelledby="clubhouse-feed-title" className="space-y-4">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <p className="t-eyebrow text-gold-light">The clubhouse</p>
+          <p className="t-eyebrow">The clubhouse</p>
           <h2 id="clubhouse-feed-title" className="t-title mt-1 text-foreground">
             Around the weekend
           </h2>
@@ -920,16 +920,11 @@ export function SocialClubhouseFeed({
       </div>
 
       {story.clubhousePosts.length === 0 && moments.length === 0 && (
-        <div className="px-1 py-10 text-center">
-          <p className="t-title text-foreground">
-            {story.clubhouseEnabled ? "The clubhouse is ready" : "Results land here"}
-          </p>
-          <p className="t-micro mt-1">
-            {story.clubhouseEnabled
-              ? "Post the first update, photo, prediction, or result."
-              : "Photos and official scores will show up as the weekend starts."}
-          </p>
-        </div>
+        <p className="t-micro px-1 py-4">
+          {story.clubhouseEnabled
+            ? "Post the first update, photo, or prediction."
+            : "Photos and scores show up as the weekend starts."}
+        </p>
       )}
       {matchSocial.unavailable && (
         <p className="t-micro text-muted-foreground">

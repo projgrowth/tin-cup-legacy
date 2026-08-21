@@ -59,6 +59,7 @@ export function HoleMap({
   onToggleFullscreen,
   overlay,
   onSwipeHole,
+  controls = true,
 }: {
   hole: Hole;
   className?: string;
@@ -68,6 +69,8 @@ export function HoleMap({
   overlay?: ReactNode;
   /** Horizontal swipe beyond threshold changes hole (±1) */
   onSwipeHole?: (delta: -1 | 1) => void;
+  /** Zoom / reset orbs. Off in hole theater — pinch still works. */
+  controls?: boolean;
 }) {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -546,7 +549,7 @@ export function HoleMap({
   const ctrlBtn =
     "press flex size-11 items-center justify-center rounded-full border border-white/10 bg-black/55 text-foreground shadow-lg backdrop-blur-md disabled:opacity-35";
 
-  const controls = (
+  const mapControls = (
     <div className="absolute bottom-3 right-3 z-10 flex gap-1.5">
       <button
         type="button"
@@ -603,7 +606,7 @@ export function HoleMap({
       >
         {mapSvg}
       </div>
-      {controls}
+      {controls ? mapControls : null}
     </div>
   );
 

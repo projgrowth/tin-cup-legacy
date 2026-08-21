@@ -46,7 +46,7 @@ test("core content remains usable at 200 percent zoom", async ({ page }, testInf
     document.documentElement.style.zoom = "2";
   });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Your weekend" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "This weekend" })).toBeVisible();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );

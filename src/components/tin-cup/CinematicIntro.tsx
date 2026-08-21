@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useFrameBudget } from "@/hooks/useFrameBudget";
 import { markIntroSeen } from "@/lib/intro";
-import { setIntroPlaying } from "@/lib/seat";
+import { setIntroPlaying, writeSeat } from "@/lib/seat";
 
 const INTRO_VIDEO = "/tin-cup-intro.mp4";
 const INTRO_POSTER = "/tin-cup-intro-poster.jpg";
@@ -38,6 +38,7 @@ export function CinematicIntro({ onDone }: { onDone: () => void }) {
     if (finished.current) return;
     finished.current = true;
     markIntroSeen();
+    writeSeat("guest");
 
     setShowMark(true);
     setCollapsing(true);

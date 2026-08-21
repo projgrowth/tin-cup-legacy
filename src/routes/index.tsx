@@ -3,14 +3,12 @@ import { useEffect, useState } from "react";
 
 import { CinematicIntro } from "@/components/tin-cup/CinematicIntro";
 import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
-import { WeekendCommandCenter } from "@/components/tin-cup/WeekendCommandCenter";
 import { WeekendRecap } from "@/components/tin-cup/WeekendRecap";
 import { SocialClubhouseFeed } from "@/components/tin-cup/SocialClubhouseFeed";
 import { HomeSecondaryModules } from "@/components/tin-cup/HomeDashboard";
 import { ScoreModal } from "@/components/tin-cup/ScoreModal";
 import { Shell, SkeletonBlock } from "@/components/tin-cup/Shell";
 import { DisplayBoard } from "@/components/tin-cup/live/DisplayBoard";
-import { Countdown } from "@/components/tin-cup/Countdown";
 import { LivePanel, PreTournamentPanel } from "@/components/tin-cup/panels";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
@@ -314,36 +312,48 @@ function Index() {
             ) : null}
           </div>
         ) : (
-        <div className="home-dashboard mt-3">
-          <div className="home-action">
-            <WeekendCommandCenter context={weekendContext} />
-          </div>
+        <div className={`home-dashboard mt-3 ${mode === "pre" ? "home-dashboard-pre" : ""}`}>
+          {mode === "pre" && (
+            <div className="home-action">
+              <PreTournamentPanel
+                rounds={data?.rounds ?? []}
+                matches={data?.matches ?? []}
+                players={data?.players ?? []}
+                teams={data?.teams ?? []}
+                canUpload={Boolean(user)}
+                signedIn={Boolean(user)}
+                claimedName={claimedPlayer?.name ?? null}
+                needsClaim={needsClaim}
+                context={weekendContext}
+              />
+            </div>
+          )}
+          {mode === "live" && (
           <div className="home-board min-w-0">
-            {mode === "pre" && <Countdown />}
-            {mode === "live" &&
-              (isPending && !data ? (
-                <BoardSkeleton />
-              ) : isError && !data ? (
-                <BoardError onRetry={() => void refetch()} busy={isFetching} />
-              ) : (
-                <LivePanel
-                  variant="hero"
-                  rounds={data?.rounds ?? []}
-                  matches={data?.matches ?? []}
-                  teams={data?.teams ?? []}
-                  players={data?.players ?? []}
-                  sideBets={data?.sideBets ?? []}
-                  syncedAt={data?.syncedAt}
-                  pendingWrites={pendingWrites}
-                  failedWrites={failedWrites}
-                  onRetryFailed={() => void retryFailedWrites()}
-                  stale={stale || (mode === "live" && realtimeStatus === "stale")}
-                  canScore={canScore}
-                  claimedName={claimedPlayer?.name ?? null}
-                  flashedMatchIds={flashedMatchIds}
-                />
-              ))}
+            {isPending && !data ? (
+              <BoardSkeleton />
+            ) : isError && !data ? (
+              <BoardError onRetry={() => void refetch()} busy={isFetching} />
+            ) : (
+              <LivePanel
+                variant="hero"
+                rounds={data?.rounds ?? []}
+                matches={data?.matches ?? []}
+                teams={data?.teams ?? []}
+                players={data?.players ?? []}
+                sideBets={data?.sideBets ?? []}
+                syncedAt={data?.syncedAt}
+                pendingWrites={pendingWrites}
+                failedWrites={failedWrites}
+                onRetryFailed={() => void retryFailedWrites()}
+                stale={stale || realtimeStatus === "stale"}
+                canScore={canScore}
+                claimedName={claimedPlayer?.name ?? null}
+                flashedMatchIds={flashedMatchIds}
+              />
+            )}
           </div>
+          )}
           <div className="home-feed min-w-0">
             <SocialClubhouseFeed
               matches={data?.matches ?? []}
@@ -366,40 +376,9 @@ function Index() {
             />
           </div>
           <aside className="home-secondary min-w-0 space-y-5 lg:sticky lg:top-28 lg:self-start">
-            {mode === "pre" && (
-              <PreTournamentPanel
-                rounds={data?.rounds ?? []}
-                matches={data?.matches ?? []}
-                players={data?.players ?? []}
-                teams={data?.teams ?? []}
-                canUpload={Boolean(user)}
-                signedIn={Boolean(user)}
-                claimedName={claimedPlayer?.name ?? null}
-                needsClaim={needsClaim}
-              />
-            )}
             {mode === "live" && isError && !data && (
               <BoardError onRetry={() => void refetch()} busy={isFetching} />
             )}
-            {mode === "live" && data && (
-                <LivePanel
-                  variant="board"
-                  rounds={data.rounds}
-                  matches={data.matches}
-                  teams={data.teams}
-                  players={data.players}
-                  sideBets={data.sideBets}
-                  syncedAt={data.syncedAt}
-                  pendingWrites={pendingWrites}
-                  failedWrites={failedWrites}
-                  onRetryFailed={() => void retryFailedWrites()}
-                  stale={stale || (mode === "live" && realtimeStatus === "stale")}
-                  canScore={canScore}
-                  initialOpenOnly={canScore}
-                  claimedName={claimedPlayer?.name ?? null}
-                  flashedMatchIds={flashedMatchIds}
-                />
-              )}
             <HomeSecondaryModules
               order={smartHomeModules(
                 mode,

@@ -11,8 +11,11 @@ test("mobile first visit opens directly into the personalized weekend", async ({
   await page.goto("/");
 
   await expect(page.getByLabel("Tin Cup Invitational film intro")).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "Your weekend" })).toBeVisible();
-  const action = page.getByRole("link", { name: /Sign in · claim your spot/i }).first();
+  await expect(page.getByRole("region", { name: "This weekend" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /4th Annual Tin Cup Invitational/i }),
+  ).toBeVisible();
+  const action = page.getByRole("link", { name: "Weekend", exact: true }).first();
   await expect(action).toBeVisible();
   const box = await action.boundingBox();
   expect(box?.height).toBeGreaterThanOrEqual(44);
@@ -21,8 +24,8 @@ test("mobile first visit opens directly into the personalized weekend", async ({
 test("personalized weekend remains the entry point after reload", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "Phone-specific entry contract.");
   await page.goto("/");
-  await expect(page.getByRole("region", { name: "Your weekend" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "This weekend" })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole("region", { name: "Your weekend" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "This weekend" })).toBeVisible();
   await expect(page.getByText("First tee · Friday 12:19 PM")).toBeVisible();
 });

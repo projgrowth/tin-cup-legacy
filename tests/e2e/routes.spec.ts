@@ -26,13 +26,18 @@ async function expectNoHorizontalOverflow(page: import("@playwright/test").Page)
   expect(overflow).toBeLessThanOrEqual(1);
 }
 
-test("home loads its local brand and command center", async ({ page }) => {
+test("home loads its local brand and weekend cover", async ({ page }) => {
   const logoRequest = page.waitForResponse((response) =>
     response.url().endsWith("/tin-cup-logo.png"),
   );
   await page.goto("/");
   await expectTinCupIdentity(page);
+  await expect(
+    page.getByRole("heading", { name: /4th Annual Tin Cup Invitational/i }),
+  ).toBeVisible();
   await expect(page.getByText("First tee · Friday 12:19 PM")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Weekend", exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Sign in to join the Clubhouse")).toHaveCount(0);
   await expect(page.getByText("Today at Tin Cup")).toHaveCount(0);
   expect((await logoRequest).ok()).toBe(true);
   await expect(page.getByRole("button", { name: "Captain score input" })).toHaveCount(0);
@@ -93,6 +98,27 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(page.locator("main")).not.toContainText("$120");
   await expect(page.locator("main")).not.toContainText("Contest payouts are TBD.");
   await expectNoHorizontalOverflow(page);
+});
+
+test("plan hole map opens the 2D theater and pages holes", async ({ page }) => {
+  await page.goto("/scout?course=south&card=true");
+  await expect(page.getByRole("heading", { name: /South game plan/i })).toBeVisible();
+  const holeMap = page.getByRole("link", { name: "Open hole 7 map" });
+  await holeMap.scrollIntoViewIfNeeded();
+  await holeMap.click();
+  await expect(page).toHaveURL(/course=south/);
+  await expect(page).toHaveURL(/hole=7/);
+  await expect(page).toHaveURL(/map=true/);
+  await expect(page.getByRole("img", { name: /Schematic layout of hole 7/i })).toBeVisible({
+    timeout: 15_000,
+  });
+  await expect(page.getByRole("link", { name: "Scorecard" })).toBeVisible();
+  await page.getByRole("link", { name: "Next hole" }).click();
+  await expect(page).toHaveURL(/hole=8/);
+  await expect(page.getByRole("img", { name: /Schematic layout of hole 8/i })).toBeVisible();
+  await page.getByRole("link", { name: "Scorecard" }).click();
+  await expect(page).toHaveURL(/card=true/);
+  await expect(page.getByRole("heading", { name: /South game plan/i })).toBeVisible();
 });
 
 test("protected preview exposes the gallery and engagement prompt without production writes", async ({

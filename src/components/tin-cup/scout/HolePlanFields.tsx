@@ -77,17 +77,10 @@ export function HolePlanFields({
       </div>
 
       <details className="group">
-        <summary className="press cursor-pointer list-none text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground [&::-webkit-details-marker]:hidden">
+        <summary className="press cursor-pointer list-none t-eyebrow text-muted-foreground [&::-webkit-details-marker]:hidden">
           More notes
         </summary>
-        <div className="mt-2 space-y-2">
-          <input
-            value={green}
-            onChange={(e) => setGreen(e.target.value)}
-            placeholder="Green read"
-            maxLength={140}
-            className="control w-full text-base"
-          />
+        <div className="mt-2">
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}

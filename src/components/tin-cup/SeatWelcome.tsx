@@ -28,7 +28,17 @@ export function SeatWelcome() {
     setSeat("account");
   }, [user]);
 
-  if (!ready || loading || filmOn || user || seat || isAuthPath(pathname)) return null;
+  // Home is the cover. Don't stack a welcome sheet over it after the film.
+  if (
+    !ready ||
+    loading ||
+    filmOn ||
+    user ||
+    seat ||
+    pathname === "/" ||
+    isAuthPath(pathname)
+  )
+    return null;
 
   function chooseField() {
     writeSeat("account");

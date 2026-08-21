@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useRef } from "react";
+import { Link } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { HoleMap3D } from "@/components/tin-cup/HoleMap3D";
+import { HoleMap } from "@/components/tin-cup/HoleMap";
 import { SatelliteHoleMap } from "@/components/tin-cup/SatelliteHoleMap";
 import type { CourseId, Hole } from "@/lib/courses";
 import { getGeoHole, holeGreenTriple } from "@/lib/geo-courses";
 import { haversineYards } from "@/lib/geo";
 import { useGeolocation } from "@/hooks/useGeolocation";
 
-export type MapMode = "sat" | "mock3d";
+export type MapMode = "sat" | "schematic";
 
 /**
- * Default is the 3D mockup. Satellite (and GPS) paints turf on Esri.
+ * Hole theater. Default is the 2D aerial schematic. Satellite (and GPS) paints turf on Esri.
  */
 export function HoleStage({
   courseId,
@@ -48,8 +50,17 @@ export function HoleStage({
   const swipeRef = useRef<{ x: number; y: number; t: number } | null>(null);
 
   useEffect(() => {
-    if (mapMode === "sat" && !hasSat) onMapMode("mock3d");
+    if (mapMode === "sat" && !hasSat) onMapMode("schematic");
   }, [mapMode, hasSat, onMapMode]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft" && canPrev) onPrev();
+      if (e.key === "ArrowRight" && canNext) onNext();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [canNext, canPrev, onNext, onPrev]);
 
   const liveYards =
     gpsOn && gpsActive && fix && triple
@@ -64,23 +75,17 @@ export function HoleStage({
         Hole {hole.h} of {holeCount}, par {hole.par}, {liveYards} yards
         {courseLabel ? ` · ${courseLabel}` : ""}
       </p>
-      <div className="pointer-events-none absolute left-4 z-20 drop-shadow-[0_2px_14px_oklch(0_0_0/80%)] pt-[max(4.75rem,calc(env(safe-area-inset-top)+3.35rem))]">
-        <p className="text-[0.62rem] font-bold uppercase tracking-[0.18em] text-white/55">Hole</p>
-        <p className="hud-num mt-0.5 text-[2.45rem] leading-none text-white">
+      <div className="pointer-events-none absolute left-3 z-20 drop-shadow-[0_2px_14px_oklch(0_0_0/80%)] pt-[max(4.5rem,calc(env(safe-area-inset-top)+3.2rem))]">
+        <p className="hud-num text-[1.85rem] leading-none text-white">
           {hole.h}
-          <span className="ml-1 text-[1rem] font-semibold text-white/45">/{holeCount}</span>
+          <span className="ml-1 text-[0.85rem] font-semibold text-white/45">/{holeCount}</span>
         </p>
-        <p className="mt-4 text-[0.62rem] font-bold uppercase tracking-[0.18em] text-white/55">Par</p>
-        <p className="hud-num mt-0.5 text-[2.45rem] leading-none text-white">{hole.par}</p>
-        {isSnake ? (
-          <p className="mt-1 text-[0.62rem] font-bold uppercase tracking-[0.14em] text-copper">
-            Pit
-          </p>
-        ) : null}
-        <p className="mt-4 text-[0.62rem] font-bold uppercase tracking-[0.18em] text-white/55">
-          Yards
+        <p className="mt-1 text-[0.72rem] font-semibold tracking-wide text-white/70">
+          Par {hole.par}
+          <span className="mx-1.5 text-white/30">·</span>
+          {liveYards}
+          {isSnake ? <span className="ml-1.5 text-copper">Pit</span> : null}
         </p>
-        <p className="hud-num mt-0.5 text-[2.45rem] leading-none text-white">{liveYards}</p>
         <p className="sr-only">Black {hole.yards}</p>
       </div>
 
@@ -115,19 +120,52 @@ export function HoleStage({
             gpsAccuracyM={gpsOn ? (fix?.accuracyM ?? null) : null}
             onError={() => {
               onSatFailed?.();
-              onMapMode("mock3d");
+              onMapMode("schematic");
             }}
           />
         </div>
       ) : (
-        <div
-          className="absolute inset-0"
-          role="img"
-          aria-label={`${courseLabel ?? "Course"} hole ${hole.h}, 3D`}
-        >
-          <HoleMap3D hole={hole} className="size-full" />
+        <div className="absolute inset-0 bg-[var(--turf-rough)]">
+          <HoleMap
+            hole={hole}
+            className="size-full"
+            controls={false}
+            onSwipeHole={(delta) => {
+              if (delta < 0 && canPrev) onPrev();
+              if (delta > 0 && canNext) onNext();
+            }}
+          />
         </div>
       )}
+
+      <div className="pointer-events-none absolute inset-x-0 top-[42%] z-30 flex justify-between px-2">
+        <Link
+          to="/scout"
+          search={{ course: courseId, hole: Math.max(1, hole.h - 1), map: true }}
+          replace
+          aria-label="Previous hole"
+          aria-disabled={!canPrev}
+          tabIndex={canPrev ? undefined : -1}
+          className={`press pointer-events-auto flex size-11 items-center justify-center rounded-full border border-white/15 bg-black/45 text-white backdrop-blur-md ${
+            canPrev ? "" : "pointer-events-none opacity-30"
+          }`}
+        >
+          <ChevronLeft className="size-5" />
+        </Link>
+        <Link
+          to="/scout"
+          search={{ course: courseId, hole: Math.min(holeCount, hole.h + 1), map: true }}
+          replace
+          aria-label="Next hole"
+          aria-disabled={!canNext}
+          tabIndex={canNext ? undefined : -1}
+          className={`press pointer-events-auto flex size-11 items-center justify-center rounded-full border border-white/15 bg-black/45 text-white backdrop-blur-md ${
+            canNext ? "" : "pointer-events-none opacity-30"
+          }`}
+        >
+          <ChevronRight className="size-5" />
+        </Link>
+      </div>
     </section>
   );
 }

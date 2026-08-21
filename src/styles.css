@@ -222,8 +222,8 @@
   color: oklch(1 0 0 / 75%) !important;
 }
 .maplibregl-ctrl-bottom-right {
-  /* Clear Fit/GPS pods; sit above the plan drawer */
-  bottom: 5.75rem !important;
+  /* Sit above the plan dock (handle + always-on hole strip) */
+  bottom: 8.25rem !important;
   right: 0.35rem !important;
 }
 .maplibregl-ctrl-group {
@@ -739,6 +739,20 @@
       "feed secondary";
     align-items: start;
     column-gap: 1.5rem;
+  }
+}
+
+.home-dashboard-pre {
+  grid-template-areas:
+    "action"
+    "feed"
+    "secondary";
+}
+@media (min-width: 64rem) {
+  .home-dashboard.home-dashboard-pre {
+    grid-template-areas:
+      "action action"
+      "feed secondary";
   }
 }
 

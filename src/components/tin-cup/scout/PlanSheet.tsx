@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { ChevronUp } from "lucide-react";
 
 import { StatusLED } from "@/components/tin-cup/scout/DistanceStack";
@@ -68,7 +69,7 @@ export function PlanSheet({
 }) {
   const [open, setOpen] = useState(overlay ? false : !editor.filled);
   const stripRef = useRef<HTMLDivElement>(null);
-  const activeRef = useRef<HTMLButtonElement>(null);
+  const activeRef = useRef<HTMLAnchorElement>(null);
   const { led, filled, summary } = editor;
 
   const expanded = open && !forceCollapsed;
@@ -134,11 +135,14 @@ export function PlanSheet({
         const planned = hasNote(h.h);
         const contests = contestByHole.get(h.h) ?? [];
         return (
-          <button
+          <Link
             key={h.h}
             ref={active ? activeRef : undefined}
-            type="button"
+            to="/scout"
+            search={{ course: courseId, hole: h.h, map: true }}
+            replace
             onClick={() => onSelectHole(h.h)}
+            aria-label={`Hole ${h.h}`}
             aria-current={active ? "true" : undefined}
             className={`press relative size-11 shrink-0 rounded-full text-sm font-bold tabular-nums transition-colors ${
               active
@@ -165,7 +169,7 @@ export function PlanSheet({
                 }`}
               />
             ) : null}
-          </button>
+          </Link>
         );
       })}
     </div>
@@ -182,7 +186,7 @@ export function PlanSheet({
       }`}
     >
       {overlay ? handle : strip}
-      {overlay ? (expanded ? strip : null) : handle}
+      {overlay ? strip : handle}
       {expanded && (
         <div className="border-t border-white/8 px-4 pb-4 pt-3">
           <HolePlanFields par={par} mode={mode} loading={loading} editor={editor} />

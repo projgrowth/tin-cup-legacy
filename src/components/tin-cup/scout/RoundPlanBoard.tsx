@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Map as MapIcon, Target } from "lucide-react";
 
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
@@ -59,7 +60,6 @@ function HoleRow({
   mode,
   loading,
   onSelect,
-  onOpenMap,
 }: {
   line: PlanLine;
   holeMeta: Hole;
@@ -70,7 +70,6 @@ function HoleRow({
   mode: "cloud" | "guest";
   loading: boolean;
   onSelect: () => void;
-  onOpenMap: () => void;
 }) {
   const rowRef = useRef<HTMLDivElement>(null);
   const snake = courseId === "copperhead" && SNAKE_PIT.includes(line.hole);
@@ -132,14 +131,15 @@ function HoleRow({
             </span>
           </span>
         </button>
-        <button
-          type="button"
-          onClick={onOpenMap}
+        <Link
+          to="/scout"
+          search={{ course: courseId, hole: line.hole, map: true }}
+          replace
           aria-label={`Open hole ${line.hole} map`}
           className="press flex w-12 shrink-0 items-center justify-center text-muted-foreground"
         >
           <MapIcon className="size-4" />
-        </button>
+        </Link>
       </div>
 
       {selected && (
@@ -160,7 +160,7 @@ function HoleRow({
 
 /**
  * Default Plan surface — an 18-hole scorecard you fill like a yardage book.
- * Satellite / Play lives one tap away on each row.
+ * Hole theater is one tap away on each row.
  */
 export function RoundPlanBoard({
   courseId,
@@ -172,7 +172,6 @@ export function RoundPlanBoard({
   editor,
   contestByHole,
   onSelectHole,
-  onOpenMap,
   dayDraft,
   onDayDraft,
   onSaveDay,
@@ -191,7 +190,6 @@ export function RoundPlanBoard({
   editor: ReturnType<typeof useHolePlanEditor>;
   contestByHole: Map<number, Array<"ctp" | "ld">>;
   onSelectHole: (h: number) => void;
-  onOpenMap: (h: number) => void;
   dayDraft: string;
   onDayDraft: (v: string) => void;
   onSaveDay: () => void;
@@ -303,7 +301,6 @@ export function RoundPlanBoard({
             mode={mode}
             loading={loading}
             onSelect={() => onSelectHole(line.hole)}
-            onOpenMap={() => onOpenMap(line.hole)}
           />
         ))}
         <NineRule
@@ -324,7 +321,6 @@ export function RoundPlanBoard({
             mode={mode}
             loading={loading}
             onSelect={() => onSelectHole(line.hole)}
-            onOpenMap={() => onOpenMap(line.hole)}
           />
         ))}
         <div className="flex items-baseline justify-between border-t border-white/8 px-4 py-3">
