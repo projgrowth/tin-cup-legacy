@@ -63,7 +63,7 @@ export function SocialOpsHealth() {
               className={`size-4 ${item.alert ? "text-copper" : "text-muted-foreground"}`}
             />
             <p
-              className={`t-numeral mt-2 text-2xl ${item.alert ? "text-copper" : "text-foreground"}`}
+              className={`t-hero mt-2 ${item.alert ? "text-copper" : "text-foreground"}`}
             >
               {item.value}
             </p>

@@ -22,7 +22,7 @@ export const TOURNAMENT_BANK = "Kevin Maher";
 export const SIDE_BET_PAYOUTS_CONFIRMED = true;
 export { contestHoleLabel, DAY1_CONTESTS } from "@/lib/contest-holes";
 
-/** Launch gate: override for a different field size without editing UI copy. */
+/** Confirmed 2026 field is 16 (8 v 8). Override only if the roster actually changes. */
 export const EXPECTED_PLAYER_COUNT = Number(import.meta.env?.VITE_EXPECTED_PLAYER_COUNT ?? 16);
 
 /** True when the handle is still the shipping placeholder. */

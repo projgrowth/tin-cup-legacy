@@ -255,7 +255,7 @@ export function WeekendRecap({
                 </Link>
                 <span className="t-micro block">{formatRecord(record) || "No posted matches"}</span>
               </span>
-              <span className="t-numeral text-xl text-foreground">{record.points}</span>
+              <span className="t-numeral text-[1.25rem] text-foreground">{record.points}</span>
             </li>
           ))}
         </ol>

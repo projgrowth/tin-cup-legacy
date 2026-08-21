@@ -696,7 +696,7 @@ export function SocialClubhouseFeed({
                     <p className="t-eyebrow flex items-center gap-1.5 text-muted-foreground">
                       <MomentIcon kind={moment.kind} /> {moment.kind.replace("-", " ")}
                     </p>
-                    <h3 className="mt-1 text-xl font-semibold tracking-tight text-foreground">
+                    <h3 className="t-title mt-1 text-foreground">
                       {moment.title}
                     </h3>
                     {moment.detail && (

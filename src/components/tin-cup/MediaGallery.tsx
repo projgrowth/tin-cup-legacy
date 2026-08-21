@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Camera, Download, Heart, ImageOff, Loader2, Star } from "lucide-react";
 import { toast } from "sonner";
 
@@ -264,11 +265,20 @@ export function MediaGallery({
           <div className="aspect-square animate-pulse rounded-xl bg-secondary" />
           <div className="aspect-square animate-pulse rounded-xl bg-secondary" />
         </div>
+      ) : photos.length === 0 ? (
+        <div className="surface-inset px-5 py-12 text-center">
+          <Camera className="mx-auto size-6 text-muted-foreground" />
+          <p className="t-title mt-3">Nothing in the roll yet</p>
+          <p className="t-micro mt-1">Photos land here after someone posts from Home.</p>
+          <Link to="/" className="press btn-quiet t-body mt-4 inline-flex min-h-11 px-4">
+            Open Home
+          </Link>
+        </div>
       ) : filtered.length === 0 ? (
         <div className="surface-inset px-5 py-12 text-center">
           <ImageOff className="mx-auto size-6 text-muted-foreground" />
           <p className="t-title mt-3">No photos in this view</p>
-          <p className="t-micro mt-1">Clear a filter or post the first shot from Home.</p>
+          <p className="t-micro mt-1">Clear a filter or post another shot from Home.</p>
         </div>
       ) : (
         <div className="gallery-grid pb-2">
