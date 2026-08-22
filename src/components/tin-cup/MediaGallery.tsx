@@ -152,9 +152,8 @@ export function MediaGallery({
     <section className="space-y-4" aria-labelledby="media-gallery-title">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="event-kicker">Weekend gallery</p>
-          <h1 id="media-gallery-title" className="t-display mt-1">
-            The camera roll
+          <h1 id="media-gallery-title" className="t-title">
+            Photos
           </h1>
           <p className="t-body mt-1 text-muted-foreground">
             Photos from the field, ready to favorite and download.

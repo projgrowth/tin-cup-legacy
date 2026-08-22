@@ -274,7 +274,7 @@ function Index() {
   return (
     <>
       {!introDone && <CinematicIntro onDone={() => setIntroDone(true)} />}
-      <Shell variant="dashboard">
+      <Shell variant={mode === "pre" ? "content" : "dashboard"}>
         {/* Claim nudge on live; pre mode uses the raised card in PreTournamentPanel */}
         {needsClaim && mode === "live" && (
           <Link
@@ -355,6 +355,8 @@ function Index() {
             )}
           </div>
           )}
+          {mode !== "pre" && (
+          <>
           <div className="home-feed min-w-0">
             <SocialClubhouseFeed
               matches={data?.matches ?? []}
@@ -393,21 +395,19 @@ function Index() {
             <ShareMomentButton
               className="w-full"
               payload={{
-                kind: mode === "live" ? "score" : "score",
+                kind: "score",
                 eyebrow: mode === "live" ? "Live Cup score" : "The fourth annual",
                 title: "Tin Cup Invitational",
-                primary:
-                  mode === "pre"
-                    ? "Aug 28–30"
-                    : `${standings.strongMental} – ${standings.grassRoots}`,
-                secondary:
-                  mode === "pre" ? "Innisbrook Golf Resort" : "Strong Mental · Grass Roots",
+                primary: `${standings.strongMental} – ${standings.grassRoots}`,
+                secondary: "Strong Mental · Grass Roots",
                 canonicalUrl,
               }}
             >
-              {mode === "live" ? "Share board" : "Share weekend"}
+              Share board
             </ShareMomentButton>
           </aside>
+          </>
+          )}
         </div>
         )}
 

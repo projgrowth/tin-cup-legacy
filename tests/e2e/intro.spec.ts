@@ -27,5 +27,5 @@ test("personalized weekend remains the entry point after reload", async ({ page 
   await expect(page.getByRole("region", { name: "This weekend" })).toBeVisible();
   await page.reload();
   await expect(page.getByRole("region", { name: "This weekend" })).toBeVisible();
-  await expect(page.getByText("First tee · Friday 12:19 PM")).toBeVisible();
+  await expect(page.getByText(/Friday 12:19/)).toBeVisible();
 });

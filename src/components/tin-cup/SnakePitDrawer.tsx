@@ -10,12 +10,8 @@ import { SNAKE_PIT } from "@/lib/tin-cup";
 export function SnakePitDrawer() {
   return (
     <Drawer>
-      <DrawerTrigger className="press surface flex w-full items-center justify-between gap-4 px-5 py-4 text-left">
-        <span className="min-w-0">
-          <span className="t-title block text-foreground">The Snake Pit</span>
-          <span className="t-micro block">Copperhead 16 · 17 · 18 — previews and pro tips</span>
-        </span>
-        <span className="t-title shrink-0 text-muted-foreground">›</span>
+      <DrawerTrigger className="press t-micro inline-flex min-h-11 items-center text-muted-foreground">
+        Snake Pit
       </DrawerTrigger>
       <DrawerContent className="border-border bg-card/95 backdrop-blur-xl">
         <DrawerHeader>

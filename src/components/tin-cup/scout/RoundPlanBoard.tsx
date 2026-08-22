@@ -29,22 +29,19 @@ function NineRule({
   label,
   par,
   yards,
-  planned,
 }: {
   label: string;
   par: number;
   yards: number;
-  planned: number;
+  planned?: number;
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 bg-white/[0.03] px-4 py-2">
-      <p className="t-eyebrow text-muted-foreground">{label}</p>
+    <div className="flex items-baseline justify-between gap-3 px-4 py-2">
+      <p className="t-micro font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="t-micro tabular-nums">
         Par {par}
         <span className="mx-1.5 text-white/20">·</span>
         {yards.toLocaleString()} yds
-        <span className="mx-1.5 text-white/20">·</span>
-        {planned}/9
       </p>
     </div>
   );
@@ -164,7 +161,7 @@ function HoleRow({
  */
 export function RoundPlanBoard({
   courseId,
-  hole,
+  hole: _hole,
   holes,
   lines,
   mode,
@@ -203,14 +200,9 @@ export function RoundPlanBoard({
   const split = nineSplit(lines);
   const holeByN = new Map(holes.map((h) => [h.h, h]));
   const contestCount = [...contestByHole.values()].reduce((n, list) => n + list.length, 0);
-  const [incompleteOnly, setIncompleteOnly] = useState(false);
-  const frontLines = incompleteOnly
-    ? split.front.filter((line) => !hasPlanContent(line.draft))
-    : split.front;
-  const backLines = incompleteOnly
-    ? split.back.filter((line) => !hasPlanContent(line.draft))
-    : split.back;
-  const nextIncomplete = lines.find((line) => !hasPlanContent(line.draft));
+  const [openHole, setOpenHole] = useState<number | null>(null);
+  const frontLines = split.front;
+  const backLines = split.back;
 
   return (
     <div className="space-y-3">
@@ -223,8 +215,6 @@ export function RoundPlanBoard({
               {details.format}
               <span className="mx-1.5 text-muted-foreground">·</span>
               Black {details.blackTotal.toLocaleString()}
-              <span className="mx-1.5 text-muted-foreground">·</span>
-              {split.all.planned}/18 planned
               {pairingLine ? <span className="mt-2 block text-foreground">{pairingLine}</span> : null}
             </>
           }
@@ -245,8 +235,6 @@ export function RoundPlanBoard({
           {details.format}
           <span className="mx-1.5 text-white/20">·</span>
           Black {details.blackTotal.toLocaleString()}
-          <span className="mx-1.5 text-white/20">·</span>
-          {split.all.planned}/18 planned
         </p>
         <p className="mt-3 text-sm leading-relaxed text-foreground/85">{details.formatTip}</p>
         <div className="mt-3">
@@ -255,26 +243,6 @@ export function RoundPlanBoard({
       </header>
       )}
 
-      <div className="flex gap-2">
-        <button
-          type="button"
-          aria-pressed={incompleteOnly}
-          onClick={() => setIncompleteOnly((value) => !value)}
-          className={`press chip min-h-11 ${incompleteOnly ? "chip-on" : ""}`}
-        >
-          {incompleteOnly ? "Showing incomplete" : "Incomplete holes"}
-        </button>
-        {nextIncomplete && (
-          <button
-            type="button"
-            onClick={() => onSelectHole(nextIncomplete.hole)}
-            className="press chip min-h-11 flex-1"
-          >
-            Continue · hole {nextIncomplete.hole}
-          </button>
-        )}
-      </div>
-
       {contestCount > 0 && (
         <p className="flex items-center gap-1.5 px-0.5 t-micro">
           <Target className="size-3.5 text-gold-light" />
@@ -282,7 +250,7 @@ export function RoundPlanBoard({
         </p>
       )}
 
-      <section className="surface overflow-hidden" aria-label="18-hole game plan">
+      <section className="overflow-hidden" aria-label="18-hole game plan">
         <NineRule
           label="Out"
           par={split.out.par}
@@ -295,12 +263,12 @@ export function RoundPlanBoard({
             line={line}
             holeMeta={holeByN.get(line.hole) ?? holes[0]!}
             courseId={courseId}
-            selected={line.hole === hole}
+            selected={openHole === line.hole}
             contests={contestByHole.get(line.hole) ?? []}
             editor={editor}
             mode={mode}
             loading={loading}
-            onSelect={() => onSelectHole(line.hole)}
+            onSelect={() => setOpenHole((h) => (h === line.hole ? null : line.hole))}
           />
         ))}
         <NineRule
@@ -315,32 +283,27 @@ export function RoundPlanBoard({
             line={line}
             holeMeta={holeByN.get(line.hole) ?? holes[0]!}
             courseId={courseId}
-            selected={line.hole === hole}
+            selected={openHole === line.hole}
             contests={contestByHole.get(line.hole) ?? []}
             editor={editor}
             mode={mode}
             loading={loading}
-            onSelect={() => onSelectHole(line.hole)}
+            onSelect={() => setOpenHole((h) => (h === line.hole ? null : line.hole))}
           />
         ))}
-        <div className="flex items-baseline justify-between border-t border-white/8 px-4 py-3">
+        <div className="flex items-baseline justify-between border-t border-border px-4 py-3">
           <p className="text-sm font-bold text-foreground">Par {coursePar(courseId)}</p>
-          <p className="t-micro tabular-nums">
-            {split.all.yards.toLocaleString()} yds Black
-            <span className="mx-1.5 text-white/20">·</span>
-            {split.all.planned}/18
-          </p>
+          <p className="t-micro tabular-nums">{split.all.yards.toLocaleString()} yds Black</p>
         </div>
       </section>
 
-      <details className="surface group">
-        <summary className="press cursor-pointer list-none px-4 py-3 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
+      <details className="group">
+        <summary className="press cursor-pointer list-none px-1 py-3 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
           Day notes
-          <span className="ml-2 font-normal text-muted-foreground">pairing · attack holes</span>
         </summary>
-        <div className="space-y-2 border-t border-border/60 px-4 py-3">
+        <div className="space-y-2 px-1 pb-3">
           {!signedIn ? (
-            <p className="text-sm text-muted-foreground">Sign in to save a day strategy.</p>
+            <p className="t-micro">On this device until you sign in.</p>
           ) : (
             <>
               <textarea
@@ -355,7 +318,7 @@ export function RoundPlanBoard({
                 type="button"
                 disabled={!canSaveDay || savingDay}
                 onClick={onSaveDay}
-                className="press btn-gold w-full !min-h-11 text-sm font-semibold disabled:opacity-40"
+                className="press btn-quiet t-body min-h-11 text-sm disabled:opacity-40"
               >
                 {savingDay ? "Saving…" : "Save day plan"}
               </button>

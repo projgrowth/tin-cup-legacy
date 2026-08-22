@@ -52,9 +52,14 @@ export function PreTournamentPanel({
     <section className="stack-page pb-2" aria-label="This weekend">
       <div className="fade-up">
         <PageMasthead
-          kicker={`${EVENT.dates} · ${EVENT.location}`}
+          size="display"
           title={EVENT.title}
-          meta={EVENT.subtitle}
+          meta={
+            <>
+              {EVENT.dates} · {EVENT.location}
+              <span className="mt-1 block">{EVENT.subtitle}</span>
+            </>
+          }
         />
       </div>
 
@@ -66,29 +71,14 @@ export function PreTournamentPanel({
         <WeekendCommandCenter context={context} />
       ) : (
         <div className="fade-up stack-tight" style={{ animationDelay: "160ms" }}>
-          <Link
-            to="/schedule"
+          <a
+            href={venmoUrl}
+            target="_blank"
+            rel="noreferrer"
             className="press btn-gold t-body flex min-h-11 w-full items-center justify-center"
           >
-            Weekend
-          </Link>
-          <div className="grid grid-cols-2 gap-2">
-            <Link
-              to="/scout"
-              search={{ course: nextCourseId, card: true }}
-              className="press btn-quiet t-body flex min-h-11 items-center justify-center"
-            >
-              Plan
-            </Link>
-            <a
-              href={venmoUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="press btn-quiet t-body flex min-h-11 items-center justify-center"
-            >
-              Pay ${BUY_IN}
-            </a>
-          </div>
+            Pay ${BUY_IN}
+          </a>
           {needsClaim ? (
             <p className="flex flex-wrap items-center justify-center">
               <Link

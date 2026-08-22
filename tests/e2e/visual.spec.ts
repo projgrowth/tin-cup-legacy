@@ -11,9 +11,7 @@ test.beforeEach(async ({ page }) => {
 test("responsive Home and gallery compose without overflow", async ({ page }, testInfo) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Around the weekend" }).or(
-      page.getByText("Clubhouse opens with the weekend."),
-    ),
+    page.getByRole("heading", { name: /4th Annual Tin Cup Invitational/i }),
   ).toBeVisible();
   await expect(page.getByText("Welcome to the Clubhouse")).toHaveCount(0);
   expect(
@@ -24,7 +22,7 @@ test("responsive Home and gallery compose without overflow", async ({ page }, te
   await page.screenshot({ path: testInfo.outputPath("home.png"), fullPage: true });
 
   await page.goto("/photos");
-  await expect(page.getByRole("heading", { name: "The camera roll" })).toBeVisible({
+  await expect(page.getByRole("heading", { name: "Photos" })).toBeVisible({
     timeout: 15_000,
   });
   expect(

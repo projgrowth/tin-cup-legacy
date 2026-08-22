@@ -1,11 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { CalendarPlus, Map } from "lucide-react";
-
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { PairingRow } from "@/components/tin-cup/PairingRow";
-import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
+import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { useTournament } from "@/hooks/useTournament";
@@ -124,11 +122,10 @@ function SchedulePage() {
   const pairingsInToday = showDay1Pairings && todayCourseId === "south";
 
   return (
-    <Shell variant="dashboard">
+    <Shell variant="content">
       <div className="stack-page pb-4">
         <section>
           <PageMasthead
-            kicker="Today"
             title={
               <>
                 {todayDetails.dayLabel} · {COURSE_LABEL[todayCourseId]}
@@ -136,20 +133,14 @@ function SchedulePage() {
             }
             meta={
               <>
-                First tee {todayDetails.firstTee} · {todayDetails.format}
+                {todayDetails.firstTee} · {todayDetails.format}
+                {todayRound ? ` · ${todayRound.points} pts` : " · 8 pts"}
               </>
             }
-          >
-            {todayRound && (
-              <p className="t-numeral mt-4 text-[1.85rem] text-foreground">
-                {todayRound.points}
-                <span className="t-micro ml-1 font-normal text-muted-foreground">pts</span>
-              </p>
-            )}
-          </PageMasthead>
+          />
 
           {pairingsInToday && (
-            <ul className="surface mt-3 divide-y divide-border overflow-hidden">
+            <ul className="mt-3 divide-y divide-border">
               {DAY1_PAIRINGS.map((p) => (
                 <PairingRow
                   key={p.matchIndex}
@@ -172,38 +163,34 @@ function SchedulePage() {
           )}
 
           {todayRound && todayRound.slug !== "friday" && (
-            <p className="t-micro border-t border-border px-4 py-2.5 text-muted-foreground">
+            <p className="t-micro border-t border-border px-1 py-2.5 text-muted-foreground">
               Pairings when captains post
             </p>
           )}
 
-          <div className="border-t border-border px-4 py-2">
-            <div className="flex flex-wrap gap-2">
-              <Link
-                to="/scout"
-                search={{ course: todayCourseId, card: true }}
-                className="press btn-gold t-body inline-flex min-h-11 items-center gap-2 px-4"
+          <div className="flex flex-wrap gap-x-4 px-1 pt-1">
+            <Link
+              to="/scout"
+              search={{ course: todayCourseId, card: true }}
+              className="press t-micro inline-flex min-h-11 items-center font-semibold text-foreground"
+            >
+              {COURSE_LABEL[todayCourseId]} planner
+            </Link>
+            {todayRound && roundStart(todayRound) && (
+              <button
+                type="button"
+                onClick={() => {
+                  downloadRoundIcs(todayRound);
+                  void trackProductEvent("calendar_downloaded", { kind: "round" });
+                }}
+                className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
               >
-                <Map className="size-4" />
-                Open planner
-              </Link>
-              {todayRound && roundStart(todayRound) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    downloadRoundIcs(todayRound);
-                    void trackProductEvent("calendar_downloaded", { kind: "round" });
-                  }}
-                  className="press btn-quiet t-body inline-flex min-h-11 items-center gap-2 px-4"
-                >
-                  <CalendarPlus className="size-4" /> Add this round
-                </button>
-              )}
-            </div>
+                Add this round
+              </button>
+            )}
           </div>
         </section>
 
-        {isPending && !data && <LoadingRows rows={2} height={88} />}
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
         {otherRounds.length > 0 && (
@@ -271,60 +258,39 @@ function SchedulePage() {
           </section>
         )}
 
-        <details className="surface-inset">
-          <summary className="press cursor-pointer list-none px-4 py-3.5 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
-            Weekend extras
-          </summary>
-          <div className="space-y-4 border-t border-border px-4 py-4">
-            {rounds.length > 0 && (
-              <button
-                type="button"
-                onClick={() => {
-                  downloadWeekendIcs(rounds);
-                  void trackProductEvent("calendar_downloaded", { kind: "weekend" });
-                }}
-                className="press t-micro inline-flex min-h-11 items-center gap-2 font-semibold text-foreground"
-              >
-                <CalendarPlus className="size-3.5" /> Add to calendar
-              </button>
-            )}
-            <FormatSheet />
-            <div>
-              <h2 className="t-section mb-2 text-foreground">Social</h2>
-              <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
-                {socialOrdered.map((row) => {
-                  const isToday = row.day.startsWith(todayDetails.dayLabel);
-                  return (
-                    <li key={row.day}>
-                      <details className="group" open={isToday}>
-                        <summary className="press flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-3 [&::-webkit-details-marker]:hidden">
-                          <span className="t-body font-medium text-foreground">
-                            {row.day} · {row.title}
-                            {isToday ? (
-                              <span className="ml-2 t-micro font-semibold text-gold-light">
-                                Today
-                              </span>
-                            ) : null}
-                          </span>
-                          <span className="t-micro text-muted-foreground group-open:hidden">
-                            More
-                          </span>
-                        </summary>
-                        <p className="t-micro border-t border-border px-3 py-2.5 text-muted-foreground">
-                          {row.detail}
-                        </p>
-                      </details>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-            <p className="t-micro text-muted-foreground">
-              Playoff · If 13–13: captains each pick a scramble partner · one hole until decided.
-            </p>
-            <SnakePitDrawer />
-          </div>
-        </details>
+        <section className="stack-tight">
+          <h2 className="t-section text-foreground">Dinners</h2>
+          <ul className="divide-y divide-border">
+            {socialOrdered.map((row) => (
+              <li key={row.day} className="px-1 py-3">
+                <p className="t-body font-medium text-foreground">
+                  {row.day} · {row.title}
+                </p>
+                <p className="t-micro mt-1 text-muted-foreground">{row.detail}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1">
+          <FormatSheet />
+          <SnakePitDrawer />
+          {rounds.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                downloadWeekendIcs(rounds);
+                void trackProductEvent("calendar_downloaded", { kind: "weekend" });
+              }}
+              className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
+            >
+              Add weekend to calendar
+            </button>
+          )}
+        </div>
+        <p className="t-micro px-1 text-muted-foreground">
+          Playoff · If 13–13: captains each pick a scramble partner · one hole until decided.
+        </p>
       </div>
     </Shell>
   );

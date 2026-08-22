@@ -417,20 +417,7 @@ function ScoutPage() {
     <Shell variant="content">
       <div className="mx-auto w-full max-w-3xl space-y-2.5">
         <div className="flex items-center gap-2">
-          <Link
-            to="/scout"
-            search={{ course: courseId, hole, map: true }}
-            replace
-            className="press btn-quiet min-h-11 shrink-0 px-2.5 text-sm"
-          >
-            Map
-          </Link>
-          <div
-            className="grid min-w-0 flex-1 gap-1 rounded-2xl border border-border/60 bg-secondary/20 p-1"
-            style={{ gridTemplateColumns: `repeat(${COURSE_ORDER.length}, minmax(0, 1fr))` }}
-            role="tablist"
-            aria-label="Course"
-          >
+          <div className="flex min-w-0 flex-1 gap-1" role="tablist" aria-label="Course">
             {COURSE_ORDER.map((id) => {
               const on = id === courseId;
               return (
@@ -445,15 +432,13 @@ function ScoutPage() {
                     hole: 1,
                     card: true,
                   }}
-                  className={`press min-h-11 rounded-xl px-2 text-center text-sm font-semibold tracking-tight ${
-                    on
-                      ? "bg-background text-foreground shadow-sm ring-1 ring-border/80"
-                      : "text-muted-foreground"
+                  className={`press relative min-h-11 px-2.5 text-center text-sm font-semibold tracking-tight ${
+                    on ? "text-gold-light" : "text-muted-foreground"
                   }`}
                 >
                   {COURSE_LABEL[id]}
-                  {id === todayCourse ? (
-                    <span className="ml-1 t-micro font-semibold text-gold-light">· today</span>
+                  {on ? (
+                    <span aria-hidden className="absolute inset-x-2 bottom-1 h-px bg-gold" />
                   ) : null}
                 </Link>
               );

@@ -6,7 +6,7 @@ import { ChevronRight } from "lucide-react";
 import { Avatar } from "@/components/tin-cup/Avatar";
 import { ClaimQrButton } from "@/components/tin-cup/ClaimQr";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
-import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
+import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { usePublicProfiles } from "@/hooks/usePublicProfiles";
@@ -15,6 +15,7 @@ import { useTournament } from "@/hooks/useTournament";
 import { tallyStandings } from "@/lib/scoring";
 import { teamRailClass } from "@/lib/team-styles";
 import { EXPECTED_PLAYER_COUNT } from "@/lib/tin-cup";
+import { FIELD_SIDES } from "@/lib/day1-pairings";
 
 export const Route = createFileRoute("/rosters")({
   head: () => ({
@@ -43,7 +44,7 @@ function RostersPage() {
   const players = data?.players ?? [];
   const avatars = usePlayerAvatars(players, teams);
   const publicProfiles = usePublicProfiles();
-  const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const [activeSlug, setActiveSlug] = useState<string | null>("strong-mental");
 
   const { data: myPlayerId } = useQuery({
     queryKey: ["my-player", user?.id],
@@ -80,14 +81,13 @@ function RostersPage() {
   }, [teams, activeSlug]);
 
   return (
-    <Shell variant="dashboard">
+    <Shell variant="content">
       <div className="stack-page">
         <PageMasthead
-          kicker="The field"
           title="Two teams. One Cup."
-          meta={`Meet the ${EXPECTED_PLAYER_COUNT} players chasing 13.5 points.`}
+          meta={`${EXPECTED_PLAYER_COUNT} players · 13.5 to win`}
         />
-        {teams.length === 2 && (
+        {standings.played > 0 && teams.length === 2 && (
           <section className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
             {teams.map((team, index) => {
               const points =
@@ -124,14 +124,12 @@ function RostersPage() {
         {!myPlayerId && (
           <Link
             to="/profile"
-            className="press surface flex items-center justify-between gap-3 px-4 py-3"
+            className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
           >
-            <span className="t-body font-medium text-foreground">Claim your spot</span>
-            <ChevronRight className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.7} />
+            Claim your spot
           </Link>
         )}
 
-        {isPending && !data && <LoadingRows rows={2} height={280} />}
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
         {selected && (
@@ -217,6 +215,43 @@ function RostersPage() {
                     </li>
                   );
                 })}
+            </ul>
+          </section>
+        )}
+
+        {!selected && (
+          <section>
+            <div className="mb-2 flex gap-1" role="tablist" aria-label="Team">
+              {FIELD_SIDES.map((side) => {
+                const on = (activeSlug ?? "strong-mental") === side.slug;
+                return (
+                  <button
+                    key={side.slug}
+                    type="button"
+                    role="tab"
+                    aria-selected={on}
+                    onClick={() => setActiveSlug(side.slug)}
+                    className={`press relative min-h-11 px-2.5 text-sm font-semibold ${
+                      on ? "text-gold-light" : "text-muted-foreground"
+                    }`}
+                  >
+                    {side.name.replace("Team ", "")}
+                    {on ? (
+                      <span aria-hidden className="absolute inset-x-2 bottom-1 h-px bg-gold" />
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+            <ul className="divide-y divide-border">
+              {(
+                FIELD_SIDES.find((side) => side.slug === (activeSlug ?? "strong-mental")) ??
+                FIELD_SIDES[0]
+              ).players.map((name) => (
+                <li key={name} className="px-1 py-3">
+                  <p className="t-body font-medium text-foreground">{name}</p>
+                </li>
+              ))}
             </ul>
           </section>
         )}

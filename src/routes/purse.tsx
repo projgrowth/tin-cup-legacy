@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
-import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
+import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { useTournament } from "@/hooks/useTournament";
 import { sideCash, sideCashByPlayer, settlement, formatPayout } from "@/lib/purse";
 import {
@@ -36,7 +36,7 @@ export const Route = createFileRoute("/purse")({
 });
 
 function PursePage() {
-  const { data, isPending, isError, refetch, isFetching } = useTournament();
+  const { data, isError, refetch, isFetching } = useTournament();
   const bets = data?.sideBets ?? [];
   const players = data?.players ?? [];
   const claimed = bets.filter((b) => b.player_name);
@@ -47,15 +47,17 @@ function PursePage() {
   const cup = settlement(data?.matches ?? []);
 
   return (
-    <Shell variant="dashboard">
+    <Shell variant="content">
       <div className="stack-page pb-4">
         <PageMasthead
-          kicker="Buy-in"
           title="The purse"
           meta={
             <>
               @{VENMO_HANDLE} · {TOURNAMENT_BANK}
-              <span className="mt-2 block text-foreground">$100 team pot + $50 side cash</span>
+              <span className="mt-1 block">
+                Team win ${cup.winnerPayout} · side cash ${cash.pool}
+                {hasTbdPayouts ? " · holes TBD" : ""}
+              </span>
             </>
           }
         >
@@ -63,13 +65,12 @@ function PursePage() {
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className="press btn-gold t-body mt-5 flex min-h-11 w-full max-w-sm justify-center"
+            className="press btn-gold t-body mt-4 flex min-h-11 w-full max-w-sm justify-center"
           >
             Pay ${BUY_IN}
           </a>
         </PageMasthead>
 
-        {isPending && !data && <LoadingRows rows={2} height={100} />}
         {isError && !data && (
           <ErrorState
             title="Purse board didn't load"
@@ -79,18 +80,6 @@ function PursePage() {
           />
         )}
 
-        <section className="grid grid-cols-2 gap-3">
-          <div className="surface-inset p-4">
-            <p className="t-micro text-muted-foreground">Team win</p>
-            <p className="t-hero mt-1.5 text-foreground">${cup.winnerPayout}</p>
-          </div>
-          <div className="surface-inset p-4">
-            <p className="t-micro text-muted-foreground">Side cash</p>
-            <p className="t-hero mt-1.5 text-foreground">${cash.pool}</p>
-            {hasTbdPayouts && <p className="t-micro mt-1 text-muted-foreground">Holes TBD</p>}
-          </div>
-        </section>
-
         {bets.length > 0 && (
           <section>
             <div className="mb-3 flex items-baseline justify-between gap-3">
@@ -99,7 +88,7 @@ function PursePage() {
                 {claimed.length}/{bets.length}
               </span>
             </div>
-            <ul className="surface-inset divide-y divide-border overflow-hidden">
+            <ul className="divide-y divide-border">
               {bets.map((bet) => (
                 <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
                   <span className="min-w-0">
@@ -120,11 +109,9 @@ function PursePage() {
         )}
 
         {perPlayer.length > 0 && (
-          <details className="surface-inset">
-            <summary className="press cursor-pointer list-none px-4 py-3.5 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
-              Won so far
-            </summary>
-            <ul className="divide-y divide-border border-t border-border">
+          <section>
+            <h2 className="t-section text-foreground">Won so far</h2>
+            <ul className="divide-y divide-border">
               {perPlayer.map((row) => (
                 <li key={row.name} className="flex items-center justify-between gap-3 px-4 py-3">
                   <span className="t-body min-w-0 truncate text-foreground">{row.name}</span>
@@ -134,34 +121,26 @@ function PursePage() {
                 </li>
               ))}
             </ul>
-          </details>
+          </section>
         )}
 
         <section className="stack-tight">
-          <details className="surface-inset">
-            <summary className="press cursor-pointer list-none px-4 py-3.5 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
-              Format & pairings
-            </summary>
-            <ul className="space-y-2 border-t border-border px-4 py-3">
-              {FORMAT_RULES.map((rule) => (
-                <li key={rule} className="t-micro text-muted-foreground">
-                  {rule}
-                </li>
-              ))}
-            </ul>
-          </details>
-          <details className="surface-inset">
-            <summary className="press cursor-pointer list-none px-4 py-3.5 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
-              Money rules
-            </summary>
-            <ul className="space-y-2 border-t border-border px-4 py-3">
-              {MONEY_RULES.map((rule) => (
-                <li key={rule} className="t-micro text-muted-foreground">
-                  {rule}
-                </li>
-              ))}
-            </ul>
-          </details>
+          <h2 className="t-section text-foreground">Format & pairings</h2>
+          <ul className="space-y-2 px-1">
+            {FORMAT_RULES.map((rule) => (
+              <li key={rule} className="t-micro text-muted-foreground">
+                {rule}
+              </li>
+            ))}
+          </ul>
+          <h2 className="t-section text-foreground">Money rules</h2>
+          <ul className="space-y-2 px-1">
+            {MONEY_RULES.map((rule) => (
+              <li key={rule} className="t-micro text-muted-foreground">
+                {rule}
+              </li>
+            ))}
+          </ul>
           <p className="t-micro px-1 text-muted-foreground">
             Official scoring stays captain-controlled. Predictions are social signals only.
           </p>

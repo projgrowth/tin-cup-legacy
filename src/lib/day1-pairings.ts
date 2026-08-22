@@ -43,6 +43,21 @@ export const DAY1_PAIRINGS: Day1Pairing[] = [
   },
 ];
 
+export const FIELD_SIDES = [
+  {
+    slug: "strong-mental" as const,
+    name: "Team Strong Mental",
+    captain: "Zack Smith",
+    players: DAY1_PAIRINGS.flatMap((p) => p.playersA),
+  },
+  {
+    slug: "grass-roots" as const,
+    name: "Team Grass Roots",
+    captain: "Charles Grass",
+    players: DAY1_PAIRINGS.flatMap((p) => p.playersB),
+  },
+];
+
 export const DAY1_META = {
   day: "Friday",
   course: "South Course",

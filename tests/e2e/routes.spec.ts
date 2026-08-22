@@ -35,7 +35,7 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: /4th Annual Tin Cup Invitational/i }),
   ).toBeVisible();
-  await expect(page.getByText("First tee · Friday 12:19 PM")).toBeVisible();
+  await expect(page.getByText(/Friday 12:19/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Weekend", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Plan", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Pay \$150/ }).first()).toBeVisible();
@@ -43,10 +43,10 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByText("Today at Tin Cup")).toHaveCount(0);
   expect((await logoRequest).ok()).toBe(true);
   await expect(page.getByRole("button", { name: "Captain score input" })).toHaveCount(0);
-  await expect(page.getByText("Minutes", { exact: true })).toBeVisible();
+  await expect(page.getByText("Minutes", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Secs", { exact: true })).toHaveCount(0);
-  const share = page.getByRole("button", { name: "Share weekend" });
-  await expect(share).toBeVisible();
+  await expect(page.getByRole("button", { name: "Share weekend" })).toHaveCount(0);
+  await expect(page.getByText("Friday 12:19")).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
 
@@ -54,12 +54,10 @@ test("social-first Home preserves feed filters, deep links, and board compatibil
   page,
 }) => {
   await page.goto("/?feed=photos");
-  await expect(page.getByRole("heading", { name: "Around the weekend" })).toBeVisible();
-  await expect(page.getByRole("tab", { name: "Photos" })).toHaveAttribute("aria-selected", "true");
-  await page.waitForFunction(() => Boolean(document.documentElement.dataset.appearance));
-  await page.getByRole("tab", { name: "Results" }).click();
-  await expect(page).toHaveURL(/feed=scores/);
-  await expect(page.getByRole("tab", { name: "Results" })).toHaveAttribute("aria-selected", "true");
+  await expect(
+    page.getByRole("heading", { name: /4th Annual Tin Cup Invitational/i }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Around the weekend" })).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
 
   await page.goto("/?board=true&feed=photos&post=photo%3Ademo");
@@ -77,7 +75,7 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
 
   await page.goto("/scout");
   await expect(page.getByRole("heading", { name: /South game plan/i })).toBeVisible();
-  await expect(page.getByRole("link", { name: /^Map$/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open hole 1 map" })).toBeVisible();
   await expect(page.getByText("335 yds").first()).toBeVisible();
   await page.getByRole("tab", { name: /Copperhead/i }).click();
   await expect(page.getByRole("heading", { name: /Copperhead game plan/i })).toBeVisible();
@@ -130,11 +128,13 @@ test("protected preview exposes the gallery and engagement prompt without produc
   await expect(page.getByText("Protected preview", { exact: false })).toBeVisible({
     timeout: 10_000,
   });
-  await expect(page.getByRole("heading", { name: "Around the weekend" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /4th Annual Tin Cup Invitational/i }),
+  ).toBeVisible();
   await expect(page.getByText("First-tee faces")).toHaveCount(0);
   await expect(page.getByText("Who holes the first walk-off putt?")).toHaveCount(0);
   await page.goto("/photos");
-  await expect(page.getByRole("heading", { name: "The camera roll" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Photos" })).toBeVisible();
   await expect(page.getByRole("button", { name: /Download shown/ })).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });

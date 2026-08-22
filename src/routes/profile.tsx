@@ -109,7 +109,6 @@ function ProfilePage() {
       {!user ? (
         <div className="mb-6">
           <PageMasthead
-            kicker="Account"
             title="Join the weekend"
             meta="Sign in once for your player card and private course notes."
           />
@@ -163,9 +162,7 @@ function ProfilePage() {
           </p>
         </div>
       )}
-      {loading ? (
-        <LoadingForm fields={3} />
-      ) : !user ? (
+      {!user ? (
         <div className="space-y-6">
           <AuthCard
             redirectPath={`/profile${search.claim ? `?claim=${encodeURIComponent(search.claim)}` : ""}`}

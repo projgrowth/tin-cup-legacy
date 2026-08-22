@@ -7,13 +7,16 @@ export function PageMasthead({
   meta,
   children,
   embedded = false,
+  size = "page",
 }: {
   image?: string;
-  kicker: string;
+  kicker?: string;
   title: ReactNode;
   meta?: ReactNode;
   children?: ReactNode;
   embedded?: boolean;
+  /** `display` is Home only. Other pages use a quiet title line. */
+  size?: "display" | "page";
 }) {
   const photo = Boolean(image);
   return (
@@ -43,8 +46,16 @@ export function PageMasthead({
             : "px-0.5 py-1"
         }
       >
-        <p className={`event-kicker ${photo ? "text-gold-light" : ""}`}>{kicker}</p>
-        <h1 className={`t-display mt-1.5 ${photo ? "text-white" : "text-foreground"}`}>{title}</h1>
+        {kicker ? (
+          <p className={`t-micro ${photo ? "text-gold-light" : "text-muted-foreground"}`}>{kicker}</p>
+        ) : null}
+        <h1
+          className={`${size === "display" ? "t-display" : "t-title"} ${kicker ? "mt-1.5" : ""} ${
+            photo ? "text-white" : "text-foreground"
+          }`}
+        >
+          {title}
+        </h1>
         {meta ? (
           <div className={`t-body mt-1 max-w-xl ${photo ? "text-white/78" : "text-muted-foreground"}`}>
             {meta}
