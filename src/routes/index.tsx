@@ -95,7 +95,6 @@ export const Route = createFileRoute("/")({
       ? "The 4th Annual Tin Cup Invitational at Innisbrook Golf Resort, August 28–30, 2026. Pairings, course plans, purse and the Snake Pit."
       : "The 4th Annual Tin Cup Invitational at Innisbrook Golf Resort, August 28–30, 2026. Live 26-point scoreboard, side cash, rosters and the Snake Pit guide.";
     return {
-      links: [{ rel: "preload", as: "image", href: "/tin-cup-intro-poster.jpg" }],
       meta: [
         { title },
         { name: "description", content: description },

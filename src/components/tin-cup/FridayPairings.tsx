@@ -32,7 +32,7 @@ export function FridayPairings({
             <AvatarPair people={peopleA} size="sm" />
             <p className="t-body min-w-0 flex-1 font-semibold leading-snug">
               <span className="text-hunter">{given(p.playersA)}</span>
-              <span className="mx-1.5 font-medium text-muted-foreground">vs</span>
+              <span className="mx-1.5 font-medium text-muted-foreground"> vs </span>
               <span className="text-stone">{given(p.playersB)}</span>
             </p>
             <AvatarPair people={peopleB} size="sm" />

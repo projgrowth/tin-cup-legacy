@@ -5,7 +5,6 @@ import { AlertTriangle, CloudOff, User } from "lucide-react";
 import { BottomNav } from "./BottomNav";
 import { BrandMark } from "./BrandMark";
 import { PageMasthead } from "./PageMasthead";
-import { SeatWelcome } from "./SeatWelcome";
 import { Avatar } from "./Avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
@@ -80,7 +79,6 @@ export function Shell({
         <main id="main-content" className="relative min-h-svh">
           {children}
         </main>
-        <SeatWelcome />
       </div>
     );
   }
@@ -193,7 +191,6 @@ export function Shell({
         {children}
       </main>
       <BottomNav live={cupLive} />
-      <SeatWelcome />
     </div>
   );
 }

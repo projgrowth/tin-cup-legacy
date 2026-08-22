@@ -48,7 +48,22 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByText("Secs", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Share weekend" })).toHaveCount(0);
   await expect(page.getByText("Friday 12:19")).toBeVisible();
+  await expect(page.getByText("August 28–30, 2026", { exact: true })).toBeVisible();
+  await expect(page.getByText("Innisbrook Golf Resort • Palm Harbor, FL", { exact: true })).toBeVisible();
+  await expect(page.getByText("Skip intro")).toHaveCount(0);
+  await expect(page.getByText("Just looking")).toHaveCount(0);
+  await expect(page.getByText("Welcome to the weekend")).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
+});
+
+test("weekend is not covered by a first-run welcome sheet", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.removeItem("tc-seat-v1");
+  });
+  await page.goto("/schedule");
+  await expect(page.getByRole("heading", { name: /Friday · South/i })).toBeVisible();
+  await expect(page.getByText("Just looking")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "I'm in the field" })).toHaveCount(0);
 });
 
 test("social-first Home preserves feed filters, deep links, and board compatibility", async ({
@@ -70,6 +85,9 @@ test("social-first Home preserves feed filters, deep links, and board compatibil
 test("weekend, scout and purse retain confirmed source-of-truth details", async ({ page }) => {
   await page.goto("/schedule");
   await expect(page.getByRole("heading", { name: /Friday · South/i })).toBeVisible();
+  await expect(page.getByText("Just looking")).toHaveCount(0);
+  await expect(page.getByText("Welcome to the weekend")).toHaveCount(0);
+  await expect(page.getByText("Zack · Chris vs Charles · Blake")).toBeVisible();
   await expect(page.getByText("Zack · Chris")).toBeVisible();
   await expect(page.getByText("Charles · Blake")).toBeVisible();
   await expect(page.getByText("Saturday · Copperhead")).toBeVisible();

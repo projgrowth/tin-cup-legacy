@@ -51,9 +51,27 @@ export function registerServiceWorker() {
     return;
   }
 
-  void navigator.serviceWorker.register(SW_URL).catch(() => {
-    /* offline support is an enhancement — never block the app */
-  });
+  // Reload once when a new worker takes control so the page is not left on
+  // a previous bundle. Skip the first install (no existing controller).
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.addEventListener(
+      "controllerchange",
+      () => {
+        window.location.reload();
+      },
+      { once: true },
+    );
+  }
+
+  void navigator.serviceWorker
+    .register(SW_URL, { updateViaCache: "none" })
+    .then((registration) => {
+      registration.waiting?.postMessage({ type: "SKIP_WAITING" });
+      void registration.update();
+    })
+    .catch(() => {
+      /* offline support is an enhancement — never block the app */
+    });
 }
 
 export type ServiceWorkerStatus = {

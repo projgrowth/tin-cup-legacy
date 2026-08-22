@@ -31,21 +31,20 @@ export default defineConfig({
         manifest: false,
         devOptions: { enabled: false },
         workbox: {
-          // Include JSON (course data chunks), fonts, icons — enough for Scout offline.
-          globPatterns: ["**/*.{js,css,html,json,woff2,png,jpg,jpeg,svg,ico,webmanifest}"],
-          // Don't precache the cinematic intro video (large; not required offline).
-          globIgnores: ["**/tin-cup-intro.mp4", "**/tin-cup-intro-720*"],
-          navigateFallback: "/",
-          navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /^\/_serverFn\//],
+          // No HTML — Nitro/Vercel SSR has no static index.html. Precaching or
+          // navigateFallback: "/" calls createHandlerBoundToURL("/") on a missing
+          // entry, the new worker fails to install, and guests keep the old Home.
+          globPatterns: ["**/*.{js,css,json,woff2,png,jpg,jpeg,svg,ico,webmanifest}"],
+          globIgnores: ["**/tin-cup-intro.mp4", "**/tin-cup-intro-720*", "**/*.html"],
+          navigateFallback: "",
           cleanupOutdatedCaches: true,
           importScripts: ["/course-cache-worker.js"],
-          // Fail the build if the precache is empty (event-day offline depends on it).
           maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
           runtimeCaching: [
             {
               urlPattern: ({ request }) => request.mode === "navigate",
               handler: "NetworkFirst",
-              options: { cacheName: "tin-cup-html", networkTimeoutSeconds: 4 },
+              options: { cacheName: "tin-cup-nav-v2", networkTimeoutSeconds: 4 },
             },
             {
               urlPattern: ({ url, sameOrigin }) =>

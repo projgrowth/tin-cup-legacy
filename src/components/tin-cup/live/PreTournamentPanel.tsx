@@ -49,10 +49,8 @@ export function PreTournamentPanel({
     <section aria-label="This weekend" className="mx-auto max-w-sm px-1 py-10 text-center">
       <p className="t-micro font-semibold tracking-[0.2em] text-hunter">TIN CUP</p>
       <h1 className="t-title mt-4 text-foreground">{EVENT.title}</h1>
-      <p className="t-micro mt-4">
-        {EVENT.dates}
-        <span className="mt-1 block">{EVENT.location}</span>
-      </p>
+      <p className="t-micro mt-4">{EVENT.dates}</p>
+      <p className="t-micro mt-1">{EVENT.location}</p>
       <p suppressHydrationWarning className="t-micro mt-3">
         Friday 12:19 · {COURSE_LABEL[nextCourseId]} · {today.points} pts
         {remain ? ` · ${remain}` : ""}
