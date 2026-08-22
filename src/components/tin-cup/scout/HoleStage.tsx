@@ -1,12 +1,12 @@
-import { lazy, Suspense, useEffect, useMemo, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { HoleMap } from "@/components/tin-cup/HoleMap";
 import { DistanceStack } from "@/components/tin-cup/scout/DistanceStack";
 import type { CourseId, Hole } from "@/lib/courses";
-import { getGeoHole, holeGreenTriple } from "@/lib/geo-courses";
-import { haversineYards } from "@/lib/geo";
+import type { GeoHole } from "@/lib/geo-courses";
+import { haversineYards, type GreenTriple } from "@/lib/geo";
 import { useGeolocation } from "@/hooks/useGeolocation";
 
 export type MapMode = "sat" | "schematic";
@@ -51,15 +51,16 @@ export function HoleStage({
   courseLabel?: string;
   note?: string | null;
 }) {
-  const geo = useMemo(() => getGeoHole(courseId, hole.h), [courseId, hole.h]);
-  const triple = useMemo(() => (geo ? holeGreenTriple(geo) : null), [geo]);
-  const hasSat = Boolean(geo);
+  const needGeo = gpsOn || mapMode === "sat";
+  const geoPack = useLazyGeoHole(courseId, hole.h, needGeo);
+  const geo = geoPack?.geo ?? null;
+  const triple = geoPack?.triple ?? null;
   const { fix, error: gpsError, active: gpsActive } = useGeolocation(gpsOn);
   const swipeRef = useRef<{ x: number; y: number; t: number } | null>(null);
 
   useEffect(() => {
-    if (mapMode === "sat" && !hasSat) onMapMode("schematic");
-  }, [mapMode, hasSat, onMapMode]);
+    if (mapMode === "sat" && geoPack && !geo) onMapMode("schematic");
+  }, [mapMode, geoPack, geo, onMapMode]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -88,7 +89,7 @@ export function HoleStage({
             back: triple.yardsFromTee.back,
           }
         : null;
-  const showSat = mapMode === "sat" && hasSat;
+  const showSat = mapMode === "sat" && Boolean(geo);
 
   return (
     <section className="absolute inset-0 overflow-hidden bg-black">
@@ -231,4 +232,30 @@ export function HoleStage({
       </div>
     </section>
   );
+}
+
+/** OSM hole frame — loaded only for GPS / satellite, not the 2D schematic. */
+function useLazyGeoHole(courseId: CourseId, hole: number, enabled: boolean) {
+  const [pack, setPack] = useState<{
+    geo: GeoHole | null;
+    triple: GreenTriple | null;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!enabled) {
+      setPack(null);
+      return;
+    }
+    let cancelled = false;
+    void import("@/lib/geo-courses").then((module) => {
+      if (cancelled) return;
+      const geo = module.getGeoHole(courseId, hole);
+      setPack({ geo, triple: geo ? module.holeGreenTriple(geo) : null });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, courseId, hole]);
+
+  return pack;
 }

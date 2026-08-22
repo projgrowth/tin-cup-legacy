@@ -270,6 +270,7 @@ function ScoutPage() {
               setPlayGpsOn(next);
               if (next) {
                 persistMode("sat");
+                void import("@/lib/geo-courses");
                 void import("@/components/tin-cup/SatelliteHoleMap");
               }
             }}
