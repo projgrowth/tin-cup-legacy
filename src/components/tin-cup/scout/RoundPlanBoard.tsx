@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Map as MapIcon } from "lucide-react";
 
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { HolePlanFields } from "@/components/tin-cup/scout/HolePlanFields";
@@ -99,7 +98,7 @@ function HoleRow({
                     ? "bg-hunter/15 text-hunter"
                     : planned
                       ? "ring-1 ring-hunter/40 text-hunter"
-                      : "ring-1 ring-border text-foreground"
+                      : "border border-foreground/25 bg-card text-foreground"
             }`}
           >
             {line.hole}
@@ -135,10 +134,9 @@ function HoleRow({
           search={{ course: courseId, hole: line.hole, map: true }}
           replace
           aria-label={`Open hole ${line.hole} map`}
-          className="press flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 text-muted-foreground"
+          className="press t-micro self-stretch px-3 font-semibold text-hunter"
         >
-          <MapIcon className="size-4" />
-          <span className="t-micro">Map</span>
+          Map
         </Link>
       </div>
 
@@ -165,7 +163,7 @@ function HoleRow({
  */
 export function RoundPlanBoard({
   courseId,
-  hole: _hole,
+  hole,
   holes,
   lines,
   mode,
@@ -204,7 +202,7 @@ export function RoundPlanBoard({
   const planned = countPlanned(lines);
   const split = nineSplit(lines);
   const holeByN = new Map(holes.map((h) => [h.h, h]));
-  const [openHole, setOpenHole] = useState<number | null>(null);
+  const [openHole, setOpenHole] = useState<number | null>(hole);
   const frontLines = split.front;
   const pit = courseId === "copperhead";
   const backLines = pit ? split.back.filter((line) => line.hole < 16) : split.back;

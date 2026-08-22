@@ -58,7 +58,7 @@ export function buildStoryMoments(input: {
       playerName: item.playerName,
       teamSlug: item.teamSlug,
       avatarPath: item.avatarPath,
-      mediaPath: item.mediaPath,
+      mediaPath: item.mediaPath ?? item.avatarPath ?? null,
     });
   for (const match of input.matches.filter((row) => row.result !== "pending"))
     moments.push({

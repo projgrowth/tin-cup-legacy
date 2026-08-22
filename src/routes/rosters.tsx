@@ -1,10 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { ChevronRight } from "lucide-react";
-
 import { Avatar } from "@/components/tin-cup/Avatar";
-import { ClaimQrButton } from "@/components/tin-cup/ClaimQr";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
@@ -120,19 +117,10 @@ function RostersPage() {
             const liveTeam = teams.find((team) => team.slug === side.slug);
             return (
               <section key={side.slug} className="surface overflow-hidden">
-                <div className="px-4 pb-1 pt-3">
-                <h2
-                  className={`t-micro font-semibold ${
-                    side.slug === "strong-mental" ? "text-hunter" : "text-stone"
-                  }`}
-                >
-                  {side.name.replace("Team ", "")}
-                </h2>
-                <p className="t-micro mt-0.5">
+                <p className="t-micro px-4 pb-1 pt-3">
                   Capt. {liveTeam?.captain_name ?? side.captain}
                   {myTeam?.slug === side.slug ? " · Your side" : ""}
                 </p>
-                </div>
                 <ul className="divide-y divide-border">
                   {side.players.map((name) => {
                     const player = playersByName.get(name.trim().toLowerCase());
@@ -172,28 +160,15 @@ function RostersPage() {
                             <Link
                               to="/player/$playerId"
                               params={{ playerId: player.id }}
-                              className="press flex min-h-14 min-w-0 flex-1 items-center justify-between gap-3 px-1 py-3.5"
+                              className="press flex min-h-14 min-w-0 flex-1 items-center gap-3 px-4 py-3.5"
                             >
                               {body}
-                              <ChevronRight
-                                className="size-4 shrink-0 text-muted-foreground"
-                                strokeWidth={1.7}
-                              />
                             </Link>
                           ) : (
-                            <div className="flex min-h-14 min-w-0 flex-1 items-center px-1 py-3.5">
+                            <div className="flex min-h-14 min-w-0 flex-1 items-center px-4 py-3.5">
                               {body}
                             </div>
                           )}
-                          {player && isYou ? (
-                            <ClaimQrButton
-                              player={{
-                                id: player.id,
-                                name: player.name,
-                                teamName: liveTeam?.name ?? side.name,
-                              }}
-                            />
-                          ) : null}
                         </div>
                       </li>
                     );

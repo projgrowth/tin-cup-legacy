@@ -37,27 +37,21 @@ export function FridayPairings({
             [...p.playersA, ...p.playersB].some((name) => sameName(name, claimedName)),
         );
         return (
-          <li
-            key={p.matchIndex}
-            className={`grid grid-cols-[1.25rem_minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-3 py-3 ${
-              yours ? "bg-hunter/5" : ""
-            }`}
-          >
-            <span className="t-micro tabular-nums">{p.matchIndex}</span>
-            <div className="min-w-0">
-              <AvatarPair people={peopleA} size="sm" />
-              <p className="t-body mt-1 font-semibold leading-snug">
-                <SideNames names={p.playersA} tone="hunter" playerIdByName={playerIdByName} />
-              </p>
-            </div>
-            <span className="t-micro font-medium text-muted-foreground">vs</span>
-            <div className="min-w-0 text-right">
-              <span className="inline-flex justify-end">
+          <li key={p.matchIndex} className={`flex gap-3 px-4 py-3 ${yours ? "bg-hunter/5" : ""}`}>
+            <span className="t-micro w-4 shrink-0 pt-1.5 tabular-nums">{p.matchIndex}</span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <AvatarPair people={peopleA} size="sm" />
+                <p className="t-body min-w-0 font-semibold leading-snug">
+                  <SideNames names={p.playersA} tone="hunter" playerIdByName={playerIdByName} />
+                </p>
+              </div>
+              <div className="mt-1.5 flex items-center gap-2">
                 <AvatarPair people={peopleB} size="sm" />
-              </span>
-              <p className="t-body mt-1 font-semibold leading-snug">
-                <SideNames names={p.playersB} tone="stone" playerIdByName={playerIdByName} />
-              </p>
+                <p className="t-body min-w-0 font-semibold leading-snug">
+                  <SideNames names={p.playersB} tone="stone" playerIdByName={playerIdByName} />
+                </p>
+              </div>
             </div>
           </li>
         );

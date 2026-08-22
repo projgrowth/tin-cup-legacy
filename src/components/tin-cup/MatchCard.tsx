@@ -81,27 +81,31 @@ export function MatchCard({
   const aria = `${labelA} vs ${labelB}${meta ? ` · ${meta}` : ""}${result ? ` · ${result}` : ""}`;
 
   if (!feature) {
+    const youOnB = yours && yoursOnA === false;
+    const top = youOnB
+      ? { people: peopleB, label: labelB, tone: "text-stone" }
+      : { people: peopleA, label: labelA, tone: "text-hunter" };
+    const bot = youOnB
+      ? { people: peopleA, label: labelA, tone: "text-hunter" }
+      : { people: peopleB, label: labelB, tone: "text-stone" };
     return (
       <article aria-label={aria} className={yours ? "bg-hunter/5" : undefined}>
-      <div className="flex items-center gap-3 px-4 py-3">
-        <AvatarPair people={peopleA} size="sm" />
-        <div className="min-w-0 flex-1">
-          <p className="t-body font-semibold leading-snug">
-            <span className={yours && yoursOnA === false ? "text-hunter/70" : "text-hunter"}>
-              {labelA}
-            </span>
-            <span className="mx-1.5 text-muted-foreground"> vs </span>
-            <span className={yours && yoursOnA ? "text-stone/70" : "text-stone"}>{labelB}</span>
-          </p>
-          <p className="t-micro mt-0.5 truncate">
-            {matchLabel}
-            {live ? <span className="text-[var(--status-live)]"> · Live</span> : null}
-            {yours ? <span className="text-hunter"> · You</span> : null}
-            {meta ? ` · ${meta}` : ""}
-            {result ? ` · ${result}` : ""}
-          </p>
+      <div className="px-4 py-3">
+        <div className="flex items-center gap-2">
+          <AvatarPair people={top.people} size="sm" />
+          <p className={`t-body min-w-0 flex-1 font-semibold leading-snug ${top.tone}`}>{top.label}</p>
         </div>
-        <AvatarPair people={peopleB} size="sm" />
+        <div className="mt-1.5 flex items-center gap-2">
+          <AvatarPair people={bot.people} size="sm" />
+          <p className={`t-body min-w-0 flex-1 font-semibold leading-snug ${bot.tone}`}>{bot.label}</p>
+        </div>
+        <p className="t-micro mt-1.5 truncate">
+          {matchLabel}
+          {live ? <span className="text-[var(--status-live)]"> · Live</span> : null}
+          {yours ? <span className="text-hunter"> · You</span> : null}
+          {meta ? ` · ${meta}` : ""}
+          {result ? ` · ${result}` : ""}
+        </p>
       </div>
       {action ? <div className="border-t border-border px-4 py-2">{action}</div> : null}
     </article>

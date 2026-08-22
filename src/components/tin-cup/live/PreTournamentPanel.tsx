@@ -93,7 +93,9 @@ export function PreTournamentPanel({
         href={venmoUrl}
         target="_blank"
         rel="noreferrer"
-        className="press btn-primary t-body flex min-h-11 w-full justify-center"
+        className={`press t-body flex min-h-11 w-full justify-center ${
+          claimedName ? "btn-quiet" : "btn-primary"
+        }`}
       >
         Pay ${BUY_IN}
       </a>

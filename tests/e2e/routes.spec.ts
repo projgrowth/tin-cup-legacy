@@ -137,7 +137,8 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(page.getByText("Open · Hole 3")).toBeVisible();
   await expect(page.getByText("Open · Hole 18")).toBeVisible();
   await expect(page.getByText("Open · Hole 13")).toBeVisible();
-  await expect(page.getByText("Hole TBD").first()).toBeVisible();
+  await page.getByText("Saturday and Sunday holes Friday night").click();
+  await expect(page.getByText("$100").nth(1)).toBeVisible();
   await expect(page.locator("main")).not.toContainText("$93");
   await expect(page.locator("main")).not.toContainText("$120");
   await expect(page.locator("main")).not.toContainText("Contest payouts are TBD.");

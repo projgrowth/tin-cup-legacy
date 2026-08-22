@@ -47,7 +47,7 @@ function PursePage() {
 
   return (
     <Shell variant="content">
-      <div className="stack-page pb-4">
+      <div className="stack-page pb-10">
         <PageMasthead
           title="Purse"
           meta={
@@ -93,7 +93,9 @@ function PursePage() {
               </span>
             </div>
             <ul className="surface divide-y divide-border overflow-hidden">
-              {bets.map((bet) => (
+              {bets
+                .filter((bet) => bet.hole != null)
+                .map((bet) => (
                 <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
                   <span className="min-w-0">
                     <span className="t-body block truncate font-medium text-foreground">
@@ -109,6 +111,23 @@ function PursePage() {
                 </li>
               ))}
             </ul>
+            {bets.some((bet) => bet.hole == null) ? (
+              <details className="mt-2">
+                <summary className="press t-micro flex min-h-11 cursor-pointer list-none items-center text-muted-foreground [&::-webkit-details-marker]:hidden">
+                  Saturday and Sunday holes Friday night
+                </summary>
+                <ul className="surface mt-1 divide-y divide-border overflow-hidden">
+                  {bets
+                    .filter((bet) => bet.hole == null)
+                    .map((bet) => (
+                      <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                        <span className="t-body min-w-0 truncate">{bet.label}</span>
+                        <span className="t-numeral shrink-0">{formatPayout(bet.amount)}</span>
+                      </li>
+                    ))}
+                </ul>
+              </details>
+            ) : null}
           </section>
         )}
 

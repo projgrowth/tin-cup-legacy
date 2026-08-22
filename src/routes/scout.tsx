@@ -160,7 +160,10 @@ function ScoutPage() {
   const fridayGroup = claimedName ? day1GroupForPlayer(claimedName) : null;
   const pairingLine =
     courseId === "south" && fridayGroup
-      ? `You’re with ${fridayGroup.partner.split(" ")[0]} · vs ${fridayGroup.opponents}`
+      ? `You · ${fridayGroup.partner.split(" ")[0]} vs ${fridayGroup.opponents
+          .split(/\s*[/&+]\s*/)
+          .map((name) => name.trim().split(/\s+/)[0] ?? name)
+          .join(" · ")}`
       : null;
 
   const contestByHole = useMemo(() => {
@@ -277,7 +280,7 @@ function ScoutPage() {
             className={`${mapChip} absolute right-3 z-40 ${playGpsOn ? "chip-on" : ""}`}
             style={{ bottom: "max(1.25rem, calc(env(safe-area-inset-bottom) + 0.75rem))" }}
           >
-            GPS
+            Satellite
           </button>
 
           {wideTheater ? (

@@ -12,6 +12,7 @@ import {
   PartyPopper,
   Pencil,
   Pin,
+  Plus,
   Send,
   Trophy,
   X,
@@ -103,6 +104,7 @@ export function SocialClubhouseFeed({
   const [photoRound, setPhotoRound] = useState("");
   const [photoEvent, setPhotoEvent] = useState("");
   const [photoAlt, setPhotoAlt] = useState("");
+  const [attach, setAttach] = useState(false);
   const canParticipate = Boolean(
     user && profile?.player_id && story.enabled && story.clubhouseEnabled,
   );
@@ -318,7 +320,29 @@ export function SocialClubhouseFeed({
               }
               className="control w-full resize-none border-0 bg-transparent px-0 text-base shadow-none focus:ring-0"
             />
-            <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border pt-2">
+            <div className="mt-2 flex items-center gap-2">
+              <button
+                type="button"
+                aria-expanded={attach}
+                aria-label="Add photo or mention"
+                onClick={() => setAttach((open) => !open)}
+                className="press btn-quiet flex size-11 items-center justify-center"
+              >
+                <Plus className="size-4" />
+              </button>
+              <button
+                type="button"
+                disabled={!canParticipate || !draft.trim() || story.addComment.isPending}
+                onClick={submitPost}
+                className={`press ml-auto flex min-h-11 items-center gap-2 px-4 text-sm font-semibold ${
+                  draft.trim() ? "btn-primary" : "btn-quiet"
+                }`}
+              >
+                <Send className="size-4" /> Post
+              </button>
+            </div>
+            {attach ? (
+              <div className="mt-2 space-y-2 border-t border-border pt-2">
               {canUpload && (
                 <PhotoPicker
                   onFile={(file) => void uploadPhoto(file)}
@@ -334,7 +358,7 @@ export function SocialClubhouseFeed({
                   aria-label="Mention a player"
                   value={mention}
                   onChange={(event) => setMention(event.target.value)}
-                  className="control min-h-11 min-w-0 flex-1 text-sm"
+                  className="control min-h-11 w-full text-sm"
                 >
                   <option value="">Mention</option>
                   {(profiles.data ?? [])
@@ -346,61 +370,8 @@ export function SocialClubhouseFeed({
                     ))}
                 </select>
               )}
-              <button
-                type="button"
-                disabled={!canParticipate || !draft.trim() || story.addComment.isPending}
-                onClick={submitPost}
-                className={`press flex min-h-11 items-center gap-2 px-4 text-sm font-semibold ${
-                  draft.trim() ? "btn-primary" : "btn-quiet"
-                }`}
-              >
-                <Send className="size-4" /> Post
-              </button>
             </div>
-            {canUpload && (
-              <details className="mt-2">
-                <summary className="press t-micro flex min-h-11 cursor-pointer list-none items-center font-semibold text-muted-foreground [&::-webkit-details-marker]:hidden">
-                  Photo details and accessibility
-                </summary>
-                <div className="grid gap-2 pb-1 sm:grid-cols-3">
-                  <label className="t-micro">
-                    Round
-                    <select
-                      value={photoRound}
-                      onChange={(event) => setPhotoRound(event.target.value)}
-                      className="control mt-1 min-h-11 w-full text-base"
-                    >
-                      <option value="">Weekend</option>
-                      {rounds.map((round) => (
-                        <option key={round.id} value={round.id}>
-                          {round.day_label} · {round.course}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="t-micro">
-                    Event
-                    <input
-                      value={photoEvent}
-                      onChange={(event) => setPhotoEvent(event.target.value)}
-                      maxLength={60}
-                      className="control mt-1 min-h-11 w-full text-base"
-                      placeholder="Dinner, awards…"
-                    />
-                  </label>
-                  <label className="t-micro">
-                    Image description
-                    <input
-                      value={photoAlt}
-                      onChange={(event) => setPhotoAlt(event.target.value)}
-                      maxLength={180}
-                      className="control mt-1 min-h-11 w-full text-base"
-                      placeholder="Who or what is pictured?"
-                    />
-                  </label>
-                </div>
-              </details>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -704,13 +675,15 @@ export function SocialClubhouseFeed({
               id={`post-${moment.key}`}
               className="feed-card overflow-hidden"
             >
-              {mediaUrl && (
+              {mediaUrl ? (
                 <img
                   src={mediaUrl}
                   alt={moment.detail || moment.title}
-                  className="max-h-[34rem] w-full bg-black/20 object-cover"
+                  className="max-h-80 w-full rounded-none bg-secondary object-cover"
                 />
-              )}
+              ) : moment.kind === "photo" && moment.mediaPath ? (
+                <div className="skeleton h-48 w-full" />
+              ) : null}
               <div className="p-4 sm:p-5">
                 <header className="flex items-start gap-3">
                   <Avatar
