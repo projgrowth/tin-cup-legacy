@@ -25,6 +25,8 @@ describe("courses helpers", () => {
     expect(getCourse("south").holes[0]).toMatchObject({ par: 4, yards: 335 });
     expect(coursePar("south")).toBe(71);
     expect(getCourse("south").holes.reduce((s, h) => s + h.yards, 0)).toBe(6620);
+    // Official South scorecard and OSM have no hole names — do not invent them.
+    expect(getCourse("south").holes.every((h) => h.name == null)).toBe(true);
 
     // Copperhead H12 Black 373; names filled.
     const c12 = getCourse("copperhead").holes.find((h) => h.h === 12)!;

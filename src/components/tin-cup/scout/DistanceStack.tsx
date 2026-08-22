@@ -1,68 +1,34 @@
 /**
- * Grint-style Front · Center · Back distance widget.
- * Scorecard mode uses Black-proportional green depth.
- * GPS mode uses live haversine to F/C/B points.
+ * Front · Center · Back to the green. GPS-only extra panel on theater.
  */
 export function DistanceStack({
   front,
   center,
   back,
-  blackYards,
   gpsEnabled = false,
   gpsActive = false,
   gpsError = null,
-  gpsNearHole = null,
 }: {
   front: number;
   center: number;
   back: number;
-  blackYards: number;
   gpsEnabled?: boolean;
   gpsActive?: boolean;
   gpsError?: string | null;
-  gpsNearHole?: boolean | null;
 }) {
   const live = gpsEnabled && gpsActive;
-  const locating = gpsEnabled && !gpsActive && !gpsError;
   const blocked = gpsEnabled && Boolean(gpsError);
 
   return (
-    <div
-      className={`glass-panel px-2.5 py-2 backdrop-blur-xl ${
-        live ? "ring-1 ring-sky-400/30" : ""
-      }`}
-    >
+    <div className="px-1">
       {blocked ? (
-        <div className="min-w-[6.5rem] px-1 text-right">
-          <p className="hud-label text-copper/90">GPS</p>
-          <p className="mt-1 text-sm font-bold text-white/85">Blocked</p>
-          <p className="mt-1 text-[0.58rem] font-semibold text-gold-light/75">
-            Black {blackYards}
-          </p>
-        </div>
-      ) : locating ? (
-        <div className="min-w-[6.5rem] px-1 text-right">
-          <p className="hud-label text-sky-300/80">GPS</p>
-          <p className="mt-1 text-sm font-bold text-white/85">Locating…</p>
-          <p className="mt-1 text-[0.58rem] font-semibold text-gold-light/75">
-            Black {blackYards}
-          </p>
-        </div>
+        <p className="text-sm font-semibold text-copper">GPS blocked</p>
       ) : (
-        <>
-          <div className="flex items-end gap-2.5 sm:gap-3">
-            <YardCol label="F" value={front} tone="muted" live={live} />
-            <YardCol label="C" value={center} tone={live ? "sky" : "gold"} live={live} hero />
-            <YardCol label="B" value={back} tone="muted" live={live} />
-          </div>
-          <p className="mt-1.5 text-center text-[0.58rem] font-semibold tracking-wide text-white/40">
-            {live
-              ? gpsNearHole === false
-                ? "approx · not on hole"
-                : "approx · GPS · not laser"
-              : `scorecard · Black ${blackYards}`}
-          </p>
-        </>
+        <div className="flex items-end gap-3">
+          <YardCol label="F" value={front} tone="muted" live={live} />
+          <YardCol label="C" value={center} tone={live ? "sky" : "gold"} live={live} hero />
+          <YardCol label="B" value={back} tone="muted" live={live} />
+        </div>
       )}
     </div>
   );

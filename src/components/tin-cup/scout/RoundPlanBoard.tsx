@@ -142,10 +142,11 @@ function HoleRow({
       {selected && (
         <div className="space-y-3 px-4 pb-4">
           <div className="flex items-center justify-between">
-            <p className="t-micro">
-              {holeMeta.name ?? `Hole ${line.hole}`}
-              {snake ? " · Snake Pit" : ""}
-            </p>
+            {holeMeta.name || snake ? (
+              <p className="t-micro">{holeMeta.name ?? "Snake Pit"}</p>
+            ) : (
+              <span />
+            )}
             <StatusLED state={editor.led} />
           </div>
           <HolePlanFields par={line.par} mode={mode} loading={loading} editor={editor} />

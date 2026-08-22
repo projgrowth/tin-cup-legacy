@@ -7,7 +7,7 @@ import { SatelliteHoleMap } from "@/components/tin-cup/SatelliteHoleMap";
 import { DistanceStack } from "@/components/tin-cup/scout/DistanceStack";
 import type { CourseId, Hole } from "@/lib/courses";
 import { getGeoHole, holeGreenTriple } from "@/lib/geo-courses";
-import { bboxContains, haversineYards } from "@/lib/geo";
+import { haversineYards } from "@/lib/geo";
 import { useGeolocation } from "@/hooks/useGeolocation";
 
 export type MapMode = "sat" | "schematic";
@@ -83,9 +83,6 @@ export function HoleStage({
             back: triple.yardsFromTee.back,
           }
         : null;
-  const gpsNearHole =
-    gpsOn && fix && geo ? bboxContains(geo.bounds, fix.point, 0.002) : null;
-
   const showSat = mapMode === "sat" && hasSat;
 
   return (
@@ -105,6 +102,11 @@ export function HoleStage({
           {liveYards}
           {isSnake ? <span className="ml-1.5 text-copper">Pit</span> : null}
         </p>
+        {hole.name ? (
+          <p className="mt-1 max-w-[16rem] truncate text-[0.72rem] font-semibold text-white/55">
+            {hole.name}
+          </p>
+        ) : null}
         <p className="sr-only">Black {hole.yards}</p>
         {note ? (
           <p className="mt-2 max-w-[16rem] text-[0.78rem] font-semibold leading-snug text-white/85">
@@ -115,20 +117,18 @@ export function HoleStage({
 
       {gpsOn && liveStack ? (
         <div
-          className="pointer-events-none absolute left-3 z-20 w-[min(100%-1.5rem,16rem)]"
+          className="pointer-events-none absolute left-3 z-20"
           style={{
-            bottom: "max(8.25rem, calc(env(safe-area-inset-bottom) + 6.75rem))",
+            bottom: "max(4.75rem, calc(env(safe-area-inset-bottom) + 4.25rem))",
           }}
         >
           <DistanceStack
             front={liveStack.front}
             center={liveStack.center}
             back={liveStack.back}
-            blackYards={hole.yards}
             gpsEnabled={gpsOn}
             gpsActive={gpsActive}
             gpsError={gpsError}
-            gpsNearHole={gpsNearHole}
           />
         </div>
       ) : null}

@@ -5,13 +5,12 @@ import { toast } from "sonner";
 
 import { Shell } from "@/components/tin-cup/Shell";
 import type { MapMode } from "@/components/tin-cup/scout/HoleStage";
-import { PlanSheet, useScoutPlanEditor } from "@/components/tin-cup/scout/PlanSheet";
+import { useScoutPlanEditor } from "@/components/tin-cup/scout/PlanSheet";
 import { RoundPlanBoard } from "@/components/tin-cup/scout/RoundPlanBoard";
 import { useAuth } from "@/hooks/useAuth";
 import { useHoleNotes, useProfile, useRoundPlan, type HoleNoteDraft } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
-import { SNAKE_PIT as SNAKE_PIT_TIPS } from "@/lib/tin-cup";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { knownContestsForHole } from "@/lib/contest-holes";
 import {
@@ -27,7 +26,7 @@ import {
   type CourseId,
 } from "@/lib/courses";
 import { getGuestNote } from "@/lib/guest-notes";
-import { buildPlanLines, hasPlanContent, type PlanLine } from "@/lib/round-sheet";
+import { buildPlanLines, type PlanLine } from "@/lib/round-sheet";
 
 const HoleStage = lazy(() =>
   import("@/components/tin-cup/scout/HoleStage").then((module) => ({
@@ -154,8 +153,6 @@ function ScoutPage() {
     const next = course.holes[index + delta];
     if (next) setSelection({ hole: next.h, map: true });
   };
-  const tip =
-    courseId === "copperhead" ? SNAKE_PIT_TIPS.find((t) => t.hole === current.h) : undefined;
   const isSnake = courseId === "copperhead" && SNAKE_PIT.includes(current.h);
   const claimedName = profile?.player_id
     ? tournament?.players.find((p) => p.id === profile.player_id)?.name
@@ -199,8 +196,6 @@ function ScoutPage() {
     }
     return getGuestNote(courseId, h);
   };
-
-  const hasNote = (h: number) => hasPlanContent(noteForDraft(h));
 
   const planLines: PlanLine[] = useMemo(() => {
     void guestTick;
@@ -276,30 +271,10 @@ function ScoutPage() {
               if (next) persistMode("sat");
             }}
             className={`${mapChip} absolute right-3 z-40 ${playGpsOn ? "chip-on" : ""}`}
-            style={{ bottom: "max(5.5rem, calc(env(safe-area-inset-bottom) + 4.75rem))" }}
+            style={{ bottom: "max(1.25rem, calc(env(safe-area-inset-bottom) + 0.75rem))" }}
           >
             GPS
           </button>
-
-          {!authLoading && (
-            <div className="absolute inset-x-0 bottom-0 z-30 pb-[max(0.35rem,env(safe-area-inset-bottom))] lg:hidden">
-              <PlanSheet
-                courseId={courseId}
-                hole={current.h}
-                par={current.par}
-                holes={course.holes}
-                mode={planMode}
-                loading={journal.loading}
-                editor={planEditor}
-                hasNote={hasNote}
-                contestByHole={contestByHole}
-                onSelectHole={(h) => setSelection({ hole: h })}
-                forceCollapsed
-                overlay
-                pitLabel={tip && !playGpsOn ? tip.name : null}
-              />
-            </div>
-          )}
 
           {wideTheater ? (
             <aside className="absolute inset-y-0 right-0 z-30 w-96 overflow-y-auto border-l border-border bg-background/98 px-3 pb-8 pt-20">
