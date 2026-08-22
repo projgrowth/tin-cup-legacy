@@ -278,7 +278,7 @@ export function SocialClubhouseFeed({
           </h2>
         </div>
         {story.unreadCount > 0 && (
-          <span className="rounded-full bg-gold px-2.5 py-1 text-xs font-bold text-primary-foreground">
+          <span className="rounded-full bg-hunter px-2.5 py-1 text-xs font-bold text-primary-foreground">
             {story.unreadCount} new
           </span>
         )}
@@ -536,7 +536,7 @@ export function SocialClubhouseFeed({
                         </span>
                       )}
                       {post.pinned_at && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-gold/15 px-2 py-0.5 text-xs font-semibold text-hunter">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-hunter/15 px-2 py-0.5 text-xs font-semibold text-hunter">
                           <Pin className="size-3" /> Pinned
                         </span>
                       )}
@@ -703,7 +703,7 @@ export function SocialClubhouseFeed({
                     size="md"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="t-eyebrow flex items-center gap-1.5 text-muted-foreground">
+                    <p className="t-micro flex items-center gap-1.5 text-muted-foreground">
                       <MomentIcon kind={moment.kind} /> {moment.kind.replace("-", " ")}
                     </p>
                     <h3 className="t-title mt-1 text-foreground">

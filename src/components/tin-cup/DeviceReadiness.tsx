@@ -120,7 +120,7 @@ export function DeviceReadiness() {
               await installPrompt.userChoice;
               setInstallPrompt(null);
             }}
-            className="press btn-gold t-body flex min-h-11 items-center justify-center gap-2"
+            className="press btn-primary t-body flex min-h-11 items-center justify-center gap-2"
           >
             <Download className="size-4" /> Install app
           </button>

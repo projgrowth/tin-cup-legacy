@@ -155,7 +155,7 @@ export function ExperienceCustomizer({
   return (
     <section className="surface-raised overflow-hidden" aria-labelledby="experience-title">
       <div className="border-b border-border p-4 sm:p-5">
-        <p className="t-eyebrow flex items-center gap-1.5 text-hunter">
+        <p className="t-micro flex items-center gap-1.5 text-hunter">
           <Sparkles className="size-3.5" /> Make it yours
         </p>
         <h2 id="experience-title" className="t-title mt-1 text-foreground">
@@ -168,7 +168,7 @@ export function ExperienceCustomizer({
       <div className="space-y-5 p-4 sm:p-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-1.5">
-            <span className="t-eyebrow text-foreground/75">Player status</span>
+            <span className="t-micro text-foreground/75">Player status</span>
             <input
               value={status}
               onChange={(event) => setStatus(event.target.value)}
@@ -179,7 +179,7 @@ export function ExperienceCustomizer({
             <span className="t-micro block text-right">{status.length}/80</span>
           </label>
           <label className="space-y-1.5">
-            <span className="t-eyebrow text-foreground/75">Player flair</span>
+            <span className="t-micro text-foreground/75">Player flair</span>
             <select
               value={playerFlair}
               onChange={(event) => setPlayerFlair(event.target.value as PlayerFlair)}
@@ -195,7 +195,7 @@ export function ExperienceCustomizer({
         </div>
 
         <div>
-          <p className="t-eyebrow text-foreground/75">Appearance</p>
+          <p className="t-micro text-foreground/75">Appearance</p>
           <div className="mt-2 grid grid-cols-3 gap-2">
             {appearance.map((item) => (
               <button
@@ -219,7 +219,7 @@ export function ExperienceCustomizer({
 
         <div>
           <div className="flex items-center justify-between gap-2">
-            <p className="t-eyebrow text-foreground/75">Secondary Home modules</p>
+            <p className="t-micro text-foreground/75">Secondary Home modules</p>
             <label className="flex min-h-11 items-center gap-2 text-sm text-muted-foreground">
               <input
                 type="checkbox"

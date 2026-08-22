@@ -34,7 +34,7 @@ export function SocialOpsHealth() {
   return (
     <section className="surface overflow-hidden" aria-labelledby="social-health-title">
       <div className="border-b border-border p-4">
-        <p className="t-eyebrow flex items-center gap-1.5 text-gold-light">
+        <p className="t-micro flex items-center gap-1.5 text-hunter">
           <Radio className="size-3.5" /> Social platform
         </p>
         <h2 id="social-health-title" className="t-title mt-1">

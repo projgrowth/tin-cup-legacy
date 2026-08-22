@@ -83,7 +83,7 @@ function PrintableClaimCard({ player }: { player: ClaimPlayer }) {
   const qr = useQr(player.id, 280);
   return (
     <article className="rounded-xl border border-border bg-background p-4 text-center print:break-inside-avoid print:border-black">
-      <p className="t-eyebrow">Tin Cup Invitational</p>
+      <p className="t-micro">Tin Cup Invitational</p>
       <h3 className="t-title mt-1 text-foreground">{player.name}</h3>
       {player.teamName && <p className="t-micro mt-1">{player.teamName}</p>}
       {qr && (
@@ -106,7 +106,7 @@ export function ClaimQrSheet({ players }: { players: ClaimPlayer[] }) {
     >
       <div className="flex items-start justify-between gap-3 print:hidden">
         <div>
-          <p className="t-eyebrow">Onboarding</p>
+          <p className="t-micro">Onboarding</p>
           <h2 id="claim-sheet-title" className="t-section mt-1 text-foreground">
             Player claim sheet
           </h2>

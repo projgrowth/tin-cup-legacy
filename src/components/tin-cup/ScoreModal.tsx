@@ -219,7 +219,7 @@ export function ScoreModal({
     >
       <DialogTrigger
         aria-label="Captain score input"
-        className="press fixed bottom-24 right-4 z-40 inline-flex size-14 items-center justify-center rounded-full bg-gold text-primary-foreground shadow-[0_4px_16px_-6px_oklch(0_0_0/55%)]"
+        className="press fixed bottom-24 right-4 z-40 inline-flex size-14 items-center justify-center rounded-full bg-hunter text-primary-foreground shadow-[0_4px_16px_-6px_oklch(0_0_0/55%)]"
       >
         <Plus className="size-6" />
         <span className="sr-only">Captain score input</span>
@@ -344,7 +344,7 @@ export function ScoreModal({
                     type="button"
                     disabled={saving}
                     onClick={() => void saveResult(confirm)}
-                    className="press btn-gold t-body min-h-14 w-full"
+                    className="press btn-primary t-body min-h-14 w-full"
                   >
                     {saving
                       ? "Saving…"
@@ -435,7 +435,7 @@ export function ScoreModal({
               type="button"
               disabled={saving}
               onClick={() => void saveBet()}
-              className="press btn-gold t-body w-full"
+              className="press btn-primary t-body w-full"
             >
               Log claim
             </button>

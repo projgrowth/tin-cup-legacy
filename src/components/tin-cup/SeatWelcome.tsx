@@ -49,7 +49,7 @@ export function SeatWelcome() {
     <div className="fixed inset-0 z-[60] flex items-end justify-center bg-[oklch(0.08_0.02_165/55%)] p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:items-center">
       <div className="surface w-full max-w-md space-y-4 p-5 shadow-[0_24px_80px_-24px_oklch(0_0_0/70%)]">
         <div>
-          <p className="t-eyebrow">Tin Cup 2026</p>
+          <p className="t-micro">Tin Cup 2026</p>
           <h2 className="t-title mt-2 text-foreground">Welcome to the weekend</h2>
           <p className="t-body mt-2 text-muted-foreground">
             Sign in if you&apos;re playing — or just look around.

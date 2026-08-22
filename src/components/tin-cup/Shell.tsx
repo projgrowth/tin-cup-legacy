@@ -73,7 +73,7 @@ export function Shell({
       <div className="relative min-h-svh bg-black">
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-gold focus:px-3 focus:py-2 focus:text-primary-foreground"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-hunter focus:px-3 focus:py-2 focus:text-primary-foreground"
         >
           Skip to content
         </a>
@@ -94,7 +94,7 @@ export function Shell({
     >
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-gold focus:px-3 focus:py-2 focus:text-primary-foreground"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-hunter focus:px-3 focus:py-2 focus:text-primary-foreground"
       >
         Skip to content
       </a>

@@ -120,7 +120,7 @@ function PlayerPage() {
         <div className="flex items-start gap-3">
           <Avatar name={player.name} teamSlug={team.slug} src={face?.url} size="lg" />
           <div className="min-w-0 flex-1">
-            <p className="t-eyebrow">{team.name}</p>
+            <p className="t-micro">{team.name}</p>
             <h1 className="t-title mt-1 text-foreground">{player.name}</h1>
             <div className="mt-2 flex flex-wrap gap-2">
               {player.is_captain && (
@@ -188,7 +188,7 @@ function PlayerPage() {
 
       {(record.points > 0 || claims.length > 0 || player.is_captain) && (
         <section className="mt-6" aria-labelledby="player-achievements">
-          <h2 id="player-achievements" className="t-eyebrow">
+          <h2 id="player-achievements" className="t-section">
             Weekend achievements
           </h2>
           <ul className="mt-3 flex flex-wrap gap-2">
@@ -204,7 +204,7 @@ function PlayerPage() {
       )}
 
       <section className="mt-8">
-        <h2 className="t-eyebrow">Match timeline</h2>
+        <h2 className="t-section">Match timeline</h2>
         <ol className="relative mt-4 space-y-0 border-l border-border pl-4">
           {mine.map((match) => {
             const round = rounds.find((r) => r.id === match.round_id);
@@ -253,7 +253,7 @@ function PlayerPage() {
       </section>
 
       <section className="mt-8">
-        <h2 className="t-eyebrow">Side cash</h2>
+        <h2 className="t-section">Side cash</h2>
         {claims.length === 0 ? (
           <p className="t-micro mt-3">No CTP or long drive claims yet.</p>
         ) : (

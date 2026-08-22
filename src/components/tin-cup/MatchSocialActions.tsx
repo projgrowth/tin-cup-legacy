@@ -46,7 +46,7 @@ export function MatchSocialActions({
       {social.predictionsEnabled && (
         <div>
           <div className="flex items-center justify-between gap-2">
-            <p className="t-eyebrow flex items-center gap-1.5 text-foreground/75">
+            <p className="t-micro flex items-center gap-1.5 text-foreground/75">
               <Sparkles className="size-3.5 text-hunter" /> Who wins?
             </p>
             <span className="t-micro">Social · no Cup points</span>
@@ -95,7 +95,7 @@ export function MatchSocialActions({
       {social.confirmationsEnabled && locked && (
         <div className="rounded-xl border border-border/70 bg-black/10 p-3">
           <div className="flex items-center justify-between gap-2">
-            <p className="t-eyebrow text-foreground/75">Player confirmation</p>
+            <p className="t-micro text-foreground/75">Player confirmation</p>
             <span
               className={`t-micro ${review === "under-review" ? "text-copper" : "text-muted-foreground"}`}
             >

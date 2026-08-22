@@ -76,7 +76,7 @@ function TrophyAward({ trophy }: { trophy: Trophy }) {
           type="button"
           disabled={saving}
           onClick={() => void save()}
-          className="press btn-gold t-body flex-1"
+          className="press btn-primary t-body flex-1"
         >
           {saving ? "Saving…" : "Save"}
         </button>
@@ -103,7 +103,7 @@ export function HallOfFamePanel({
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="t-eyebrow">Trophy Room</h2>
+        <h2 className="t-section">Trophy room</h2>
         {preEvent && (
           <p className="t-body mt-2 rounded-xl border border-border bg-secondary/40 px-4 py-3 text-muted-foreground">
             Awards are presented Sunday after Island. Winners post here once captains lock

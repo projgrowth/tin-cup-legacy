@@ -22,7 +22,7 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="surface fade-up w-full max-w-md px-6 py-10 text-center">
-        <p className="t-eyebrow">404</p>
+        <p className="t-micro">404</p>
         <h1 className="t-display mt-2 text-foreground">Page not found</h1>
         <p className="t-body mt-2 text-muted-foreground">
           That link doesn&apos;t match anything in the weekend hub.

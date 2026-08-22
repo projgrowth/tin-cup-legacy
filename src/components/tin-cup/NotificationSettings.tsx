@@ -111,7 +111,7 @@ export function NotificationSettings({ userId }: { userId: string }) {
       {enabled && (
         <div className="space-y-3 border-t border-border pt-3">
           <fieldset>
-            <legend className="t-eyebrow text-foreground/75">Choose your alerts</legend>
+            <legend className="t-micro text-foreground/75">Choose your alerts</legend>
             <div className="mt-2 divide-y divide-border rounded-xl border border-border px-3">
               {categories.map((item) => (
                 <label key={item.key} className="flex min-h-14 items-center gap-3 py-2.5">
@@ -137,7 +137,7 @@ export function NotificationSettings({ userId }: { userId: string }) {
             </div>
           </fieldset>
           <fieldset>
-            <legend className="t-eyebrow text-foreground/75">Quiet hours</legend>
+            <legend className="t-micro text-foreground/75">Quiet hours</legend>
             <div className="mt-2 grid grid-cols-2 gap-2">
               <label className="t-micro">
                 From

@@ -227,7 +227,7 @@ export function PhotoVault({
           <button
             type="button"
             onClick={() => confirmUpload()}
-            className="press btn-gold t-body flex-1"
+            className="press btn-primary t-body flex-1"
           >
             Post photo
           </button>
@@ -279,7 +279,7 @@ export function PhotoVault({
             aria-valuemax={100}
           >
             <div
-              className="h-full rounded-full bg-gold transition-all duration-200"
+              className="h-full rounded-full bg-hunter transition-all duration-200"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -370,7 +370,7 @@ export function PhotoVault({
           aria-valuenow={progress}
         >
           <div
-            className="h-full rounded-full bg-gold transition-all duration-200"
+            className="h-full rounded-full bg-hunter transition-all duration-200"
             style={{ width: `${progress}%` }}
           />
         </div>

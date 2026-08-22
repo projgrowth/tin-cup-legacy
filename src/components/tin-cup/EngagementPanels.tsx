@@ -63,7 +63,7 @@ export function ClubhouseEngagement({
             <div>
               <p
                 id="checkin-title"
-                className="t-eyebrow flex items-center gap-1.5 text-foreground/75"
+                className="t-micro flex items-center gap-1.5 text-foreground/75"
               >
                 <MapPin className="size-3.5 text-hunter" /> Around the resort
               </p>
@@ -113,7 +113,7 @@ export function ClubhouseEngagement({
       {engagement.promptsEnabled &&
         activePrompts.map((prompt) => (
           <article key={prompt.id} className="engagement-prompt surface-raised p-4">
-            <p className="t-eyebrow flex items-center gap-1.5 text-hunter">
+            <p className="t-micro flex items-center gap-1.5 text-hunter">
               {prompt.kind === "photo" ? (
                 <Camera className="size-3.5" />
               ) : (
@@ -170,7 +170,7 @@ export function ClubhouseEngagement({
                 );
               }}
             >
-              <label className="t-eyebrow text-foreground/75" htmlFor="poll-question">
+              <label className="t-micro text-foreground/75" htmlFor="poll-question">
                 Question
               </label>
               <input
@@ -234,7 +234,7 @@ export function ClubhouseEngagement({
               <article key={poll.id} id={`post-poll:${poll.id}`} className="feed-card">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="t-eyebrow text-hunter">Clubhouse poll</p>
+                    <p className="t-micro text-hunter">Clubhouse poll</p>
                     <h3 className="t-title mt-1 text-foreground">{poll.question}</h3>
                   </div>
                   {closed && (
@@ -266,7 +266,7 @@ export function ClubhouseEngagement({
                         {showResults && (
                           <span
                             aria-hidden
-                            className="absolute inset-y-0 left-0 bg-gold/10"
+                            className="absolute inset-y-0 left-0 bg-hunter/10"
                             style={{ width: `${percent}%` }}
                           />
                         )}
@@ -357,7 +357,7 @@ export function PromptManager({
   return (
     <section className="surface space-y-3 p-4" aria-labelledby="prompt-manager-title">
       <div>
-        <p className="t-eyebrow text-hunter">Engagement</p>
+        <p className="t-micro text-hunter">Engagement</p>
         <h2 id="prompt-manager-title" className="t-section mt-1">
           Schedule a live prompt
         </h2>

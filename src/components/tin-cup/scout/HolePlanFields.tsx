@@ -21,7 +21,7 @@ export function HolePlanFields({
   return (
     <div className="space-y-4">
       <div>
-        <p className="t-eyebrow mb-2 text-muted-foreground">Club</p>
+        <p className="t-micro mb-2 text-muted-foreground">Club</p>
         <div className="flex flex-wrap gap-1.5">
           {TEE_CLUBS.map((c) => (
             <Chip key={c} on={club === c} onClick={() => setClub(club === c ? "" : c)}>
@@ -32,7 +32,7 @@ export function HolePlanFields({
       </div>
 
       <div>
-        <p className="t-eyebrow mb-2 text-muted-foreground">Miss</p>
+        <p className="t-micro mb-2 text-muted-foreground">Miss</p>
         <div className="flex flex-wrap gap-1.5">
           {MISS_SHAPES.map((m) => (
             <Chip
@@ -47,7 +47,7 @@ export function HolePlanFields({
       </div>
 
       <div>
-        <p className="t-eyebrow mb-2 text-muted-foreground">Line</p>
+        <p className="t-micro mb-2 text-muted-foreground">Line</p>
         <input
           value={line}
           onChange={(e) => setLine(e.target.value)}
@@ -58,7 +58,7 @@ export function HolePlanFields({
       </div>
 
       <details className="group">
-        <summary className="press cursor-pointer list-none t-eyebrow text-muted-foreground [&::-webkit-details-marker]:hidden">
+        <summary className="press cursor-pointer list-none t-micro text-muted-foreground [&::-webkit-details-marker]:hidden">
           More notes
         </summary>
         <div className="mt-2">

@@ -228,7 +228,7 @@ export function WeekendRecap({
       <section className="surface p-4 sm:p-5">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="t-eyebrow text-hunter">Leaderboard</p>
+            <p className="t-micro text-hunter">Leaderboard</p>
             <h2 className="t-title mt-1">Player records</h2>
           </div>
           <Users className="size-5 text-muted-foreground" />
@@ -269,7 +269,7 @@ export function WeekendRecap({
       <div className="grid gap-3 md:grid-cols-2">
         {decided.length > 0 && (
         <section className="surface p-4 md:col-span-2">
-          <p className="t-eyebrow text-hunter">Turning points</p>
+          <p className="t-micro text-hunter">Turning points</p>
           <h2 className="t-title mt-1">Matches that shaped the Cup</h2>
             <ol className="mt-3 grid gap-2 sm:grid-cols-2">
               {decided
@@ -297,7 +297,7 @@ export function WeekendRecap({
         {(sideBets.some((bet) => bet.player_name) ||
           trophies.some((trophy) => trophy.winner_name)) && (
         <section className="surface p-4">
-          <p className="t-eyebrow text-hunter">Side board</p>
+          <p className="t-micro text-hunter">Side board</p>
           <h2 className="t-title mt-1">Cash and trophies</h2>
           <ul className="mt-3 space-y-2">
             {sideBets
@@ -324,7 +324,7 @@ export function WeekendRecap({
         )}
         {predictionStandings.length > 0 && (
         <section className="surface p-4">
-          <p className="t-eyebrow text-hunter">Social calls</p>
+          <p className="t-micro text-hunter">Social calls</p>
           <h2 className="t-title mt-1">Prediction standings</h2>
             <ol className="mt-3 space-y-2">
               {predictionStandings.slice(0, 5).map((row, index) => (
@@ -352,7 +352,7 @@ export function WeekendRecap({
       )}
 
       <section className="surface p-4">
-        <p className="t-eyebrow text-hunter">Team cards</p>
+        <p className="t-micro text-hunter">Team cards</p>
         <h2 className="t-title mt-1">Share each side’s weekend</h2>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {teams.map((team) => {
@@ -383,7 +383,7 @@ export function WeekendRecap({
 
       {achievements.length > 0 && (
         <section className="surface p-4">
-          <p className="t-eyebrow text-hunter">Your weekend</p>
+          <p className="t-micro text-hunter">Your weekend</p>
           <h2 className="t-title mt-1">Achievements</h2>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
             {achievements.map((achievement) => (
@@ -461,7 +461,7 @@ function RecapStat({
   return (
     <article className="surface p-4">
       <Icon className="size-5 text-hunter" />
-      <p className="t-eyebrow mt-3">{label}</p>
+      <p className="t-micro mt-3">{label}</p>
       <p className="t-hero mt-1 text-foreground">{value}</p>
       <p className="t-micro mt-1">{detail}</p>
     </article>

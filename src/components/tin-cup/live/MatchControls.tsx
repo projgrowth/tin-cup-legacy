@@ -262,7 +262,7 @@ export function MatchPairingEditor({
           type="button"
           disabled={saving}
           onClick={() => void save()}
-          className="press btn-gold t-body flex-1"
+          className="press btn-primary t-body flex-1"
         >
           {saving ? "Saving…" : "Save pairing"}
         </button>
@@ -391,7 +391,7 @@ export function BetClaim({ bet, players }: { bet: SideBet; players: Player[] }) 
         type="button"
         disabled={saving}
         onClick={() => void save()}
-        className="press btn-gold t-body"
+        className="press btn-primary t-body"
       >
         {saving ? "Saving…" : "Save"}
       </button>

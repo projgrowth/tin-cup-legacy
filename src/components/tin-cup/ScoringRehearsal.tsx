@@ -62,7 +62,7 @@ export function ScoringRehearsal() {
   return (
     <section className="surface overflow-hidden" aria-labelledby="rehearsal-title">
       <div className="border-b border-border p-4">
-        <p className="t-eyebrow">Safe simulation</p>
+        <p className="t-micro">Safe simulation</p>
         <h2 id="rehearsal-title" className="t-section mt-1 text-foreground">
           Two-phone scoring rehearsal
         </h2>

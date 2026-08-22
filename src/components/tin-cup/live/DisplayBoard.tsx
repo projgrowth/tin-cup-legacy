@@ -44,7 +44,7 @@ export function DisplayBoard({
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
         <header className="flex items-start justify-between gap-4">
           <div>
-            <p className="t-eyebrow text-muted-foreground">Tin Cup 2026 · Live</p>
+            <p className="t-micro text-muted-foreground">Tin Cup 2026 · Live</p>
             <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
               {liveRound ? `${liveRound.day_label} · ${liveRound.course}` : "Cup standings"}
             </h1>
