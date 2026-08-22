@@ -1,29 +1,31 @@
 import { Link } from "@tanstack/react-router";
 
+import { MatchCard } from "@/components/tin-cup/MatchCard";
+import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { FieldChatLink } from "@/components/tin-cup/WhatsAppLinks";
-
+import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
+import type { Match, Player, Round, Team } from "@/hooks/useTournament";
+import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
+import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import {
   BUY_IN,
-  EVENT,
   VENMO_IS_PLACEHOLDER,
   WEEKEND_SOCIAL,
   WHATSAPP_GROUP_CONFIGURED,
   venmoUrl,
 } from "@/lib/tin-cup";
-import type { Match, Player, Round, Team } from "@/hooks/useTournament";
-import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
 import { useLiveCountdown } from "@/lib/use-live-countdown";
 import type { WeekendContext } from "@/lib/weekend-context";
 
-/** Guest Home — invite only. No film, no HUD, no command center, no gold PNG. */
+/** Pre-event Home — next session, your match, Pay. Same kit as Weekend. */
 export function PreTournamentPanel({
   rounds: _rounds = [],
   matches: _matches = [],
-  players: _players = [],
-  teams: _teams = [],
+  players = [],
+  teams = [],
   canUpload: _canUpload = false,
-  signedIn: _signedIn = false,
-  claimedName: _claimedName = null,
+  signedIn = false,
+  claimedName = null,
   needsClaim = false,
   context: _context,
 }: {
@@ -44,40 +46,102 @@ export function PreTournamentPanel({
   const remain = time.done
     ? null
     : `${time.days}d ${String(time.hours).padStart(2, "0")}h`;
+  const avatars = usePlayerAvatars(players, teams);
+  const group = claimedName ? day1GroupForPlayer(claimedName) : null;
+  const face = (name: string) => avatars.data?.getByName(name);
 
   return (
-    <section aria-label="This weekend" className="mx-auto max-w-sm px-1 py-10 text-center">
-      <p className="t-micro font-semibold tracking-[0.2em] text-hunter">TIN CUP</p>
-      <h1 className="t-title mt-4 text-foreground">{EVENT.title}</h1>
-      <p className="t-micro mt-4">{EVENT.dates}</p>
-      <p className="t-micro mt-1">{EVENT.location}</p>
-      <p suppressHydrationWarning className="t-micro mt-3">
-        Friday 12:19 · {COURSE_LABEL[nextCourseId]} · {today.points} pts
-        {remain ? ` · ${remain}` : ""}
-      </p>
-      {tonight ? <p className="t-micro mt-1">Tonight · {tonight.title}</p> : null}
-      <p className="t-micro mt-3">{EVENT.subtitle}</p>
+    <section aria-label="This weekend" className="stack-tight">
+      <PageMasthead
+        title={
+          <>
+            {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
+          </>
+        }
+        meta={
+          <span suppressHydrationWarning>
+            {today.firstTee} · {today.format}
+            {` · ${today.points} pts`}
+            {remain ? ` · ${remain}` : ""}
+          </span>
+        }
+      />
+
+      {group ? (
+        <div>
+          <p className="t-micro px-1 pb-1.5 font-semibold text-foreground">Your match</p>
+          <div className="surface overflow-hidden">
+            <MatchCard
+              size="row"
+              index={group.pairing.matchIndex}
+              sideA={group.pairing.sideA}
+              sideB={group.pairing.sideB}
+              peopleA={group.pairing.playersA.map((name) => ({
+                name,
+                teamSlug: "strong-mental",
+                src: face(name)?.url,
+              }))}
+              peopleB={group.pairing.playersB.map((name) => ({
+                name,
+                teamSlug: "grass-roots",
+                src: face(name)?.url,
+              }))}
+              yours
+              yoursOnA={group.side === "a"}
+            />
+          </div>
+        </div>
+      ) : null}
+
       <a
         href={venmoUrl}
         target="_blank"
         rel="noreferrer"
-        className="press btn-primary t-body mt-8 flex min-h-11 w-full justify-center"
+        className="press btn-primary t-body flex min-h-11 w-full justify-center"
       >
         Pay ${BUY_IN}
       </a>
-      {needsClaim ? (
-        <Link
-          to="/profile"
-          className="press t-micro mt-2 inline-flex min-h-11 items-center text-muted-foreground"
-        >
-          Claim your name
-        </Link>
+
+      {tonight ? (
+        <p className="t-micro px-1">Tonight · {tonight.title}</p>
       ) : null}
+
+      <div className="flex flex-wrap gap-x-4 px-1">
+        <Link
+          to="/schedule"
+          className="press t-micro inline-flex min-h-11 items-center font-semibold text-foreground"
+        >
+          Weekend
+        </Link>
+        <Link
+          to="/scout"
+          search={{ course: nextCourseId, card: true }}
+          className="press t-micro inline-flex min-h-11 items-center font-semibold text-foreground"
+        >
+          {COURSE_LABEL[nextCourseId]} planner
+        </Link>
+        {needsClaim ? (
+          <Link
+            to="/profile"
+            className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
+          >
+            Claim your name
+          </Link>
+        ) : !signedIn ? (
+          <Link
+            to="/profile"
+            className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
+          >
+            Sign in
+          </Link>
+        ) : null}
+      </div>
+
       {VENMO_IS_PLACEHOLDER && (
-        <p className="t-micro mt-3 text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>
+        <p className="t-micro px-1 text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>
       )}
       {WHATSAPP_GROUP_CONFIGURED && (
-        <FieldChatLink className="mt-4 !min-h-11 w-full" />
+        <FieldChatLink className="!min-h-11 w-full" />
       )}
     </section>
   );

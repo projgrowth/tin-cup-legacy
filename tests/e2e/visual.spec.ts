@@ -11,7 +11,7 @@ test.beforeEach(async ({ page }) => {
 test("responsive Home and gallery compose without overflow", async ({ page }, testInfo) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: /4th Annual Tin Cup Invitational/i }),
+    page.getByRole("heading", { name: /Friday · South/i }),
   ).toBeVisible();
   await expect(page.getByText("Welcome to the Clubhouse")).toHaveCount(0);
   expect(

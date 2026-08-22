@@ -32,11 +32,9 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   );
   await page.goto("/");
   await expectTinCupIdentity(page);
-  await expect(
-    page.getByRole("heading", { name: /4th Annual Tin Cup Invitational/i }),
-  ).toBeVisible();
-  await expect(page.getByText("Where the vibes are high and the divots are deep")).toBeVisible();
-  await expect(page.getByText(/Friday 12:19/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Friday · South/i })).toBeVisible();
+  await expect(page.getByText("Where the vibes are high and the divots are deep")).toHaveCount(0);
+  await expect(page.getByText(/12:19 PM/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Weekend", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Plan", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Pay \$150/ }).first()).toBeVisible();
@@ -47,9 +45,7 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByText("Minutes", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Secs", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Share weekend" })).toHaveCount(0);
-  await expect(page.getByText("Friday 12:19")).toBeVisible();
-  await expect(page.getByText("August 28–30, 2026", { exact: true })).toBeVisible();
-  await expect(page.getByText("Innisbrook Golf Resort • Palm Harbor, FL", { exact: true })).toBeVisible();
+  await expect(page.getByText("August 28–30, 2026", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Skip intro")).toHaveCount(0);
   await expect(page.getByText("Just looking")).toHaveCount(0);
   await expect(page.getByText("Welcome to the weekend")).toHaveCount(0);
@@ -70,9 +66,7 @@ test("social-first Home preserves feed filters, deep links, and board compatibil
   page,
 }) => {
   await page.goto("/?feed=photos");
-  await expect(
-    page.getByRole("heading", { name: /4th Annual Tin Cup Invitational/i }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Friday · South/i })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Around the weekend" })).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
 
@@ -172,9 +166,7 @@ test("protected preview exposes the gallery and engagement prompt without produc
   await expect(page.getByText("Protected preview", { exact: false })).toBeVisible({
     timeout: 10_000,
   });
-  await expect(
-    page.getByRole("heading", { name: /4th Annual Tin Cup Invitational/i }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Friday · South/i })).toBeVisible();
   await expect(page.getByText("First-tee faces")).toHaveCount(0);
   await expect(page.getByText("Who holes the first walk-off putt?")).toHaveCount(0);
   await page.goto("/photos");

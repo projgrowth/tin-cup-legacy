@@ -90,7 +90,7 @@ export function MatchCard({
             <span className={yours && yoursOnA === false ? "text-hunter/70" : "text-hunter"}>
               {labelA}
             </span>
-            <span className="mx-1.5 text-muted-foreground">vs</span>
+            <span className="mx-1.5 text-muted-foreground"> vs </span>
             <span className={yours && yoursOnA ? "text-stone/70" : "text-stone"}>{labelB}</span>
           </p>
           <p className="t-micro mt-0.5 truncate">
