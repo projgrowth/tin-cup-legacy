@@ -94,8 +94,8 @@ export function useMatchSocial(userId?: string, playerId?: string | null) {
       choice: MatchPredictionChoice;
       note?: string | null;
     }) => {
-      if (!userId) throw new Error("Claim your player before taking a side.");
-      if (matchIds.length === 0) throw new Error("This ticket is not on the board yet.");
+      if (!userId) throw new Error("Claim your name to pick a side.");
+      if (matchIds.length === 0) throw new Error("This faceoff is not on the board yet.");
       const cleaned = normalizeCardNote(note);
       const now = new Date().toISOString();
       if (isPreviewMode()) {
@@ -123,6 +123,30 @@ export function useMatchSocial(userId?: string, playerId?: string | null) {
         };
         if (note !== undefined) payload.note = cleaned;
         const { error } = await supabase.from("match_predictions").upsert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["match-predictions"] }),
+  });
+
+  const clear = useMutation({
+    mutationFn: async ({ matchIds }: { matchIds: string[] }) => {
+      if (!userId) throw new Error("Claim your name to pick a side.");
+      if (isPreviewMode()) {
+        localWrite(
+          PREDICTION_KEY,
+          localRead<MatchPrediction>(PREDICTION_KEY).filter(
+            (row) => !(row.userId === userId && matchIds.includes(row.matchId)),
+          ),
+        );
+        return;
+      }
+      for (const matchId of matchIds) {
+        const { error } = await supabase
+          .from("match_predictions")
+          .delete()
+          .eq("match_id", matchId)
+          .eq("user_id", userId);
         if (error) throw error;
       }
     },
@@ -161,6 +185,7 @@ export function useMatchSocial(userId?: string, playerId?: string | null) {
     confirmations: confirmations.data ?? [],
     unavailable: predictions.isError || confirmations.isError,
     predict,
+    clear,
     confirm,
   };
 }

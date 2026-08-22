@@ -1,13 +1,8 @@
 import { Link } from "@tanstack/react-router";
 
 import { AvatarPair } from "@/components/tin-cup/Avatar";
-import { TheCardTicket } from "@/components/tin-cup/TheCardTicket";
-import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useJournal";
-import { useMatchSocial } from "@/hooks/useMatchSocial";
 import type { Match, Round } from "@/hooks/useTournament";
 import { DAY1_PAIRINGS } from "@/lib/day1-pairings";
-import { fridayCardMarkets, pairingKey } from "@/lib/the-card";
 
 type Face = { name: string; url?: string | null };
 
@@ -20,8 +15,8 @@ export function FridayPairings({
   getFace,
   claimedName = null,
   playerIdByName,
-  matches = [],
-  rounds = [],
+  matches: _matches = [],
+  rounds: _rounds = [],
 }: {
   getFace?: (name: string) => Face | undefined;
   claimedName?: string | null;
@@ -29,12 +24,6 @@ export function FridayPairings({
   matches?: Match[];
   rounds?: Round[];
 }) {
-  const { user } = useAuth();
-  const { profile } = useProfile();
-  const social = useMatchSocial(user?.id, profile?.player_id);
-  const markets = fridayCardMarkets(matches, rounds);
-  const marketFor = (sideA: string, sideB: string) =>
-    markets.find((market) => pairingKey(market.sideA, market.sideB) === pairingKey(sideA, sideB));
   return (
     <ol className="surface divide-y divide-border overflow-hidden">
       {DAY1_PAIRINGS.map((p) => {
@@ -52,7 +41,6 @@ export function FridayPairings({
           claimedName &&
             [...p.playersA, ...p.playersB].some((name) => sameName(name, claimedName)),
         );
-        const market = marketFor(p.sideA, p.sideB);
         return (
           <li key={p.matchIndex} className={`flex gap-3 px-4 py-3 ${yours ? "bg-hunter/5" : ""}`}>
             <span className="t-micro w-4 shrink-0 pt-1.5 tabular-nums">{p.matchIndex}</span>
@@ -69,18 +57,6 @@ export function FridayPairings({
                   <SideNames names={p.playersB} tone="stone" playerIdByName={playerIdByName} />
                 </p>
               </div>
-              {social.predictionsEnabled && market ? (
-                <TheCardTicket
-                  market={market}
-                  matches={matches}
-                  userId={user?.id}
-                  claimed={Boolean(profile?.player_id)}
-                  social={social}
-                  peopleA={peopleA}
-                  peopleB={peopleB}
-                  variant="controls"
-                />
-              ) : null}
             </div>
           </li>
         );

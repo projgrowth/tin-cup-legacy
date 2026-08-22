@@ -8,7 +8,7 @@ import {
 import type { StoryMoment } from "@/lib/weekend-story";
 
 export const CARD_NOTE_MAX = 140;
-export const CARD_DISCLAIMER = "Social · no Cup points · no cash";
+export const CARD_DISCLAIMER = "Tap a side. Tap again to back out.";
 
 export function pairingFirstNames(side: string | null | undefined): string {
   if (!side?.trim()) return "TBD";
@@ -210,9 +210,22 @@ export function cardRecords(predictions: MatchPrediction[], matches: Match[]): C
 }
 
 export function takeLabel(choice: MatchPredictionChoice, sideA: string, sideB: string): string {
-  if (choice === "halved") return "Half";
+  if (choice === "halved") return "a push";
   if (choice === "side-a") return pairingFirstNames(sideA);
   return pairingFirstNames(sideB);
+}
+
+export function faceoffCrowd(predictions: MatchPrediction[], matchIds: string[]) {
+  const latest = new Map<string, MatchPredictionChoice>();
+  const rows = predictions
+    .filter((pick) => matchIds.includes(pick.matchId))
+    .sort((a, b) => Date.parse(a.updatedAt) - Date.parse(b.updatedAt));
+  for (const pick of rows) latest.set(pick.userId, pick.choice);
+  const values = [...latest.values()];
+  return {
+    sideA: values.filter((choice) => choice === "side-a").length,
+    sideB: values.filter((choice) => choice === "side-b").length,
+  };
 }
 
 export function cardLine(input: {
@@ -223,12 +236,14 @@ export function cardLine(input: {
   note?: string | null;
   result?: string | null;
 }): { title: string; detail?: string } {
-  const title = `${input.author} took ${takeLabel(input.choice, input.sideA, input.sideB)}`;
+  const side = takeLabel(input.choice, input.sideA, input.sideB);
+  const title =
+    input.choice === "halved" ? `${input.author} called a push` : `${input.author} is with ${side}`;
   const hit =
     input.result && input.result !== "pending"
       ? choiceHitsResult(input.choice, input.result)
       : null;
-  const grade = hit === true ? "Cashed it." : hit === false ? "Ate it." : null;
+  const grade = hit === true ? "Called it." : hit === false ? "Ate it." : null;
   const parts = [input.note?.trim() || null, grade].filter(Boolean);
   return { title, detail: parts.length ? parts.join(" · ") : undefined };
 }

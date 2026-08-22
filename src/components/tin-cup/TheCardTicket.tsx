@@ -7,6 +7,7 @@ import type { Match } from "@/hooks/useTournament";
 import { type MatchPredictionChoice } from "@/lib/social-platform";
 import {
   CARD_NOTE_MAX,
+  faceoffCrowd,
   pairingFirstNames,
   pendingMatchIds,
   pickOnMarket,
@@ -23,7 +24,6 @@ export function TheCardTicket({
   social,
   peopleA = [],
   peopleB = [],
-  variant = "slip",
   yours = false,
 }: {
   market: CardMarket;
@@ -33,18 +33,26 @@ export function TheCardTicket({
   social: ReturnType<typeof useMatchSocial>;
   peopleA?: CardFace[];
   peopleB?: CardFace[];
-  variant?: "slip" | "controls";
   yours?: boolean;
 }) {
   const mine = pickOnMarket(social.predictions, userId, market.matchIds);
   const openIds = pendingMatchIds(market, matches);
   const locked = market.locked || (market.matchIds.length > 0 && openIds.length === 0);
-  const canTake = Boolean(userId && claimed && !locked && openIds.length > 0);
+  const canPick = Boolean(userId && claimed && !locked && openIds.length > 0);
   const [line, setLine] = useState(mine?.note ?? "");
   const [composing, setComposing] = useState(false);
+  const crowd = faceoffCrowd(social.predictions, market.matchIds);
+  const busy = social.predict.isPending || social.clear.isPending;
+  const labelA = pairingFirstNames(market.sideA);
+  const labelB = pairingFirstNames(market.sideB);
 
-  function take(choice: MatchPredictionChoice) {
-    if (!canTake) return;
+  function pick(choice: MatchPredictionChoice) {
+    if (!canPick) return;
+    if (mine?.choice === choice) {
+      social.clear.mutate({ matchIds: openIds }, { onError: (error) => toast.error(error.message) });
+      setComposing(false);
+      return;
+    }
     social.predict.mutate(
       { matchIds: openIds, choice, note: composing ? line : undefined },
       {
@@ -57,119 +65,77 @@ export function TheCardTicket({
   }
 
   function saveLine() {
-    if (!mine || !canTake) return;
+    if (!mine || !canPick) return;
     social.predict.mutate(
       { matchIds: openIds.length ? openIds : market.matchIds, choice: mine.choice, note: line },
       {
         onSuccess: () => {
           setComposing(false);
-          toast.success("Line’s on the card");
+          toast.success("Line’s up");
         },
         onError: (error) => toast.error(error.message),
       },
     );
   }
 
-  const labelA = pairingFirstNames(market.sideA);
-  const labelB = pairingFirstNames(market.sideB);
-  const busy = social.predict.isPending;
-
-  if (variant === "controls") {
-    return (
-      <div className="mt-1.5">
-        <div className="flex gap-1.5">
-          <TakeChip
-            label="Take"
-            ariaLabel={`Take ${labelA}`}
-            selected={mine?.choice === "side-a"}
-            tone="hunter"
-            disabled={!canTake || busy}
-            onClick={() => take("side-a")}
-          />
-          <TakeChip
-            label="Half"
-            ariaLabel={`Half ${labelA} vs ${labelB}`}
-            selected={mine?.choice === "halved"}
-            disabled={!canTake || busy}
-            onClick={() => take("halved")}
-          />
-          <TakeChip
-            label="Take"
-            ariaLabel={`Take ${labelB}`}
-            selected={mine?.choice === "side-b"}
-            tone="stone"
-            disabled={!canTake || busy}
-            onClick={() => take("side-b")}
-          />
-        </div>
-        {mine?.note ? <p className="t-micro mt-1.5 italic text-foreground/80">“{mine.note}”</p> : null}
-      </div>
-    );
-  }
-
   return (
-    <article className={`flex gap-3 px-4 py-2.5 ${yours ? "bg-hunter/5" : ""}`}>
-      <span className="t-micro w-4 shrink-0 pt-3 tabular-nums text-muted-foreground">
-        {market.index}
-      </span>
-      <div className="min-w-0 flex-1">
+    <article className={`px-4 py-3 ${yours ? "bg-hunter/5" : ""}`}>
+      <p className="t-micro text-muted-foreground">
+        Faceoff {market.index}
+        {yours ? <span className="text-hunter"> · You</span> : null}
+        {locked ? " · Locked" : null}
+      </p>
+      <div className="mt-1.5">
         <SideRow
           people={peopleA}
           label={labelA}
           tone="hunter"
           selected={mine?.choice === "side-a"}
-          disabled={!canTake || busy}
-          onClick={() => take("side-a")}
+          crowd={crowd.sideA}
+          disabled={!canPick || busy}
+          onClick={() => pick("side-a")}
         />
+        <p className="t-micro py-0.5 text-center text-muted-foreground">vs</p>
         <SideRow
           people={peopleB}
           label={labelB}
           tone="stone"
           selected={mine?.choice === "side-b"}
-          disabled={!canTake || busy}
-          onClick={() => take("side-b")}
+          crowd={crowd.sideB}
+          disabled={!canPick || busy}
+          onClick={() => pick("side-b")}
         />
-        <button
-          type="button"
-          disabled={!canTake || busy}
-          aria-pressed={mine?.choice === "halved"}
-          aria-label={`Half ${labelA} vs ${labelB}`}
-          onClick={() => take("halved")}
-          className={`press t-micro mt-0.5 flex min-h-9 w-full items-center justify-end px-0.5 ${
-            mine?.choice === "halved" ? "font-semibold text-foreground" : "text-muted-foreground"
-          }`}
-        >
-          {mine?.choice === "halved" ? "Halved" : "Half"}
-        </button>
-        {canTake && mine && (composing || !mine.note) ? (
-          <div className="mt-1.5 flex gap-2">
-            <label className="sr-only" htmlFor={`card-line-${market.id}`}>
-              Add a line
-            </label>
-            <input
-              id={`card-line-${market.id}`}
-              value={line}
-              maxLength={CARD_NOTE_MAX}
-              placeholder="Add a line…"
-              onChange={(event) => {
-                setLine(event.target.value);
-                setComposing(true);
-              }}
-              className="control min-h-10 flex-1 text-sm"
-            />
-            <button
-              type="button"
-              onClick={saveLine}
-              disabled={busy}
-              className="press btn-quiet min-h-10 px-3 text-sm font-semibold"
-            >
-              Post
-            </button>
-          </div>
-        ) : mine?.note ? (
-          <p className="t-micro mt-1 italic text-foreground/80">“{mine.note}”</p>
-        ) : null}
       </div>
+      {canPick && mine && (composing || !mine.note) ? (
+        <div className="mt-2 flex gap-2">
+          <label className="sr-only" htmlFor={`card-line-${market.id}`}>
+            Talk your shit
+          </label>
+          <input
+            id={`card-line-${market.id}`}
+            value={line}
+            maxLength={CARD_NOTE_MAX}
+            placeholder="Talk your shit…"
+            onChange={(event) => {
+              setLine(event.target.value);
+              setComposing(true);
+            }}
+            className="control min-h-10 flex-1 text-sm"
+          />
+          <button
+            type="button"
+            onClick={saveLine}
+            disabled={busy}
+            className="press btn-quiet min-h-10 px-3 text-sm font-semibold"
+          >
+            Post
+          </button>
+        </div>
+      ) : mine?.note ? (
+        <p className="t-micro mt-2 italic text-foreground/80">“{mine.note}”</p>
+      ) : canPick ? (
+        <p className="t-micro mt-1.5 text-muted-foreground">Tap a side. Tap again to undo.</p>
+      ) : null}
     </article>
   );
 }
@@ -179,6 +145,7 @@ function SideRow({
   label,
   tone,
   selected,
+  crowd,
   disabled,
   onClick,
 }: {
@@ -186,67 +153,31 @@ function SideRow({
   label: string;
   tone: "hunter" | "stone";
   selected: boolean;
+  crowd: number;
   disabled: boolean;
   onClick: () => void;
 }) {
   const color = tone === "hunter" ? "text-hunter" : "text-stone";
-  const chipOn =
+  const fill =
     tone === "hunter"
-      ? "border-hunter/40 bg-hunter/10 text-hunter"
-      : "border-stone/40 bg-stone/15 text-stone";
+      ? "bg-hunter/10 ring-1 ring-hunter/30"
+      : "bg-stone/15 ring-1 ring-stone/30";
   return (
     <button
       type="button"
       disabled={disabled}
       aria-pressed={selected}
-      aria-label={`Take ${label}`}
+      aria-label={selected ? `Undo ${label}` : `Ride with ${label}`}
       onClick={onClick}
-      className="press flex min-h-11 w-full items-center gap-2 rounded-lg text-left"
+      className={`flex min-h-12 w-full items-center gap-2 rounded-xl px-2 text-left disabled:opacity-100 ${
+        disabled ? "cursor-default" : "press"
+      } ${selected ? fill : ""}`}
     >
       <AvatarPair people={people} size="sm" />
       <span className={`t-body min-w-0 flex-1 truncate font-semibold ${color}`}>{label}</span>
-      <span
-        className={`t-micro shrink-0 rounded-full border px-2.5 py-1 font-semibold ${
-          selected ? chipOn : "border-border text-muted-foreground"
-        }`}
-      >
-        {selected ? "Yours" : "Take"}
-      </span>
-    </button>
-  );
-}
-
-function TakeChip({
-  label,
-  ariaLabel,
-  selected,
-  tone,
-  disabled,
-  onClick,
-}: {
-  label: string;
-  ariaLabel: string;
-  selected: boolean;
-  tone?: "hunter" | "stone";
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  const on =
-    tone === "stone"
-      ? "border-stone/40 bg-stone/15 text-stone"
-      : "bg-hunter/10 text-hunter border-hunter/40";
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      aria-label={ariaLabel}
-      aria-pressed={selected}
-      onClick={onClick}
-      className={`press min-h-10 flex-1 rounded-full border px-2 text-xs font-semibold ${
-        selected ? on : "border-border text-muted-foreground"
-      }`}
-    >
-      {label}
+      {crowd > 0 ? (
+        <span className="t-micro tabular-nums text-muted-foreground">{crowd}</span>
+      ) : null}
     </button>
   );
 }

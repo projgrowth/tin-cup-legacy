@@ -58,14 +58,14 @@ export function TheCardSheet({
           <MedalMark size="xs" />
           <div>
             <h2 id="the-card-title" className="t-micro font-semibold text-foreground">
-              The Card
+              Faceoff
             </h2>
             <p className="t-micro">{CARD_DISCLAIMER}</p>
           </div>
         </div>
         {progress.total > 0 ? (
           <p className="t-micro tabular-nums text-muted-foreground">
-            {progress.taken}/{progress.total} taken
+            {progress.taken}/{progress.total} lined up
           </p>
         ) : null}
       </div>
@@ -105,11 +105,11 @@ export function TheCardSheet({
       ) : null}
       {!user ? (
         <Link to="/profile" className="press t-micro mt-1 flex min-h-11 items-center px-1 text-muted-foreground">
-          Sign in to take a side
+          Sign in to pick a side
         </Link>
       ) : !claimed ? (
         <Link to="/profile" className="press t-micro mt-1 flex min-h-11 items-center px-1 text-muted-foreground">
-          Claim a name to take a side
+          Claim a name to pick a side
         </Link>
       ) : null}
     </section>

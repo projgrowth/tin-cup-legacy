@@ -7,6 +7,7 @@ import {
   cardMarkets,
   cardRecords,
   choiceHitsResult,
+  faceoffCrowd,
   fridayCardMarkets,
   normalizeCardNote,
   pairingFirstNames,
@@ -69,7 +70,37 @@ describe("the card", () => {
     expect(pairingFirstNames("Zack / Chris")).toBe("Zack · Chris");
     expect(takeLabel("side-a", "Zack / Chris", "Charles / Blake")).toBe("Zack · Chris");
     expect(takeLabel("side-b", "Zack / Chris", "Charles / Blake")).toBe("Charles · Blake");
-    expect(takeLabel("halved", "Zack / Chris", "Charles / Blake")).toBe("Half");
+    expect(takeLabel("halved", "Zack / Chris", "Charles / Blake")).toBe("a push");
+  });
+
+  it("counts unique riders on a faceoff, not duplicate format rows", () => {
+    const crowd = faceoffCrowd(
+      [
+        {
+          matchId: "s1",
+          userId: "u1",
+          choice: "side-a",
+          createdAt: "",
+          updatedAt: "2026-08-22T12:00:00Z",
+        },
+        {
+          matchId: "a1",
+          userId: "u1",
+          choice: "side-a",
+          createdAt: "",
+          updatedAt: "2026-08-22T12:00:01Z",
+        },
+        {
+          matchId: "s1",
+          userId: "u2",
+          choice: "side-b",
+          createdAt: "",
+          updatedAt: "2026-08-22T12:00:02Z",
+        },
+      ],
+      ["s1", "a1"],
+    );
+    expect(crowd).toEqual({ sideA: 1, sideB: 1 });
   });
 
   it("trims roast notes to 140", () => {
@@ -165,7 +196,7 @@ describe("the card", () => {
         note: "Josef packed a compass.",
       }),
     ).toEqual({
-      title: "Dan took Kevin · Max",
+      title: "Dan is with Kevin · Max",
       detail: "Josef packed a compass.",
     });
     expect(
@@ -246,7 +277,7 @@ describe("the card", () => {
     expect(moments[0]).toMatchObject({
       key: "prediction:s1:u1",
       kind: "prediction",
-      title: "Dan took Kevin · Max",
+      title: "Dan is with Kevin · Max",
       detail: "easy money",
       shareable: false,
     });
