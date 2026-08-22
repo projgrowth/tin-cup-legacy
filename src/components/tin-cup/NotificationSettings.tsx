@@ -63,7 +63,7 @@ export function NotificationSettings({ userId }: { userId: string }) {
           {enabled ? <Bell className="size-5" /> : <BellOff className="size-5" />}
         </span>
         <div>
-          <h2 className="t-section text-foreground">Weekend alerts</h2>
+          <h2 className="t-eyebrow">Weekend alerts</h2>
           <p className="t-micro mt-1 text-muted-foreground">
             Opt in for tee reminders, your match, direct mentions, organizer announcements, review
             alerts, lead changes, and the final result. Never every score.

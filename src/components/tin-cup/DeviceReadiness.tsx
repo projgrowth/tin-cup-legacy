@@ -89,7 +89,7 @@ export function DeviceReadiness() {
             <Smartphone className="size-5" />
           </span>
           <div>
-            <h2 id="device-readiness-title" className="t-section text-foreground">
+            <h2 id="device-readiness-title" className="t-eyebrow">
               Device readiness
             </h2>
             <p className="t-micro mt-1">Prepare this phone before first tee.</p>

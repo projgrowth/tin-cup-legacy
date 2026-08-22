@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Camera, ChevronRight, Loader2 } from "lucide-react";
+import { Camera, Loader2 } from "lucide-react";
 
 import { AuthCard } from "@/components/tin-cup/AuthCard";
 import { Avatar } from "@/components/tin-cup/Avatar";
@@ -10,7 +10,6 @@ import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { PhotoPicker } from "@/components/tin-cup/PhotoPicker";
 import { NotificationSettings } from "@/components/tin-cup/NotificationSettings";
 import { DeviceReadiness } from "@/components/tin-cup/DeviceReadiness";
-import { ExperienceCustomizer } from "@/components/tin-cup/ExperienceCustomizer";
 import { LoadingForm, PageHeading, Shell } from "@/components/tin-cup/Shell";
 import { WhatsAppGroupButton } from "@/components/tin-cup/WhatsAppLinks";
 import { useAuth } from "@/hooks/useAuth";
@@ -233,7 +232,6 @@ function ProfilePage() {
           )}
           <GuestNotesMerge />
           {claimedPlayer && <DeviceReadiness />}
-          {claimedPlayer && <ExperienceCustomizer userId={user.id} teamSlug={claimedTeam?.slug} />}
           {claimedPlayer && <NotificationSettings userId={user.id} />}
           <ul className="surface divide-y divide-border overflow-hidden">
             {claimedPlayer && (
@@ -241,48 +239,43 @@ function ProfilePage() {
                 <Link
                   to="/player/$playerId"
                   params={{ playerId: claimedPlayer.id }}
-                  className="press flex min-h-12 items-center justify-between px-4 py-3"
+                  className="press flex min-h-12 items-center px-4 py-3"
                 >
                   <span className="t-body font-medium">Player card</span>
-                  <ChevronRight className="size-4 text-muted-foreground" />
                 </Link>
               </li>
             )}
             <li>
               <Link
                 to="/schedule"
-                className="press flex min-h-12 items-center justify-between px-4 py-3"
+                className="press flex min-h-12 items-center px-4 py-3"
               >
                 <span className="t-body font-medium">Weekend</span>
-                <ChevronRight className="size-4 text-muted-foreground" />
               </Link>
             </li>
             <li>
               <Link
                 to="/scout"
                 search={{ card: true }}
-                className="press flex min-h-12 items-center justify-between px-4 py-3"
+                className="press flex min-h-12 items-center px-4 py-3"
               >
                 <span className="t-body font-medium">Plan</span>
-                <ChevronRight className="size-4 text-muted-foreground" />
               </Link>
             </li>
             <li>
               <Link
                 to="/purse"
-                className="press flex min-h-12 items-center justify-between px-4 py-3"
+                className="press flex min-h-12 items-center px-4 py-3"
               >
                 <span className="t-body font-medium">Purse</span>
-                <ChevronRight className="size-4 text-muted-foreground" />
               </Link>
             </li>
             <li>
               <Link
                 to="/scout"
-                className="press flex min-h-12 items-center justify-between px-4 py-3"
+                className="press flex min-h-12 items-center px-4 py-3"
               >
                 <span className="t-body font-medium">Notes</span>
-                <ChevronRight className="size-4 text-muted-foreground" />
               </Link>
             </li>
             <li>

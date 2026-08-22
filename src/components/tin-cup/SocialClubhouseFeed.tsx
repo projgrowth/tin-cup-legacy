@@ -513,6 +513,7 @@ export function SocialClubhouseFeed({
             canModerate={canModerate}
           />
         )}
+        <div className="surface divide-y divide-border overflow-hidden empty:hidden">
         {showClubhouse &&
           story.clubhousePosts.map((post) => {
             const reactionKey = `clubhouse-post:${post.id}`;
@@ -524,7 +525,7 @@ export function SocialClubhouseFeed({
               <article
                 key={post.id}
                 id={`post-${post.id}`}
-                className={`feed-card ${post.pinned_at ? "announcement-card" : ""}`}
+                className={`px-4 py-3.5 ${post.pinned_at ? "announcement-card" : ""}`}
               >
                 <header className="flex items-start gap-3">
                   <Avatar
@@ -695,7 +696,7 @@ export function SocialClubhouseFeed({
             <article
               key={moment.key}
               id={`post-${moment.key}`}
-              className="feed-card overflow-hidden"
+              className="overflow-hidden"
             >
               {moment.kind === "photo" && mediaUrl ? (
                 <img
@@ -706,7 +707,7 @@ export function SocialClubhouseFeed({
               ) : moment.kind === "photo" && moment.mediaPath ? (
                 <div className="skeleton h-44 w-full" />
               ) : null}
-              <div className="px-0 pt-2">
+              <div className="px-4 py-3.5">
                 <header className="flex items-start gap-3">
                   <Avatar
                     name={moment.playerName || "Tin Cup"}
@@ -939,6 +940,7 @@ export function SocialClubhouseFeed({
             </article>
           );
         })}
+        </div>
       </div>
 
       {emptyFeed && (

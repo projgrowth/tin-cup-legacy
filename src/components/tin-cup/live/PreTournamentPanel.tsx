@@ -85,16 +85,18 @@ export function PreTournamentPanel({
         Pay ${BUY_IN}
       </a>
 
-      {tonight ? (
-        <Link
-          to="/schedule"
-          className="press t-micro flex min-h-11 items-center px-1 font-semibold text-foreground"
-        >
-          Tonight · {tonight.title}
-        </Link>
-      ) : null}
-
-      <InstallHint />
+      <div className="surface divide-y divide-border overflow-hidden empty:hidden">
+        {tonight ? (
+          <Link
+            to="/schedule"
+            className="press flex min-h-11 items-center justify-between px-4 py-3"
+          >
+            <span className="t-body font-medium text-foreground">Tonight · {tonight.title}</span>
+            <span className="t-micro">Weekend</span>
+          </Link>
+        ) : null}
+        <InstallHint embedded />
+      </div>
 
       {VENMO_IS_PLACEHOLDER && (
         <p className="t-micro px-1 text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>

@@ -79,7 +79,7 @@ export function ShareBoardButton({
 const INSTALL_KEY = "tc-install-hint-dismissed";
 
 /** One-time install row so Safari chrome stops eating the hole map. */
-export function InstallHint() {
+export function InstallHint({ embedded = false }: { embedded?: boolean }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -97,7 +97,11 @@ export function InstallHint() {
   if (!visible) return null;
 
   return (
-    <div className="surface flex min-h-11 items-center justify-between gap-3 px-4 py-3">
+    <div
+      className={`flex min-h-11 items-center justify-between gap-3 px-4 py-3 ${
+        embedded ? "" : "surface"
+      }`}
+    >
       <p className="min-w-0">
         <span className="t-body block font-medium text-foreground">Add to Home Screen</span>
         <span className="t-micro block">iPhone: Share → Add to Home Screen</span>

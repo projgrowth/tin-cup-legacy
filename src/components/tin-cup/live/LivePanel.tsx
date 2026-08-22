@@ -103,7 +103,7 @@ export function LivePanel({
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <h2 className="t-section text-foreground">Matches</h2>
+            <h2 className="t-eyebrow">Matches</h2>
             {!canScore && (
               <p className="t-micro mt-0.5 text-muted-foreground">
                 Live cup · scores posted by captains

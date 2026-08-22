@@ -730,13 +730,7 @@
   border-bottom: 0;
 }
 .announcement-card {
-  border: 1px solid oklch(from var(--hunter) l c h / 18%);
-  border-radius: var(--radius-card);
-  background:
-    linear-gradient(135deg, oklch(from var(--hunter) l c h / 8%), transparent 55%),
-    var(--card);
-  padding-inline: 1rem;
-  margin-bottom: 0.35rem;
+  background: oklch(from var(--hunter) l c h / 8%);
 }
 .player-flair {
   display: inline-flex;
