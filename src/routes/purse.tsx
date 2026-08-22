@@ -64,7 +64,7 @@ function PursePage() {
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className="press btn-gold t-body mt-4 flex min-h-11 w-full max-w-sm justify-center"
+            className="press btn-primary t-body mt-4 flex min-h-11 w-full max-w-sm justify-center"
           >
             Pay ${BUY_IN}
           </a>

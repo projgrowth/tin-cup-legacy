@@ -76,7 +76,7 @@ export function ScoringRehearsal() {
           return (
             <li key={step.id} className="flex gap-3 py-3">
               <span
-                className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full ${done ? "bg-gold/20 text-gold-light" : "bg-secondary text-muted-foreground"}`}
+                className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full ${done ? "bg-hunter/15 text-hunter" : "bg-secondary text-muted-foreground"}`}
               >
                 {done ? <CheckCircle2 className="size-4" /> : <Smartphone className="size-3.5" />}
               </span>
@@ -93,7 +93,7 @@ export function ScoringRehearsal() {
           <button
             type="button"
             onClick={() => run(next.id)}
-            className="press btn-gold t-body flex min-h-11 flex-1 items-center justify-center gap-2"
+            className="press btn-primary t-body flex min-h-11 flex-1 items-center justify-center gap-2"
           >
             <Play className="size-4" />
             Run next step

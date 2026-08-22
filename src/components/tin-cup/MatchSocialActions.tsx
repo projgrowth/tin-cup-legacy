@@ -47,7 +47,7 @@ export function MatchSocialActions({
         <div>
           <div className="flex items-center justify-between gap-2">
             <p className="t-eyebrow flex items-center gap-1.5 text-foreground/75">
-              <Sparkles className="size-3.5 text-gold-light" /> Who wins?
+              <Sparkles className="size-3.5 text-hunter" /> Who wins?
             </p>
             <span className="t-micro">Social · no Cup points</span>
           </div>
@@ -74,7 +74,7 @@ export function MatchSocialActions({
                   }
                   className={`press min-h-11 rounded-xl border px-2 text-xs font-semibold ${
                     selected
-                      ? "border-gold/45 bg-gold/15 text-gold-light"
+                      ? "border-hunter/45 bg-hunter/10 text-hunter"
                       : "border-border bg-black/10 text-muted-foreground"
                   }`}
                 >

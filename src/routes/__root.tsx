@@ -28,7 +28,7 @@ function NotFoundComponent() {
           That link doesn&apos;t match anything in the weekend hub.
         </p>
         <div className="mt-6">
-          <Link to="/" className="press btn-gold t-body inline-flex min-h-11 px-5">
+          <Link to="/" className="press btn-primary t-body inline-flex min-h-11 px-5">
             Back to Home
           </Link>
         </div>
@@ -54,7 +54,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             type="button"
-            className="press btn-gold t-body min-h-11 px-5"
+            className="press btn-primary t-body min-h-11 px-5"
             onClick={() => {
               router.invalidate();
               reset();

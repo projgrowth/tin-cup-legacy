@@ -47,7 +47,7 @@ export function PageMasthead({
         }
       >
         {kicker ? (
-          <p className={`t-micro ${photo ? "text-gold-light" : "text-muted-foreground"}`}>{kicker}</p>
+          <p className={`t-micro ${photo ? "text-white" : "text-muted-foreground"}`}>{kicker}</p>
         ) : null}
         <h1
           className={`${size === "display" ? "t-display" : "t-title"} ${kicker ? "mt-1.5" : ""} ${

@@ -155,7 +155,7 @@ export function ExperienceCustomizer({
   return (
     <section className="surface-raised overflow-hidden" aria-labelledby="experience-title">
       <div className="border-b border-border p-4 sm:p-5">
-        <p className="t-eyebrow flex items-center gap-1.5 text-gold-light">
+        <p className="t-eyebrow flex items-center gap-1.5 text-hunter">
           <Sparkles className="size-3.5" /> Make it yours
         </p>
         <h2 id="experience-title" className="t-title mt-1 text-foreground">
@@ -207,7 +207,7 @@ export function ExperienceCustomizer({
                   setPreviewing(true);
                 }}
                 className={`press min-h-20 rounded-2xl border p-3 text-left ${
-                  preset === item.value ? "border-gold/45 bg-gold/12" : "border-border bg-black/10"
+                  preset === item.value ? "border-hunter/45 bg-hunter/10" : "border-border bg-secondary"
                 }`}
               >
                 <span className="block text-sm font-bold text-foreground">{item.label}</span>
@@ -240,7 +240,7 @@ export function ExperienceCustomizer({
                 type="button"
                 aria-pressed={layoutMode === value}
                 onClick={() => setLayoutMode(value)}
-                className={`press min-h-11 rounded-xl border px-3 text-sm font-semibold capitalize ${layoutMode === value ? "border-gold/45 bg-gold/12 text-foreground" : "border-border text-muted-foreground"}`}
+                className={`press min-h-11 rounded-xl border px-3 text-sm font-semibold capitalize ${layoutMode === value ? "border-hunter/45 bg-hunter/10 text-foreground" : "border-border text-muted-foreground"}`}
               >
                 {value} order
               </button>
@@ -284,7 +284,7 @@ export function ExperienceCustomizer({
             type="button"
             disabled={saveProfile.isPending || experience.save.isPending}
             onClick={() => void save()}
-            className="press btn-gold flex min-h-12 flex-1 items-center justify-center gap-2 text-sm font-bold"
+            className="press btn-primary flex min-h-12 flex-1 items-center justify-center gap-2 text-sm font-bold"
           >
             <Save className="size-4" /> Save style
           </button>
@@ -306,7 +306,7 @@ export function ExperienceCustomizer({
           )}
         </div>
         {previewing && (
-          <p role="status" className="t-micro flex items-center gap-2 text-gold-light">
+          <p role="status" className="t-micro flex items-center gap-2 text-hunter">
             <Eye className="size-4" /> Previewing {preset}. Save to keep it.
           </p>
         )}

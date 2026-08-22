@@ -146,7 +146,7 @@ export function WeekendRecap({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#06120f] via-[#06120f]/70 to-transparent" />
         <div className="relative">
-        <p className="event-kicker text-gold-light">The complete story</p>
+        <p className="event-kicker text-hunter">The complete story</p>
         <h1
           id="weekend-recap-title"
           className={`${winner || decided.length ? "event-title" : "t-display"} mt-3 text-white`}
@@ -158,9 +158,9 @@ export function WeekendRecap({
               : "The weekend is still being written"}
         </h1>
         <p className="t-hero mt-4">
-          <span className="text-gold-light">{standings.strongMental}</span>
+          <span className="text-hunter">{standings.strongMental}</span>
           <span className="mx-3 text-white/30">–</span>
-          <span className="text-copper">{standings.grassRoots}</span>
+          <span className="text-stone">{standings.grassRoots}</span>
         </p>
         <p className="t-body mt-2 text-white/75">
           {decided.length} official results · {photos.length} photos · {story.comments.length}{" "}
@@ -228,7 +228,7 @@ export function WeekendRecap({
       <section className="surface p-4 sm:p-5">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="t-eyebrow text-gold-light">Leaderboard</p>
+            <p className="t-eyebrow text-hunter">Leaderboard</p>
             <h2 className="t-title mt-1">Player records</h2>
           </div>
           <Users className="size-5 text-muted-foreground" />
@@ -269,7 +269,7 @@ export function WeekendRecap({
       <div className="grid gap-3 md:grid-cols-2">
         {decided.length > 0 && (
         <section className="surface p-4 md:col-span-2">
-          <p className="t-eyebrow text-gold-light">Turning points</p>
+          <p className="t-eyebrow text-hunter">Turning points</p>
           <h2 className="t-title mt-1">Matches that shaped the Cup</h2>
             <ol className="mt-3 grid gap-2 sm:grid-cols-2">
               {decided
@@ -297,7 +297,7 @@ export function WeekendRecap({
         {(sideBets.some((bet) => bet.player_name) ||
           trophies.some((trophy) => trophy.winner_name)) && (
         <section className="surface p-4">
-          <p className="t-eyebrow text-gold-light">Side board</p>
+          <p className="t-eyebrow text-hunter">Side board</p>
           <h2 className="t-title mt-1">Cash and trophies</h2>
           <ul className="mt-3 space-y-2">
             {sideBets
@@ -324,7 +324,7 @@ export function WeekendRecap({
         )}
         {predictionStandings.length > 0 && (
         <section className="surface p-4">
-          <p className="t-eyebrow text-gold-light">Social calls</p>
+          <p className="t-eyebrow text-hunter">Social calls</p>
           <h2 className="t-title mt-1">Prediction standings</h2>
             <ol className="mt-3 space-y-2">
               {predictionStandings.slice(0, 5).map((row, index) => (
@@ -352,7 +352,7 @@ export function WeekendRecap({
       )}
 
       <section className="surface p-4">
-        <p className="t-eyebrow text-gold-light">Team cards</p>
+        <p className="t-eyebrow text-hunter">Team cards</p>
         <h2 className="t-title mt-1">Share each side’s weekend</h2>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {teams.map((team) => {
@@ -383,12 +383,12 @@ export function WeekendRecap({
 
       {achievements.length > 0 && (
         <section className="surface p-4">
-          <p className="t-eyebrow text-gold-light">Your weekend</p>
+          <p className="t-eyebrow text-hunter">Your weekend</p>
           <h2 className="t-title mt-1">Achievements</h2>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
             {achievements.map((achievement) => (
               <li key={achievement.id} className="surface-inset flex items-start gap-3 p-3">
-                <Medal className="mt-0.5 size-5 shrink-0 text-gold-light" />
+                <Medal className="mt-0.5 size-5 shrink-0 text-hunter" />
                 <span>
                   <strong className="block text-sm text-foreground">{achievement.label}</strong>
                   <span className="t-micro block">{achievement.detail}</span>
@@ -401,14 +401,14 @@ export function WeekendRecap({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Link to="/photos" className="press surface-raised flex min-h-20 items-center gap-3 p-4">
-          <Camera className="size-5 text-gold-light" />
+          <Camera className="size-5 text-hunter" />
           <span>
             <strong className="block text-foreground">Open the complete gallery</strong>
             <span className="t-micro">Favorite and download the weekend</span>
           </span>
         </Link>
         <Link to="/" className="press surface-raised flex min-h-20 items-center gap-3 p-4">
-          <MessageCircle className="size-5 text-gold-light" />
+          <MessageCircle className="size-5 text-hunter" />
           <span>
             <strong className="block text-foreground">Back to the Clubhouse</strong>
             <span className="t-micro">Keep the conversation on Home</span>
@@ -460,7 +460,7 @@ function RecapStat({
 }) {
   return (
     <article className="surface p-4">
-      <Icon className="size-5 text-gold-light" />
+      <Icon className="size-5 text-hunter" />
       <p className="t-eyebrow mt-3">{label}</p>
       <p className="t-hero mt-1 text-foreground">{value}</p>
       <p className="t-micro mt-1">{detail}</p>

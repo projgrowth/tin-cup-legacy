@@ -146,7 +146,7 @@ export function PlanSheet({
             aria-current={active ? "true" : undefined}
             className={`press relative size-11 shrink-0 rounded-full text-sm font-bold tabular-nums transition-colors ${
               active
-                ? "bg-gold/20 text-gold-light ring-1 ring-gold/40"
+                ? "bg-white/20 text-white ring-1 ring-white/40"
                 : snake
                   ? "bg-white/5 text-copper"
                   : planned
@@ -158,14 +158,14 @@ export function PlanSheet({
             {planned && !active ? (
               <span
                 aria-hidden
-                className="absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-gold"
+                className="absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-white"
               />
             ) : null}
             {contests.length > 0 && !active ? (
               <span
                 aria-hidden
                 className={`absolute right-0.5 top-0.5 size-1.5 rounded-full ${
-                  contests.includes("ld") ? "bg-copper" : "bg-gold-light"
+                  contests.includes("ld") ? "bg-amber-200" : "bg-white"
                 }`}
               />
             ) : null}

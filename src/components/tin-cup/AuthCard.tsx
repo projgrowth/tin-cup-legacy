@@ -222,7 +222,7 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
           type="button"
           disabled={busy}
           onClick={() => void sendMagicLink()}
-          className="press btn-gold t-body min-h-12 w-full"
+          className="press btn-primary t-body min-h-12 w-full"
         >
           {busy ? "Sending…" : "Email me a sign-in link"}
         </button>
@@ -246,7 +246,7 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
             type="button"
             disabled={busy}
             onClick={() => void submitPassword()}
-            className="press btn-gold t-body min-h-12 w-full"
+            className="press btn-primary t-body min-h-12 w-full"
           >
             {busy ? "Working…" : mode === "password-up" ? "Create account" : "Sign in"}
           </button>

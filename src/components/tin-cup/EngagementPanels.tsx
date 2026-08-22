@@ -65,7 +65,7 @@ export function ClubhouseEngagement({
                 id="checkin-title"
                 className="t-eyebrow flex items-center gap-1.5 text-foreground/75"
               >
-                <MapPin className="size-3.5 text-gold-light" /> Around the resort
+                <MapPin className="size-3.5 text-hunter" /> Around the resort
               </p>
               <p className="t-micro mt-1">Visible only to claimed players · expires in six hours</p>
             </div>
@@ -113,7 +113,7 @@ export function ClubhouseEngagement({
       {engagement.promptsEnabled &&
         activePrompts.map((prompt) => (
           <article key={prompt.id} className="engagement-prompt surface-raised p-4">
-            <p className="t-eyebrow flex items-center gap-1.5 text-gold-light">
+            <p className="t-eyebrow flex items-center gap-1.5 text-hunter">
               {prompt.kind === "photo" ? (
                 <Camera className="size-3.5" />
               ) : (
@@ -143,7 +143,7 @@ export function ClubhouseEngagement({
             className="press surface-inset flex min-h-12 w-full items-center justify-between gap-3 px-4 text-left"
           >
             <span className="t-body flex items-center gap-2 font-semibold text-foreground">
-              <BarChart3 className="size-4 text-gold-light" /> Create a Clubhouse poll
+              <BarChart3 className="size-4 text-hunter" /> Create a Clubhouse poll
             </span>
             <ChevronDown
               className={`size-4 transition-transform ${showPoll ? "rotate-180" : ""}`}
@@ -216,7 +216,7 @@ export function ClubhouseEngagement({
                     !question.trim() ||
                     options.filter((option) => option.trim()).length < 2
                   }
-                  className="press btn-gold ml-auto flex min-h-11 items-center gap-2 px-4 text-sm font-semibold"
+                  className="press btn-primary ml-auto flex min-h-11 items-center gap-2 px-4 text-sm font-semibold"
                 >
                   <Send className="size-4" /> Post poll
                 </button>
@@ -234,7 +234,7 @@ export function ClubhouseEngagement({
               <article key={poll.id} id={`post-poll:${poll.id}`} className="feed-card">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="t-eyebrow text-gold-light">Clubhouse poll</p>
+                    <p className="t-eyebrow text-hunter">Clubhouse poll</p>
                     <h3 className="t-title mt-1 text-foreground">{poll.question}</h3>
                   </div>
                   {closed && (
@@ -357,7 +357,7 @@ export function PromptManager({
   return (
     <section className="surface space-y-3 p-4" aria-labelledby="prompt-manager-title">
       <div>
-        <p className="t-eyebrow text-gold-light">Engagement</p>
+        <p className="t-eyebrow text-hunter">Engagement</p>
         <h2 id="prompt-manager-title" className="t-section mt-1">
           Schedule a live prompt
         </h2>
@@ -427,7 +427,7 @@ export function PromptManager({
             },
           );
         }}
-        className="press btn-gold min-h-11 w-full text-sm font-semibold"
+        className="press btn-primary min-h-11 w-full text-sm font-semibold"
       >
         Schedule for 24 hours
       </button>

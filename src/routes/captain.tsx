@@ -100,7 +100,7 @@ function CaptainPage() {
               <button
                 type="button"
                 onClick={() => void navigate({ to: "/" })}
-                className="press btn-gold t-body min-h-11 w-full"
+                className="press btn-primary t-body min-h-11 w-full"
               >
                 {canScore ? "Go score on Live" : "Open Live board"}
               </button>

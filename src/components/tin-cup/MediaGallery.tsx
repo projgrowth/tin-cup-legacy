@@ -169,7 +169,7 @@ export function MediaGallery({
             disabled={downloading || filtered.length === 0}
             onClick={() => void downloadZip(filtered)}
             className={`press flex min-h-11 items-center gap-2 px-4 text-sm font-semibold ${
-              filtered.length === 0 ? "btn-quiet" : "btn-gold"
+              filtered.length === 0 ? "btn-quiet" : "btn-primary"
             }`}
           >
             {downloading ? (
@@ -315,7 +315,7 @@ export function MediaGallery({
                       {item.subtitle || item.eventTag || "Weekend photo"}
                     </span>
                   </span>
-                  {item.featured && <Star className="size-4 shrink-0 text-gold-light" />}
+                  {item.featured && <Star className="size-4 shrink-0 text-hunter" />}
                 </figcaption>
                 {user && item.photoId && (
                   <button
@@ -327,7 +327,7 @@ export function MediaGallery({
                         onError: (error) => toast.error(error.message),
                       })
                     }
-                    className={`press absolute right-2 top-2 flex size-11 items-center justify-center rounded-full border backdrop-blur-md ${favorite ? "border-gold/50 bg-gold/20 text-gold-light" : "border-white/15 bg-black/45 text-white"}`}
+                    className={`press absolute right-2 top-2 flex size-11 items-center justify-center rounded-full border backdrop-blur-md ${favorite ? "border-gold/50 bg-gold/20 text-hunter" : "border-white/15 bg-black/45 text-white"}`}
                   >
                     <Heart className={`size-5 ${favorite ? "fill-current" : ""}`} />
                   </button>
@@ -338,7 +338,7 @@ export function MediaGallery({
                     aria-label={item.featured ? "Remove featured photo" : "Feature this photo"}
                     aria-pressed={Boolean(item.featured)}
                     onClick={() => void toggleFeatured(item.photoId!)}
-                    className={`press absolute left-2 top-2 flex size-11 items-center justify-center rounded-full border backdrop-blur-md ${item.featured ? "border-gold/50 bg-gold/20 text-gold-light" : "border-white/15 bg-black/45 text-white"}`}
+                    className={`press absolute left-2 top-2 flex size-11 items-center justify-center rounded-full border backdrop-blur-md ${item.featured ? "border-gold/50 bg-gold/20 text-hunter" : "border-white/15 bg-black/45 text-white"}`}
                   >
                     <Star className={`size-5 ${item.featured ? "fill-current" : ""}`} />
                   </button>

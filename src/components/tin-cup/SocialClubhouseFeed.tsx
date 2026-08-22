@@ -345,7 +345,7 @@ export function SocialClubhouseFeed({
                 type="button"
                 disabled={!canParticipate || !draft.trim() || story.addComment.isPending}
                 onClick={submitPost}
-                className="press btn-gold flex min-h-11 items-center gap-2 px-4 text-sm font-semibold"
+                className="press btn-primary flex min-h-11 items-center gap-2 px-4 text-sm font-semibold"
               >
                 <Send className="size-4" /> Post
               </button>
@@ -403,7 +403,7 @@ export function SocialClubhouseFeed({
         <details className="surface-inset overflow-hidden">
           <summary className="press flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
             <span className="flex items-center gap-2">
-              <Megaphone className="size-4 text-gold-light" /> Organizer announcement
+              <Megaphone className="size-4 text-hunter" /> Organizer announcement
             </span>
             <span className="t-micro">Compose</span>
           </summary>
@@ -457,7 +457,7 @@ export function SocialClubhouseFeed({
               <button
                 type="submit"
                 disabled={!announcement.trim() || story.addAnnouncement.isPending}
-                className="press btn-gold flex min-h-11 items-center gap-2 px-4 text-sm font-semibold"
+                className="press btn-primary flex min-h-11 items-center gap-2 px-4 text-sm font-semibold"
               >
                 <Megaphone className="size-4" /> Publish and pin
               </button>
@@ -536,7 +536,7 @@ export function SocialClubhouseFeed({
                         </span>
                       )}
                       {post.pinned_at && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-gold/15 px-2 py-0.5 text-xs font-semibold text-gold-light">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-gold/15 px-2 py-0.5 text-xs font-semibold text-hunter">
                           <Pin className="size-3" /> Pinned
                         </span>
                       )}
@@ -632,7 +632,7 @@ export function SocialClubhouseFeed({
                       <button
                         type="submit"
                         disabled={!editing.body.trim() || story.editComment.isPending}
-                        className="press btn-gold flex min-h-11 items-center gap-2 px-3 text-sm font-semibold"
+                        className="press btn-primary flex min-h-11 items-center gap-2 px-3 text-sm font-semibold"
                       >
                         <Pencil className="size-4" /> Save edit
                       </button>
@@ -798,7 +798,7 @@ export function SocialClubhouseFeed({
                             <div className="flex gap-2">
                               <button
                                 type="submit"
-                                className="press btn-gold min-h-11 px-3 text-sm"
+                                className="press btn-primary min-h-11 px-3 text-sm"
                               >
                                 Save
                               </button>
@@ -915,7 +915,7 @@ export function SocialClubhouseFeed({
                         </select>
                         <button
                           type="submit"
-                          className="press btn-gold flex size-11 items-center justify-center"
+                          className="press btn-primary flex size-11 items-center justify-center"
                         >
                           <Send className="size-4" /> <span className="sr-only">Post comment</span>
                         </button>

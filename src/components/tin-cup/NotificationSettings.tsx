@@ -59,7 +59,7 @@ export function NotificationSettings({ userId }: { userId: string }) {
   return (
     <section className="surface space-y-3 p-4">
       <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gold/10 text-gold-light">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-hunter/10 text-hunter">
           {enabled ? <Bell className="size-5" /> : <BellOff className="size-5" />}
         </span>
         <div>
@@ -192,7 +192,7 @@ export function NotificationSettings({ userId }: { userId: string }) {
                   setBusy(false);
                 }
               }}
-              className="press btn-gold flex min-h-11 items-center justify-center gap-2 text-sm font-semibold"
+              className="press btn-primary flex min-h-11 items-center justify-center gap-2 text-sm font-semibold"
             >
               <Save className="size-4" /> Save alerts
             </button>

@@ -61,7 +61,7 @@ export function SeatWelcome() {
         <Link
           to="/profile"
           onClick={chooseField}
-          className="press btn-gold t-body flex min-h-12 w-full items-center justify-center"
+          className="press btn-primary t-body flex min-h-12 w-full items-center justify-center"
         >
           I&apos;m in the field
         </Link>

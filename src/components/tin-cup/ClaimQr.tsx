@@ -70,7 +70,7 @@ export function ClaimQrButton({ player }: { player: ClaimPlayer }) {
           href={qr || undefined}
           download={`tin-cup-claim-${player.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.png`}
           aria-disabled={!qr}
-          className="press btn-gold t-body flex min-h-11 items-center justify-center gap-2"
+          className="press btn-primary t-body flex min-h-11 items-center justify-center gap-2"
         >
           <Download className="size-4" /> Download QR
         </a>

@@ -49,7 +49,7 @@ function YardCol({
 }) {
   const color =
     tone === "gold"
-      ? "text-gold-light"
+      ? "text-white"
       : tone === "sky"
         ? "text-sky-100"
         : "text-white/80";
@@ -59,7 +59,7 @@ function YardCol({
       <p
         className={`hud-label ${
           tone === "gold"
-            ? "text-gold-light/75"
+            ? "text-white/70"
             : tone === "sky"
               ? "text-sky-300/80"
               : "text-white/45"

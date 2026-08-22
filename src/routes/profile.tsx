@@ -183,7 +183,7 @@ function ProfilePage() {
           </p>
           <button
             type="button"
-            className="press btn-gold t-body min-h-11 w-full"
+            className="press btn-primary t-body min-h-11 w-full"
             onClick={() => void refetch()}
           >
             Retry
@@ -208,7 +208,7 @@ function ProfilePage() {
               </p>
               <button
                 type="button"
-                className="press btn-gold t-body min-h-11 w-full"
+                className="press btn-primary t-body min-h-11 w-full"
                 onClick={() => void refetchTournament()}
               >
                 Retry
@@ -272,7 +272,7 @@ function ProfilePage() {
               {canScore && (
                 <Link
                   to="/ops"
-                  className="press inline-flex min-h-11 items-center font-semibold text-gold-light"
+                  className="press inline-flex min-h-11 items-center font-semibold text-hunter"
                 >
                   Ops
                 </Link>
@@ -338,7 +338,7 @@ function SetNewPassword({ onDone }: { onDone: () => void }) {
         type="button"
         disabled={busy}
         onClick={() => void save()}
-        className="press btn-gold t-body w-full"
+        className="press btn-primary t-body w-full"
       >
         {busy ? "Saving…" : "Save password"}
       </button>
@@ -515,7 +515,7 @@ function GuestNotesMerge() {
           type="button"
           disabled={busy}
           onClick={() => void merge()}
-          className="press btn-gold t-body"
+          className="press btn-primary t-body"
         >
           {busy ? "Moving…" : "Save to account"}
         </button>
@@ -673,7 +673,7 @@ function Identity({
               },
             )
           }
-          className="press btn-gold t-body w-full"
+          className="press btn-primary t-body w-full"
         >
           {save.isPending ? "Saving…" : needsClaim ? "Save my name" : "Save profile"}
         </button>

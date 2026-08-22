@@ -78,7 +78,7 @@ export function HolePlanFields({
           <LinkIcon className="mt-0.5 size-3.5 shrink-0" />
           <span>
             On this device until you{" "}
-            <Link to="/profile" className="font-semibold text-gold-light underline">
+            <Link to="/profile" className="font-semibold text-hunter underline">
               sign in
             </Link>
           </span>

@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { AlertTriangle, CloudOff, User } from "lucide-react";
 
 import { BottomNav } from "./BottomNav";
+import { BrandMark } from "./BrandMark";
 import { PageMasthead } from "./PageMasthead";
 import { SeatWelcome } from "./SeatWelcome";
 import { Avatar } from "./Avatar";
@@ -106,13 +107,7 @@ export function Shell({
           className={`mx-auto grid w-full ${width} min-h-[var(--header-height)] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-1.5 sm:px-5`}
         >
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
-            <img
-              src="/tin-cup-logo.png"
-              alt="The Tin Cup Invitational"
-              width={34}
-              height={34}
-              className="size-8.5 shrink-0 object-contain"
-            />
+            <BrandMark />
             {cupLive ? (
               <span className="flex items-center gap-2">
                 <span

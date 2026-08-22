@@ -5,7 +5,7 @@ import type { WeekendContext } from "@/lib/weekend-context";
 
 function ActionLink({ context }: { context: WeekendContext }) {
   const action = context.nextAction;
-  const className = "press btn-gold t-body flex min-h-11 w-full items-center justify-center sm:min-w-48";
+  const className = "press btn-primary t-body flex min-h-11 w-full items-center justify-center sm:min-w-48";
   if (action.kind === "loading-identity") {
     return <p className="t-micro text-muted-foreground">{action.label}</p>;
   }
