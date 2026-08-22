@@ -1,4 +1,4 @@
-/** Crest on hunter — gold PNG’s black field drops out via screen blend. */
+/** Crest in hunter ink on paper — luminance of the gold PNG is the mask. */
 export function BrandMark({
   className = "",
   size = "sm",
@@ -8,18 +8,30 @@ export function BrandMark({
   size?: "sm" | "lg";
   decorative?: boolean;
 }) {
-  const box = size === "lg" ? "size-[4.5rem] rounded-xl" : "size-9 rounded-md";
+  const box = size === "lg" ? "size-[4.5rem]" : "size-9";
   return (
-    <span
-      className={`inline-flex shrink-0 items-center justify-center overflow-hidden bg-hunter ${box} ${className}`.trim()}
-    >
+    <span className={`relative inline-flex shrink-0 ${box} ${className}`.trim()}>
+      <span
+        aria-hidden
+        className="absolute inset-0 bg-hunter"
+        style={{
+          maskImage: "url(/tin-cup-logo.png)",
+          WebkitMaskImage: "url(/tin-cup-logo.png)",
+          maskSize: "contain",
+          WebkitMaskSize: "contain",
+          maskRepeat: "no-repeat",
+          WebkitMaskRepeat: "no-repeat",
+          maskPosition: "center",
+          WebkitMaskPosition: "center",
+        }}
+      />
       <img
         src="/tin-cup-logo.png"
         alt={decorative ? "" : "The Tin Cup Invitational"}
         width={size === "lg" ? 72 : 36}
         height={size === "lg" ? 72 : 36}
         aria-hidden={decorative || undefined}
-        className="size-[118%] max-w-none object-contain mix-blend-screen"
+        className="relative size-full object-contain opacity-0"
       />
     </span>
   );

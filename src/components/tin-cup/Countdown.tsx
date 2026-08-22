@@ -1,6 +1,7 @@
 import { formatCountdown } from "@/lib/countdown";
 import { useLiveCountdown } from "@/lib/use-live-countdown";
 
+/** Full-width first-tee clock. Compact is a single caption for tight slots. */
 export function Countdown({ compact = false }: { compact?: boolean }) {
   const time = useLiveCountdown();
   const close = !time.done && time.remaining < 86_400_000;
@@ -20,21 +21,43 @@ export function Countdown({ compact = false }: { compact?: boolean }) {
   }
 
   if (time.done) {
-    return <p className="t-micro text-hunter">On the tee · Friday 12:19</p>;
+    return (
+      <section aria-live="polite">
+        <p className="t-micro text-hunter">On the tee · Friday 12:19</p>
+      </section>
+    );
   }
 
-  const line = close
-    ? `${String(time.hours + time.days * 24).padStart(2, "0")}:${String(time.minutes).padStart(2, "0")}:${String(time.seconds).padStart(2, "0")}`
-    : `${time.days}d ${String(time.hours).padStart(2, "0")}h ${String(time.minutes).padStart(2, "0")}m`;
+  const cells = close
+    ? [
+        { n: time.hours + time.days * 24, label: "Hours" },
+        { n: time.minutes, label: "Minutes" },
+        { n: time.seconds, label: "Seconds" },
+      ]
+    : [
+        { n: time.days, label: "Days" },
+        { n: time.hours, label: "Hours" },
+        { n: time.minutes, label: "Minutes" },
+      ];
 
   return (
     <section aria-live="polite">
       <p suppressHydrationWarning className="sr-only">
         {formatCountdown(time.remaining)}
       </p>
-      <p suppressHydrationWarning className="t-micro tabular-nums text-muted-foreground">
-        Friday 12:19 · <span className="font-semibold text-foreground">{line}</span>
-      </p>
+      <div className="grid grid-cols-3">
+        {cells.map((cell) => (
+          <div key={cell.label} className="px-1 py-4 text-center">
+            <p
+              suppressHydrationWarning
+              className="t-numeral text-[clamp(1.85rem,8vw,2.6rem)] text-foreground"
+            >
+              {String(cell.n).padStart(2, "0")}
+            </p>
+            <p className="t-micro mt-1.5">{cell.label}</p>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

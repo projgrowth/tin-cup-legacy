@@ -39,7 +39,7 @@ function NineRule({
       <p className="t-micro font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="t-micro tabular-nums">
         Par {par}
-        <span className="mx-1.5 text-white/20">·</span>
+        <span className="mx-1.5 text-muted-foreground">·</span>
         {yards.toLocaleString()} yds
       </p>
     </div>
@@ -80,7 +80,7 @@ function HoleRow({
   }, [selected]);
 
   return (
-    <div ref={rowRef} className={`border-t border-white/6 ${selected ? "bg-white/[0.035]" : ""}`}>
+    <div ref={rowRef} className={`border-t border-border ${selected ? "bg-hunter/[0.04]" : ""}`}>
       <div className="flex items-stretch">
         <button
           type="button"
@@ -94,10 +94,10 @@ function HoleRow({
               selected
                 ? "bg-hunter/15 text-hunter ring-1 ring-hunter/35"
                 : snake
-                  ? "bg-white/5 text-copper"
+                  ? "bg-stone/10 text-copper"
                   : planned
-                    ? "bg-white/8 text-white"
-                    : "bg-white/5 text-white/60"
+                    ? "bg-hunter/10 text-hunter"
+                    : "bg-secondary text-muted-foreground"
             }`}
           >
             {line.hole}

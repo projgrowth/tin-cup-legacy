@@ -77,7 +77,7 @@ function RostersPage() {
     <Shell variant="content">
       <div className="stack-page">
         <PageMasthead
-          title="Two teams. One Cup."
+          title="Teams"
           meta={`${EXPECTED_PLAYER_COUNT} players · 13.5 to win`}
         />
         {standings.played > 0 && (

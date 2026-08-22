@@ -49,7 +49,7 @@ function PursePage() {
     <Shell variant="content">
       <div className="stack-page pb-4">
         <PageMasthead
-          title="The purse"
+          title="Purse"
           meta={
             <>
               @{VENMO_HANDLE} · {TOURNAMENT_BANK}

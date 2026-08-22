@@ -309,7 +309,7 @@ function Index() {
             ) : null}
           </div>
         ) : (
-        <div className={mode === "pre" ? "" : "home-dashboard mt-1"}>
+        <div className={mode === "pre" ? "stack-page" : "home-dashboard mt-1"}>
           {mode === "pre" && (
             <div className="home-action">
               <PreTournamentPanel
@@ -351,7 +351,6 @@ function Index() {
             )}
           </div>
           )}
-          {mode !== "pre" && (
           <>
           <div className="home-feed min-w-0">
             <SocialClubhouseFeed
@@ -374,6 +373,7 @@ function Index() {
               compact={experience.preferences.compactFeed}
             />
           </div>
+          {mode !== "pre" && (
           <aside className="home-secondary min-w-0 space-y-5 lg:sticky lg:top-28 lg:self-start">
             {mode === "live" && isError && !data && (
               <BoardError onRetry={() => void refetch()} busy={isFetching} />
@@ -402,8 +402,8 @@ function Index() {
               Share board
             </ShareMomentButton>
           </aside>
-          </>
           )}
+          </>
         </div>
         )}
 

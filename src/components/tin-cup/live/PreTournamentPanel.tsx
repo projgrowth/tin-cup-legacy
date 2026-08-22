@@ -5,6 +5,7 @@ import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { FieldChatLink } from "@/components/tin-cup/WhatsAppLinks";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
+import { Countdown } from "@/components/tin-cup/Countdown";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import {
@@ -14,7 +15,6 @@ import {
   WHATSAPP_GROUP_CONFIGURED,
   venmoUrl,
 } from "@/lib/tin-cup";
-import { useLiveCountdown } from "@/lib/use-live-countdown";
 import type { WeekendContext } from "@/lib/weekend-context";
 
 /** Pre-event Home — next session, your match, Pay. Same kit as Weekend. */
@@ -42,10 +42,6 @@ export function PreTournamentPanel({
   const nextCourseId = defaultCourseId() as CourseId;
   const today = COURSE_DETAILS[nextCourseId];
   const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
-  const time = useLiveCountdown();
-  const remain = time.done
-    ? null
-    : `${time.days}d ${String(time.hours).padStart(2, "0")}h`;
   const avatars = usePlayerAvatars(players, teams);
   const group = claimedName ? day1GroupForPlayer(claimedName) : null;
   const face = (name: string) => avatars.data?.getByName(name);
@@ -59,13 +55,13 @@ export function PreTournamentPanel({
           </>
         }
         meta={
-          <span suppressHydrationWarning>
+          <>
             {today.firstTee} · {today.format}
             {` · ${today.points} pts`}
-            {remain ? ` · ${remain}` : ""}
-          </span>
+          </>
         }
       />
+      <Countdown />
 
       {group ? (
         <div>

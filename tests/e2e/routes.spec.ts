@@ -42,9 +42,14 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByText("Today at Tin Cup")).toHaveCount(0);
   expect((await logoRequest).ok()).toBe(true);
   await expect(page.getByRole("button", { name: "Captain score input" })).toHaveCount(0);
-  await expect(page.getByText("Minutes", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Days", { exact: true })).toBeVisible();
+  await expect(page.getByText("Hours", { exact: true })).toBeVisible();
+  await expect(page.getByText("Minutes", { exact: true })).toBeVisible();
   await expect(page.getByText("Secs", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Share weekend" })).toHaveCount(0);
+  await expect(page.getByText("Field", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Updates" })).toBeVisible();
+  await expect(page.getByPlaceholder("Sign in to post")).toBeVisible();
   await expect(page.getByText("August 28–30, 2026", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Skip intro")).toHaveCount(0);
   await expect(page.getByText("Just looking")).toHaveCount(0);

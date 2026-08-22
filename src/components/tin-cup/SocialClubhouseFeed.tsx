@@ -237,7 +237,7 @@ export function SocialClubhouseFeed({
       setDraft("");
       setPhotoAlt("");
       void trackProductEvent("clubhouse_post", { kind: "photo" });
-      toast.success("Photo added to the Clubhouse");
+      toast.success("Photo added");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not add photo");
     } finally {
@@ -261,22 +261,10 @@ export function SocialClubhouseFeed({
     );
   }
 
-  const quietEmpty = emptyFeed && !story.clubhouseEnabled && filter === "all";
-  if (quietEmpty) {
-    return (
-      <p className="t-micro px-1">Clubhouse opens with the weekend.</p>
-    );
-  }
-
   return (
-    <section aria-labelledby="clubhouse-feed-title" className="space-y-4">
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <p className="t-micro">The clubhouse</p>
-          <h2 id="clubhouse-feed-title" className="t-title mt-1 text-foreground">
-            Around the weekend
-          </h2>
-        </div>
+    <section aria-labelledby="updates-title" className="stack-tight">
+      <div className="flex items-end justify-between gap-3 px-1">
+        <p className="t-micro font-semibold text-foreground">Field</p>
         {story.unreadCount > 0 && (
           <span className="rounded-full bg-hunter px-2.5 py-1 text-xs font-bold text-primary-foreground">
             {story.unreadCount} new
@@ -284,7 +272,6 @@ export function SocialClubhouseFeed({
         )}
       </div>
 
-      {story.clubhouseEnabled && (
       <div className="feed-composer surface-raised p-2.5 sm:p-3">
         <div className="flex gap-3">
           <Avatar
@@ -295,7 +282,7 @@ export function SocialClubhouseFeed({
           />
           <div className="min-w-0 flex-1">
             <label className="sr-only" htmlFor="clubhouse-post">
-              Post to the Clubhouse
+              Post to the field
             </label>
             <textarea
               id="clubhouse-post"
@@ -305,11 +292,11 @@ export function SocialClubhouseFeed({
               maxLength={500}
               rows={2}
               placeholder={
-                !story.clubhouseEnabled
-                  ? "Clubhouse conversation is not active yet"
-                  : canParticipate
-                    ? "What’s happening out there?"
-                    : "Claim your player to join the conversation"
+                canParticipate
+                  ? "What’s going on…"
+                  : user
+                    ? "Claim your name to post"
+                    : "Sign in to post"
               }
               className="control w-full resize-none border-0 bg-transparent px-0 text-base shadow-none focus:ring-0"
             />
@@ -397,7 +384,6 @@ export function SocialClubhouseFeed({
           </div>
         </div>
       </div>
-      )}
 
       {canModerate && story.clubhouseEnabled && (
         <details className="surface-inset overflow-hidden">
@@ -466,6 +452,10 @@ export function SocialClubhouseFeed({
         </details>
       )}
 
+      <h2 id="updates-title" className="t-micro px-1 font-semibold text-foreground">
+        Updates
+      </h2>
+
       {(!emptyFeed || filter !== "all") && (
       <div
         className="no-scrollbar flex gap-2 overflow-x-auto pb-1"
@@ -486,9 +476,15 @@ export function SocialClubhouseFeed({
             role="tab"
             aria-selected={filter === value}
             onClick={() => onFilter(value)}
-            className={`press chip min-h-11 shrink-0 capitalize ${filter === value ? "chip-on" : ""}`}
+            className={`press chip min-h-11 shrink-0 ${filter === value ? "chip-on" : ""}`}
           >
-            {value === "scores" ? "Results" : value}
+            {value === "scores"
+              ? "Results"
+              : value === "clubhouse"
+                ? "Field"
+                : value === "photos"
+                  ? "Photos"
+                  : "All"}
           </button>
         ))}
       </div>
@@ -932,8 +928,8 @@ export function SocialClubhouseFeed({
       {emptyFeed && (
         <p className="t-micro px-1 py-2">
           {story.clubhouseEnabled
-            ? "Post the first update, photo, or prediction."
-            : "Clubhouse opens as the weekend starts."}
+            ? "Post the first update or photo."
+            : "Updates land here as the field posts."}
         </p>
       )}
       {matchSocial.unavailable && (
