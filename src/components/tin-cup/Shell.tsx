@@ -104,7 +104,7 @@ export function Shell({
         }`}
       >
         <div
-          className={`mx-auto grid w-full ${width} min-h-[var(--header-height)] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-1.5 sm:px-5`}
+          className={`mx-auto grid w-full ${width} min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 sm:px-5`}
         >
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
             <BrandMark />
@@ -121,7 +121,7 @@ export function Shell({
                 </span>
               </span>
             ) : (
-              <span className="t-title truncate text-foreground">Tin Cup</span>
+              <span className="t-body truncate font-semibold text-foreground">Tin Cup</span>
             )}
           </Link>
           <Link

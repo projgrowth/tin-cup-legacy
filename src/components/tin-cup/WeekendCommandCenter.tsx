@@ -69,11 +69,11 @@ export function WeekendCommandCenter({ context }: { context: WeekendContext }) {
     : null;
   return (
     <section
-      className="home-next-action surface-raised flex flex-col gap-3 p-3.5 sm:flex-row sm:items-center sm:gap-4"
+      className="home-next-action flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4"
       aria-label="Your weekend"
     >
       <div className="min-w-0 flex-1">
-        <p className="t-eyebrow">Your next move</p>
+        <p className="t-micro">Next</p>
         <h2 id="my-weekend-title" className="t-title mt-1 text-foreground">
           {title}
         </h2>

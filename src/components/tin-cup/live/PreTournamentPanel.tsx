@@ -56,7 +56,7 @@ export function PreTournamentPanel({
           title={EVENT.title}
           meta={`${EVENT.dates} · ${EVENT.location}`}
         />
-        <p className="t-body mt-2 px-0.5 text-foreground">{EVENT.subtitle}</p>
+        <p className="t-body mt-2 px-0.5 font-medium text-foreground">{EVENT.subtitle}</p>
       </div>
 
       <div className="fade-up" style={{ animationDelay: "80ms" }}>

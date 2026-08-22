@@ -272,7 +272,7 @@ export function SocialClubhouseFeed({
     <section aria-labelledby="clubhouse-feed-title" className="space-y-4">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <p className="t-eyebrow">The clubhouse</p>
+          <p className="t-micro">The clubhouse</p>
           <h2 id="clubhouse-feed-title" className="t-title mt-1 text-foreground">
             Around the weekend
           </h2>

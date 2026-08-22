@@ -12,13 +12,13 @@ const items = [
 export function BottomNav({ live = false }: { live?: boolean }) {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
-      <div className="mx-auto flex w-full max-w-4xl items-stretch px-2 sm:px-5">
+      <div className="mx-auto flex w-full max-w-4xl items-stretch px-4 sm:px-5">
         {items.map(({ to, label, icon: Icon, exact }) => (
           <Link
             key={to}
             to={to}
             activeOptions={{ exact }}
-            className="group press t-micro relative flex min-h-12 flex-1 flex-col items-center justify-center gap-1 px-1 py-2 font-semibold text-muted-foreground data-[status=active]:text-hunter lg:flex-row lg:gap-2 lg:px-3"
+            className="group press t-micro relative flex min-h-12 flex-1 flex-col items-center justify-center gap-1 px-1 py-2 font-semibold text-muted-foreground data-[status=active]:text-hunter"
           >
             <span className="relative">
               <Icon className="size-4" strokeWidth={1.7} />
