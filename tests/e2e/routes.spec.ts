@@ -132,7 +132,7 @@ test("plan hole map opens the 2D theater and pages holes", async ({ page }) => {
     timeout: 15_000,
   });
   await expect(page.getByRole("link", { name: "Back to scorecard" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Hole 1" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Hole 1", exact: true })).toHaveCount(0);
   await page.getByRole("link", { name: "Next hole" }).click();
   await expect(page).toHaveURL(/hole=8/);
   await expect(page.getByRole("img", { name: /Schematic layout of hole 8/i })).toBeVisible();

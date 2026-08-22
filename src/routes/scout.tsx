@@ -268,7 +268,10 @@ function ScoutPage() {
             onClick={() => {
               const next = !playGpsOn;
               setPlayGpsOn(next);
-              if (next) persistMode("sat");
+              if (next) {
+                persistMode("sat");
+                void import("@/components/tin-cup/SatelliteHoleMap");
+              }
             }}
             className={`${mapChip} absolute right-3 z-40 ${playGpsOn ? "chip-on" : ""}`}
             style={{ bottom: "max(1.25rem, calc(env(safe-area-inset-bottom) + 0.75rem))" }}

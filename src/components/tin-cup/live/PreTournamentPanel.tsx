@@ -93,7 +93,7 @@ export function PreTournamentPanel({
       )}
 
       {isClaimed && (
-        <section className="surface space-y-4 p-4">
+        <section className="space-y-3 px-0.5">
           {myDay1 ? (
             <div className="flex items-center gap-3">
               <AvatarPair

@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useRef } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { HoleMap } from "@/components/tin-cup/HoleMap";
-import { SatelliteHoleMap } from "@/components/tin-cup/SatelliteHoleMap";
 import { DistanceStack } from "@/components/tin-cup/scout/DistanceStack";
 import type { CourseId, Hole } from "@/lib/courses";
 import { getGeoHole, holeGreenTriple } from "@/lib/geo-courses";
@@ -11,6 +10,12 @@ import { haversineYards } from "@/lib/geo";
 import { useGeolocation } from "@/hooks/useGeolocation";
 
 export type MapMode = "sat" | "schematic";
+
+const SatelliteHoleMap = lazy(() =>
+  import("@/components/tin-cup/SatelliteHoleMap").then((module) => ({
+    default: module.SatelliteHoleMap,
+  })),
+);
 
 /**
  * Hole theater. Default is the 2D aerial schematic. Satellite (and GPS) paints turf on Esri.
@@ -157,16 +162,30 @@ export function HoleStage({
             if (dx > 0 && canPrev) onPrev();
           }}
         >
-          <SatelliteHoleMap
-            geo={geo}
-            className="size-full"
-            gpsPoint={gpsOn ? (fix?.point ?? null) : null}
-            gpsAccuracyM={gpsOn ? (fix?.accuracyM ?? null) : null}
-            onError={() => {
-              onSatFailed?.();
-              onMapMode("schematic");
-            }}
-          />
+          <Suspense
+            fallback={
+              <HoleMap
+                hole={hole}
+                className="size-full"
+                controls={false}
+                onSwipeHole={(delta) => {
+                  if (delta < 0 && canPrev) onPrev();
+                  if (delta > 0 && canNext) onNext();
+                }}
+              />
+            }
+          >
+            <SatelliteHoleMap
+              geo={geo}
+              className="size-full"
+              gpsPoint={gpsOn ? (fix?.point ?? null) : null}
+              gpsAccuracyM={gpsOn ? (fix?.accuracyM ?? null) : null}
+              onError={() => {
+                onSatFailed?.();
+                onMapMode("schematic");
+              }}
+            />
+          </Suspense>
         </div>
       ) : (
         <div className="absolute inset-0 bg-[var(--turf-rough)]">
