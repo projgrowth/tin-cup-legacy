@@ -29,6 +29,12 @@ export function playerInitials(name: string): string {
   return `${parts[0]![0] ?? ""}${parts[parts.length - 1]![0] ?? ""}`.toUpperCase();
 }
 
+export function avatarRingClass(slug?: TeamSlug | null): string {
+  if (slug === "grass-roots") return "border-stone/35";
+  if (slug === "strong-mental") return "border-hunter/35";
+  return "border-border";
+}
+
 /** Monogram surface classes by team. */
 export function monogramClass(slug?: TeamSlug | null, size: "sm" | "md" | "lg" = "md"): string {
   const dim =

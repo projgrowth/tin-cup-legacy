@@ -45,13 +45,13 @@ export function Countdown({ compact = false }: { compact?: boolean }) {
       <p suppressHydrationWarning className="sr-only">
         {formatCountdown(time.remaining)}
       </p>
-      <div className="surface grid grid-cols-3 divide-x divide-border overflow-hidden">
+      <div className="surface grid grid-cols-3 overflow-hidden">
         {cells.map((cell) => (
-          <div key={cell.label} className="px-2 py-4 text-center">
+          <div key={cell.label} className="px-2 py-5 text-center">
             <p suppressHydrationWarning className="t-hero text-foreground">
               {String(cell.n).padStart(2, "0")}
             </p>
-            <p className="t-micro mt-1.5">{cell.label}</p>
+            <p className="t-eyebrow mt-2">{cell.label}</p>
           </div>
         ))}
       </div>

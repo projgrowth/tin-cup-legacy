@@ -35,7 +35,7 @@ function NineRule({
 }) {
   return (
     <div className="flex items-baseline justify-between gap-3 px-4 py-2">
-      <p className="t-micro font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="t-eyebrow">{label}</p>
       <p className="t-micro tabular-nums">
         Par {par}
         <span className="mx-1.5 text-muted-foreground">·</span>

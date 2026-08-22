@@ -67,7 +67,7 @@ export function TheCardSheet({
         <div className="flex items-center gap-2">
           <MedalMark size="xs" />
           <div>
-            <h2 id="the-card-title" className="t-micro font-semibold text-foreground">
+            <h2 id="the-card-title" className="t-eyebrow">
               Faceoff
             </h2>
             <p className="t-micro">{CARD_DISCLAIMER}</p>

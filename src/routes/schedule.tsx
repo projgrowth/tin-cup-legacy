@@ -169,7 +169,7 @@ function SchedulePage() {
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
         <section className="stack-tight">
-          <h2 className="t-micro font-semibold text-foreground">Dinners</h2>
+          <h2 className="t-eyebrow">Dinners</h2>
           {socialOrdered.map((row) => (
             <details key={row.day} className="hairline px-1 first:border-t-0">
               <summary className="press flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">

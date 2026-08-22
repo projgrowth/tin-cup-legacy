@@ -165,7 +165,7 @@ export function Shell({
             )}
           </Link>
         </div>
-        <div className={`mx-auto h-px w-full ${width} bg-border`} />
+        <div className="h-px w-full bg-border" />
       </header>
       {preview && (
         <div

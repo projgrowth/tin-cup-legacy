@@ -291,7 +291,7 @@ export function SocialClubhouseFeed({
   return (
     <section aria-labelledby="updates-title" className="stack-tight">
       <div className="flex items-end justify-between gap-3 px-1">
-        <h2 id="updates-title" className="t-micro font-semibold text-foreground">
+        <h2 id="updates-title" className="t-eyebrow">
           Field
         </h2>
         {story.unreadCount > 0 && (

@@ -1,4 +1,4 @@
-import { monogramClass, playerInitials, type TeamSlug } from "@/lib/team-styles";
+import { avatarRingClass, monogramClass, playerInitials, type TeamSlug } from "@/lib/team-styles";
 
 const SIZE = {
   sm: "size-7 text-[0.6rem]",
@@ -26,7 +26,7 @@ export function Avatar({
   if (src) {
     return (
       <span
-        className={`inline-flex shrink-0 overflow-hidden rounded-full border border-border bg-secondary ${dim} ${className}`.trim()}
+        className={`inline-flex shrink-0 overflow-hidden rounded-full border bg-secondary ${avatarRingClass(teamSlug)} ${dim} ${className}`.trim()}
       >
         <img
           src={src}

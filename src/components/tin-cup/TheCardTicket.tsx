@@ -177,7 +177,7 @@ function SideRow({
       aria-pressed={selected}
       aria-label={selected ? `Undo ${label}` : `Ride with ${label}`}
       onClick={onClick}
-      className={`flex min-h-12 w-full items-center gap-2 rounded-xl px-2 text-left disabled:opacity-100 ${
+      className={`flex min-h-12 w-full items-center gap-2 rounded-xl px-2 text-left transition-colors duration-150 disabled:opacity-100 ${
         disabled ? "cursor-default" : "press"
       } ${selected ? fill : ""}`}
     >

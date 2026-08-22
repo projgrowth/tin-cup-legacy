@@ -58,7 +58,7 @@ function PursePage() {
         <PageMasthead
           title={
             <span className="flex items-center gap-2">
-              <MedalMark />
+              <MedalMark size="xs" />
               Purse
             </span>
           }
@@ -94,14 +94,14 @@ function PursePage() {
         )}
 
         <section className="stack-tight">
-          <h2 className="t-micro font-semibold text-foreground">Where the $150 goes</h2>
+          <h2 className="t-eyebrow">Where the $150 goes</h2>
           <MoneySplit />
         </section>
 
         {bets.length > 0 && (
           <section>
             <div className="mb-3 flex items-baseline justify-between gap-3">
-              <h2 className="t-micro font-semibold text-foreground">Side pots</h2>
+              <h2 className="t-eyebrow">Side pots</h2>
               <span className="t-micro text-muted-foreground">
                 {claimed.length}/{bets.length}
               </span>
@@ -160,7 +160,7 @@ function PursePage() {
 
         {perPlayer.length > 0 && (
           <section>
-            <h2 className="t-micro font-semibold text-foreground">Won so far</h2>
+            <h2 className="t-eyebrow">Won so far</h2>
             <ul className="surface divide-y divide-border overflow-hidden">
               {perPlayer.map((row) => (
                 <li key={row.name} className="flex items-center justify-between gap-3 px-4 py-3">

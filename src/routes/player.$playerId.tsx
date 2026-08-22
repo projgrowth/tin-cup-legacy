@@ -203,7 +203,7 @@ function PlayerPage() {
 
       {faceoffLines.length > 0 ? (
         <section className="mt-6">
-          <h2 className="t-micro font-semibold text-foreground">Faceoff</h2>
+          <h2 className="t-eyebrow">Faceoff</h2>
           <ul className="surface mt-2 divide-y divide-border overflow-hidden">
             {faceoffLines.map((row) => (
               <li key={row.id} className="px-4 py-3">
@@ -216,7 +216,7 @@ function PlayerPage() {
       ) : null}
 
       <section className="mt-6">
-        <h2 className="t-micro font-semibold text-foreground">Matches</h2>
+        <h2 className="t-eyebrow">Matches</h2>
         <ol className="surface mt-2 divide-y divide-border overflow-hidden">
           {mine.map((match) => {
             const round = rounds.find((r) => r.id === match.round_id);
@@ -255,7 +255,7 @@ function PlayerPage() {
       </section>
 
       <section className="mt-6">
-        <h2 className="t-micro font-semibold text-foreground">Side cash</h2>
+        <h2 className="t-eyebrow">Side cash</h2>
         {claims.length === 0 ? (
           <p className="t-micro mt-3">No CTP or long drive claims yet.</p>
         ) : (
