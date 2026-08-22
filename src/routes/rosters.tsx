@@ -103,19 +103,21 @@ function RostersPage() {
           {FIELD_SIDES.map((side) => {
             const liveTeam = teams.find((team) => team.slug === side.slug);
             return (
-              <section key={side.slug}>
+              <section key={side.slug} className="surface overflow-hidden">
+                <div className="px-4 pb-1 pt-3">
                 <h2
-                  className={`t-section ${
+                  className={`t-micro font-semibold ${
                     side.slug === "strong-mental" ? "text-hunter" : "text-stone"
                   }`}
                 >
                   {side.name.replace("Team ", "")}
                 </h2>
-                <p className="t-micro mt-1 px-1 text-muted-foreground">
+                <p className="t-micro mt-0.5">
                   Capt. {liveTeam?.captain_name ?? side.captain}
                   {myTeam?.slug === side.slug ? " · Your side" : ""}
                 </p>
-                <ul className="mt-2 divide-y divide-border">
+                </div>
+                <ul className="divide-y divide-border">
                   {side.players.map((name) => {
                     const player = playersByName.get(name.trim().toLowerCase());
                     const isYou = Boolean(player && myPlayerId === player.id);
@@ -141,15 +143,9 @@ function RostersPage() {
                               <span className="t-micro shrink-0 text-muted-foreground">You</span>
                             ) : null}
                           </span>
-                          {(social?.flair || social?.status_text) && (
-                            <span className="t-micro mt-0.5 block truncate">
-                              {social.flair
-                                ? social.flair.replace("vibes", "vibes captain")
-                                : ""}
-                              {social.flair && social.status_text ? " · " : ""}
-                              {social.status_text ?? ""}
-                            </span>
-                          )}
+                          {social?.status_text ? (
+                            <span className="t-micro mt-0.5 block truncate">{social.status_text}</span>
+                          ) : null}
                         </span>
                       </span>
                     );
@@ -173,7 +169,7 @@ function RostersPage() {
                               {body}
                             </div>
                           )}
-                          {player ? (
+                          {player && isYou ? (
                             <ClaimQrButton
                               player={{
                                 id: player.id,

@@ -29,13 +29,7 @@ export function BottomNav({ live = false }: { live?: boolean }) {
                 />
               ) : null}
             </span>
-            <span className="relative">
-              {label}
-              <span
-                aria-hidden
-                className="absolute inset-x-0 -bottom-0.5 mx-auto hidden h-px w-full bg-hunter group-data-[status=active]:block"
-              />
-            </span>
+            <span>{label}</span>
           </Link>
         ))}
       </div>

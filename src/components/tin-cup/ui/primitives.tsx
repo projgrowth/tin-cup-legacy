@@ -38,7 +38,7 @@ export function EmptyState({
   return (
     <div className="surface flex flex-col items-center px-5 py-8 text-center">
       {icon ? (
-        <div className="mb-3 flex size-10 items-center justify-center rounded-full bg-white/5 text-muted-foreground">
+        <div className="mb-3 flex size-10 items-center justify-center rounded-full bg-secondary text-muted-foreground">
           {icon}
         </div>
       ) : null}

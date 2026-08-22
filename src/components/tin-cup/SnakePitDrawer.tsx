@@ -10,7 +10,7 @@ import { SNAKE_PIT } from "@/lib/tin-cup";
 export function SnakePitDrawer() {
   return (
     <Drawer>
-      <DrawerTrigger className="press t-micro inline-flex min-h-11 items-center text-muted-foreground">
+      <DrawerTrigger className="press btn-quiet t-micro min-h-11">
         Snake Pit
       </DrawerTrigger>
       <DrawerContent className="border-border bg-card/95 backdrop-blur-xl">

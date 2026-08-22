@@ -102,36 +102,21 @@ export function PreTournamentPanel({
         <p className="t-micro px-1">Tonight · {tonight.title}</p>
       ) : null}
 
-      <div className="flex flex-wrap gap-x-4 px-1">
+      {needsClaim ? (
         <Link
-          to="/schedule"
-          className="press t-micro inline-flex min-h-11 items-center font-semibold text-foreground"
+          to="/profile"
+          className="press t-micro inline-flex min-h-11 items-center px-1 text-muted-foreground"
         >
-          Weekend
+          Claim your name
         </Link>
+      ) : !signedIn ? (
         <Link
-          to="/scout"
-          search={{ course: nextCourseId, card: true }}
-          className="press t-micro inline-flex min-h-11 items-center font-semibold text-foreground"
+          to="/profile"
+          className="press t-micro inline-flex min-h-11 items-center px-1 text-muted-foreground"
         >
-          {COURSE_LABEL[nextCourseId]} planner
+          Sign in
         </Link>
-        {needsClaim ? (
-          <Link
-            to="/profile"
-            className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
-          >
-            Claim your name
-          </Link>
-        ) : !signedIn ? (
-          <Link
-            to="/profile"
-            className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
-          >
-            Sign in
-          </Link>
-        ) : null}
-      </div>
+      ) : null}
 
       {VENMO_IS_PLACEHOLDER && (
         <p className="t-micro px-1 text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>

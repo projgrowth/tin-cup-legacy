@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { FridayPairings } from "@/components/tin-cup/FridayPairings";
-import { CourseDayStory, DayStory } from "@/components/tin-cup/DayStory";
+import { CourseDayStory } from "@/components/tin-cup/DayStory";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
@@ -208,12 +208,16 @@ function SchedulePage() {
         <section className="stack-tight">
           <h2 className="t-micro font-semibold text-foreground">Dinners</h2>
           {socialOrdered.map((row) => (
-            <DayStory key={row.day} kicker={row.day} title={row.title} body={row.detail} />
+            <div key={row.day} className="hairline px-1 py-3 first:border-t-0">
+              <p className="t-micro">{row.day}</p>
+              <p className="t-body mt-0.5 font-semibold text-foreground">{row.title}</p>
+              <p className="t-micro mt-1">{row.detail}</p>
+            </div>
           ))}
         </section>
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1">
-          <FormatSheet />
+        <div className="flex flex-wrap items-center gap-2 px-1">
+          <FormatSheet triggerClassName="btn-quiet" />
           <SnakePitDrawer />
           {rounds.length > 0 && (
             <button
@@ -222,7 +226,7 @@ function SchedulePage() {
                 downloadWeekendIcs(rounds);
                 void trackProductEvent("calendar_downloaded", { kind: "weekend" });
               }}
-              className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
+              className="press btn-quiet t-micro min-h-11"
             >
               Add weekend to calendar
             </button>
