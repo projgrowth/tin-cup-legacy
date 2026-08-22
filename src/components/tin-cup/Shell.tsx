@@ -120,9 +120,9 @@ export function Shell({
                   aria-label="Cup live"
                 />
                 <span className="t-numeral text-[0.95rem] tracking-tight">
-                  <span className="text-gold-light">{fmtPts(standings.strongMental)}</span>
+                  <span className="text-hunter">{fmtPts(standings.strongMental)}</span>
                   <span className="mx-0.5 text-muted-foreground">–</span>
-                  <span className="text-copper">{fmtPts(standings.grassRoots)}</span>
+                  <span className="text-stone">{fmtPts(standings.grassRoots)}</span>
                 </span>
               </span>
             ) : (
@@ -159,7 +159,7 @@ export function Shell({
             {user && !claimed && !profile?.player_id && (
               <span
                 aria-label="Claim your name"
-                className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border border-background bg-gold"
+                className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border border-background bg-hunter"
               />
             )}
             {user && canScore && (
@@ -177,7 +177,7 @@ export function Shell({
       {preview && (
         <div
           role="status"
-          className="bg-gold/10 px-4 py-2 text-center text-xs font-semibold text-gold-light"
+          className="bg-hunter/10 px-4 py-2 text-center text-xs font-semibold text-hunter"
         >
           Protected preview · writes are simulated and tournament data stays read-only
         </div>

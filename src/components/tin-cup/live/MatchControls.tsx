@@ -111,11 +111,11 @@ export function MatchResultButtons({ match, teams }: { match: Match; teams: Team
           const tone =
             option.value === "strong-mental"
               ? active
-                ? "border-gold/45 bg-gold/15 text-gold-light"
+                ? "border-hunter/45 bg-hunter/10 text-hunter"
                 : "border-border text-muted-foreground"
               : option.value === "grass-roots"
                 ? active
-                  ? "border-copper/45 bg-copper/15 text-copper"
+                  ? "border-stone/45 bg-stone/15 text-stone"
                   : "border-border text-muted-foreground"
                 : active
                   ? "border-foreground/30 bg-secondary text-foreground"

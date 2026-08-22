@@ -406,7 +406,7 @@ export function HoleMap({
           <polyline
             points={line.map(([x, y]) => `${x},${y}`).join(" ")}
             fill="none"
-            stroke="oklch(from var(--gold) l c h / 35%)"
+            stroke="oklch(from var(--aim) l c h / 35%)"
             strokeWidth={tickScale * 1.8}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -414,7 +414,7 @@ export function HoleMap({
           <polyline
             points={line.map(([x, y]) => `${x},${y}`).join(" ")}
             fill="none"
-            stroke="var(--gold)"
+            stroke="var(--aim)"
             strokeWidth={tickScale * 0.55}
             strokeDasharray={`${tickScale * 2.2} ${tickScale * 1.4}`}
             strokeLinecap="round"
@@ -443,7 +443,7 @@ export function HoleMap({
               y1={st.y - ny * tick}
               x2={st.x + nx * tick}
               y2={st.y + ny * tick}
-              stroke="var(--gold-light)"
+              stroke="var(--aim)"
               strokeWidth={tick * 0.28}
               strokeLinecap="round"
               opacity={0.85}
@@ -452,7 +452,7 @@ export function HoleMap({
               cx={st.x}
               cy={st.y}
               r={tick * 0.35}
-              fill="var(--gold-light)"
+              fill="var(--aim)"
               opacity={0.9}
             />
             <text
@@ -483,7 +483,7 @@ export function HoleMap({
             width={tickScale * 2.2}
             height={tickScale * 1.4}
             rx={tickScale * 0.25}
-            fill="var(--gold-light)"
+            fill="var(--aim)"
             opacity={0.95}
             filter={`url(#${uid}-soft)`}
           />
@@ -505,7 +505,7 @@ export function HoleMap({
             cy={green[1]}
             r={tickScale * 1.6}
             fill="none"
-            stroke="var(--gold-light)"
+            stroke="var(--aim)"
             strokeWidth={tickScale * 0.28}
             opacity={0.9}
           />
@@ -514,7 +514,7 @@ export function HoleMap({
             cy={green[1]}
             r={tickScale * 0.9}
             fill="none"
-            stroke="var(--gold)"
+            stroke="var(--aim)"
             strokeWidth={tickScale * 0.18}
             opacity={0.7}
           />
@@ -522,7 +522,7 @@ export function HoleMap({
             cx={green[0]}
             cy={green[1]}
             r={tickScale * 0.38}
-            fill="var(--gold-light)"
+            fill="var(--aim)"
           />
           {/* Simple flag */}
           <line
@@ -538,7 +538,7 @@ export function HoleMap({
             d={`M ${green[0]} ${green[1] - tickScale * 2.8}
                 L ${green[0] + tickScale * 1.6} ${green[1] - tickScale * 2.2}
                 L ${green[0]} ${green[1] - tickScale * 1.6} Z`}
-            fill="var(--gold)"
+            fill="var(--aim)"
             opacity={0.95}
           />
         </g>

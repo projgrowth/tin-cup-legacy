@@ -69,7 +69,7 @@ export function RoundBlock({
             <h3 className="t-title truncate text-foreground">
               {round.day_label}
               {status === "live" && (
-                <span className="t-micro ml-2 font-normal text-copper">Live</span>
+                <span className="t-micro ml-2 font-normal text-[var(--status-live)]">Live</span>
               )}
               {allDone && status !== "live" && (
                 <span className="t-micro ml-2 font-normal text-muted-foreground">Final</span>

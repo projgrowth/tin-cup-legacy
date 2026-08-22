@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Tin Cup Invitational design system — social clubhouse command.
- * Plus Jakarta Sans is the only product typeface. Gold is an accent, not a border.
+ * Tin Cup Invitational design system — paper kit, hunter verb, dark only on the tee.
+ * Plus Jakarta Sans is the only product typeface.
  */
 
 @theme inline {
@@ -14,9 +14,11 @@
     "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
   --font-display: var(--font-sans);
-  --color-gold: var(--gold);
-  --color-gold-light: var(--gold-light);
+  --color-gold: var(--hunter);
+  --color-gold-light: var(--hunter);
   --color-copper: var(--copper);
+  --color-hunter: var(--hunter);
+  --color-stone: var(--stone);
   --color-glass: var(--glass);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -80,49 +82,52 @@
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  --shadow-card: 0 1px 0 oklch(1 0 0 / 4%) inset;
-  --background: oklch(0.11 0.016 165);
-  --foreground: oklch(0.97 0.008 100);
-  --card: oklch(0.18 0.016 165);
-  --card-foreground: oklch(0.97 0.008 100);
-  --popover: oklch(0.18 0.016 165);
-  --popover-foreground: oklch(0.97 0.008 100);
-  --primary: oklch(0.84 0.085 92);
-  --primary-foreground: oklch(0.16 0.02 165);
-  --secondary: oklch(0.15 0.016 165);
-  --secondary-foreground: oklch(0.94 0.01 100);
-  --muted: oklch(0.16 0.014 165);
-  --muted-foreground: oklch(0.72 0.012 150);
-  --accent: oklch(0.64 0.1 55);
-  --accent-foreground: oklch(0.98 0.008 100);
-  --destructive: oklch(0.6 0.19 25);
-  --destructive-foreground: oklch(0.98 0.008 100);
-  --border: oklch(1 0 0 / 7%);
-  --border-strong: oklch(1 0 0 / 16%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.84 0.085 92 / 45%);
-  --gold: oklch(0.84 0.085 92);
-  --gold-light: oklch(0.9 0.06 95);
-  --copper: oklch(0.66 0.09 55);
-  --glass: oklch(0.14 0.016 165 / 88%);
-  --status-live: oklch(0.72 0.12 155);
-  --track: oklch(1 0 0 / 6%);
-  --scrim: oklch(0.08 0.015 165 / 94%);
-  --team-a: var(--gold);
-  --team-b: var(--copper);
-  --chart-1: oklch(0.82 0.1 92);
-  --chart-2: oklch(0.64 0.1 55);
-  --chart-3: oklch(0.92 0.07 95);
-  --chart-4: oklch(0.62 0.1 165);
-  --chart-5: oklch(0.48 0.06 160);
-  --sidebar: oklch(0.14 0.016 165);
-  --sidebar-foreground: oklch(0.97 0.008 100);
-  --sidebar-primary: oklch(0.82 0.1 92);
-  --sidebar-primary-foreground: oklch(0.16 0.02 165);
-  --sidebar-accent: oklch(0.2 0.018 165);
-  --sidebar-accent-foreground: oklch(0.94 0.01 100);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.82 0.1 92 / 50%);
+  --shadow-card: 0 1px 0 oklch(0.24 0.035 155 / 4%) inset;
+  --hunter: oklch(0.34 0.055 155);
+  --stone: oklch(0.46 0.055 75);
+  --aim: oklch(0.92 0.08 95);
+  --background: oklch(0.975 0.008 95);
+  --foreground: oklch(0.24 0.035 155);
+  --card: oklch(0.995 0.004 95);
+  --card-foreground: oklch(0.24 0.035 155);
+  --popover: oklch(0.995 0.004 95);
+  --popover-foreground: oklch(0.24 0.035 155);
+  --primary: var(--hunter);
+  --primary-foreground: oklch(0.99 0.005 95);
+  --secondary: oklch(0.955 0.01 95);
+  --secondary-foreground: oklch(0.24 0.035 155);
+  --muted: oklch(0.95 0.01 95);
+  --muted-foreground: oklch(0.45 0.02 155);
+  --accent: var(--stone);
+  --accent-foreground: oklch(0.99 0.005 95);
+  --destructive: oklch(0.55 0.19 25);
+  --destructive-foreground: oklch(0.99 0.005 95);
+  --border: oklch(0.24 0.035 155 / 12%);
+  --border-strong: oklch(0.24 0.035 155 / 22%);
+  --input: oklch(0.24 0.035 155 / 14%);
+  --ring: oklch(0.34 0.055 155 / 45%);
+  --gold: var(--hunter);
+  --gold-light: var(--hunter);
+  --copper: oklch(0.52 0.16 28);
+  --glass: oklch(0.975 0.008 95 / 90%);
+  --status-live: oklch(0.48 0.11 155);
+  --track: oklch(0.24 0.035 155 / 8%);
+  --scrim: oklch(0.24 0.035 155 / 45%);
+  --team-a: var(--hunter);
+  --team-b: var(--stone);
+  --chart-1: var(--hunter);
+  --chart-2: var(--stone);
+  --chart-3: oklch(0.55 0.06 155);
+  --chart-4: oklch(0.62 0.05 85);
+  --chart-5: oklch(0.4 0.04 155);
+  --sidebar: oklch(0.995 0.004 95);
+  --sidebar-foreground: oklch(0.24 0.035 155);
+  --sidebar-primary: var(--hunter);
+  --sidebar-primary-foreground: oklch(0.99 0.005 95);
+  --sidebar-accent: oklch(0.955 0.01 95);
+  --sidebar-accent-foreground: oklch(0.24 0.035 155);
+  --sidebar-border: oklch(0.24 0.035 155 / 12%);
+  --sidebar-ring: oklch(0.34 0.055 155 / 50%);
 }
 
 /* ---- Course map (premium schematic · Black scorecard yards separate) ---- */
@@ -246,13 +251,13 @@
 .tc-tee-chip {
   pointer-events: none;
   border-radius: 999px;
-  border: 1px solid oklch(from var(--gold) l c h / 55%);
+  border: 1px solid oklch(from var(--aim) l c h / 55%);
   background: oklch(0.12 0.02 165 / 82%);
   padding: 0.2rem 0.45rem;
   font-size: 0.58rem;
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.08em;
-  color: oklch(from var(--gold-light) l c h);
+  color: var(--aim);
   box-shadow: 0 2px 8px oklch(0 0 0 / 40%);
 }
 
@@ -317,35 +322,9 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    background-image: radial-gradient(
-      80% 40% at 50% -12%,
-      oklch(0.24 0.03 165 / 40%) 0%,
-      transparent 60%
-    );
-    background-attachment: fixed;
     -webkit-tap-highlight-color: transparent;
     font-synthesis-weight: none;
     text-rendering: optimizeLegibility;
-  }
-
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    opacity: 0;
-    background: radial-gradient(
-      90% 50% at 50% -8%,
-      oklch(from var(--gold) l c h / 22%) 0%,
-      transparent 62%
-    );
-    transition: opacity 1.6s ease;
-  }
-
-  html.tc-afterglow body::before {
-    opacity: 1;
-    transition: opacity 0.35s ease;
   }
 
 
@@ -438,13 +417,13 @@
 }
 
 @utility surface-raised {
-  background-color: oklch(from var(--card) calc(l + 0.02) c h);
-  border: 1px solid oklch(from var(--gold) l c h / 12%);
+  background-color: var(--card);
+  border: 1px solid oklch(from var(--hunter) l c h / 18%);
   border-radius: var(--radius-card);
 }
 
 @utility surface-inset {
-  background-color: oklch(1 0 0 / 3%);
+  background-color: oklch(from var(--foreground) l c h / 4%);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
 }
@@ -468,7 +447,7 @@
 }
 
 @utility hairline-gold {
-  background: oklch(from var(--gold) l c h / 12%);
+  background: oklch(from var(--foreground) l c h / 10%);
 }
 
 @utility stack-page {
@@ -496,18 +475,18 @@
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  border: 1px solid oklch(1 0 0 / 8%);
+  border: 1px solid var(--border);
   padding-inline: 0.75rem;
   font-size: var(--text-caption);
   font-weight: var(--font-weight-semibold);
   color: var(--muted-foreground);
-  background: oklch(0 0 0 / 18%);
+  background: oklch(from var(--foreground) l c h / 4%);
 }
 
 @utility chip-on {
-  border-color: oklch(from var(--gold) l c h / 40%);
-  background: oklch(from var(--gold) l c h / 14%);
-  color: var(--gold-light);
+  border-color: oklch(from var(--hunter) l c h / 35%);
+  background: oklch(from var(--hunter) l c h / 10%);
+  color: var(--hunter);
 }
 
 /* ---- Skeletons: one shimmer for every loading surface ---- */
@@ -526,7 +505,7 @@
   overflow: hidden;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  background-color: oklch(1 0 0 / 4%);
+  background-color: oklch(from var(--foreground) l c h / 6%);
   background-image: linear-gradient(
     100deg,
     transparent 20%,
@@ -560,7 +539,22 @@
     color: var(--muted-foreground);
   }
   &:focus {
-    border-color: oklch(from var(--gold) l c h / 50%);
+    border-color: oklch(from var(--hunter) l c h / 50%);
+  }
+}
+
+@utility btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: var(--radius);
+  background-color: var(--hunter);
+  color: var(--primary-foreground) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  padding: 0.625rem 0.95rem;
+  &:disabled {
+    opacity: 0.5;
   }
 }
 
@@ -570,7 +564,7 @@
   justify-content: center;
   gap: 0.375rem;
   border-radius: var(--radius);
-  background-color: var(--gold);
+  background-color: var(--hunter);
   color: var(--primary-foreground) !important;
   font-weight: var(--font-weight-semibold) !important;
   padding: 0.625rem 0.95rem;
@@ -606,11 +600,19 @@
 
 /* Team accent rails */
 @utility rail-gold {
-  border-left: 2px solid oklch(from var(--gold) l c h / 55%);
+  border-left: 2px solid oklch(from var(--hunter) l c h / 55%);
 }
 
 @utility rail-copper {
-  border-left: 2px solid oklch(from var(--copper) l c h / 55%);
+  border-left: 2px solid oklch(from var(--stone) l c h / 55%);
+}
+
+@utility rail-a {
+  border-left: 2px solid oklch(from var(--hunter) l c h / 55%);
+}
+
+@utility rail-b {
+  border-left: 2px solid oklch(from var(--stone) l c h / 55%);
 }
 
 @utility glass {
@@ -621,7 +623,7 @@
 }
 
 @utility gold-text {
-  color: var(--gold-light);
+  color: var(--hunter);
 }
 
 @utility press {
@@ -642,7 +644,7 @@
 
 @layer base {
   :where(a, button, input, select, textarea, summary):focus-visible {
-    outline: 2px solid var(--gold);
+    outline: 2px solid var(--hunter);
     outline-offset: 3px;
   }
 
@@ -737,11 +739,11 @@
   border-bottom: 0;
 }
 .announcement-card {
-  border: 1px solid oklch(from var(--gold) l c h / 22%);
+  border: 1px solid oklch(from var(--hunter) l c h / 18%);
   border-radius: var(--radius-card);
   background:
-    linear-gradient(135deg, oklch(from var(--gold) l c h / 10%), transparent 55%),
-    oklch(from var(--card) l c h / 55%);
+    linear-gradient(135deg, oklch(from var(--hunter) l c h / 8%), transparent 55%),
+    var(--card);
   padding-inline: 1rem;
   margin-bottom: 0.35rem;
 }
@@ -759,13 +761,13 @@
   background: oklch(1 0 0 / 4%);
 }
 .engagement-prompt {
-  border-color: oklch(from var(--gold) l c h / 22%);
+  border-color: oklch(from var(--hunter) l c h / 18%);
   background:
-    radial-gradient(circle at 90% 10%, oklch(from var(--gold) l c h / 12%), transparent 34%),
+    radial-gradient(circle at 90% 10%, oklch(from var(--hunter) l c h / 8%), transparent 34%),
     var(--card);
 }
 .deep-link-target {
-  outline: 3px solid oklch(from var(--gold) l c h / 70%);
+  outline: 3px solid oklch(from var(--hunter) l c h / 50%);
   outline-offset: 4px;
   animation: tc-deep-link 1.2s ease-out 2;
 }
@@ -794,10 +796,8 @@
   background: linear-gradient(transparent, oklch(0.05 0.01 160 / 88%));
 }
 .recap-hero {
-  background:
-    radial-gradient(circle at 50% 0%, oklch(from var(--gold) l c h / 20%), transparent 42%),
-    linear-gradient(155deg, var(--card), oklch(0.09 0.02 160));
-  box-shadow: 0 32px 80px -48px oklch(from var(--gold) l c h / 55%);
+  background: var(--card);
+  box-shadow: none;
 }
 @media (min-width: 768px) {
   .gallery-grid {
@@ -816,7 +816,7 @@
 }
 @media (hover: hover) {
   .feed-card:hover {
-    background-color: oklch(1 0 0 / 3%);
+    background-color: oklch(from var(--foreground) l c h / 3%);
   }
 }
 

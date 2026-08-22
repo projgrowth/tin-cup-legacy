@@ -131,24 +131,30 @@ function SchedulePage() {
           {pairingsInToday && (
             <div className="mt-3 space-y-2.5">
               {DAY1_PAIRINGS.map((p) => (
-                <MatchCard
+                <Link
                   key={p.matchIndex}
-                  index={p.matchIndex}
-                  sideA={p.sideA}
-                  sideB={p.sideB}
-                  peopleA={p.playersA.map((name) => ({
-                    name,
-                    teamSlug: "strong-mental",
-                    src: avatars.data?.getByName(name)?.url,
-                  }))}
-                  peopleB={p.playersB.map((name) => ({
-                    name,
-                    teamSlug: "grass-roots",
-                    src: avatars.data?.getByName(name)?.url,
-                  }))}
-                  format="Scramble · Alt shot"
-                  points={2}
-                />
+                  to="/scout"
+                  search={{ course: "south", card: true }}
+                  className="block"
+                >
+                  <MatchCard
+                    index={p.matchIndex}
+                    sideA={p.sideA}
+                    sideB={p.sideB}
+                    peopleA={p.playersA.map((name) => ({
+                      name,
+                      teamSlug: "strong-mental",
+                      src: avatars.data?.getByName(name)?.url,
+                    }))}
+                    peopleB={p.playersB.map((name) => ({
+                      name,
+                      teamSlug: "grass-roots",
+                      src: avatars.data?.getByName(name)?.url,
+                    }))}
+                    format="Scramble · Alt shot"
+                    points={2}
+                  />
+                </Link>
               ))}
             </div>
           )}

@@ -119,31 +119,31 @@ export function StickyCupBar({ matches }: { matches: Match[] }) {
     <div
       className={`sticky top-[3.15rem] z-20 -mx-4 border-y px-3 py-2 backdrop-blur-md sm:-mx-5 sm:px-5 ${
         clinched
-          ? "border-gold/40 bg-gold/12"
-          : "border-border/80 bg-[var(--hud-bg)]"
+          ? "border-hunter/40 bg-hunter/10"
+          : "border-border bg-background/90"
       }`}
     >
       <div className="mx-auto flex max-w-lg items-center justify-between gap-3 sm:max-w-none">
         <div className="flex min-w-0 items-baseline gap-2">
-          <span className="hud-label text-gold-light/80">SM</span>
-          <span className="hud-num text-2xl text-gold-light sm:text-3xl">
+          <span className="t-micro text-hunter">Mental</span>
+          <span className="t-numeral text-2xl text-hunter sm:text-3xl">
             {standings.strongMental}
           </span>
-          <span className="text-sm text-white/35">–</span>
-          <span className="hud-num text-2xl text-copper sm:text-3xl">
+          <span className="text-sm text-muted-foreground">–</span>
+          <span className="t-numeral text-2xl text-stone sm:text-3xl">
             {standings.grassRoots}
           </span>
-          <span className="hud-label text-copper/80">GR</span>
+          <span className="t-micro text-stone">Roots</span>
         </div>
         <div className="max-w-[52%] shrink-0 text-right">
           <p
             className={`text-sm font-bold leading-snug ${
-              clinched ? "text-gold-light" : "text-white"
+              clinched ? "text-hunter" : "text-foreground"
             }`}
           >
             {race.headline}
           </p>
-          <p className="mt-0.5 text-xs font-medium text-white/50">{race.detail}</p>
+          <p className="mt-0.5 text-xs font-medium text-muted-foreground">{race.detail}</p>
         </div>
       </div>
     </div>
@@ -199,18 +199,18 @@ export function ScoreBar({ matches, teams }: { matches: Match[]; teams: Team[] }
     <section className="surface p-4 sm:p-5">
       <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
         <div className="min-w-0">
-          <p className="t-micro truncate text-gold-light">{nameFor("strong-mental")}</p>
-          <p className="t-hero tabular-nums mt-1 text-gold-light">{standings.strongMental}</p>
+          <p className="t-micro truncate text-hunter">{nameFor("strong-mental")}</p>
+          <p className="t-hero tabular-nums mt-1 text-hunter">{standings.strongMental}</p>
         </div>
         <p className="t-micro pb-1.5 text-muted-foreground">{EVENT.pointsToWin} wins</p>
         <div className="min-w-0 text-right">
-          <p className="t-micro truncate text-copper">{nameFor("grass-roots")}</p>
-          <p className="t-hero tabular-nums mt-1 text-copper">{standings.grassRoots}</p>
+          <p className="t-micro truncate text-stone">{nameFor("grass-roots")}</p>
+          <p className="t-hero tabular-nums mt-1 text-stone">{standings.grassRoots}</p>
         </div>
       </div>
       <div className="mt-3 h-1 overflow-hidden rounded-full bg-[var(--track)]">
         <div
-          className="h-full rounded-full bg-gold transition-all duration-500"
+          className="h-full rounded-full bg-hunter transition-all duration-500"
           style={{ width: `${left}%` }}
         />
       </div>

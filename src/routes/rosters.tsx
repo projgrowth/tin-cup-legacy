@@ -82,9 +82,9 @@ function RostersPage() {
         />
         {standings.played > 0 && (
           <p className="t-body px-1 text-foreground">
-            <span className="text-gold-light">Strong Mental {standings.strongMental}</span>
+            <span className="text-hunter">Strong Mental {standings.strongMental}</span>
             <span className="mx-2 text-muted-foreground">vs</span>
-            <span className="text-copper">Grass Roots {standings.grassRoots}</span>
+            <span className="text-stone">Grass Roots {standings.grassRoots}</span>
           </p>
         )}
 
@@ -106,7 +106,7 @@ function RostersPage() {
               <section key={side.slug}>
                 <h2
                   className={`t-section ${
-                    side.slug === "strong-mental" ? "text-gold-light" : "text-copper"
+                    side.slug === "strong-mental" ? "text-hunter" : "text-stone"
                   }`}
                 >
                   {side.name.replace("Team ", "")}

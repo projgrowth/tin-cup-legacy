@@ -61,10 +61,10 @@ export function DisplayBoard({
         <section className="surface px-6 py-8 text-center sm:px-10 sm:py-12">
           <div className="flex items-center justify-center gap-6 sm:gap-12">
             <div className="min-w-0">
-              <p className="text-lg font-semibold text-gold-light sm:text-xl">
+              <p className="text-lg font-semibold text-hunter sm:text-xl">
                 {sm ? teamShortName(sm.slug as "strong-mental" | "grass-roots") : "Strong Mental"}
               </p>
-              <p className="mt-2 text-6xl font-bold tabular-nums tracking-tighter text-gold-light sm:text-8xl">
+              <p className="mt-2 text-6xl font-bold tabular-nums tracking-tighter text-hunter sm:text-8xl">
                 {Number.isInteger(standings.strongMental)
                   ? standings.strongMental
                   : standings.strongMental.toFixed(1)}
@@ -72,10 +72,10 @@ export function DisplayBoard({
             </div>
             <span className="text-4xl text-muted-foreground sm:text-5xl">–</span>
             <div className="min-w-0">
-              <p className="text-lg font-semibold text-copper sm:text-xl">
+              <p className="text-lg font-semibold text-stone sm:text-xl">
                 {gr ? teamShortName(gr.slug as "strong-mental" | "grass-roots") : "Grass Roots"}
               </p>
-              <p className="mt-2 text-6xl font-bold tabular-nums tracking-tighter text-copper sm:text-8xl">
+              <p className="mt-2 text-6xl font-bold tabular-nums tracking-tighter text-stone sm:text-8xl">
                 {Number.isInteger(standings.grassRoots)
                   ? standings.grassRoots
                   : standings.grassRoots.toFixed(1)}
@@ -179,15 +179,15 @@ function ResultBadge({ result }: { result: string }) {
   // Canonical results are team slugs; keep legacy a/b for any old rows.
   if (result === "strong-mental" || result === "a") {
     return (
-      <span className="shrink-0 rounded-full border border-gold/40 bg-gold/10 px-3 py-1.5 text-base font-semibold text-gold-light">
-        SM
+      <span className="shrink-0 rounded-full border border-hunter/40 bg-hunter/10 px-3 py-1.5 text-base font-semibold text-hunter">
+        Mental
       </span>
     );
   }
   if (result === "grass-roots" || result === "b") {
     return (
-      <span className="shrink-0 rounded-full border border-copper/40 bg-copper/10 px-3 py-1.5 text-base font-semibold text-copper">
-        GR
+      <span className="shrink-0 rounded-full border border-stone/40 bg-stone/10 px-3 py-1.5 text-base font-semibold text-stone">
+        Roots
       </span>
     );
   }

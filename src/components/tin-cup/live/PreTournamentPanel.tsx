@@ -120,14 +120,6 @@ export function PreTournamentPanel({
             {today.dayLabel} · {COURSE_LABEL[nextCourseId]} · first tee {today.firstTee}
           </p>
           {tonight && <p className="t-micro px-1 text-muted-foreground">Tonight · {tonight.title}</p>}
-          <a
-            href={venmoUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="press btn-quiet t-body flex min-h-11 w-full items-center justify-center"
-          >
-            Pay ${BUY_IN}
-          </a>
         </section>
       )}
 

@@ -332,12 +332,12 @@ function ScoutPage() {
                     card: true,
                   }}
                   className={`press relative min-h-11 px-2.5 text-center text-sm font-semibold tracking-tight ${
-                    on ? "text-gold-light" : "text-muted-foreground"
+                    on ? "text-hunter" : "text-muted-foreground"
                   }`}
                 >
                   {COURSE_LABEL[id]}
                   {on ? (
-                    <span aria-hidden className="absolute inset-x-2 bottom-1 h-px bg-gold" />
+                    <span aria-hidden className="absolute inset-x-2 bottom-1 h-px bg-hunter" />
                   ) : null}
                 </Link>
               );

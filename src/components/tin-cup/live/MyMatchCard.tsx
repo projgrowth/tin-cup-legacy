@@ -172,7 +172,7 @@ export function MyMatchCard({
             <Link
               to="/"
               search={{ score: true, match: featured.match.id }}
-              className="press t-micro inline-flex min-h-11 items-center font-semibold text-gold-light"
+              className="press t-micro inline-flex min-h-11 items-center font-semibold text-hunter"
             >
               Post result
             </Link>

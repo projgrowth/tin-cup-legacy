@@ -92,7 +92,7 @@ function HoleRow({
           <span
             className={`flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${
               selected
-                ? "bg-gold/20 text-gold-light ring-1 ring-gold/40"
+                ? "bg-hunter/15 text-hunter ring-1 ring-hunter/35"
                 : snake
                   ? "bg-white/5 text-copper"
                   : planned
@@ -113,7 +113,7 @@ function HoleRow({
               {contests.map((c) => (
                 <span
                   key={c}
-                  className={`t-micro font-semibold ${c === "ld" ? "text-copper" : "text-gold-light"}`}
+                  className={`t-micro font-semibold ${c === "ld" ? "text-stone" : "text-hunter"}`}
                 >
                   {c === "ld" ? "LD" : "CTP"}
                 </span>

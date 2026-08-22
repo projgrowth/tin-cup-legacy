@@ -87,8 +87,8 @@ export function defaultMode(now: number = Date.now()): BoardMode {
 }
 
 export const TEAM_STYLES: Record<string, { short: string; accent: string }> = {
-  "strong-mental": { short: "Strong Mental", accent: "text-gold" },
-  "grass-roots": { short: "Grass Roots", accent: "text-copper" },
+  "strong-mental": { short: "Strong Mental", accent: "text-hunter" },
+  "grass-roots": { short: "Grass Roots", accent: "text-stone" },
 };
 
 export const FEE_BREAKDOWN = [

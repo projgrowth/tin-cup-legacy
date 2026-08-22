@@ -28,11 +28,11 @@ function Side({
 }) {
   const color = dim
     ? tone === "gold"
-      ? "text-gold-light/70"
-      : "text-copper/70"
+      ? "text-hunter/70"
+      : "text-stone/70"
     : tone === "gold"
-      ? "text-gold-light"
-      : "text-copper";
+      ? "text-hunter"
+      : "text-stone";
   return (
     <div className="flex min-w-0 flex-col items-center text-center">
       <AvatarPair people={people} size={feature ? "md" : "sm"} />
@@ -90,7 +90,7 @@ export function MatchCard({
     <article
       aria-label={`${labelA} vs ${labelB}${meta ? ` · ${meta}` : ""}${result ? ` · ${result}` : ""}`}
       className={`surface overflow-hidden px-4 py-3.5 ${
-        yours ? "ring-1 ring-gold/35" : ""
+        yours ? "ring-1 ring-hunter/35" : ""
       } ${feature ? "py-4" : ""}`}
     >
       {eyebrow.length > 0 ? (
@@ -100,7 +100,7 @@ export function MatchCard({
               {i > 0 ? <span className="text-muted-foreground"> · </span> : null}
               <span
                 className={
-                  bit === "Live" ? "text-copper" : bit === "You" ? "text-gold-light" : undefined
+                  bit === "Live" ? "text-[var(--status-live)]" : bit === "You" ? "text-hunter" : undefined
                 }
               >
                 {bit}

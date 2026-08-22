@@ -7,7 +7,7 @@ export function Countdown({ compact = false }: { compact?: boolean }) {
 
   if (compact) {
     if (time.done) {
-      return <p className="t-micro text-gold-light">On the tee · Friday 12:19</p>;
+      return <p className="t-micro text-hunter">On the tee · Friday 12:19</p>;
     }
     const line = close
       ? `${String(time.hours + time.days * 24).padStart(2, "0")}:${String(time.minutes).padStart(2, "0")}:${String(time.seconds).padStart(2, "0")}`
@@ -20,7 +20,7 @@ export function Countdown({ compact = false }: { compact?: boolean }) {
   }
 
   if (time.done) {
-    return <p className="t-micro text-gold-light">On the tee · Friday 12:19</p>;
+    return <p className="t-micro text-hunter">On the tee · Friday 12:19</p>;
   }
 
   const line = close

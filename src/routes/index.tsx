@@ -289,7 +289,7 @@ function Index() {
                 Unlocks your player card, private notes, and photo credits
               </span>
             </span>
-            <span className="t-micro shrink-0 font-semibold text-gold-light">Account →</span>
+            <span className="t-micro shrink-0 font-semibold text-hunter">Account →</span>
           </Link>
         )}
         {(canScore || isAdmin) && (

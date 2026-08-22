@@ -18,7 +18,7 @@ export function BottomNav({ live = false }: { live?: boolean }) {
             key={to}
             to={to}
             activeOptions={{ exact }}
-            className="group press t-micro relative flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 font-semibold tracking-[-0.01em] text-muted-foreground transition-colors data-[status=active]:text-gold-light lg:flex-row lg:gap-2 lg:px-3.5 lg:py-2"
+            className="group press t-micro relative flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 font-semibold tracking-[-0.01em] text-muted-foreground transition-colors data-[status=active]:text-hunter lg:flex-row lg:gap-2 lg:px-3.5 lg:py-2"
           >
             <span className="relative">
               <Icon className="size-[18px] md:size-4" strokeWidth={1.65} />
@@ -33,7 +33,7 @@ export function BottomNav({ live = false }: { live?: boolean }) {
               {label}
               <span
                 aria-hidden
-                className="absolute inset-x-0 -bottom-0.5 mx-auto hidden h-px w-full bg-gold group-data-[status=active]:block"
+                className="absolute inset-x-0 -bottom-0.5 mx-auto hidden h-px w-full bg-hunter group-data-[status=active]:block"
               />
             </span>
           </Link>

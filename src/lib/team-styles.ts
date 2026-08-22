@@ -1,15 +1,15 @@
-/** Team accent tokens — Strong Mental = gold, Grass Roots = copper. */
+/** Team accent tokens — Strong Mental = hunter, Grass Roots = stone. */
 
 export type TeamSlug = "strong-mental" | "grass-roots" | string;
 
 export function teamAccentClass(slug: TeamSlug): string {
-  if (slug === "grass-roots") return "text-copper";
-  return "text-gold";
+  if (slug === "grass-roots") return "text-stone";
+  return "text-hunter";
 }
 
 export function teamRailClass(slug: TeamSlug): string {
-  if (slug === "grass-roots") return "rail-copper";
-  return "rail-gold";
+  if (slug === "grass-roots") return "rail-b";
+  return "rail-a";
 }
 
 export function teamShortName(slug: TeamSlug): string {
@@ -29,15 +29,15 @@ export function playerInitials(name: string): string {
   return `${parts[0]![0] ?? ""}${parts[parts.length - 1]![0] ?? ""}`.toUpperCase();
 }
 
-/** Monogram surface classes by team (flat, no gold wash). */
+/** Monogram surface classes by team. */
 export function monogramClass(slug?: TeamSlug | null, size: "sm" | "md" | "lg" = "md"): string {
   const dim =
     size === "sm" ? "size-8 text-[0.65rem]" : size === "lg" ? "size-14 text-base" : "size-10 text-xs";
   if (slug === "grass-roots") {
-    return `${dim} rounded-full border border-copper/35 bg-copper/15 font-semibold tracking-wide text-copper`;
+    return `${dim} rounded-full border border-stone/35 bg-stone/15 font-semibold tracking-wide text-stone`;
   }
   if (slug === "strong-mental") {
-    return `${dim} rounded-full border border-gold/35 bg-gold/12 font-semibold tracking-wide text-gold-light`;
+    return `${dim} rounded-full border border-hunter/35 bg-hunter/10 font-semibold tracking-wide text-hunter`;
   }
   return `${dim} rounded-full border border-border bg-secondary font-semibold tracking-wide text-muted-foreground`;
 }
