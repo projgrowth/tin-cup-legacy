@@ -331,14 +331,9 @@ function ScoutPage() {
                     hole: 1,
                     card: true,
                   }}
-                  className={`press relative min-h-11 px-2.5 text-center text-sm font-semibold tracking-tight ${
-                    on ? "text-hunter" : "text-muted-foreground"
-                  }`}
+                  className={`press chip min-h-11 ${on ? "chip-on" : ""}`}
                 >
                   {COURSE_LABEL[id]}
-                  {on ? (
-                    <span aria-hidden className="absolute inset-x-2 bottom-1 h-px bg-hunter" />
-                  ) : null}
                 </Link>
               );
             })}

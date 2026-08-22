@@ -109,20 +109,29 @@ function ProfilePage() {
       {!user ? (
         <div className="mb-6">
           <PageMasthead
-            title="Join the weekend"
+            title="Account"
             meta="Sign in once for your player card and private course notes."
           />
         </div>
+      ) : claimedPlayer ? (
+        <PageMasthead
+          title={claimedPlayer.name.split(" ")[0] ?? claimedPlayer.name}
+          meta={[
+            claimedTeam?.name.replace("Team ", "") ?? "Field",
+            (() => {
+              const group = day1GroupForPlayer(claimedPlayer.name);
+              return group
+                ? `w/ ${group.partner.split(" ")[0]} · vs ${group.opponents}`
+                : null;
+            })(),
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        />
       ) : (
         <PageHeading
           eyebrow="Account"
-          title={
-            claimedPlayer
-              ? "Your Tin Cup"
-              : identity.kind === "claim"
-                ? "Claim your name"
-                : "Your account"
-          }
+          title={identity.kind === "claim" ? "Claim your name" : "Your account"}
         />
       )}
       {user && rolesError && (
@@ -239,6 +248,34 @@ function ProfilePage() {
                 </Link>
               </li>
             )}
+            <li>
+              <Link
+                to="/schedule"
+                className="press flex min-h-12 items-center justify-between px-4 py-3"
+              >
+                <span className="t-body font-medium">Weekend</span>
+                <ChevronRight className="size-4 text-muted-foreground" />
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/scout"
+                search={{ card: true }}
+                className="press flex min-h-12 items-center justify-between px-4 py-3"
+              >
+                <span className="t-body font-medium">Plan</span>
+                <ChevronRight className="size-4 text-muted-foreground" />
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/purse"
+                className="press flex min-h-12 items-center justify-between px-4 py-3"
+              >
+                <span className="t-body font-medium">Purse</span>
+                <ChevronRight className="size-4 text-muted-foreground" />
+              </Link>
+            </li>
             <li>
               <Link
                 to="/scout"

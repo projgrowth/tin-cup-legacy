@@ -89,10 +89,12 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(page.getByText("Zack · Chris vs Charles · Blake")).toBeVisible();
   await expect(page.getByText("Zack · Chris")).toBeVisible();
   await expect(page.getByText("Charles · Blake")).toBeVisible();
-  await expect(page.getByText("Saturday · Copperhead")).toBeVisible();
-  await expect(page.getByText("Sunday · Island")).toBeVisible();
+  await expect(page.getByRole("tab", { name: /Saturday · Copperhead/ })).toBeVisible();
+  await expect(page.getByRole("tab", { name: /Sunday · Island/ })).toBeVisible();
+  await page.getByRole("tab", { name: /Saturday · Copperhead/ }).click();
+  await expect(page.getByText("Modified Stableford Match")).toBeVisible();
+  await expect(page.getByText("Pairings when captains post")).toBeVisible();
   await expect(page.getByText("Pool & Salamander Grille")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Modified Stableford Match" })).toBeVisible();
   await expect(page.getByRole("button", { name: "How formats work" })).toBeVisible();
   await expect(page.getByText("Loading…")).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
@@ -184,7 +186,7 @@ test("protected preview exposes the gallery and engagement prompt without produc
 
 test("profile guest sees sign-in instead of a stuck claim screen", async ({ page }) => {
   await page.goto("/profile");
-  await expect(page.getByRole("heading", { name: /Join the weekend/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Account" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Claim your name" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Couldn't load your account" })).toHaveCount(0);
@@ -193,7 +195,7 @@ test("profile guest sees sign-in instead of a stuck claim screen", async ({ page
 test("guest account and primary navigation meet the interaction baseline", async ({ page }) => {
   await page.goto("/profile");
   await expectTinCupIdentity(page);
-  await expect(page.getByRole("heading", { level: 1, name: "Join the weekend" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Account" })).toBeVisible();
   await expect(page.getByText("Loading…")).toHaveCount(0, { timeout: 15_000 });
   await expect(page.getByLabel("Email")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByLabel("Password")).toBeVisible();

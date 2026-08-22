@@ -64,7 +64,7 @@ function PursePage() {
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className="press btn-primary t-body mt-4 flex min-h-11 w-full max-w-sm justify-center"
+            className="press btn-primary t-body mt-4 flex min-h-11 w-full justify-center"
           >
             Pay ${BUY_IN}
           </a>
@@ -87,7 +87,7 @@ function PursePage() {
                 {claimed.length}/{bets.length}
               </span>
             </div>
-            <ul className="divide-y divide-border">
+            <ul className="surface divide-y divide-border overflow-hidden">
               {bets.map((bet) => (
                 <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
                   <span className="min-w-0">
@@ -109,8 +109,8 @@ function PursePage() {
 
         {perPlayer.length > 0 && (
           <section>
-            <h2 className="t-section text-foreground">Won so far</h2>
-            <ul className="divide-y divide-border">
+            <h2 className="t-micro font-semibold text-foreground">Won so far</h2>
+            <ul className="surface divide-y divide-border overflow-hidden">
               {perPlayer.map((row) => (
                 <li key={row.name} className="flex items-center justify-between gap-3 px-4 py-3">
                   <span className="t-body min-w-0 truncate text-foreground">{row.name}</span>

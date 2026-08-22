@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
 
 import { Avatar } from "@/components/tin-cup/Avatar";
+import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
 import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,9 +13,10 @@ import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { formatRecord, pairingIncludes, playerRecord, roundStatus } from "@/lib/scoring";
-import { teamRailClass } from "@/lib/team-styles";
+
 import { formatPayout } from "@/lib/purse";
 import { contestHoleLabel } from "@/lib/tin-cup";
+
 
 export const Route = createFileRoute("/player/$playerId")({
   head: () => ({
@@ -116,45 +118,21 @@ function PlayerPage() {
         <ChevronLeft className="size-4" strokeWidth={1.7} /> Team hub
       </Link>
 
-      <header className={`rounded-xl border border-border p-5 ${teamRailClass(team.slug)}`}>
-        <div className="flex items-start gap-3">
-          <Avatar name={player.name} teamSlug={team.slug} src={face?.url} size="lg" />
-          <div className="min-w-0 flex-1">
-            <p className="t-micro">{team.name}</p>
-            <h1 className="t-title mt-1 text-foreground">{player.name}</h1>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {player.is_captain && (
-                <span className="pill border-border text-muted-foreground">Captain</span>
-              )}
-              {isYou && (
-                <span className="pill border-border bg-secondary text-foreground">
-                  It&apos;s you
-                </span>
-              )}
-              {socialProfile?.flair && (
-                <span className="player-flair">
-                  {socialProfile.flair.replace("vibes", "vibes captain")}
-                </span>
-              )}
-            </div>
-            {socialProfile?.status_text && (
-              <p className="t-body mt-2 text-muted-foreground">“{socialProfile.status_text}”</p>
-            )}
-            {d1 && (
-              <p className="t-micro mt-2 text-muted-foreground">
-                Day 1 · w/ {d1.partner.split(" ")[0]} · vs {d1.opponents}
-              </p>
-            )}
-          </div>
-        </div>
-        <p className="t-hero mt-4 text-foreground">
-          {record.points}
-          <span className="t-micro ml-2 font-normal text-muted-foreground">pts won</span>
-        </p>
-        <p className="t-micro mt-1 text-muted-foreground">
-          {shorthand ? `${shorthand} record` : "No results posted yet"}
-        </p>
-      </header>
+      <div className="flex items-start gap-3">
+        <Avatar name={player.name} teamSlug={team.slug} src={face?.url} size="lg" />
+        <PageMasthead
+          title={player.name}
+          meta={[
+            team.name.replace("Team ", ""),
+            player.is_captain ? "Captain" : null,
+            isYou ? "You" : null,
+            d1 ? `w/ ${d1.partner.split(" ")[0]} · vs ${d1.opponents}` : null,
+            shorthand || "No results yet",
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        />
+      </div>
 
       <ShareMomentButton
         className="mt-3 w-full"
@@ -203,32 +181,23 @@ function PlayerPage() {
         </section>
       )}
 
-      <section className="mt-8">
-        <h2 className="t-section">Match timeline</h2>
-        <ol className="relative mt-4 space-y-0 border-l border-border pl-4">
+      <section className="mt-6">
+        <h2 className="t-micro font-semibold text-foreground">Matches</h2>
+        <ol className="surface mt-2 divide-y divide-border overflow-hidden">
           {mine.map((match) => {
             const round = rounds.find((r) => r.id === match.round_id);
             const onA = pairingIncludes(match.side_a, player.name);
             const partnerSide = onA ? match.side_a : match.side_b;
             const opponents = onA ? match.side_b : match.side_a;
             const live = round && roundStatus(round) === "live";
-            const decided = match.result !== "pending";
             return (
-              <li key={match.id} className="relative pb-5 last:pb-0">
-                <span
-                  aria-hidden
-                  className={`absolute -left-[1.3rem] top-1.5 size-2.5 rounded-full border ${
-                    decided
-                      ? "border-foreground/30 bg-secondary"
-                      : live
-                        ? "border-copper/50 bg-copper/40"
-                        : "border-border bg-background"
-                  }`}
-                />
+              <li key={match.id} className="px-4 py-3">
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="t-body min-w-0 truncate text-foreground">{match.label}</span>
+                  <span className="t-body min-w-0 truncate font-medium text-foreground">
+                    {match.label}
+                  </span>
                   <span
-                    className={`t-body shrink-0 ${
+                    className={`t-micro shrink-0 ${
                       match.result === "pending" ? "text-muted-foreground" : "text-foreground"
                     }`}
                   >
@@ -239,28 +208,27 @@ function PlayerPage() {
                 </div>
                 <p className="t-micro mt-0.5 truncate">
                   {round ? `${round.day_label} · ${round.course}` : "Round TBD"}
-                </p>
-                <p className="t-micro mt-0.5 truncate">
+                  {" · "}
                   {partnerSide ?? player.name} vs {opponents ?? "TBD"}
                 </p>
               </li>
             );
           })}
           {mine.length === 0 && (
-            <li className="t-micro pb-1">Pairings post once the captains set the lineups.</li>
+            <li className="t-micro px-4 py-3">Pairings post once the captains set the lineups.</li>
           )}
         </ol>
       </section>
 
-      <section className="mt-8">
-        <h2 className="t-section">Side cash</h2>
+      <section className="mt-6">
+        <h2 className="t-micro font-semibold text-foreground">Side cash</h2>
         {claims.length === 0 ? (
           <p className="t-micro mt-3">No CTP or long drive claims yet.</p>
         ) : (
           <>
-            <ul className="mt-3 divide-y divide-border border-t border-border">
+            <ul className="surface mt-2 divide-y divide-border overflow-hidden">
               {claims.map((claim) => (
-                <li key={claim.id} className="flex items-baseline justify-between gap-3 py-3">
+                <li key={claim.id} className="flex items-baseline justify-between gap-3 px-4 py-3">
                   <span className="min-w-0">
                     <span className="t-body block truncate text-foreground">{claim.label}</span>
                     <span className="t-micro block">

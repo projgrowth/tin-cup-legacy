@@ -15,7 +15,7 @@ import {
   type CourseId,
   type Hole,
 } from "@/lib/courses";
-import { hasPlanContent, nineSplit, type PlanLine } from "@/lib/round-sheet";
+import { countPlanned, hasPlanContent, nineSplit, type PlanLine } from "@/lib/round-sheet";
 
 function planSummary(draft: PlanLine["draft"]): string {
   if (!hasPlanContent(draft)) return "";
@@ -198,6 +198,7 @@ export function RoundPlanBoard({
   hero?: boolean;
 }) {
   const details = COURSE_DETAILS[courseId];
+  const planned = countPlanned(lines);
   const split = nineSplit(lines);
   const holeByN = new Map(holes.map((h) => [h.h, h]));
   const [openHole, setOpenHole] = useState<number | null>(null);
@@ -222,6 +223,7 @@ export function RoundPlanBoard({
           meta={
             <>
               {details.dayLabel} · {details.firstTee} · {details.format}
+              {` · ${planned}/18 planned`}
               {pairingLine ? <span className="mt-1 block text-foreground">{pairingLine}</span> : null}
             </>
           }
@@ -237,7 +239,13 @@ export function RoundPlanBoard({
       )}
       <p className="t-body px-1 text-foreground/80">{details.formatTip}</p>
 
-      <section className="overflow-hidden" aria-label="18-hole game plan">
+      <section className="surface overflow-hidden" aria-label="18-hole game plan">
+        <div className="h-1 bg-[var(--track)]">
+          <div
+            className="h-1 bg-hunter"
+            style={{ width: `${Math.min(100, (planned / 18) * 100)}%` }}
+          />
+        </div>
         <NineRule
           label={details.frontNine}
           par={split.out.par}

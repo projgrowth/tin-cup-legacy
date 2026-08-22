@@ -3,15 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { FridayPairings } from "@/components/tin-cup/FridayPairings";
-import { CourseDayStory } from "@/components/tin-cup/DayStory";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
+import { useProfile } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
-import { roundStart, roundStatus, roundTally } from "@/lib/scoring";
+import { roundStart, roundStatus } from "@/lib/scoring";
 import { downloadRoundIcs, downloadWeekendIcs } from "@/lib/calendar";
 import { trackProductEvent } from "@/lib/product-analytics";
-import { formatCountdownShort } from "@/lib/countdown";
 
 import {
   COURSE_DETAILS,
@@ -34,7 +33,13 @@ function useNow() {
   return now;
 }
 
+type ScheduleSearch = { course?: CourseId };
+
 export const Route = createFileRoute("/schedule")({
+  validateSearch: (raw: Record<string, unknown>): ScheduleSearch => {
+    const course = String(raw.course ?? "");
+    return COURSE_ORDER.includes(course as CourseId) ? { course: course as CourseId } : {};
+  },
   head: () => ({
     meta: [
       { title: "Weekend Guide — Tin Cup Invitational 2026" },
@@ -54,7 +59,9 @@ export const Route = createFileRoute("/schedule")({
 });
 
 function SchedulePage() {
+  const search = Route.useSearch();
   const { data, isError, refetch, isFetching } = useTournament();
+  const { profile } = useProfile();
   const avatars = usePlayerAvatars(data?.players ?? [], data?.teams ?? []);
   const now = useNow();
   const todayCourse = defaultCourseId(now ?? undefined);
@@ -79,16 +86,16 @@ function SchedulePage() {
     return upcoming ?? rounds[0] ?? null;
   }, [rounds, now]);
 
-  const todayCourseId = todayRound ? (courseIdFromRound(todayRound) ?? todayCourse) : todayCourse;
-  const todayDetails = COURSE_DETAILS[todayCourseId];
-  const showDay1Pairings =
-    todayCourseId === "south" ||
-    !now ||
-    (todayRound ? roundStatus(todayRound, now) !== "complete" : true);
+  const autoCourseId = todayRound ? (courseIdFromRound(todayRound) ?? todayCourse) : todayCourse;
+  const courseId = search.course ?? autoCourseId;
+  const details = COURSE_DETAILS[courseId];
+  const selectedRound =
+    rounds.find((round) => round.slug === details.roundSlug) ??
+    rounds.find((round) => courseIdFromRound(round) === courseId) ??
+    null;
 
-  // Social: panel today's dinner first
   const socialOrdered = useMemo(() => {
-    const dayLabel = todayDetails.dayLabel; // Friday / Saturday / Sunday
+    const dayLabel = details.dayLabel;
     const list = [...WEEKEND_SOCIAL];
     list.sort((a, b) => {
       const aToday = a.day.startsWith(dayLabel) ? 0 : 1;
@@ -96,66 +103,79 @@ function SchedulePage() {
       return aToday - bToday;
     });
     return list;
-  }, [todayDetails.dayLabel]);
+  }, [details.dayLabel]);
 
-  const otherCourseIds = COURSE_ORDER.filter((id) => id !== todayCourseId);
-  const pairingsInToday = showDay1Pairings && todayCourseId === "south";
-
-  function roundForCourse(courseId: CourseId) {
-    const slug = COURSE_DETAILS[courseId].roundSlug;
-    return (
-      rounds.find((round) => round.slug === slug) ??
-      rounds.find((round) => courseIdFromRound(round) === courseId) ??
-      null
-    );
-  }
+  const claimedPlayer = profile?.player_id
+    ? (data?.players ?? []).find((player) => player.id === profile.player_id)
+    : undefined;
+  const playerIdByName = (name: string) =>
+    (data?.players ?? []).find((player) => player.name.trim().toLowerCase() === name.trim().toLowerCase())
+      ?.id;
 
   return (
     <Shell variant="content">
       <div className="stack-page pb-4">
-        <section>
+        <section className="stack-tight">
+          <div className="flex flex-wrap gap-2" role="tablist" aria-label="Day">
+            {COURSE_ORDER.map((id) => {
+              const on = id === courseId;
+              const label = `${COURSE_DETAILS[id].dayLabel} · ${COURSE_LABEL[id]}`;
+              return (
+                <Link
+                  key={id}
+                  role="tab"
+                  aria-selected={on}
+                  to="/schedule"
+                  search={{ course: id }}
+                  replace
+                  className={`press chip min-h-11 ${on ? "chip-on" : ""}`}
+                >
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+
           <PageMasthead
             title={
               <>
-                {todayDetails.dayLabel} · {COURSE_LABEL[todayCourseId]}
+                {details.dayLabel} · {COURSE_LABEL[courseId]}
               </>
             }
             meta={
               <>
-                {todayDetails.firstTee} · {todayDetails.format}
-                {` · ${todayRound?.points ?? todayDetails.points} pts`}
+                {details.firstTee} · {details.format}
+                {` · ${selectedRound?.points ?? details.points} pts`}
               </>
             }
           />
 
-          {pairingsInToday && (
-            <div className="mt-3">
-              <FridayPairings getFace={(name) => avatars.data?.getByName(name)} />
-            </div>
+          {courseId === "south" ? (
+            <FridayPairings
+              getFace={(name) => avatars.data?.getByName(name)}
+              claimedName={claimedPlayer?.name ?? null}
+              playerIdByName={playerIdByName}
+            />
+          ) : (
+            <p className="t-micro px-1 py-2.5">Pairings when captains post</p>
           )}
 
-          {todayRound && todayRound.slug !== "friday" && (
-            <p className="t-micro border-t border-border px-1 py-2.5 text-muted-foreground">
-              Pairings when captains post
-            </p>
-          )}
-
-          <div className="flex flex-wrap gap-x-4 px-1 pt-1">
+          <div className="flex flex-wrap gap-2 px-1">
             <Link
               to="/scout"
-              search={{ course: todayCourseId, card: true }}
-              className="press t-micro inline-flex min-h-11 items-center font-semibold text-foreground"
+              search={{ course: courseId, card: true }}
+              className="press btn-quiet t-micro min-h-11"
             >
-              {COURSE_LABEL[todayCourseId]} planner
+              {COURSE_LABEL[courseId]} planner
             </Link>
-            {todayRound && roundStart(todayRound) && (
+            {selectedRound && roundStart(selectedRound) && (
               <button
                 type="button"
                 onClick={() => {
-                  downloadRoundIcs(todayRound);
+                  downloadRoundIcs(selectedRound);
                   void trackProductEvent("calendar_downloaded", { kind: "round" });
                 }}
-                className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
+                className="press btn-quiet t-micro min-h-11"
               >
                 Add this round
               </button>
@@ -164,46 +184,6 @@ function SchedulePage() {
         </section>
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
-
-        <section className="stack-tight">
-          <h2 className="t-micro font-semibold text-foreground">Also this weekend</h2>
-          {otherCourseIds.map((courseId) => {
-            const round = roundForCourse(courseId);
-            const status = round ? roundStatus(round, now ?? undefined) : "upcoming";
-            const start = round ? roundStart(round) : null;
-            const tally = round ? roundTally(data?.matches ?? [], round.id) : null;
-            const decided = Boolean(tally && tally.strongMental + tally.grassRoots > 0);
-            const countdown =
-              start && now && status === "upcoming" ? formatCountdownShort(start - now) : null;
-            const phase =
-              status === "live" ? "Live" : status === "complete" ? "Final" : null;
-            return (
-              <CourseDayStory
-                key={courseId}
-                courseId={courseId}
-                extraMeta={[phase, countdown, decided && tally ? `${tally.strongMental}–${tally.grassRoots}` : null]
-                  .filter(Boolean)
-                  .join(" · ") || null}
-                action={
-                  <>
-                    {courseId !== "south" && !decided ? (
-                      <p className="t-micro mt-2 text-muted-foreground">
-                        Pairings when captains post
-                      </p>
-                    ) : null}
-                    <Link
-                      to="/scout"
-                      search={{ course: courseId, card: true }}
-                      className="press t-micro mt-1 inline-flex min-h-11 items-center font-semibold text-foreground"
-                    >
-                      {COURSE_LABEL[courseId]} planner
-                    </Link>
-                  </>
-                }
-              />
-            );
-          })}
-        </section>
 
         <section className="stack-tight">
           <h2 className="t-micro font-semibold text-foreground">Dinners</h2>

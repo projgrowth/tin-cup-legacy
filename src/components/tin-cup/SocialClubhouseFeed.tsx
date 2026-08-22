@@ -272,7 +272,7 @@ export function SocialClubhouseFeed({
         )}
       </div>
 
-      <div className="feed-composer surface-raised p-2.5 sm:p-3">
+      <div className="feed-composer surface p-2.5 sm:p-3">
         <div className="flex gap-3">
           <Avatar
             name={profile?.display_name || "You"}
@@ -332,7 +332,9 @@ export function SocialClubhouseFeed({
                 type="button"
                 disabled={!canParticipate || !draft.trim() || story.addComment.isPending}
                 onClick={submitPost}
-                className="press btn-primary flex min-h-11 items-center gap-2 px-4 text-sm font-semibold"
+                className={`press flex min-h-11 items-center gap-2 px-4 text-sm font-semibold ${
+                  draft.trim() ? "btn-primary" : "btn-quiet"
+                }`}
               >
                 <Send className="size-4" /> Post
               </button>
