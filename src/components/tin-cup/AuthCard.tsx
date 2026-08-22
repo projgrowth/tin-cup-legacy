@@ -1,7 +1,6 @@
 import { useId, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Mail } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { writeSeat } from "@/lib/seat";
@@ -187,10 +186,7 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
 
       {sentTo && (
         <div className="rounded-xl border border-border bg-secondary/50 px-3.5 py-3">
-          <p className="t-body flex items-center gap-2 font-medium text-foreground">
-            <Mail className="size-4 shrink-0 text-muted-foreground" />
-            Check {sentTo}
-          </p>
+          <p className="t-body font-medium text-foreground">Check {sentTo}</p>
           <p className="t-micro mt-1.5 text-muted-foreground">
             {mode === "magic"
               ? "Open the email on this phone. Spam if it isn't there in a minute."

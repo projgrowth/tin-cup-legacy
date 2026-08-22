@@ -264,7 +264,7 @@ export function PhotoVault({
       <section className="space-y-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="t-section text-foreground">Pulse</h2>
+            <h2 className="t-eyebrow text-foreground">Pulse</h2>
             <p className="t-micro mt-0.5 text-muted-foreground">Weekend photos</p>
           </div>
           {picker}
@@ -356,7 +356,7 @@ export function PhotoVault({
   return (
     <section className="space-y-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="t-section text-foreground">Photo vault</h2>
+        <h2 className="t-eyebrow text-foreground">Photo vault</h2>
         {picker}
       </div>
       {captionComposer}

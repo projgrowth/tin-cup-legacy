@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { Map } from "lucide-react";
 import { useMemo } from "react";
 
 import { MatchCard } from "@/components/tin-cup/MatchCard";
@@ -119,18 +118,16 @@ export function MyMatchCard({
   const sideA = featured.sideA;
   const sideB = featured.sideB;
   const planCourse: CourseId =
-    featured.kind === "match"
-      ? (courseIdFromRound(featured.round) ?? "south")
-      : "south";
+    featured.kind === "match" ? (courseIdFromRound(featured.round) ?? "south") : "south";
   const status = featured.kind === "match" ? roundStatus(featured.round) : "upcoming";
-  const formatChip = featured.kind === "match" ? matchFormatChip(featured.match.label) : "Scramble · Alt shot";
+  const formatChip =
+    featured.kind === "match" ? matchFormatChip(featured.match.label) : "Scramble · Alt shot";
   const pointsChip = featured.kind === "match" ? featured.match.points : 2;
   const dayLine =
     featured.kind === "match"
       ? `${featured.round.day_label} · ${featured.round.course}`
       : `Friday · Match ${featured.matchIndex}`;
-  const result =
-    featured.kind === "match" ? resultLabel(featured.match.result) : null;
+  const result = featured.kind === "match" ? resultLabel(featured.match.result) : null;
   const live = status === "live";
   const decided = featured.kind === "match" && featured.match.result !== "pending";
   const peopleA = (avatars.data?.forSide(sideA) ?? []).map((e) => ({
@@ -163,9 +160,8 @@ export function MyMatchCard({
           <Link
             to="/scout"
             search={{ course: planCourse, card: true }}
-            className="press t-micro inline-flex min-h-11 items-center gap-1.5 font-semibold text-foreground"
+            className="press t-micro inline-flex min-h-11 items-center font-semibold text-foreground"
           >
-            <Map className="size-3.5 opacity-70" />
             Plan {COURSE_LABEL[planCourse]}
           </Link>
           {canScore && featured.kind === "match" && !decided ? (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bell, BellOff, Loader2, Save, Send } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   DEFAULT_NOTIFICATION_PREFERENCES,
@@ -41,7 +41,13 @@ const categories: Array<{
   { key: "final_result", label: "Final result", detail: "The Cup winner and recap" },
 ];
 
-export function NotificationSettings({ userId }: { userId: string }) {
+export function NotificationSettings({
+  userId,
+  embedded = false,
+}: {
+  userId: string;
+  embedded?: boolean;
+}) {
   const [enabled, setEnabled] = useState(false);
   const [busy, setBusy] = useState(false);
   const [preferences, setPreferences] = useState<NotificationPreference>(
@@ -57,11 +63,12 @@ export function NotificationSettings({ userId }: { userId: string }) {
       .catch(() => setEnabled(false));
   }, [userId]);
   return (
-    <section className="surface space-y-3 p-4">
-      <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-hunter/10 text-hunter">
-          {enabled ? <Bell className="size-5" /> : <BellOff className="size-5" />}
-        </span>
+    <section className={embedded ? "space-y-3" : "surface space-y-3 p-4"}>
+      {embedded ? (
+        <p className="t-micro text-muted-foreground">
+          Tee reminders, your match, mentions, and the Cup — never every score.
+        </p>
+      ) : (
         <div>
           <h2 className="t-eyebrow">Weekend alerts</h2>
           <p className="t-micro mt-1 text-muted-foreground">
@@ -69,7 +76,7 @@ export function NotificationSettings({ userId }: { userId: string }) {
             alerts, lead changes, and the final result. Never every score.
           </p>
         </div>
-      </div>
+      )}
       {eligibility?.reason && (
         <p className="t-micro rounded-xl bg-secondary/50 px-3 py-2.5 text-muted-foreground">
           {eligibility.reason}
@@ -103,7 +110,7 @@ export function NotificationSettings({ userId }: { userId: string }) {
             setBusy(false);
           }
         }}
-        className="press btn-quiet t-body flex min-h-11 w-full items-center justify-center gap-2"
+        className="press t-micro min-h-11 px-1 font-semibold text-hunter"
       >
         {busy && <Loader2 className="size-4 animate-spin" />}
         {enabled ? "Turn off alerts" : "Enable weekend alerts"}
@@ -173,7 +180,7 @@ export function NotificationSettings({ userId }: { userId: string }) {
               Urgent organizer alerts remain queued until quiet hours end.
             </p>
           </fieldset>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="flex flex-wrap gap-x-4">
             <button
               type="button"
               disabled={busy}
@@ -192,9 +199,9 @@ export function NotificationSettings({ userId }: { userId: string }) {
                   setBusy(false);
                 }
               }}
-              className="press btn-primary flex min-h-11 items-center justify-center gap-2 text-sm font-semibold"
+              className="press t-micro min-h-11 px-1 font-semibold text-hunter"
             >
-              <Save className="size-4" /> Save alerts
+              Save alerts
             </button>
             <button
               type="button"
@@ -211,9 +218,9 @@ export function NotificationSettings({ userId }: { userId: string }) {
                   setBusy(false);
                 }
               }}
-              className="press btn-quiet flex min-h-11 items-center justify-center gap-2 text-sm font-semibold"
+              className="press t-micro min-h-11 px-1 font-semibold text-foreground"
             >
-              <Send className="size-4" /> Send test
+              Send test
             </button>
           </div>
         </div>

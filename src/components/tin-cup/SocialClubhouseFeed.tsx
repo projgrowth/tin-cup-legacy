@@ -8,14 +8,9 @@ import {
   Flame,
   MessageCircle,
   MoreHorizontal,
-  Megaphone,
   PartyPopper,
-  Pencil,
   Pin,
-  Plus,
-  Send,
   Trophy,
-  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -65,7 +60,6 @@ export function SocialClubhouseFeed({
   trophies,
   players,
   teams,
-  rounds,
   filter,
   onFilter,
   canModerate = false,
@@ -93,19 +87,14 @@ export function SocialClubhouseFeed({
   const profiles = usePublicProfiles();
   const avatars = usePlayerAvatars(players, teams);
   const [draft, setDraft] = useState("");
-  const [mention, setMention] = useState("");
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
-  const [commentMentions, setCommentMentions] = useState<Record<string, string>>({});
   const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const [uploading, setUploading] = useState(false);
   const [editing, setEditing] = useState<{ id: string; body: string } | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const [announcementHours, setAnnouncementHours] = useState("24");
-  const [photoRound, setPhotoRound] = useState("");
-  const [photoEvent, setPhotoEvent] = useState("");
-  const [photoAlt, setPhotoAlt] = useState("");
-  const [attach, setAttach] = useState(false);
+  const [showPhoto, setShowPhoto] = useState(false);
   const canParticipate = Boolean(
     user && profile?.player_id && story.enabled && story.clubhouseEnabled,
   );
@@ -228,19 +217,19 @@ export function SocialClubhouseFeed({
   async function uploadPhoto(file: File) {
     setUploading(true);
     try {
-      const selectedRound = rounds.find((round) => round.id === photoRound);
+      const caption = draft.trim() || null;
       if (isPreviewMode()) {
         await savePreviewPhoto(file, {
-          caption: draft.trim() || null,
-          altText: photoAlt.trim() || draft.trim() || null,
-          courseId: selectedRound?.course ?? null,
-          roundId: selectedRound?.id ?? null,
-          eventTag: photoEvent.trim() || null,
+          caption,
+          altText: caption,
+          courseId: null,
+          roundId: null,
+          eventTag: null,
           uploadedBy: user?.id ?? null,
         });
         await queryClient.invalidateQueries({ queryKey: ["activity-feed"] });
         setDraft("");
-        setPhotoAlt("");
+        setShowPhoto(false);
         void trackProductEvent("clubhouse_post", { kind: "photo" });
         toast.success("Photo added to this protected preview");
         return;
@@ -253,16 +242,16 @@ export function SocialClubhouseFeed({
         {
           object: {
             storage_path: storagePath,
-            caption: draft.trim() || null,
-            alt_text: photoAlt.trim() || draft.trim() || null,
-            course_id: selectedRound?.course ?? null,
-            round_id: selectedRound?.id ?? null,
-            event_tag: photoEvent.trim() || null,
+            caption,
+            alt_text: caption,
+            course_id: null,
+            round_id: null,
+            event_tag: null,
           },
         },
       );
       setDraft("");
-      setPhotoAlt("");
+      setShowPhoto(false);
       void trackProductEvent("clubhouse_post", { kind: "photo" });
       toast.success("Photo added");
     } catch (error) {
@@ -276,11 +265,10 @@ export function SocialClubhouseFeed({
     const body = draft.trim();
     if (!body) return;
     story.addComment.mutate(
-      { momentKey: CLUBHOUSE_MOMENT_KEY, body, mentionedUserId: mention || undefined },
+      { momentKey: CLUBHOUSE_MOMENT_KEY, body },
       {
         onSuccess: () => {
           setDraft("");
-          setMention("");
           void trackProductEvent("clubhouse_post", { kind: "text" });
         },
         onError: (error) => toast.error(error.message),
@@ -318,97 +306,77 @@ export function SocialClubhouseFeed({
           <span className="t-micro">Account</span>
         </Link>
       ) : (
-      <div className="feed-composer surface p-2.5 sm:p-3">
-        <div className="flex gap-3">
-          <Avatar
-            name={profile?.display_name || "You"}
-            teamSlug={profile?.player_id ? authorTeam(user?.id ?? "") : undefined}
-            src={authorAvatar(user?.id, profile?.player_id)}
-            size="sm"
-          />
-          <div className="min-w-0 flex-1">
-            <label className="sr-only" htmlFor="clubhouse-post">
-              Post to the field
-            </label>
-            <textarea
-              id="clubhouse-post"
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              disabled={!canParticipate}
-              maxLength={500}
-              rows={2}
-              placeholder={
-                canParticipate
-                  ? "What’s going on…"
-                  : user
-                    ? "Claim your name to post"
-                    : "Sign in to post"
-              }
-              className="control w-full resize-none border-0 bg-transparent px-0 text-base shadow-none focus:ring-0"
+        <div className="feed-composer surface p-2.5 sm:p-3">
+          <div className="flex gap-3">
+            <Avatar
+              name={profile?.display_name || "You"}
+              teamSlug={profile?.player_id ? authorTeam(user?.id ?? "") : undefined}
+              src={authorAvatar(user?.id, profile?.player_id)}
+              size="sm"
             />
-            <div className="mt-2 flex items-center gap-2">
-              <button
-                type="button"
-                aria-expanded={attach}
-                aria-label="Add photo or mention"
-                onClick={() => setAttach((open) => !open)}
-                className="press btn-quiet flex size-11 items-center justify-center"
-              >
-                <Plus className="size-4" />
-              </button>
-              <button
-                type="button"
-                disabled={!canParticipate || !draft.trim() || story.addComment.isPending}
-                onClick={submitPost}
-                className={`press ml-auto flex min-h-11 items-center px-4 text-sm font-semibold ${
-                  draft.trim() ? "btn-primary" : "btn-quiet"
-                }`}
-              >
-                Post
-              </button>
-            </div>
-            {attach ? (
-              <div className="mt-2 space-y-2 border-t border-border pt-2">
-              {canUpload && (
-                <PhotoPicker
-                  onFile={(file) => void uploadPhoto(file)}
-                  disabled={uploading}
-                  size="compact"
-                  cameraLabel="Photo"
-                  libraryLabel="Library"
-                  className="min-w-[12rem] flex-1 sm:flex-none"
-                />
-              )}
-              {canParticipate && (
-                <select
-                  aria-label="Mention a player"
-                  value={mention}
-                  onChange={(event) => setMention(event.target.value)}
-                  className="control min-h-11 w-full text-sm"
+            <div className="min-w-0 flex-1">
+              <label className="sr-only" htmlFor="clubhouse-post">
+                Post to the field
+              </label>
+              <textarea
+                id="clubhouse-post"
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                disabled={!canParticipate}
+                maxLength={500}
+                rows={2}
+                placeholder={
+                  canParticipate
+                    ? "What’s going on…"
+                    : user
+                      ? "Claim your name to post"
+                      : "Sign in to post"
+                }
+                className="control w-full resize-none border-0 bg-transparent px-0 text-base shadow-none focus:ring-0"
+              />
+              <div className="mt-1 flex items-center gap-3">
+                {canUpload ? (
+                  <button
+                    type="button"
+                    aria-expanded={showPhoto}
+                    aria-label="Add a photo"
+                    onClick={() => setShowPhoto((open) => !open)}
+                    className="press t-micro min-h-11 px-1 font-semibold"
+                  >
+                    Photo
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  disabled={!canParticipate || !draft.trim() || story.addComment.isPending}
+                  onClick={submitPost}
+                  className={`press ml-auto min-h-11 px-1 text-sm font-semibold ${
+                    draft.trim() ? "text-hunter" : "text-muted-foreground"
+                  }`}
                 >
-                  <option value="">Mention</option>
-                  {(profiles.data ?? [])
-                    .filter((row) => row.id !== user?.id)
-                    .map((row) => (
-                      <option key={row.id} value={row.id}>
-                        @{authorName(row.id)}
-                      </option>
-                    ))}
-                </select>
-              )}
+                  Post
+                </button>
+              </div>
+              {showPhoto && canUpload ? (
+                <div className="mt-2 border-t border-border pt-2">
+                  <PhotoPicker
+                    onFile={(file) => void uploadPhoto(file)}
+                    disabled={uploading}
+                    size="compact"
+                    cameraLabel="Photo"
+                    libraryLabel="Library"
+                  />
+                </div>
+              ) : null}
             </div>
-            ) : null}
           </div>
         </div>
-      </div>
       )}
 
       {canModerate && story.clubhouseEnabled && (
         <details className="surface-inset overflow-hidden">
-          <summary className="press flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
-            <span className="flex items-center gap-2">
-              <Megaphone className="size-4 text-hunter" /> Organizer announcement
-            </span>
+          <summary className="press flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
+            <span>Organizer announcement</span>
             <span className="t-micro">Compose</span>
           </summary>
           <form
@@ -461,9 +429,9 @@ export function SocialClubhouseFeed({
               <button
                 type="submit"
                 disabled={!announcement.trim() || story.addAnnouncement.isPending}
-                className="press btn-primary flex min-h-11 items-center gap-2 px-4 text-sm font-semibold"
+                className="press btn-primary min-h-11 px-4 text-sm font-semibold"
               >
-                <Megaphone className="size-4" /> Publish and pin
+                Publish and pin
               </button>
             </div>
           </form>
@@ -471,37 +439,37 @@ export function SocialClubhouseFeed({
       )}
 
       {canModerate && (!emptyFeed || filter !== "all") && (
-      <div
-        className="no-scrollbar flex gap-2 overflow-x-auto pb-1"
-        role="tablist"
-        aria-label="Feed filter"
-      >
-        {(
-          [
-            "all",
-            ...(story.clubhouseEnabled ? ["clubhouse" as const] : []),
-            "scores",
-            "photos",
-          ] as FeedFilter[]
-        ).map((value) => (
-          <button
-            key={value}
-            type="button"
-            role="tab"
-            aria-selected={filter === value}
-            onClick={() => onFilter(value)}
-            className={`press chip min-h-11 shrink-0 ${filter === value ? "chip-on" : ""}`}
-          >
-            {value === "scores"
-              ? "Results"
-              : value === "clubhouse"
-                ? "Field"
-                : value === "photos"
-                  ? "Photos"
-                  : "All"}
-          </button>
-        ))}
-      </div>
+        <div
+          className="no-scrollbar flex gap-2 overflow-x-auto pb-1"
+          role="tablist"
+          aria-label="Feed filter"
+        >
+          {(
+            [
+              "all",
+              ...(story.clubhouseEnabled ? ["clubhouse" as const] : []),
+              "scores",
+              "photos",
+            ] as FeedFilter[]
+          ).map((value) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={filter === value}
+              onClick={() => onFilter(value)}
+              className={`press chip min-h-11 shrink-0 ${filter === value ? "chip-on" : ""}`}
+            >
+              {value === "scores"
+                ? "Results"
+                : value === "clubhouse"
+                  ? "Field"
+                  : value === "photos"
+                    ? "Photos"
+                    : "All"}
+            </button>
+          ))}
+        </div>
       )}
 
       <div className={compact ? "space-y-2" : "space-y-3"}>
@@ -514,432 +482,406 @@ export function SocialClubhouseFeed({
           />
         )}
         <div className="surface divide-y divide-border overflow-hidden empty:hidden">
-        {showClubhouse &&
-          story.clubhousePosts.map((post) => {
-            const reactionKey = `clubhouse-post:${post.id}`;
-            const reactions = story.reactions.filter((row) => row.moment_key === reactionKey);
-            const reported = story.reports.some(
-              (row) => row.comment_id === post.id && row.reporter_id === user?.id,
-            );
-            return (
-              <article
-                key={post.id}
-                id={`post-${post.id}`}
-                className={`px-4 py-3.5 ${post.pinned_at ? "announcement-card" : ""}`}
-              >
-                <header className="flex items-start gap-3">
-                  <Avatar
-                    name={authorName(post.author_id)}
-                    teamSlug={authorTeam(post.author_id)}
-                    src={authorAvatar(post.author_id)}
-                    size="md"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <h3 className="text-base font-semibold text-foreground">
-                        {authorName(post.author_id)}
-                      </h3>
-                      {profileById.get(post.author_id)?.flair && (
-                        <span className="player-flair">
-                          {profileById
-                            .get(post.author_id)
-                            ?.flair?.replace("vibes", "vibes captain")}
-                        </span>
-                      )}
-                      {post.pinned_at && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-hunter/15 px-2 py-0.5 text-xs font-semibold text-hunter">
-                          <Pin className="size-3" /> Pinned
-                        </span>
-                      )}
-                    </div>
-                    <p className="t-micro">{formatActivityTime(post.created_at)}</p>
-                    {profileById.get(post.author_id)?.status_text && (
-                      <p className="t-micro mt-0.5 text-foreground/70">
-                        {profileById.get(post.author_id)?.status_text}
-                      </p>
-                    )}
-                  </div>
-                  {(post.author_id === user?.id || canModerate || canParticipate) && (
-                    <details className="relative">
-                      <summary className="press flex size-11 cursor-pointer list-none items-center justify-center rounded-full text-muted-foreground [&::-webkit-details-marker]:hidden">
-                        <MoreHorizontal className="size-5" />
-                        <span className="sr-only">Post actions</span>
-                      </summary>
-                      <div className="absolute right-0 top-11 z-10 min-w-36 rounded-xl border border-border bg-popover p-1 shadow-xl">
-                        {canModerate && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              story.pinPost.mutate({ id: post.id, pinned: !post.pinned_at })
-                            }
-                            className="press min-h-11 w-full rounded-lg px-3 text-left text-sm"
-                          >
-                            {post.pinned_at ? "Unpin" : "Pin announcement"}
-                          </button>
+          {showClubhouse &&
+            story.clubhousePosts.map((post) => {
+              const reactionKey = `clubhouse-post:${post.id}`;
+              const reactions = story.reactions.filter((row) => row.moment_key === reactionKey);
+              const reported = story.reports.some(
+                (row) => row.comment_id === post.id && row.reporter_id === user?.id,
+              );
+              return (
+                <article
+                  key={post.id}
+                  id={`post-${post.id}`}
+                  className={`px-4 py-3.5 ${post.pinned_at ? "announcement-card" : ""}`}
+                >
+                  <header className="flex items-start gap-3">
+                    <Avatar
+                      name={authorName(post.author_id)}
+                      teamSlug={authorTeam(post.author_id)}
+                      src={authorAvatar(post.author_id)}
+                      size="md"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <h3 className="text-base font-semibold text-foreground">
+                          {authorName(post.author_id)}
+                        </h3>
+                        {profileById.get(post.author_id)?.flair && (
+                          <span className="player-flair">
+                            {profileById
+                              .get(post.author_id)
+                              ?.flair?.replace("vibes", "vibes captain")}
+                          </span>
                         )}
-                        {post.author_id === user?.id && (
-                          <button
-                            type="button"
-                            onClick={() => setEditing({ id: post.id, body: post.body })}
-                            className="press min-h-11 w-full rounded-lg px-3 text-left text-sm"
-                          >
-                            Edit post
-                          </button>
-                        )}
-                        {post.author_id === user?.id || canModerate ? (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              story.removeComment.mutate({
-                                id: post.id,
-                                moderate: post.author_id !== user?.id,
-                              })
-                            }
-                            className="press min-h-11 w-full rounded-lg px-3 text-left text-sm text-copper"
-                          >
-                            {post.author_id === user?.id ? "Delete" : "Hide post"}
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={reported}
-                            onClick={() => story.reportPost.mutate({ commentId: post.id })}
-                            className="press min-h-11 w-full rounded-lg px-3 text-left text-sm text-copper"
-                          >
-                            {reported ? "Reported" : "Report"}
-                          </button>
+                        {post.pinned_at && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-hunter/15 px-2 py-0.5 text-xs font-semibold text-hunter">
+                            <Pin className="size-3" /> Pinned
+                          </span>
                         )}
                       </div>
-                    </details>
-                  )}
-                </header>
-                {editing?.id === post.id ? (
-                  <form
-                    className="mt-3 space-y-2"
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      story.editComment.mutate(
-                        { id: post.id, body: editing.body },
-                        {
-                          onSuccess: () => {
-                            setEditing(null);
-                            toast.success("Post updated");
-                          },
-                          onError: (error) => toast.error(error.message),
-                        },
-                      );
-                    }}
-                  >
-                    <textarea
-                      autoFocus
-                      aria-label="Edit post"
-                      value={editing.body}
-                      onChange={(event) => setEditing({ id: post.id, body: event.target.value })}
-                      maxLength={500}
-                      rows={3}
-                      className="control w-full resize-none text-base"
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        type="submit"
-                        disabled={!editing.body.trim() || story.editComment.isPending}
-                        className="press btn-primary flex min-h-11 items-center gap-2 px-3 text-sm font-semibold"
-                      >
-                        <Pencil className="size-4" /> Save edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditing(null)}
-                        className="press btn-quiet flex min-h-11 items-center gap-2 px-3 text-sm"
-                      >
-                        <X className="size-4" /> Cancel
-                      </button>
+                      <p className="t-micro">{formatActivityTime(post.created_at)}</p>
+                      {profileById.get(post.author_id)?.status_text && (
+                        <p className="t-micro mt-0.5 text-foreground/70">
+                          {profileById.get(post.author_id)?.status_text}
+                        </p>
+                      )}
                     </div>
-                  </form>
-                ) : (
-                  <p className="mt-3 whitespace-pre-wrap text-[0.98rem] leading-7 text-foreground/95">
-                    {post.body}
-                  </p>
-                )}
-                {post.updated_at !== post.created_at && <p className="t-micro mt-1">Edited</p>}
-                {post.pinned_at && post.announcement_expires_at && (
-                  <p className="t-micro mt-2 flex items-center gap-1">
-                    <Clock3 className="size-3.5" /> Announcement expires{" "}
-                    {new Date(post.announcement_expires_at).toLocaleString([], {
-                      month: "short",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                )}
-                <ReactionBar
-                  momentKey={reactionKey}
-                  reactions={reactions}
-                  userId={user?.id}
-                  enabled={canParticipate}
-                  onToggle={(kind) => story.toggleReaction.mutate({ momentKey: reactionKey, kind })}
-                />
-              </article>
-            );
-          })}
-
-        {moments.map((moment) => {
-          const reactions = story.reactions.filter((row) => row.moment_key === moment.key);
-          const comments = story.comments.filter((comment) => comment.moment_key === moment.key);
-          const open = openComments[moment.key];
-          const mediaUrl = moment.mediaPath ? mediaUrls[moment.mediaPath] : null;
-          const origin =
-            typeof window === "undefined" ? "https://www.tincupinv.com" : window.location.origin;
-          const canonicalUrl = `${origin}/?feed=${moment.kind === "photo" ? "photos" : "scores"}&post=${encodeURIComponent(moment.key)}`;
-          return (
-            <article
-              key={moment.key}
-              id={`post-${moment.key}`}
-              className="overflow-hidden"
-            >
-              {moment.kind === "photo" && mediaUrl ? (
-                <img
-                  src={mediaUrl}
-                  alt={moment.detail || moment.title}
-                  className="h-44 w-full bg-secondary object-cover object-center"
-                />
-              ) : moment.kind === "photo" && moment.mediaPath ? (
-                <div className="skeleton h-44 w-full" />
-              ) : null}
-              <div className="px-4 py-3.5">
-                <header className="flex items-start gap-3">
-                  <Avatar
-                    name={moment.playerName || "Tin Cup"}
-                    teamSlug={moment.teamSlug}
-                    src={authorAvatar(moment.authorId, moment.playerId, moment.playerName)}
-                    size="md"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="t-micro flex items-center gap-1.5 text-muted-foreground">
-                      <MomentIcon kind={moment.kind} /> {moment.kind.replace("-", " ")}
-                    </p>
-                    <h3 className="t-title mt-1 text-foreground">
-                      {moment.title}
-                    </h3>
-                    {moment.detail && (
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                        {moment.detail}
-                      </p>
+                    {(post.author_id === user?.id || canModerate || canParticipate) && (
+                      <details className="relative">
+                        <summary className="press flex size-11 cursor-pointer list-none items-center justify-center rounded-full text-muted-foreground [&::-webkit-details-marker]:hidden">
+                          <MoreHorizontal className="size-5" />
+                          <span className="sr-only">Post actions</span>
+                        </summary>
+                        <div className="absolute right-0 top-11 z-10 min-w-36 rounded-xl border border-border bg-popover p-1 shadow-xl">
+                          {canModerate && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                story.pinPost.mutate({ id: post.id, pinned: !post.pinned_at })
+                              }
+                              className="press min-h-11 w-full rounded-lg px-3 text-left text-sm"
+                            >
+                              {post.pinned_at ? "Unpin" : "Pin announcement"}
+                            </button>
+                          )}
+                          {post.author_id === user?.id && (
+                            <button
+                              type="button"
+                              onClick={() => setEditing({ id: post.id, body: post.body })}
+                              className="press min-h-11 w-full rounded-lg px-3 text-left text-sm"
+                            >
+                              Edit post
+                            </button>
+                          )}
+                          {post.author_id === user?.id || canModerate ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                story.removeComment.mutate({
+                                  id: post.id,
+                                  moderate: post.author_id !== user?.id,
+                                })
+                              }
+                              className="press min-h-11 w-full rounded-lg px-3 text-left text-sm text-copper"
+                            >
+                              {post.author_id === user?.id ? "Delete" : "Hide post"}
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled={reported}
+                              onClick={() => story.reportPost.mutate({ commentId: post.id })}
+                              className="press min-h-11 w-full rounded-lg px-3 text-left text-sm text-copper"
+                            >
+                              {reported ? "Reported" : "Report"}
+                            </button>
+                          )}
+                        </div>
+                      </details>
                     )}
-                  </div>
-                </header>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  </header>
+                  {editing?.id === post.id ? (
+                    <form
+                      className="mt-3 space-y-2"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        story.editComment.mutate(
+                          { id: post.id, body: editing.body },
+                          {
+                            onSuccess: () => {
+                              setEditing(null);
+                              toast.success("Post updated");
+                            },
+                            onError: (error) => toast.error(error.message),
+                          },
+                        );
+                      }}
+                    >
+                      <textarea
+                        autoFocus
+                        aria-label="Edit post"
+                        value={editing.body}
+                        onChange={(event) => setEditing({ id: post.id, body: event.target.value })}
+                        maxLength={500}
+                        rows={3}
+                        className="control w-full resize-none text-base"
+                      />
+                      <div className="flex gap-3">
+                        <button
+                          type="submit"
+                          disabled={!editing.body.trim() || story.editComment.isPending}
+                          className="press t-micro min-h-11 px-1 font-semibold text-hunter"
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditing(null)}
+                          className="press t-micro min-h-11 px-1"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <p className="mt-3 whitespace-pre-wrap text-[0.98rem] leading-7 text-foreground/95">
+                      {post.body}
+                    </p>
+                  )}
+                  {post.updated_at !== post.created_at && <p className="t-micro mt-1">Edited</p>}
+                  {post.pinned_at && post.announcement_expires_at && (
+                    <p className="t-micro mt-2 flex items-center gap-1">
+                      <Clock3 className="size-3.5" /> Announcement expires{" "}
+                      {new Date(post.announcement_expires_at).toLocaleString([], {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  )}
                   <ReactionBar
-                    momentKey={moment.key}
+                    momentKey={reactionKey}
                     reactions={reactions}
                     userId={user?.id}
                     enabled={canParticipate}
                     onToggle={(kind) =>
-                      story.toggleReaction.mutate({ momentKey: moment.key, kind })
+                      story.toggleReaction.mutate({ momentKey: reactionKey, kind })
                     }
                   />
-                  <button
-                    type="button"
-                    aria-label={`Comments on ${moment.title}, ${comments.length}`}
-                    aria-expanded={Boolean(open)}
-                    onClick={() =>
-                      setOpenComments((current) => ({ ...current, [moment.key]: !open }))
-                    }
-                    className="press chip min-h-11 gap-1.5"
-                  >
-                    <MessageCircle className="size-4" /> {comments.length || ""}
-                  </button>
-                  {moment.shareable && (
-                    <ShareMomentButton
-                      className="min-h-11 flex-1 sm:flex-none sm:px-4"
-                      payload={{
-                        kind:
-                          moment.kind === "match"
-                            ? "match"
-                            : moment.kind === "side-bet"
-                              ? "side-bet"
-                              : moment.kind === "trophy"
-                                ? "trophy"
-                                : "score",
-                        eyebrow: moment.kind.replace("-", " "),
-                        title: moment.title,
-                        primary: moment.detail || "Tin Cup 2026",
-                        canonicalUrl,
-                      }}
-                    >
-                      Share
-                    </ShareMomentButton>
-                  )}
-                </div>
-                {open && (
-                  <div className="mt-3 space-y-2 border-t border-border pt-3">
-                    {comments.map((comment) => (
-                      <div
-                        key={comment.id}
-                        id={`comment-${comment.id}`}
-                        className="rounded-xl bg-secondary/45 px-3 py-2.5"
-                      >
-                        <p className="text-xs font-semibold text-foreground">
-                          {authorName(comment.author_id)}
+                </article>
+              );
+            })}
+
+          {moments.map((moment) => {
+            const reactions = story.reactions.filter((row) => row.moment_key === moment.key);
+            const comments = story.comments.filter((comment) => comment.moment_key === moment.key);
+            const open = openComments[moment.key];
+            const mediaUrl = moment.mediaPath ? mediaUrls[moment.mediaPath] : null;
+            const origin =
+              typeof window === "undefined" ? "https://www.tincupinv.com" : window.location.origin;
+            const canonicalUrl = `${origin}/?feed=${moment.kind === "photo" ? "photos" : "scores"}&post=${encodeURIComponent(moment.key)}`;
+            return (
+              <article key={moment.key} id={`post-${moment.key}`} className="overflow-hidden">
+                {moment.kind === "photo" && mediaUrl ? (
+                  <img
+                    src={mediaUrl}
+                    alt={moment.detail || moment.title}
+                    className="h-44 w-full bg-secondary object-cover object-center"
+                  />
+                ) : moment.kind === "photo" && moment.mediaPath ? (
+                  <div className="skeleton h-44 w-full" />
+                ) : null}
+                <div className="px-4 py-3.5">
+                  <header className="flex items-start gap-3">
+                    <Avatar
+                      name={moment.playerName || "Tin Cup"}
+                      teamSlug={moment.teamSlug}
+                      src={authorAvatar(moment.authorId, moment.playerId, moment.playerName)}
+                      size="md"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="t-micro flex items-center gap-1.5 text-muted-foreground">
+                        <MomentIcon kind={moment.kind} /> {moment.kind.replace("-", " ")}
+                      </p>
+                      <h3 className="t-title mt-1 text-foreground">{moment.title}</h3>
+                      {moment.detail && (
+                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                          {moment.detail}
                         </p>
-                        {editing?.id === comment.id ? (
-                          <form
-                            className="mt-2 space-y-2"
-                            onSubmit={(event) => {
-                              event.preventDefault();
-                              story.editComment.mutate(
-                                { id: comment.id, body: editing.body },
-                                {
-                                  onSuccess: () => setEditing(null),
-                                  onError: (error) => toast.error(error.message),
-                                },
-                              );
-                            }}
-                          >
-                            <textarea
-                              autoFocus
-                              aria-label="Edit comment"
-                              value={editing.body}
-                              onChange={(event) =>
-                                setEditing({ id: comment.id, body: event.target.value })
-                              }
-                              maxLength={500}
-                              rows={2}
-                              className="control w-full resize-none text-base"
-                            />
-                            <div className="flex gap-2">
-                              <button
-                                type="submit"
-                                className="press btn-primary min-h-11 px-3 text-sm"
-                              >
-                                Save
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setEditing(null)}
-                                className="press btn-quiet min-h-11 px-3 text-sm"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </form>
-                        ) : (
-                          <p className="mt-0.5 text-sm text-foreground/90">{comment.body}</p>
-                        )}
-                        <div className="mt-1 flex flex-wrap items-center gap-3">
-                          {comment.updated_at !== comment.created_at && (
-                            <span className="t-micro">Edited</span>
-                          )}
-                          {comment.author_id === user?.id && editing?.id !== comment.id && (
-                            <button
-                              type="button"
-                              onClick={() => setEditing({ id: comment.id, body: comment.body })}
-                              className="press t-micro min-h-11"
-                            >
-                              Edit
-                            </button>
-                          )}
-                          {(comment.author_id === user?.id || canModerate) && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                story.removeComment.mutate(
-                                  { id: comment.id, moderate: comment.author_id !== user?.id },
-                                  { onError: (error) => toast.error(error.message) },
-                                )
-                              }
-                              className="press t-micro min-h-11 text-copper"
-                            >
-                              {comment.author_id === user?.id ? "Delete" : "Hide"}
-                            </button>
-                          )}
-                          {canParticipate && comment.author_id !== user?.id && !canModerate && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                story.reportPost.mutate(
-                                  { commentId: comment.id },
-                                  { onError: (error) => toast.error(error.message) },
-                                )
-                              }
-                              className="press t-micro min-h-11 text-copper"
-                            >
-                              Report
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    {canParticipate && (
-                      <form
-                        className="flex gap-2"
-                        onSubmit={(event) => {
-                          event.preventDefault();
-                          const body = commentDrafts[moment.key]?.trim();
-                          if (!body) return;
-                          story.addComment.mutate(
-                            {
-                              momentKey: moment.key,
-                              body,
-                              mentionedUserId: commentMentions[moment.key] || undefined,
-                            },
-                            {
-                              onSuccess: () => {
-                                setCommentDrafts((current) => ({ ...current, [moment.key]: "" }));
-                                setCommentMentions((current) => ({ ...current, [moment.key]: "" }));
-                              },
-                            },
-                          );
+                      )}
+                    </div>
+                  </header>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <ReactionBar
+                      momentKey={moment.key}
+                      reactions={reactions}
+                      userId={user?.id}
+                      enabled={canParticipate}
+                      onToggle={(kind) =>
+                        story.toggleReaction.mutate({ momentKey: moment.key, kind })
+                      }
+                    />
+                    <button
+                      type="button"
+                      aria-label={`Comments on ${moment.title}, ${comments.length}`}
+                      aria-expanded={Boolean(open)}
+                      onClick={() =>
+                        setOpenComments((current) => ({ ...current, [moment.key]: !open }))
+                      }
+                      className="press t-micro inline-flex min-h-11 items-center gap-1 px-1"
+                    >
+                      <MessageCircle className="size-3.5" /> {comments.length || "Reply"}
+                    </button>
+                    {moment.shareable && (
+                      <ShareMomentButton
+                        className="!min-h-11 !border-0 !bg-transparent !px-1"
+                        payload={{
+                          kind:
+                            moment.kind === "match"
+                              ? "match"
+                              : moment.kind === "side-bet"
+                                ? "side-bet"
+                                : moment.kind === "trophy"
+                                  ? "trophy"
+                                  : "score",
+                          eyebrow: moment.kind.replace("-", " "),
+                          title: moment.title,
+                          primary: moment.detail || "Tin Cup 2026",
+                          canonicalUrl,
                         }}
                       >
-                        <input
-                          aria-label={`Comment on ${moment.title}`}
-                          value={commentDrafts[moment.key] ?? ""}
-                          onChange={(event) =>
-                            setCommentDrafts((current) => ({
-                              ...current,
-                              [moment.key]: event.target.value,
-                            }))
-                          }
-                          maxLength={500}
-                          placeholder="Add a comment"
-                          className="control min-h-11 min-w-0 flex-1 text-base"
-                        />
-                        <select
-                          aria-label={`Mention a player on ${moment.title}`}
-                          value={commentMentions[moment.key] ?? ""}
-                          onChange={(event) =>
-                            setCommentMentions((current) => ({
-                              ...current,
-                              [moment.key]: event.target.value,
-                            }))
-                          }
-                          className="control min-h-11 max-w-28 text-sm"
-                        >
-                          <option value="">Mention</option>
-                          {(profiles.data ?? [])
-                            .filter((row) => row.id !== user?.id)
-                            .map((row) => (
-                              <option key={row.id} value={row.id}>
-                                @{authorName(row.id)}
-                              </option>
-                            ))}
-                        </select>
-                        <button
-                          type="submit"
-                          className="press btn-primary flex size-11 items-center justify-center"
-                        >
-                          <Send className="size-4" /> <span className="sr-only">Post comment</span>
-                        </button>
-                      </form>
+                        Share
+                      </ShareMomentButton>
                     )}
                   </div>
-                )}
-              </div>
-            </article>
-          );
-        })}
+                  {open && (
+                    <div className="mt-3 space-y-2 border-t border-border pt-3">
+                      {comments.map((comment) => (
+                        <div
+                          key={comment.id}
+                          id={`comment-${comment.id}`}
+                          className="rounded-xl bg-secondary/45 px-3 py-2.5"
+                        >
+                          <p className="text-xs font-semibold text-foreground">
+                            {authorName(comment.author_id)}
+                          </p>
+                          {editing?.id === comment.id ? (
+                            <form
+                              className="mt-2 space-y-2"
+                              onSubmit={(event) => {
+                                event.preventDefault();
+                                story.editComment.mutate(
+                                  { id: comment.id, body: editing.body },
+                                  {
+                                    onSuccess: () => setEditing(null),
+                                    onError: (error) => toast.error(error.message),
+                                  },
+                                );
+                              }}
+                            >
+                              <textarea
+                                autoFocus
+                                aria-label="Edit comment"
+                                value={editing.body}
+                                onChange={(event) =>
+                                  setEditing({ id: comment.id, body: event.target.value })
+                                }
+                                maxLength={500}
+                                rows={2}
+                                className="control w-full resize-none text-base"
+                              />
+                              <div className="flex gap-3">
+                                <button
+                                  type="submit"
+                                  className="press t-micro min-h-11 px-1 font-semibold text-hunter"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditing(null)}
+                                  className="press t-micro min-h-11 px-1"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </form>
+                          ) : (
+                            <p className="mt-0.5 text-sm text-foreground/90">{comment.body}</p>
+                          )}
+                          <div className="mt-1 flex flex-wrap items-center gap-3">
+                            {comment.updated_at !== comment.created_at && (
+                              <span className="t-micro">Edited</span>
+                            )}
+                            {comment.author_id === user?.id && editing?.id !== comment.id && (
+                              <button
+                                type="button"
+                                onClick={() => setEditing({ id: comment.id, body: comment.body })}
+                                className="press t-micro min-h-11"
+                              >
+                                Edit
+                              </button>
+                            )}
+                            {(comment.author_id === user?.id || canModerate) && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  story.removeComment.mutate(
+                                    { id: comment.id, moderate: comment.author_id !== user?.id },
+                                    { onError: (error) => toast.error(error.message) },
+                                  )
+                                }
+                                className="press t-micro min-h-11 text-copper"
+                              >
+                                {comment.author_id === user?.id ? "Delete" : "Hide"}
+                              </button>
+                            )}
+                            {canParticipate && comment.author_id !== user?.id && !canModerate && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  story.reportPost.mutate(
+                                    { commentId: comment.id },
+                                    { onError: (error) => toast.error(error.message) },
+                                  )
+                                }
+                                className="press t-micro min-h-11 text-copper"
+                              >
+                                Report
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      {canParticipate && (
+                        <form
+                          className="flex gap-2"
+                          onSubmit={(event) => {
+                            event.preventDefault();
+                            const body = commentDrafts[moment.key]?.trim();
+                            if (!body) return;
+                            story.addComment.mutate(
+                              {
+                                momentKey: moment.key,
+                                body,
+                              },
+                              {
+                                onSuccess: () => {
+                                  setCommentDrafts((current) => ({ ...current, [moment.key]: "" }));
+                                },
+                              },
+                            );
+                          }}
+                        >
+                          <input
+                            aria-label={`Comment on ${moment.title}`}
+                            value={commentDrafts[moment.key] ?? ""}
+                            onChange={(event) =>
+                              setCommentDrafts((current) => ({
+                                ...current,
+                                [moment.key]: event.target.value,
+                              }))
+                            }
+                            maxLength={500}
+                            placeholder="Add a comment"
+                            className="control min-h-11 min-w-0 flex-1 text-base"
+                          />
+                          <button
+                            type="submit"
+                            className="press t-micro min-h-11 px-1 font-semibold text-hunter"
+                          >
+                            Post
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </article>
+            );
+          })}
         </div>
       </div>
 
@@ -973,7 +915,7 @@ function ReactionBar({
   onToggle: (kind: ReactionKind) => void;
 }) {
   return (
-    <div className="flex gap-1.5">
+    <div className="mt-2 flex gap-1">
       {REACTIONS.map(({ kind, label, icon: Icon }) => {
         const count = reactions.filter((row) => row.kind === kind).length;
         const mine = reactions.some((row) => row.kind === kind && row.user_id === userId);
@@ -985,9 +927,11 @@ function ReactionBar({
             aria-label={`${label}, ${count}`}
             aria-pressed={mine}
             onClick={() => onToggle(kind)}
-            className={`press chip min-h-11 gap-1 ${mine ? "chip-on" : ""}`}
+            className={`press inline-flex min-h-11 items-center gap-1 px-1.5 t-micro ${
+              mine ? "text-hunter" : "text-muted-foreground"
+            }`}
           >
-            <Icon className="size-4" /> {count || ""}
+            <Icon className="size-3.5" /> {count || ""}
           </button>
         );
       })}

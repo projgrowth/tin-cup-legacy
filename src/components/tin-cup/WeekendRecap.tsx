@@ -1,15 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import {
-  Camera,
-  CheckCircle2,
-  Flag,
-  Medal,
-  MessageCircle,
-  Sparkles,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { Camera, CheckCircle2, Flag, Medal, MessageCircle, Trophy, Users } from "lucide-react";
 
 import { Avatar } from "@/components/tin-cup/Avatar";
 import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
@@ -146,39 +137,39 @@ export function WeekendRecap({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#06120f] via-[#06120f]/70 to-transparent" />
         <div className="relative">
-        <p className="event-kicker text-hunter">The complete story</p>
-        <h1
-          id="weekend-recap-title"
-          className={`${winner || decided.length ? "event-title" : "t-display"} mt-3 text-white`}
-        >
-          {winner
-            ? `${winner.name} wins the Cup`
-            : decided.length
-              ? "The Cup finishes all square"
-              : "The weekend is still being written"}
-        </h1>
-        <p className="t-hero mt-4">
-          <span className="text-hunter">{standings.strongMental}</span>
-          <span className="mx-3 text-white/30">–</span>
-          <span className="text-stone">{standings.grassRoots}</span>
-        </p>
-        <p className="t-body mt-2 text-white/75">
-          {decided.length} official results · {photos.length} photos · {story.comments.length}{" "}
-          comments
-        </p>
-        <ShareMomentButton
-          className="mt-5 min-w-48"
-          payload={{
-            kind: "final",
-            eyebrow: "Final result",
-            title: winner?.name ?? "All square",
-            primary: `${standings.strongMental} – ${standings.grassRoots}`,
-            secondary: "Tin Cup Invitational 2026",
-            canonicalUrl,
-          }}
-        >
-          Download final card
-        </ShareMomentButton>
+          <p className="event-kicker text-hunter">The complete story</p>
+          <h1
+            id="weekend-recap-title"
+            className={`${winner || decided.length ? "event-title" : "t-display"} mt-3 text-white`}
+          >
+            {winner
+              ? `${winner.name} wins the Cup`
+              : decided.length
+                ? "The Cup finishes all square"
+                : "The weekend is still being written"}
+          </h1>
+          <p className="t-hero mt-4">
+            <span className="text-hunter">{standings.strongMental}</span>
+            <span className="mx-3 text-white/30">–</span>
+            <span className="text-stone">{standings.grassRoots}</span>
+          </p>
+          <p className="t-body mt-2 text-white/75">
+            {decided.length} official results · {photos.length} photos · {story.comments.length}{" "}
+            comments
+          </p>
+          <ShareMomentButton
+            className="mt-5 min-w-48"
+            payload={{
+              kind: "final",
+              eyebrow: "Final result",
+              title: winner?.name ?? "All square",
+              primary: `${standings.strongMental} – ${standings.grassRoots}`,
+              secondary: "Tin Cup Invitational 2026",
+              canonicalUrl,
+            }}
+          >
+            Download final card
+          </ShareMomentButton>
         </div>
       </header>
       {photos.length > 0 && (
@@ -190,7 +181,10 @@ export function WeekendRecap({
               className="press recap-photo relative aspect-[4/3] overflow-hidden rounded-2xl border border-border"
             >
               {item.mediaPath ? (
-                <RecapPhoto path={item.mediaPath} alt={item.altText || item.subtitle || item.title} />
+                <RecapPhoto
+                  path={item.mediaPath}
+                  alt={item.altText || item.subtitle || item.title}
+                />
               ) : (
                 <span className="block h-full bg-secondary" />
               )}
@@ -225,130 +219,140 @@ export function WeekendRecap({
       </div>
 
       {topPlayers.some((row) => row.record.played > 0) && (
-      <section className="surface p-4 sm:p-5">
-        <div className="flex items-end justify-between gap-3">
-          <div>
-            <p className="t-micro text-hunter">Leaderboard</p>
-            <h2 className="t-title mt-1">Player records</h2>
+        <section className="surface p-4 sm:p-5">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="t-micro text-hunter">Leaderboard</p>
+              <h2 className="t-title mt-1">Player records</h2>
+            </div>
+            <Users className="size-5 text-muted-foreground" />
           </div>
-          <Users className="size-5 text-muted-foreground" />
-        </div>
-        <ol className="mt-3 divide-y divide-border">
-          {topPlayers
-            .filter((row) => row.record.played > 0)
-            .map(({ player, team, record }, index) => (
-            <li key={player.id} className="flex min-h-14 items-center gap-3 py-2.5">
-              <span className="t-numeral w-5 text-center text-muted-foreground">{index + 1}</span>
-              <Avatar
-                name={player.name}
-                teamSlug={team?.slug}
-                src={avatars.data?.byPlayerId.get(player.id)?.url}
-                size="sm"
-              />
-              <span className="min-w-0 flex-1">
-                <Link
-                  to="/player/$playerId"
-                  params={{ playerId: player.id }}
-                  className="press flex min-h-11 items-center font-semibold text-foreground"
-                >
-                  {player.name}
-                </Link>
-                <span className="t-micro block">{formatRecord(record) || "No posted matches"}</span>
-              </span>
-              <span className="t-numeral text-[1.25rem] text-foreground">{record.points}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
+          <ol className="mt-3 divide-y divide-border">
+            {topPlayers
+              .filter((row) => row.record.played > 0)
+              .map(({ player, team, record }, index) => (
+                <li key={player.id} className="flex min-h-14 items-center gap-3 py-2.5">
+                  <span className="t-numeral w-5 text-center text-muted-foreground">
+                    {index + 1}
+                  </span>
+                  <Avatar
+                    name={player.name}
+                    teamSlug={team?.slug}
+                    src={avatars.data?.byPlayerId.get(player.id)?.url}
+                    size="sm"
+                  />
+                  <span className="min-w-0 flex-1">
+                    <Link
+                      to="/player/$playerId"
+                      params={{ playerId: player.id }}
+                      className="press flex min-h-11 items-center font-semibold text-foreground"
+                    >
+                      {player.name}
+                    </Link>
+                    <span className="t-micro block">
+                      {formatRecord(record) || "No posted matches"}
+                    </span>
+                  </span>
+                  <span className="t-numeral text-[1.25rem] text-foreground">{record.points}</span>
+                </li>
+              ))}
+          </ol>
+        </section>
       )}
 
       {(decided.length > 0 ||
         sideBets.some((bet) => bet.player_name) ||
         trophies.some((trophy) => trophy.winner_name) ||
         predictionStandings.length > 0) && (
-      <div className="grid gap-3 md:grid-cols-2">
-        {decided.length > 0 && (
-        <section className="surface p-4 md:col-span-2">
-          <p className="t-micro text-hunter">Turning points</p>
-          <h2 className="t-title mt-1">Matches that shaped the Cup</h2>
-            <ol className="mt-3 grid gap-2 sm:grid-cols-2">
-              {decided
-                .slice(-4)
-                .reverse()
-                .map((match) => {
-                  const winningTeam =
-                    match.result === "strong-mental"
-                      ? teams.find((team) => team.slug === "strong-mental")?.name
-                      : match.result === "grass-roots"
-                        ? teams.find((team) => team.slug === "grass-roots")?.name
-                        : "Match halved";
-                  return (
-                    <li key={match.id} className="surface-inset p-3">
-                      <strong className="block text-sm text-foreground">{match.label}</strong>
-                      <span className="t-micro mt-1 block">
-                        {winningTeam} · {match.points} Cup point{match.points === 1 ? "" : "s"}
-                      </span>
-                    </li>
-                  );
-                })}
-            </ol>
-        </section>
-        )}
-        {(sideBets.some((bet) => bet.player_name) ||
-          trophies.some((trophy) => trophy.winner_name)) && (
-        <section className="surface p-4">
-          <p className="t-micro text-hunter">Side board</p>
-          <h2 className="t-title mt-1">Cash and trophies</h2>
-          <ul className="mt-3 space-y-2">
-            {sideBets
-              .filter((bet) => bet.player_name)
-              .map((bet) => (
-                <li key={bet.id} className="surface-inset flex justify-between gap-3 p-3 text-sm">
-                  <span>{bet.label}</span>
-                  <strong>{bet.player_name}</strong>
-                </li>
-              ))}
-            {trophies
-              .filter((trophy) => trophy.winner_name)
-              .map((trophy) => (
-                <li
-                  key={trophy.id}
-                  className="surface-inset flex justify-between gap-3 p-3 text-sm"
-                >
-                  <span>{trophy.name}</span>
-                  <strong>{trophy.winner_name}</strong>
-                </li>
-              ))}
-          </ul>
-        </section>
-        )}
-        {predictionStandings.length > 0 && (
-        <section className="surface p-4">
-          <p className="t-micro text-hunter">Social calls</p>
-          <h2 className="t-title mt-1">Prediction standings</h2>
-            <ol className="mt-3 space-y-2">
-              {predictionStandings.slice(0, 5).map((row, index) => (
-                <li key={row.userId} className="surface-inset flex items-center gap-3 p-3 text-sm">
-                  <span className="t-numeral text-muted-foreground">{index + 1}</span>
-                  <strong className="min-w-0 flex-1 truncate text-foreground">{row.name}</strong>
-                  <span>
-                    {row.correct}/{row.total}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          <p className="t-micro mt-2">Social only · no Cup points or payouts</p>
-          {myPredictions && (
-            <p className="surface-inset mt-3 p-3 text-sm">
-              Your calls ·{" "}
-              <strong>
-                {myPredictions.correct}/{myPredictions.total} correct
-              </strong>
-            </p>
+        <div className="grid gap-3 md:grid-cols-2">
+          {decided.length > 0 && (
+            <section className="surface p-4 md:col-span-2">
+              <p className="t-micro text-hunter">Turning points</p>
+              <h2 className="t-title mt-1">Matches that shaped the Cup</h2>
+              <ol className="mt-3 grid gap-2 sm:grid-cols-2">
+                {decided
+                  .slice(-4)
+                  .reverse()
+                  .map((match) => {
+                    const winningTeam =
+                      match.result === "strong-mental"
+                        ? teams.find((team) => team.slug === "strong-mental")?.name
+                        : match.result === "grass-roots"
+                          ? teams.find((team) => team.slug === "grass-roots")?.name
+                          : "Match halved";
+                    return (
+                      <li key={match.id} className="surface-inset p-3">
+                        <strong className="block text-sm text-foreground">{match.label}</strong>
+                        <span className="t-micro mt-1 block">
+                          {winningTeam} · {match.points} Cup point{match.points === 1 ? "" : "s"}
+                        </span>
+                      </li>
+                    );
+                  })}
+              </ol>
+            </section>
           )}
-        </section>
-        )}
-      </div>
+          {(sideBets.some((bet) => bet.player_name) ||
+            trophies.some((trophy) => trophy.winner_name)) && (
+            <section className="surface p-4">
+              <p className="t-micro text-hunter">Side board</p>
+              <h2 className="t-title mt-1">Cash and trophies</h2>
+              <ul className="mt-3 space-y-2">
+                {sideBets
+                  .filter((bet) => bet.player_name)
+                  .map((bet) => (
+                    <li
+                      key={bet.id}
+                      className="surface-inset flex justify-between gap-3 p-3 text-sm"
+                    >
+                      <span>{bet.label}</span>
+                      <strong>{bet.player_name}</strong>
+                    </li>
+                  ))}
+                {trophies
+                  .filter((trophy) => trophy.winner_name)
+                  .map((trophy) => (
+                    <li
+                      key={trophy.id}
+                      className="surface-inset flex justify-between gap-3 p-3 text-sm"
+                    >
+                      <span>{trophy.name}</span>
+                      <strong>{trophy.winner_name}</strong>
+                    </li>
+                  ))}
+              </ul>
+            </section>
+          )}
+          {predictionStandings.length > 0 && (
+            <section className="surface p-4">
+              <p className="t-micro text-hunter">Social calls</p>
+              <h2 className="t-title mt-1">Prediction standings</h2>
+              <ol className="mt-3 space-y-2">
+                {predictionStandings.slice(0, 5).map((row, index) => (
+                  <li
+                    key={row.userId}
+                    className="surface-inset flex items-center gap-3 p-3 text-sm"
+                  >
+                    <span className="t-numeral text-muted-foreground">{index + 1}</span>
+                    <strong className="min-w-0 flex-1 truncate text-foreground">{row.name}</strong>
+                    <span>
+                      {row.correct}/{row.total}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+              <p className="t-micro mt-2">Social only · no Cup points or payouts</p>
+              {myPredictions && (
+                <p className="surface-inset mt-3 p-3 text-sm">
+                  Your calls ·{" "}
+                  <strong>
+                    {myPredictions.correct}/{myPredictions.total} correct
+                  </strong>
+                </p>
+              )}
+            </section>
+          )}
+        </div>
       )}
 
       <section className="surface p-4">
@@ -400,19 +404,16 @@ export function WeekendRecap({
       )}
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <Link to="/photos" className="press surface-raised flex min-h-20 items-center gap-3 p-4">
-          <Camera className="size-5 text-hunter" />
-          <span>
-            <strong className="block text-foreground">Open the complete gallery</strong>
-            <span className="t-micro">Favorite and download the weekend</span>
-          </span>
+        <Link
+          to="/photos"
+          className="press surface flex min-h-12 items-center justify-between px-4 py-3"
+        >
+          <span className="t-body font-medium text-foreground">Photos</span>
+          <span className="t-micro">Gallery</span>
         </Link>
-        <Link to="/" className="press surface-raised flex min-h-20 items-center gap-3 p-4">
-          <MessageCircle className="size-5 text-hunter" />
-          <span>
-            <strong className="block text-foreground">Back to the Clubhouse</strong>
-            <span className="t-micro">Keep the conversation on Home</span>
-          </span>
+        <Link to="/" className="press surface flex min-h-12 items-center justify-between px-4 py-3">
+          <span className="t-body font-medium text-foreground">Home</span>
+          <span className="t-micro">Field</span>
         </Link>
         <div className="surface-inset flex min-h-20 items-center gap-3 p-4 sm:col-span-2">
           <CheckCircle2 className="size-5 text-[var(--status-live)]" />
@@ -423,8 +424,8 @@ export function WeekendRecap({
         </div>
       </div>
       {engagement.prompts.length > 0 && decided.length > 0 && (
-        <p className="t-micro flex items-center justify-center gap-2">
-          <Sparkles className="size-4" /> {engagement.prompts.length} live-prompt chapter
+        <p className="t-micro">
+          {engagement.prompts.length} live-prompt chapter
           {engagement.prompts.length === 1 ? "" : "s"} shaped the weekend.
         </p>
       )}

@@ -1,7 +1,5 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Map } from "lucide-react";
-
 import type { Match, Player, Round, SideBet, Team } from "@/hooks/useTournament";
 import { FieldChatLink } from "@/components/tin-cup/WhatsAppLinks";
 import { roundStatus } from "@/lib/scoring";
@@ -136,17 +134,18 @@ export function LivePanel({
         ))}
       </section>
 
-      <Link
-        to="/scout"
-        search={{ course: planCourse, card: true }}
-        className="press t-micro flex min-h-11 items-center justify-between gap-3 px-1 font-semibold text-foreground"
-      >
-        <span className="inline-flex items-center gap-2">
-          <Map className="size-3.5 opacity-70" />
-          {COURSE_LABEL[planCourse]} game plan
-        </span>
-        <span className="text-muted-foreground">Open →</span>
-      </Link>
+      <div className="surface overflow-hidden">
+        <Link
+          to="/scout"
+          search={{ course: planCourse, card: true }}
+          className="press flex min-h-12 items-center justify-between px-4 py-3"
+        >
+          <span className="t-body font-medium text-foreground">
+            {COURSE_LABEL[planCourse]} game plan
+          </span>
+          <span className="t-micro">Plan</span>
+        </Link>
+      </div>
 
       <FieldChatLink className="!min-h-11 w-full" />
 
@@ -214,7 +213,6 @@ export function LivePanel({
           </div>
         )}
       </section>
-
     </div>
   );
 }

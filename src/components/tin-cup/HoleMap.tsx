@@ -133,8 +133,7 @@ export function HoleMap({
 
   const tickScale = Math.max(vb.width, vb.height) * 0.012;
 
-  const clampScale = (s: number) =>
-    Math.min(MAX_SCALE, Math.max(MIN_SCALE, Number(s.toFixed(3))));
+  const clampScale = (s: number) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, Number(s.toFixed(3))));
 
   const zoom = useCallback((delta: number) => {
     setScale((s) => clampScale(s + delta));
@@ -234,11 +233,7 @@ export function HoleMap({
     if (!wasDrag?.moved && pointers.current.size === 0) {
       const now = Date.now();
       const prev = lastTap.current;
-      if (
-        prev &&
-        now - prev.t < 280 &&
-        Math.hypot(e.clientX - prev.x, e.clientY - prev.y) < 36
-      ) {
+      if (prev && now - prev.t < 280 && Math.hypot(e.clientX - prev.x, e.clientY - prev.y) < 36) {
         lastTap.current = null;
         if (scale > 1.05) {
           reset();
@@ -303,12 +298,7 @@ export function HoleMap({
           <stop offset="100%" stopColor="var(--turf-bunker-deep)" />
         </radialGradient>
         <filter id={`${uid}-soft`} x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow
-            dx="0"
-            dy="1.5"
-            stdDeviation="2.2"
-            floodColor="oklch(0 0 0 / 35%)"
-          />
+          <feDropShadow dx="0" dy="1.5" stdDeviation="2.2" floodColor="oklch(0 0 0 / 35%)" />
         </filter>
         <filter id={`${uid}-glow`} x="-40%" y="-40%" width="180%" height="180%">
           <feGaussianBlur stdDeviation="3" result="blur" />
@@ -317,22 +307,12 @@ export function HoleMap({
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
-        <pattern
-          id={`${uid}-grain`}
-          width="12"
-          height="12"
-          patternUnits="userSpaceOnUse"
-        >
+        <pattern id={`${uid}-grain`} width="12" height="12" patternUnits="userSpaceOnUse">
           <circle cx="2" cy="3" r="0.7" fill="oklch(0.55 0.04 80 / 25%)" />
           <circle cx="8" cy="7" r="0.55" fill="oklch(0.5 0.03 75 / 20%)" />
           <circle cx="5" cy="10" r="0.45" fill="oklch(0.6 0.04 90 / 18%)" />
         </pattern>
-        <pattern
-          id={`${uid}-noise`}
-          width="48"
-          height="48"
-          patternUnits="userSpaceOnUse"
-        >
+        <pattern id={`${uid}-noise`} width="48" height="48" patternUnits="userSpaceOnUse">
           <circle cx="6" cy="10" r="1.2" fill="oklch(0.28 0.04 150 / 18%)" />
           <circle cx="22" cy="28" r="1" fill="oklch(0.12 0.02 155 / 22%)" />
           <circle cx="38" cy="14" r="1.4" fill="oklch(0.3 0.035 148 / 14%)" />
@@ -448,13 +428,7 @@ export function HoleMap({
               strokeLinecap="round"
               opacity={0.85}
             />
-            <circle
-              cx={st.x}
-              cy={st.y}
-              r={tick * 0.35}
-              fill="var(--aim)"
-              opacity={0.9}
-            />
+            <circle cx={st.x} cy={st.y} r={tick * 0.35} fill="var(--aim)" opacity={0.9} />
             <text
               x={lx}
               y={ly}
@@ -518,12 +492,7 @@ export function HoleMap({
             strokeWidth={tickScale * 0.18}
             opacity={0.7}
           />
-          <circle
-            cx={green[0]}
-            cy={green[1]}
-            r={tickScale * 0.38}
-            fill="var(--aim)"
-          />
+          <circle cx={green[0]} cy={green[1]} r={tickScale * 0.38} fill="var(--aim)" />
           {/* Simple flag */}
           <line
             x1={green[0]}
@@ -620,7 +589,7 @@ export function HoleMap({
       >
         <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <div className="min-w-0">
-            <p className="t-section text-foreground">Hole {hole.h}</p>
+            <p className="t-title text-foreground">Hole {hole.h}</p>
             <p className="t-micro text-muted-foreground">
               {hole.name ?? `Par ${hole.par}`} · schematic · Black yards on line
             </p>

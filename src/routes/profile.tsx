@@ -11,7 +11,6 @@ import { PhotoPicker } from "@/components/tin-cup/PhotoPicker";
 import { NotificationSettings } from "@/components/tin-cup/NotificationSettings";
 import { DeviceReadiness } from "@/components/tin-cup/DeviceReadiness";
 import { LoadingForm, PageHeading, Shell } from "@/components/tin-cup/Shell";
-import { WhatsAppGroupButton } from "@/components/tin-cup/WhatsAppLinks";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
@@ -26,6 +25,7 @@ import { formatRecord, playerRecord } from "@/lib/scoring";
 import { teamRailClass } from "@/lib/team-styles";
 import { resolveIdentity } from "@/lib/profile-identity";
 import { assertMutationAllowed } from "@/lib/runtime-mode";
+import { WHATSAPP_GROUP_CONFIGURED, WHATSAPP_GROUP_URL } from "@/lib/tin-cup";
 
 type ProfileSearch = {
   code?: string;
@@ -85,8 +85,11 @@ function ProfilePage() {
     clearPasswordRecovery,
   } = useAuth();
   const { profile, loading: profileLoading, error: profileError, refetch } = useProfile();
-  const { data: tournament, isPending: tournamentPending, refetch: refetchTournament } =
-    useTournament();
+  const {
+    data: tournament,
+    isPending: tournamentPending,
+    refetch: refetchTournament,
+  } = useTournament();
   const claimedPlayer = useMemo(() => {
     if (!profile?.player_id) return null;
     return (tournament?.players ?? []).find((p) => p.id === profile.player_id) ?? null;
@@ -119,9 +122,7 @@ function ProfilePage() {
             claimedTeam?.name.replace("Team ", "") ?? "Field",
             (() => {
               const group = day1GroupForPlayer(claimedPlayer.name);
-              return group
-                ? `w/ ${group.partner.split(" ")[0]} · vs ${group.opponents}`
-                : null;
+              return group ? `w/ ${group.partner.split(" ")[0]} · vs ${group.opponents}` : null;
             })(),
           ]
             .filter(Boolean)
@@ -244,10 +245,7 @@ function ProfilePage() {
               </li>
             )}
             <li>
-              <Link
-                to="/schedule"
-                className="press flex min-h-12 items-center px-4 py-3"
-              >
+              <Link to="/schedule" className="press flex min-h-12 items-center px-4 py-3">
                 <span className="t-body font-medium">Weekend</span>
               </Link>
             </li>
@@ -261,18 +259,12 @@ function ProfilePage() {
               </Link>
             </li>
             <li>
-              <Link
-                to="/purse"
-                className="press flex min-h-12 items-center px-4 py-3"
-              >
+              <Link to="/purse" className="press flex min-h-12 items-center px-4 py-3">
                 <span className="t-body font-medium">Purse</span>
               </Link>
             </li>
             <li>
-              <Link
-                to="/scout"
-                className="press flex min-h-12 items-center px-4 py-3"
-              >
+              <Link to="/scout" className="press flex min-h-12 items-center px-4 py-3">
                 <span className="t-body font-medium">Notes</span>
               </Link>
             </li>
@@ -290,31 +282,61 @@ function ProfilePage() {
               </button>
             </li>
           </ul>
-          <details className="t-micro text-muted-foreground">
-            <summary className="press cursor-pointer list-none py-2 [&::-webkit-details-marker]:hidden">
+          <details className="surface overflow-hidden">
+            <summary className="press flex min-h-12 cursor-pointer list-none items-center px-4 py-3 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
               More
             </summary>
-            <div className="mt-2 space-y-3">
-              {claimedPlayer ? <DeviceReadiness /> : null}
-              {claimedPlayer ? <NotificationSettings userId={user.id} /> : null}
-              <WhatsAppGroupButton className="!min-h-11 w-full" />
-              <p>iPhone: Share → Add to Home Screen.</p>
-              {canScore && (
+            <div className="divide-y divide-border border-t border-border">
+              {claimedPlayer ? (
+                <details>
+                  <summary className="press flex min-h-12 cursor-pointer list-none items-center px-4 py-3 t-body text-foreground [&::-webkit-details-marker]:hidden">
+                    This phone
+                  </summary>
+                  <div className="border-t border-border px-4 py-3">
+                    <DeviceReadiness embedded />
+                  </div>
+                </details>
+              ) : null}
+              {claimedPlayer ? (
+                <details>
+                  <summary className="press flex min-h-12 cursor-pointer list-none items-center px-4 py-3 t-body text-foreground [&::-webkit-details-marker]:hidden">
+                    Alerts
+                  </summary>
+                  <div className="border-t border-border px-4 py-3">
+                    <NotificationSettings userId={user.id} embedded />
+                  </div>
+                </details>
+              ) : null}
+              {WHATSAPP_GROUP_CONFIGURED ? (
+                <a
+                  href={WHATSAPP_GROUP_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="press flex min-h-12 items-center px-4 py-3 t-body font-medium text-foreground"
+                >
+                  Field chat
+                </a>
+              ) : null}
+              <div className="px-4 py-3">
+                <p className="t-body font-medium text-foreground">Add to Home Screen</p>
+                <p className="t-micro mt-0.5">iPhone: Share → Add to Home Screen</p>
+              </div>
+              {canScore ? (
                 <Link
                   to="/ops"
-                  className="press inline-flex min-h-11 items-center font-semibold text-hunter"
+                  className="press flex min-h-12 items-center px-4 py-3 t-body font-medium text-foreground"
                 >
                   Ops
                 </Link>
-              )}
-              {isAdmin && (
+              ) : null}
+              {isAdmin ? (
                 <Link
                   to="/admin"
-                  className="press inline-flex min-h-11 items-center text-muted-foreground"
+                  className="press flex min-h-12 items-center px-4 py-3 t-body font-medium text-foreground"
                 >
                   Admin
                 </Link>
-              )}
+              ) : null}
             </div>
           </details>
         </div>

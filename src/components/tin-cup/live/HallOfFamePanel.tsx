@@ -103,11 +103,11 @@ export function HallOfFamePanel({
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="t-section">Trophy room</h2>
+        <h2 className="t-eyebrow">Trophy room</h2>
         {preEvent && (
           <p className="t-body mt-2 rounded-xl border border-border bg-secondary/40 px-4 py-3 text-muted-foreground">
-            Awards are presented Sunday after Island. Winners post here once captains lock
-            them — this is a preview of the hardware, not a scoreboard yet.
+            Awards are presented Sunday after Island. Winners post here once captains lock them —
+            this is a preview of the hardware, not a scoreboard yet.
           </p>
         )}
         {trophies.map((trophy) => {

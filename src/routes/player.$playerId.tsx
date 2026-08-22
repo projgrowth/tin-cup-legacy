@@ -1,7 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft } from "lucide-react";
-
 import { Avatar } from "@/components/tin-cup/Avatar";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
@@ -18,7 +16,6 @@ import { formatRecord, pairingIncludes, playerRecord, roundStatus } from "@/lib/
 
 import { formatPayout } from "@/lib/purse";
 import { contestHoleLabel } from "@/lib/tin-cup";
-
 
 export const Route = createFileRoute("/player/$playerId")({
   head: () => ({
@@ -133,9 +130,9 @@ function PlayerPage() {
     <Shell>
       <Link
         to="/rosters"
-        className="press t-micro mb-4 inline-flex min-h-11 items-center gap-1 text-muted-foreground"
+        className="press t-micro mb-4 inline-flex min-h-11 items-center text-muted-foreground"
       >
-        <ChevronLeft className="size-4" strokeWidth={1.7} /> Team hub
+        Teams
       </Link>
 
       <div className="flex items-start gap-3">
@@ -186,8 +183,8 @@ function PlayerPage() {
 
       {(record.points > 0 || claims.length > 0 || player.is_captain) && (
         <section className="mt-6" aria-labelledby="player-achievements">
-          <h2 id="player-achievements" className="t-section">
-            Weekend achievements
+          <h2 id="player-achievements" className="t-eyebrow">
+            Weekend
           </h2>
           <ul className="mt-3 flex flex-wrap gap-2">
             {player.is_captain && <li className="player-flair">Team captain</li>}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, Circle, Download, HardDrive, Smartphone } from "lucide-react";
+import { CheckCircle2, Circle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 import { getOfflineCourseState } from "@/lib/offline-course";
@@ -11,7 +11,7 @@ type InstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
-export function DeviceReadiness() {
+export function DeviceReadiness({ embedded = false }: { embedded?: boolean }) {
   const [checks, setChecks] = useState({
     worker: false,
     storage: false,
@@ -81,28 +81,15 @@ export function DeviceReadiness() {
       done: checks.alerts,
     },
   ];
-  return (
-    <section className="surface overflow-hidden" aria-labelledby="device-readiness-title">
-      <div className="border-b border-border p-4">
-        <div className="flex items-start gap-3">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary text-muted-foreground">
-            <Smartphone className="size-5" />
-          </span>
-          <div>
-            <h2 id="device-readiness-title" className="t-eyebrow">
-              Device readiness
-            </h2>
-            <p className="t-micro mt-1">Prepare this phone before first tee.</p>
-          </div>
-        </div>
-      </div>
-      <ul className="divide-y divide-border px-4">
+  const body = (
+    <>
+      <ul className={embedded ? "space-y-2.5" : "divide-y divide-border px-4"}>
         {rows.map((row) => (
-          <li key={row.label} className="flex items-start gap-3 py-3">
+          <li key={row.label} className={`flex items-start gap-3 ${embedded ? "" : "py-3"}`}>
             {row.done ? (
-              <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-[var(--status-live)]" />
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[var(--status-live)]" />
             ) : (
-              <Circle className="mt-0.5 size-5 shrink-0 text-copper" />
+              <Circle className="mt-0.5 size-4 shrink-0 text-copper" />
             )}
             <span>
               <span className="t-body block font-medium text-foreground">{row.label}</span>
@@ -111,7 +98,13 @@ export function DeviceReadiness() {
           </li>
         ))}
       </ul>
-      <div className="grid gap-2 border-t border-border p-4 sm:grid-cols-2">
+      <div
+        className={
+          embedded
+            ? "mt-3 flex flex-wrap gap-x-4"
+            : "grid gap-2 border-t border-border p-4 sm:grid-cols-2"
+        }
+      >
         {!installed && installPrompt ? (
           <button
             type="button"
@@ -120,22 +113,36 @@ export function DeviceReadiness() {
               await installPrompt.userChoice;
               setInstallPrompt(null);
             }}
-            className="press btn-primary t-body flex min-h-11 items-center justify-center gap-2"
+            className="press t-micro min-h-11 px-1 font-semibold text-hunter"
           >
-            <Download className="size-4" /> Install app
+            Install app
           </button>
         ) : (
-          <p className="t-micro flex min-h-11 items-center rounded-xl bg-secondary/40 px-3">
+          <p className="t-micro flex min-h-11 items-center">
             {installed ? "Installed on this device" : "iPhone: Share → Add to Home Screen"}
           </p>
         )}
         <Link
           to="/scout"
-          className="press btn-quiet t-body flex min-h-11 items-center justify-center gap-2"
+          className="press t-micro flex min-h-11 items-center px-1 font-semibold text-foreground"
         >
-          <HardDrive className="size-4" /> Prepare courses
+          Prepare courses
         </Link>
       </div>
+    </>
+  );
+
+  if (embedded) return <div className="space-y-1">{body}</div>;
+
+  return (
+    <section className="surface overflow-hidden" aria-labelledby="device-readiness-title">
+      <div className="border-b border-border p-4">
+        <h2 id="device-readiness-title" className="t-eyebrow">
+          This phone
+        </h2>
+        <p className="t-micro mt-1">Prepare this phone before first tee.</p>
+      </div>
+      {body}
     </section>
   );
 }
