@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import { Countdown } from "@/components/tin-cup/Countdown";
+import { CourseDayStory, DayStory } from "@/components/tin-cup/DayStory";
 import { MatchCard } from "@/components/tin-cup/MatchCard";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { FieldChatLink } from "@/components/tin-cup/WhatsAppLinks";
@@ -16,7 +17,7 @@ import {
   venmoUrl,
 } from "@/lib/tin-cup";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
-import { day1GroupForPlayer } from "@/lib/day1-pairings";
+import { DAY1_PAIRINGS, day1GroupForPlayer } from "@/lib/day1-pairings";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
 import type { WeekendContext } from "@/lib/weekend-context";
 
@@ -49,83 +50,116 @@ export function PreTournamentPanel({
   const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
 
   return (
-    <section className="stack-page pb-2" aria-label="This weekend">
-      <div className="fade-up">
-        <PageMasthead
-          size="display"
-          title={EVENT.title}
-          meta={`${EVENT.dates} · ${EVENT.location}`}
-        />
-        <p className="t-body mt-2 px-0.5 font-medium text-foreground">{EVENT.subtitle}</p>
-      </div>
-
-      <div className="fade-up" style={{ animationDelay: "80ms" }}>
-        <Countdown />
-      </div>
-
-      {isClaimed && context ? (
-        <WeekendCommandCenter context={context} />
-      ) : (
-        <div className="fade-up stack-tight" style={{ animationDelay: "160ms" }}>
+    <section className="stack-page pb-4" aria-label="This weekend">
+      <PageMasthead
+        title={EVENT.title}
+        meta={`${EVENT.dates} · ${EVENT.location}`}
+      >
+        <p className="t-micro mt-2">{EVENT.subtitle}</p>
+        <div className="mt-2">
+          <Countdown />
+        </div>
+        {!isClaimed ? (
           <a
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className="press btn-primary t-body flex min-h-11 w-full items-center justify-center"
+            className="press btn-primary t-body mt-4 flex min-h-11 w-full max-w-sm justify-center"
           >
             Pay ${BUY_IN}
           </a>
-          {needsClaim ? (
-            <p className="flex flex-wrap items-center justify-center">
-              <Link
-                to="/profile"
-                className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
-              >
-                Claim your name
-              </Link>
-            </p>
-          ) : null}
+        ) : null}
+        {needsClaim ? (
+          <Link
+            to="/profile"
+            className="press t-micro mt-1 inline-flex min-h-11 items-center text-muted-foreground"
+          >
+            Claim your name
+          </Link>
+        ) : null}
+      </PageMasthead>
+
+      {VENMO_IS_PLACEHOLDER && (
+        <p className="t-micro text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>
+      )}
+
+      {isClaimed && context ? <WeekendCommandCenter context={context} /> : null}
+
+      {isClaimed && myDay1 ? (
+        <MatchCard
+          size="feature"
+          index={`Friday · Match ${myDay1.pairing.matchIndex}`}
+          sideA={myDay1.pairing.sideA}
+          sideB={myDay1.pairing.sideB}
+          peopleA={myDay1.pairing.playersA.map((name) => ({
+            name,
+            teamSlug: "strong-mental",
+            src: avatars.data?.getByName(name)?.url,
+          }))}
+          peopleB={myDay1.pairing.playersB.map((name) => ({
+            name,
+            teamSlug: "grass-roots",
+            src: avatars.data?.getByName(name)?.url,
+          }))}
+          format="Scramble · Alt shot"
+          points={2}
+          yours
+          yoursOnA={myDay1.side === "a"}
+        />
+      ) : (
+        <div className="space-y-2.5">
+          {DAY1_PAIRINGS.map((p) => (
+            <Link
+              key={p.matchIndex}
+              to="/scout"
+              search={{ course: "south", card: true }}
+              className="block"
+            >
+              <MatchCard
+                index={p.matchIndex}
+                sideA={p.sideA}
+                sideB={p.sideB}
+                peopleA={p.playersA.map((name) => ({
+                  name,
+                  teamSlug: "strong-mental",
+                  src: avatars.data?.getByName(name)?.url,
+                }))}
+                peopleB={p.playersB.map((name) => ({
+                  name,
+                  teamSlug: "grass-roots",
+                  src: avatars.data?.getByName(name)?.url,
+                }))}
+                format="Scramble · Alt shot"
+                points={2}
+              />
+            </Link>
+          ))}
         </div>
       )}
 
-      {VENMO_IS_PLACEHOLDER && (
-        <p className="t-micro text-center text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>
-      )}
+      <CourseDayStory
+        courseId={nextCourseId}
+        action={
+          <Link
+            to="/scout"
+            search={{ course: nextCourseId, card: true }}
+            className="press t-micro mt-1 inline-flex min-h-11 items-center font-semibold text-foreground"
+          >
+            {COURSE_LABEL[nextCourseId]} planner
+          </Link>
+        }
+      />
 
-      {isClaimed && (
-        <section className="space-y-3">
-          {myDay1 ? (
-            <MatchCard
-              size="feature"
-              index={`Friday · Match ${myDay1.pairing.matchIndex}`}
-              sideA={myDay1.pairing.sideA}
-              sideB={myDay1.pairing.sideB}
-              peopleA={myDay1.pairing.playersA.map((name) => ({
-                name,
-                teamSlug: "strong-mental",
-                src: avatars.data?.getByName(name)?.url,
-              }))}
-              peopleB={myDay1.pairing.playersB.map((name) => ({
-                name,
-                teamSlug: "grass-roots",
-                src: avatars.data?.getByName(name)?.url,
-              }))}
-              format="Scramble · Alt shot"
-              points={2}
-              yours
-              yoursOnA={myDay1.side === "a"}
-            />
-          ) : null}
-          <p className="t-micro px-1 text-muted-foreground">
-            {today.dayLabel} · {COURSE_LABEL[nextCourseId]} · first tee {today.firstTee}
-          </p>
-          {tonight && <p className="t-micro px-1 text-muted-foreground">Tonight · {tonight.title}</p>}
-        </section>
-      )}
+      {tonight ? (
+        <DayStory kicker={tonight.day} title={tonight.title} body={tonight.detail} />
+      ) : null}
 
-      {!isClaimed && tonight && (
-        <p className="t-micro mt-2 text-center text-muted-foreground">Tonight · {tonight.title}</p>
-      )}
+      <Link
+        to="/schedule"
+        className="press t-micro inline-flex min-h-11 items-center font-semibold text-foreground"
+      >
+        Weekend guide
+      </Link>
 
       {WHATSAPP_GROUP_CONFIGURED && <FieldChatLink className="!min-h-11 w-full" />}
     </section>

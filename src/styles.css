@@ -709,23 +709,7 @@
   }
 }
 
-.home-dashboard-pre {
-  grid-template-areas:
-    "action"
-    "feed"
-    "secondary";
-  max-width: 42rem;
-  margin-inline: auto;
-}
-@media (min-width: 64rem) {
-  .home-dashboard.home-dashboard-pre {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "action"
-      "feed"
-      "secondary";
-  }
-}
+
 
 .feed-card {
   border-bottom: 1px solid var(--border);
