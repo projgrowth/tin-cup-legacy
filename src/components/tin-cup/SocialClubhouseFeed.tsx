@@ -360,11 +360,11 @@ export function SocialClubhouseFeed({
                 type="button"
                 disabled={!canParticipate || !draft.trim() || story.addComment.isPending}
                 onClick={submitPost}
-                className={`press ml-auto flex min-h-11 items-center gap-2 px-4 text-sm font-semibold ${
+                className={`press ml-auto flex min-h-11 items-center px-4 text-sm font-semibold ${
                   draft.trim() ? "btn-primary" : "btn-quiet"
                 }`}
               >
-                <Send className="size-4" /> Post
+                Post
               </button>
             </div>
             {attach ? (

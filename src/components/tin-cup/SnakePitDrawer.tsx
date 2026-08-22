@@ -7,10 +7,10 @@ import {
 } from "@/components/ui/drawer";
 import { SNAKE_PIT } from "@/lib/tin-cup";
 
-export function SnakePitDrawer() {
+export function SnakePitDrawer({ triggerClassName = "" }: { triggerClassName?: string }) {
   return (
     <Drawer>
-      <DrawerTrigger className="press btn-quiet t-micro min-h-11">
+      <DrawerTrigger className={`press min-h-11 ${triggerClassName || "btn-quiet t-micro"}`}>
         Snake Pit
       </DrawerTrigger>
       <DrawerContent className="border-border bg-card/95 backdrop-blur-xl">

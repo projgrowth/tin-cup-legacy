@@ -170,22 +170,24 @@ function SchedulePage() {
 
         <section className="stack-tight">
           <h2 className="t-eyebrow">Dinners</h2>
-          {socialOrdered.map((row) => (
-            <details key={row.day} className="hairline px-1 first:border-t-0">
-              <summary className="press flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
-                <span className="t-body min-w-0 truncate font-semibold text-foreground">
-                  {row.day} · {row.title}
-                </span>
-                <span className="t-micro shrink-0 text-muted-foreground">More</span>
-              </summary>
-              <p className="t-micro pb-3 text-muted-foreground">{row.detail}</p>
-            </details>
-          ))}
+          <div className="surface divide-y divide-border overflow-hidden">
+            {socialOrdered.map((row) => (
+              <details key={row.day}>
+                <summary className="press flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+                  <span className="t-body min-w-0 truncate font-medium text-foreground">
+                    {row.day} · {row.title}
+                  </span>
+                  <span className="t-micro shrink-0">More</span>
+                </summary>
+                <p className="t-micro px-4 pb-3 text-muted-foreground">{row.detail}</p>
+              </details>
+            ))}
+          </div>
         </section>
 
-        <div className="flex flex-wrap items-center gap-2 px-1">
-          <FormatSheet triggerClassName="btn-quiet" />
-          <SnakePitDrawer />
+        <div className="surface divide-y divide-border overflow-hidden">
+          <FormatSheet triggerClassName="flex w-full items-center px-4 py-3 t-body font-medium text-foreground" />
+          <SnakePitDrawer triggerClassName="flex w-full items-center px-4 py-3 t-body font-medium text-foreground" />
           {rounds.length > 0 && (
             <button
               type="button"
@@ -193,7 +195,7 @@ function SchedulePage() {
                 downloadWeekendIcs(rounds);
                 void trackProductEvent("calendar_downloaded", { kind: "weekend" });
               }}
-              className="press btn-quiet t-micro min-h-11"
+              className="press flex min-h-11 w-full items-center px-4 py-3 t-body font-medium text-foreground"
             >
               Add weekend to calendar
             </button>

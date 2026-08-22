@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { CircleHelp } from "lucide-react";
 
 import {
   Drawer,
@@ -18,9 +17,8 @@ export function FormatSheet({ triggerClassName = "" }: { triggerClassName?: stri
   return (
     <Drawer>
       <DrawerTrigger
-        className={`press t-micro inline-flex min-h-11 items-center gap-1.5 text-muted-foreground ${triggerClassName}`}
+        className={`press min-h-11 ${triggerClassName || "t-micro inline-flex items-center gap-1.5 text-muted-foreground"}`}
       >
-        <CircleHelp className="size-3.5" strokeWidth={1.7} />
         How formats work
       </DrawerTrigger>
       <DrawerContent className="border-border bg-card/95 backdrop-blur-xl">

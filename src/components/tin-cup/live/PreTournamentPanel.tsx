@@ -62,16 +62,6 @@ export function PreTournamentPanel({
       />
       <Countdown />
 
-      {signedIn && claimedName && !face(claimedName)?.url ? (
-        <Link
-          to="/profile"
-          className="press surface flex min-h-11 items-center justify-between px-4 py-3"
-        >
-          <span className="t-body font-medium text-foreground">Add your face</span>
-          <span className="t-micro">Account</span>
-        </Link>
-      ) : null}
-
       <TheCardSheet matches={matches} rounds={rounds} players={players} teams={teams} />
 
       <a
@@ -86,6 +76,15 @@ export function PreTournamentPanel({
       </a>
 
       <div className="surface divide-y divide-border overflow-hidden empty:hidden">
+        {signedIn && claimedName && !face(claimedName)?.url ? (
+          <Link
+            to="/profile"
+            className="press flex min-h-11 items-center justify-between px-4 py-3"
+          >
+            <span className="t-body font-medium text-foreground">Add your face</span>
+            <span className="t-micro">Account</span>
+          </Link>
+        ) : null}
         {tonight ? (
           <Link
             to="/schedule"

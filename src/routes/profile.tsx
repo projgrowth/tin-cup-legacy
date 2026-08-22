@@ -231,8 +231,6 @@ function ProfilePage() {
             />
           )}
           <GuestNotesMerge />
-          {claimedPlayer && <DeviceReadiness />}
-          {claimedPlayer && <NotificationSettings userId={user.id} />}
           <ul className="surface divide-y divide-border overflow-hidden">
             {claimedPlayer && (
               <li>
@@ -296,7 +294,9 @@ function ProfilePage() {
             <summary className="press cursor-pointer list-none py-2 [&::-webkit-details-marker]:hidden">
               More
             </summary>
-            <div className="mt-2 flex flex-col gap-2">
+            <div className="mt-2 space-y-3">
+              {claimedPlayer ? <DeviceReadiness /> : null}
+              {claimedPlayer ? <NotificationSettings userId={user.id} /> : null}
               <WhatsAppGroupButton className="!min-h-11 w-full" />
               <p>iPhone: Share → Add to Home Screen.</p>
               {canScore && (
@@ -624,7 +624,7 @@ function Identity({
   return (
     <section>
       <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h2 className="t-section text-foreground">{needsClaim ? "Claim your name" : "Identity"}</h2>
+        <h2 className="t-eyebrow">{needsClaim ? "Claim your name" : "Identity"}</h2>
         <span className="pill t-micro text-muted-foreground">{roleLabel}</span>
       </div>
       <div className={`space-y-3 p-4 ${needsClaim ? "surface-raised" : "surface"}`}>
