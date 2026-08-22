@@ -77,6 +77,11 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(page.getByRole("heading", { name: /South game plan/i })).toBeVisible();
   await expect(page.getByRole("link", { name: "Open hole 1 map" })).toBeVisible();
   await expect(page.getByText("335 yds").first()).toBeVisible();
+  await expect(page.getByText("Scramble", { exact: true })).toBeVisible();
+  await expect(page.getByText("Alt shot", { exact: true })).toBeVisible();
+  await expect(page.getByText("CTP", { exact: true })).toHaveCount(2);
+  await expect(page.getByText("LD", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Target/i })).toHaveCount(0);
   await page.getByRole("tab", { name: /Copperhead/i }).click();
   await expect(page.getByRole("heading", { name: /Copperhead game plan/i })).toBeVisible();
   await page.getByRole("tab", { name: /Island/i }).click();

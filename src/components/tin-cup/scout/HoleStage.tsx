@@ -29,6 +29,7 @@ export function HoleStage({
   onSatFailed,
   holeCount = 18,
   courseLabel,
+  note = null,
 }: {
   courseId: CourseId;
   hole: Hole;
@@ -43,6 +44,7 @@ export function HoleStage({
   onSatFailed?: () => void;
   holeCount?: number;
   courseLabel?: string;
+  note?: string | null;
 }) {
   const geo = useMemo(() => getGeoHole(courseId, hole.h), [courseId, hole.h]);
   const triple = useMemo(() => (geo ? holeGreenTriple(geo) : null), [geo]);
@@ -104,6 +106,11 @@ export function HoleStage({
           {isSnake ? <span className="ml-1.5 text-copper">Pit</span> : null}
         </p>
         <p className="sr-only">Black {hole.yards}</p>
+        {note ? (
+          <p className="mt-2 max-w-[16rem] text-[0.78rem] font-semibold leading-snug text-white/85">
+            {note}
+          </p>
+        ) : null}
       </div>
 
       {gpsOn && liveStack ? (

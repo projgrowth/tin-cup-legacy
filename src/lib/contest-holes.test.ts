@@ -6,6 +6,7 @@ import {
   contestHoleOpsDetail,
   contestHoleStatus,
   DAY1_CONTESTS,
+  knownContestsForHole,
 } from "./contest-holes";
 
 const friday = "friday-id";
@@ -47,6 +48,14 @@ describe("Day 1 contest holes", () => {
   it("labels only confirmed hole numbers", () => {
     expect(contestHoleLabel(3)).toBe("Hole 3");
     expect(contestHoleLabel(null)).toBe("Hole TBD");
+  });
+
+  it("stamps Friday contests without a bet table", () => {
+    expect(knownContestsForHole("south", 3)).toEqual(["ctp"]);
+    expect(knownContestsForHole("south", 18)).toEqual(["ctp"]);
+    expect(knownContestsForHole("south", 13)).toEqual(["ld"]);
+    expect(knownContestsForHole("south", 1)).toEqual([]);
+    expect(knownContestsForHole("copperhead", 16)).toEqual([]);
   });
 
   it("reports Friday posted while later days stay open", () => {

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { ChevronLeft, MoreHorizontal, Printer, Share2 } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 
 import { Shell } from "@/components/tin-cup/Shell";
@@ -13,6 +13,7 @@ import { useTournament } from "@/hooks/useTournament";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { SNAKE_PIT as SNAKE_PIT_TIPS } from "@/lib/tin-cup";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
+import { knownContestsForHole } from "@/lib/contest-holes";
 import {
   COURSE_LABEL,
   COURSE_DETAILS,
@@ -26,13 +27,7 @@ import {
   type CourseId,
 } from "@/lib/courses";
 import { getGuestNote } from "@/lib/guest-notes";
-import {
-  buildPlanLines,
-  hasPlanContent,
-  printRoundSheet,
-  shareRoundSheet,
-  type PlanLine,
-} from "@/lib/round-sheet";
+import { buildPlanLines, hasPlanContent, type PlanLine } from "@/lib/round-sheet";
 
 const HoleStage = lazy(() =>
   import("@/components/tin-cup/scout/HoleStage").then((module) => ({
@@ -93,9 +88,7 @@ function ScoutPage() {
   const { profile } = useProfile();
   const [playGpsOn, setPlayGpsOn] = useState(false);
   const [mapMode, setMapMode] = useState<MapMode>("schematic");
-  const [cardMenu, setCardMenu] = useState(false);
-  const [theaterMenu, setTheaterMenu] = useState(false);
-  const [courseMenu, setCourseMenu] = useState(false);
+  const [wideTheater, setWideTheater] = useState(false);
 
   useEffect(() => {
     try {
@@ -107,6 +100,14 @@ function ScoutPage() {
     } catch {
       /* first visit stays 2D aerial */
     }
+  }, []);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 1024px)");
+    const sync = () => setWideTheater(mql.matches);
+    sync();
+    mql.addEventListener("change", sync);
+    return () => mql.removeEventListener("change", sync);
   }, []);
 
   function persistMode(next: MapMode) {
@@ -156,7 +157,6 @@ function ScoutPage() {
   const tip =
     courseId === "copperhead" ? SNAKE_PIT_TIPS.find((t) => t.hole === current.h) : undefined;
   const isSnake = courseId === "copperhead" && SNAKE_PIT.includes(current.h);
-  const todayCourse = defaultCourseId();
   const claimedName = profile?.player_id
     ? tournament?.players.find((p) => p.id === profile.player_id)?.name
     : null;
@@ -168,6 +168,10 @@ function ScoutPage() {
 
   const contestByHole = useMemo(() => {
     const map = new Map<number, Array<"ctp" | "ld">>();
+    for (const holeRow of course.holes) {
+      const known = knownContestsForHole(courseId, holeRow.h);
+      if (known.length) map.set(holeRow.h, [...known]);
+    }
     const roundId = tournament?.rounds.find((r) => r.slug === details.roundSlug)?.id;
     for (const bet of tournament?.sideBets ?? []) {
       if (bet.hole == null) continue;
@@ -179,7 +183,7 @@ function ScoutPage() {
       map.set(bet.hole, list);
     }
     return map;
-  }, [tournament?.sideBets, tournament?.rounds, details.roundSlug]);
+  }, [course.holes, courseId, tournament?.sideBets, tournament?.rounds, details.roundSlug]);
 
   const noteForDraft = (h: number): HoleNoteDraft | null => {
     if (user) {
@@ -213,17 +217,6 @@ function ScoutPage() {
   );
   const planMode = user ? "cloud" : "guest";
 
-  async function onSharePlan() {
-    const result = await shareRoundSheet(courseId, planLines);
-    if (result === "shared") toast.success("Plan shared");
-    else if (result === "copied") toast.success("Plan copied");
-    else toast.error("Could not share");
-  }
-
-  function onPrintPlan() {
-    if (!printRoundSheet(courseId, planLines)) toast.error("Allow pop-ups to print");
-  }
-
   const orb =
     "press flex size-11 items-center justify-center rounded-full border border-white/15 bg-black/45 text-white shadow-[var(--shadow-card)] backdrop-blur-md";
   const mapChip = "press chip min-h-11 border-white/15 bg-black/45 text-white backdrop-blur-md";
@@ -232,7 +225,7 @@ function ScoutPage() {
     return (
       <Shell variant="theater">
         <div className="relative h-svh w-full overflow-hidden bg-black">
-          <div className="absolute inset-0 lg:right-96">
+          <div className={`absolute inset-0 ${wideTheater ? "lg:right-96" : ""}`}>
             <Suspense
               fallback={
                 <div className="flex h-full items-center justify-center bg-[var(--turf-rough)] t-body text-white/70">
@@ -254,114 +247,39 @@ function ScoutPage() {
                 onSatFailed={() => setPlayGpsOn(false)}
                 holeCount={course.holes.length}
                 courseLabel={COURSE_LABEL[courseId]}
+                note={planEditor.filled ? planEditor.summary : null}
               />
             </Suspense>
           </div>
 
           <div
-            className="absolute inset-x-3 z-40 flex items-start justify-between gap-2"
+            className="absolute left-3 z-40"
             style={{ top: "max(0.75rem, env(safe-area-inset-top))" }}
           >
-            <div className="flex gap-2">
-              <Link
-                to="/scout"
-                search={{ course: courseId, hole, card: true }}
-                replace
-                aria-label="Back to scorecard"
-                className={orb}
-              >
-                <ChevronLeft className="size-4" />
-              </Link>
-            </div>
-            <div className="relative shrink-0">
-              <button
-                type="button"
-                onClick={() => setTheaterMenu((v) => !v)}
-                aria-label="Plan actions"
-                aria-expanded={theaterMenu}
-                className={orb}
-              >
-                <MoreHorizontal className="size-4" />
-              </button>
-              {theaterMenu && (
-                <div className="surface absolute right-0 mt-2 min-w-36 overflow-hidden py-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTheaterMenu(false);
-                      void onSharePlan();
-                    }}
-                    className="press flex min-h-11 w-full items-center gap-2 px-3 text-left t-body"
-                  >
-                    <Share2 className="size-4 text-muted-foreground" />
-                    Share
-                  </button>
-                </div>
-              )}
-            </div>
+            <Link
+              to="/scout"
+              search={{ course: courseId, hole, card: true }}
+              replace
+              aria-label="Back to scorecard"
+              className={orb}
+            >
+              <ChevronLeft className="size-4" />
+            </Link>
           </div>
 
-          <div
-            className="absolute right-3 z-40 flex flex-col items-end gap-1.5 lg:right-[24.75rem]"
-            style={{ top: "max(4.25rem, calc(env(safe-area-inset-top) + 3.5rem))" }}
+          <button
+            type="button"
+            aria-pressed={playGpsOn}
+            onClick={() => {
+              const next = !playGpsOn;
+              setPlayGpsOn(next);
+              if (next) persistMode("sat");
+            }}
+            className={`${mapChip} absolute right-3 z-40 ${playGpsOn ? "chip-on" : ""}`}
+            style={{ bottom: "max(5.5rem, calc(env(safe-area-inset-bottom) + 4.75rem))" }}
           >
-            <div className="relative">
-              <button
-                type="button"
-                aria-label={`Course, ${COURSE_LABEL[courseId]}. Change course`}
-                aria-expanded={courseMenu}
-                onClick={() => setCourseMenu((v) => !v)}
-                className={mapChip}
-              >
-                {COURSE_LABEL[courseId]}
-                {courseId === todayCourse ? " · today" : ""}
-              </button>
-              {courseMenu && (
-                <div className="surface absolute right-0 mt-1 min-w-36 overflow-hidden py-1">
-                  {COURSE_ORDER.map((id) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => {
-                        setCourseMenu(false);
-                        setSelection({ course: id, hole: 1 });
-                      }}
-                      className={`press flex min-h-11 w-full items-center px-3 text-left t-body ${
-                        id === courseId ? "font-semibold text-foreground" : "text-muted-foreground"
-                      }`}
-                    >
-                      {COURSE_LABEL[id]}
-                      {id === todayCourse ? " · today" : ""}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            {!playGpsOn && (
-              <button
-                type="button"
-                aria-pressed={mapMode === "sat"}
-                onClick={() => {
-                  persistMode(mapMode === "sat" ? "schematic" : "sat");
-                }}
-                className={`${mapChip} ${mapMode === "sat" ? "chip-on" : ""}`}
-              >
-                {mapMode === "sat" ? "Sat" : "2D"}
-              </button>
-            )}
-            <button
-              type="button"
-              aria-pressed={playGpsOn}
-              onClick={() => {
-                const next = !playGpsOn;
-                setPlayGpsOn(next);
-                if (next) persistMode("sat");
-              }}
-              className={`${mapChip} ${playGpsOn ? "chip-on" : ""}`}
-            >
-              GPS
-            </button>
-          </div>
+            GPS
+          </button>
 
           {!authLoading && (
             <div className="absolute inset-x-0 bottom-0 z-30 pb-[max(0.35rem,env(safe-area-inset-bottom))] lg:hidden">
@@ -376,38 +294,40 @@ function ScoutPage() {
                 hasNote={hasNote}
                 contestByHole={contestByHole}
                 onSelectHole={(h) => setSelection({ hole: h })}
-                forceCollapsed={playGpsOn}
+                forceCollapsed
                 overlay
                 pitLabel={tip && !playGpsOn ? tip.name : null}
               />
             </div>
           )}
 
-          <aside className="absolute inset-y-0 right-0 z-30 hidden w-96 overflow-y-auto border-l border-border bg-background/98 px-3 pb-8 pt-20 lg:block">
-            <RoundPlanBoard
-              courseId={courseId}
-              hole={current.h}
-              holes={course.holes}
-              lines={planLines}
-              mode={planMode}
-              loading={authLoading || journal.loading}
-              editor={planEditor}
-              contestByHole={contestByHole}
-              onSelectHole={(h) => setSelection({ hole: h })}
-              dayDraft={dayDraft}
-              onDayDraft={setDayDraft}
-              onSaveDay={() =>
-                roundPlan.save.mutate(dayDraft, {
-                  onSuccess: () => toast.success("Day plan saved"),
-                  onError: () => toast.error("Could not save"),
-                })
-              }
-              canSaveDay={!roundPlan.save.isPending && dayDraft !== roundPlan.plan}
-              savingDay={roundPlan.save.isPending}
-              signedIn={Boolean(user)}
-              pairingLine={pairingLine}
-            />
-          </aside>
+          {wideTheater ? (
+            <aside className="absolute inset-y-0 right-0 z-30 w-96 overflow-y-auto border-l border-border bg-background/98 px-3 pb-8 pt-20">
+              <RoundPlanBoard
+                courseId={courseId}
+                hole={current.h}
+                holes={course.holes}
+                lines={planLines}
+                mode={planMode}
+                loading={authLoading || journal.loading}
+                editor={planEditor}
+                contestByHole={contestByHole}
+                onSelectHole={(h) => setSelection({ hole: h })}
+                dayDraft={dayDraft}
+                onDayDraft={setDayDraft}
+                onSaveDay={() =>
+                  roundPlan.save.mutate(dayDraft, {
+                    onSuccess: () => toast.success("Day plan saved"),
+                    onError: () => toast.error("Could not save"),
+                  })
+                }
+                canSaveDay={!roundPlan.save.isPending && dayDraft !== roundPlan.plan}
+                savingDay={roundPlan.save.isPending}
+                signedIn={Boolean(user)}
+                pairingLine={pairingLine}
+              />
+            </aside>
+          ) : null}
         </div>
       </Shell>
     );
@@ -443,43 +363,6 @@ function ScoutPage() {
                 </Link>
               );
             })}
-          </div>
-          <div className="relative shrink-0">
-            <button
-              type="button"
-              onClick={() => setCardMenu((v) => !v)}
-              aria-label="Plan actions"
-              aria-expanded={cardMenu}
-              className="press flex size-11 items-center justify-center rounded-xl border border-border/60 text-muted-foreground"
-            >
-              <MoreHorizontal className="size-4" />
-            </button>
-            {cardMenu && (
-              <div className="surface absolute right-0 top-full z-20 mt-1 min-w-36 overflow-hidden py-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCardMenu(false);
-                    void onSharePlan();
-                  }}
-                  className="press flex min-h-11 w-full items-center gap-2 px-3 text-left t-body"
-                >
-                  <Share2 className="size-4 text-muted-foreground" />
-                  Share
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCardMenu(false);
-                    onPrintPlan();
-                  }}
-                  className="press flex min-h-11 w-full items-center gap-2 px-3 text-left t-body"
-                >
-                  <Printer className="size-4 text-muted-foreground" />
-                  Print
-                </button>
-              </div>
-            )}
           </div>
         </div>
         <RoundPlanBoard

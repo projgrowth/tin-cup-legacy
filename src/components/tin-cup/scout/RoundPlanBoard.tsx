@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Map as MapIcon, Target } from "lucide-react";
+import { Map as MapIcon } from "lucide-react";
 
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { HolePlanFields } from "@/components/tin-cup/scout/HolePlanFields";
-import { CourseDownloadButton } from "@/components/tin-cup/scout/CourseDownloadButton";
 import { StatusLED } from "@/components/tin-cup/scout/DistanceStack";
 import type { useHolePlanEditor } from "@/hooks/useHolePlanEditor";
 import {
@@ -19,7 +18,7 @@ import {
 import { hasPlanContent, nineSplit, type PlanLine } from "@/lib/round-sheet";
 
 function planSummary(draft: PlanLine["draft"]): string {
-  if (!hasPlanContent(draft)) return "Add club · miss · line";
+  if (!hasPlanContent(draft)) return "";
   return [draft?.tee_club, draft?.green_note, draft?.notes || draft?.target_line]
     .filter(Boolean)
     .join(" · ");
@@ -104,28 +103,29 @@ function HoleRow({
             {line.hole}
           </span>
           <span className="min-w-0 flex-1">
-            <span className="flex items-baseline gap-2">
+            <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
               <span className="text-sm font-bold tabular-nums text-foreground">Par {line.par}</span>
               <span className="t-micro tabular-nums">{formatScorecardYards(line.yards)}</span>
-              {snake ? <span className="t-eyebrow text-copper">Pit</span> : null}
+              {holeMeta.name ? (
+                <span className="t-micro truncate text-muted-foreground">{holeMeta.name}</span>
+              ) : null}
+              {snake ? <span className="t-micro font-semibold text-copper">Pit</span> : null}
               {contests.map((c) => (
                 <span
                   key={c}
-                  className={`t-eyebrow ${c === "ld" ? "text-copper" : "text-gold-light"}`}
+                  className={`t-micro font-semibold ${c === "ld" ? "text-copper" : "text-gold-light"}`}
                 >
                   {c === "ld" ? "LD" : "CTP"}
                 </span>
               ))}
             </span>
-            <span
-              className={`mt-0.5 block truncate text-sm ${
-                planned ? "text-foreground/85" : "text-muted-foreground"
-              }`}
-            >
-              {selected && editor.filled
-                ? editor.summary || planSummary(line.draft)
-                : planSummary(line.draft)}
-            </span>
+            {planned ? (
+              <span className="mt-0.5 block truncate text-sm text-foreground/85">
+                {selected && editor.filled
+                  ? editor.summary || planSummary(line.draft)
+                  : planSummary(line.draft)}
+              </span>
+            ) : null}
           </span>
         </button>
         <Link
@@ -168,7 +168,7 @@ export function RoundPlanBoard({
   loading,
   editor,
   contestByHole,
-  onSelectHole,
+  onSelectHole: _onSelectHole,
   dayDraft,
   onDayDraft,
   onSaveDay,
@@ -199,63 +199,47 @@ export function RoundPlanBoard({
   const details = COURSE_DETAILS[courseId];
   const split = nineSplit(lines);
   const holeByN = new Map(holes.map((h) => [h.h, h]));
-  const contestCount = [...contestByHole.values()].reduce((n, list) => n + list.length, 0);
   const [openHole, setOpenHole] = useState<number | null>(null);
   const frontLines = split.front;
-  const backLines = split.back;
+  const pit = courseId === "copperhead";
+  const backLines = pit ? split.back.filter((line) => line.hole < 16) : split.back;
+  const pitLines = pit ? split.back.filter((line) => line.hole >= 16) : [];
+  const backStats = {
+    par: backLines.reduce((sum, line) => sum + line.par, 0),
+    yards: backLines.reduce((sum, line) => sum + line.yards, 0),
+  };
+  const pitStats = {
+    par: pitLines.reduce((sum, line) => sum + line.par, 0),
+    yards: pitLines.reduce((sum, line) => sum + line.yards, 0),
+  };
 
   return (
-    <div className="space-y-3">
+    <div className={hero ? "space-y-3 pb-[calc(var(--nav-height)+0.75rem)]" : "space-y-3"}>
       {hero ? (
         <PageMasthead
-          kicker={`${details.dayLabel} · first tee ${details.firstTee}`}
           title={`${COURSE_LABEL[courseId]} game plan`}
           meta={
             <>
-              {details.format}
-              <span className="mx-1.5 text-muted-foreground">·</span>
-              Black {details.blackTotal.toLocaleString()}
-              {pairingLine ? <span className="mt-2 block text-foreground">{pairingLine}</span> : null}
+              {details.dayLabel} · {details.firstTee} · {details.format}
+              {pairingLine ? <span className="mt-1 block text-foreground">{pairingLine}</span> : null}
             </>
           }
-        >
-          <p className="t-body mt-3 max-w-xl text-muted-foreground">{details.formatTip}</p>
-          <div className="mt-4">
-            <CourseDownloadButton courseId={courseId} />
-          </div>
-        </PageMasthead>
+        />
       ) : (
       <header className="px-0.5">
-        <p className="t-eyebrow">
-          {details.dayLabel} · first tee {details.firstTee}
-        </p>
-        <h1 className="t-title mt-1.5 text-foreground">{COURSE_LABEL[courseId]} game plan</h1>
+        <h1 className="t-title text-foreground">{COURSE_LABEL[courseId]} game plan</h1>
         {pairingLine ? <p className="t-micro mt-1.5 text-foreground">{pairingLine}</p> : null}
         <p className="t-micro mt-1.5">
-          {details.format}
-          <span className="mx-1.5 text-white/20">·</span>
-          Black {details.blackTotal.toLocaleString()}
+          {details.dayLabel} · {details.format}
         </p>
-        <p className="mt-3 text-sm leading-relaxed text-foreground/85">{details.formatTip}</p>
-        <div className="mt-3">
-          <CourseDownloadButton courseId={courseId} />
-        </div>
       </header>
-      )}
-
-      {contestCount > 0 && (
-        <p className="flex items-center gap-1.5 px-0.5 t-micro">
-          <Target className="size-3.5 text-gold-light" />
-          CTP / long drive holes marked on the card
-        </p>
       )}
 
       <section className="overflow-hidden" aria-label="18-hole game plan">
         <NineRule
-          label="Out"
+          label={details.frontNine}
           par={split.out.par}
           yards={split.out.yards}
-          planned={split.out.planned}
         />
         {frontLines.map((line) => (
           <HoleRow
@@ -272,10 +256,9 @@ export function RoundPlanBoard({
           />
         ))}
         <NineRule
-          label="In"
-          par={split.inn.par}
-          yards={split.inn.yards}
-          planned={split.inn.planned}
+          label={details.backNine}
+          par={backStats.par || split.inn.par}
+          yards={backStats.yards || split.inn.yards}
         />
         {backLines.map((line) => (
           <HoleRow
@@ -291,6 +274,25 @@ export function RoundPlanBoard({
             onSelect={() => setOpenHole((h) => (h === line.hole ? null : line.hole))}
           />
         ))}
+        {pitLines.length > 0 ? (
+          <>
+            <NineRule label="Snake Pit" par={pitStats.par} yards={pitStats.yards} />
+            {pitLines.map((line) => (
+              <HoleRow
+                key={line.hole}
+                line={line}
+                holeMeta={holeByN.get(line.hole) ?? holes[0]!}
+                courseId={courseId}
+                selected={openHole === line.hole}
+                contests={contestByHole.get(line.hole) ?? []}
+                editor={editor}
+                mode={mode}
+                loading={loading}
+                onSelect={() => setOpenHole((h) => (h === line.hole ? null : line.hole))}
+              />
+            ))}
+          </>
+        ) : null}
         <div className="flex items-baseline justify-between border-t border-border px-4 py-3">
           <p className="text-sm font-bold text-foreground">Par {coursePar(courseId)}</p>
           <p className="t-micro tabular-nums">{split.all.yards.toLocaleString()} yds Black</p>

@@ -107,13 +107,13 @@ export function PlanSheet({
     >
       {overlay ? <span aria-hidden className="mb-2 h-1 w-8 rounded-full bg-white/30" /> : null}
       <span className="text-sm font-semibold tracking-tight text-white">
-        H{hole} · {filled ? "Plan" : "Add plan"}
+        H{hole}
         {pitLabel ? <span className="text-copper"> · {pitLabel}</span> : null}
       </span>
       <span className="mt-1 flex max-w-full items-center justify-center gap-2">
         {!overlay && <StatusLED state={led} />}
         <span className="truncate text-sm text-white/55">
-          {filled ? summary : overlay ? "Club · miss · line" : "Club · miss · line"}
+          {filled ? summary : " "}
         </span>
         {!overlay && (
           <ChevronUp

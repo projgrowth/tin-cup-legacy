@@ -22,6 +22,17 @@ export function contestHoleLabel(hole: number | null): string {
   return hole ? `Hole ${hole}` : "Hole TBD";
 }
 
+/** Friday contests are canonical even before the side-bet table hydrates. */
+export function knownContestsForHole(
+  courseId: string,
+  hole: number,
+): Array<"ctp" | "ld"> {
+  if (courseId !== DAY1_CONTESTS.courseId) return [];
+  if (hole === DAY1_CONTESTS.ctpFront || hole === DAY1_CONTESTS.ctpBack) return ["ctp"];
+  if (hole === DAY1_CONTESTS.longDrive) return ["ld"];
+  return [];
+}
+
 function isFridayBet(bet: BetLike, fridayId?: string) {
   return Boolean(fridayId && bet.round_id === fridayId) || bet.label.toLowerCase().includes("friday");
 }

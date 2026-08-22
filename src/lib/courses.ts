@@ -73,6 +73,8 @@ export const COURSE_DETAILS: Record<
     formatTip: string;
     firstTee: string;
     roundSlug: string;
+    frontNine: string;
+    backNine: string;
   }
 > = {
   south: {
@@ -88,6 +90,8 @@ export const COURSE_DETAILS: Record<
     formatTip: "Scramble first nine mindset · pick the smart miss, not hero ball. Alt shot: talk every club.",
     firstTee: "12:19 PM",
     roundSlug: "friday",
+    frontNine: "Scramble",
+    backNine: "Alt shot",
   },
   copperhead: {
     character: "Championship · Saturday",
@@ -102,6 +106,8 @@ export const COURSE_DETAILS: Record<
     formatTip: "Stableford rewards aggression on birdie holes — protect the big numbers on Snake Pit.",
     firstTee: "9:54 AM",
     roundSlug: "saturday",
+    frontNine: "Out",
+    backNine: "In",
   },
   island: {
     character: "Water & elevation · Sunday",
@@ -116,6 +122,8 @@ export const COURSE_DETAILS: Record<
     formatTip: "Shamble: get one in play. Singles: play your game — points are on the board all day.",
     firstTee: "9:54 AM",
     roundSlug: "sunday",
+    frontNine: "Out",
+    backNine: "In",
   },
 };
 

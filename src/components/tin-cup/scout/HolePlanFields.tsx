@@ -6,7 +6,7 @@ import { MISS_SHAPES, TEE_CLUBS, type useHolePlanEditor } from "@/hooks/useHoleP
 
 /** Club / miss / target / line — shared by the round sheet and the hole map dock. */
 export function HolePlanFields({
-  par,
+  par: _par,
   mode,
   loading,
   editor,
@@ -16,8 +16,7 @@ export function HolePlanFields({
   loading?: boolean;
   editor: ReturnType<typeof useHolePlanEditor>;
 }) {
-  const { club, line, green, score, notes, setClub, setLine, setGreen, setScore, setNotes } =
-    editor;
+  const { club, line, green, notes, setClub, setLine, setGreen, setNotes } = editor;
 
   return (
     <div className="space-y-4">
@@ -44,24 +43,6 @@ export function HolePlanFields({
               {m.label}
             </Chip>
           ))}
-        </div>
-      </div>
-
-      <div>
-        <p className="t-eyebrow mb-2 text-muted-foreground">Target</p>
-        <div className="flex gap-1.5">
-          {[par - 1, par, par + 1]
-            .filter((n) => n > 0)
-            .map((n) => (
-              <Chip
-                key={n}
-                on={score === String(n)}
-                onClick={() => setScore(score === String(n) ? "" : String(n))}
-                className="min-w-[3rem]"
-              >
-                {n}
-              </Chip>
-            ))}
         </div>
       </div>
 
