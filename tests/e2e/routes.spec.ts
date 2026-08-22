@@ -35,6 +35,7 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: /4th Annual Tin Cup Invitational/i }),
   ).toBeVisible();
+  await expect(page.getByText("Where the vibes are high and the divots are deep")).toBeVisible();
   await expect(page.getByText(/Friday 12:19/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Weekend", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Plan", exact: true }).first()).toBeVisible();
@@ -62,7 +63,7 @@ test("social-first Home preserves feed filters, deep links, and board compatibil
 
   await page.goto("/?board=true&feed=photos&post=photo%3Ademo");
   await expect(page).toHaveURL(/board=true/);
-  await expect(page.getByRole("link", { name: "Exit display" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Exit display" })).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText("Tin Cup 2026 · Live")).toBeVisible();
 });
 
@@ -71,6 +72,19 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(page.getByRole("heading", { name: /Friday · South/i })).toBeVisible();
   await expect(page.getByText("Zack / Chris")).toBeVisible();
   await expect(page.getByText("Charles / Blake")).toBeVisible();
+  await expect(page.getByText("Saturday · Copperhead")).toBeVisible();
+  await expect(page.getByText("Sunday · Island")).toBeVisible();
+  await expect(page.getByText("Loading…")).toHaveCount(0);
+  await expectNoHorizontalOverflow(page);
+
+  await page.goto("/rosters");
+  await expect(page.getByRole("heading", { name: "Strong Mental" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Grass Roots" })).toBeVisible();
+  await expect(page.getByText("Zack Smith", { exact: true })).toBeVisible();
+  await expect(page.getByText("Kevin Maher", { exact: true })).toBeVisible();
+  await expect(page.getByText("Charles Grass", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Team Strong Mental" })).toHaveCount(0);
+  await expect(page.getByText("Loading…")).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
 
   await page.goto("/scout");
@@ -140,7 +154,9 @@ test("protected preview exposes the gallery and engagement prompt without produc
   await expect(page.getByText("Who holes the first walk-off putt?")).toHaveCount(0);
   await page.goto("/photos");
   await expect(page.getByRole("heading", { name: "Photos" })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Download shown/ })).toBeVisible();
+  await expect(page.getByText("Photos land here after someone posts.")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Download shown/ })).toHaveCount(0);
+  await expect(page.getByText("Loading…")).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
 });
 

@@ -148,6 +148,8 @@ export function MediaGallery({
     }
   }
 
+  const empty = photos.length === 0;
+
   return (
     <section className="space-y-4" aria-labelledby="media-gallery-title">
       <header className="flex flex-wrap items-end justify-between gap-3">
@@ -156,25 +158,37 @@ export function MediaGallery({
             Photos
           </h1>
           <p className="t-body mt-1 text-muted-foreground">
-            Photos from the field, ready to favorite and download.
+            {empty
+              ? "Photos land here after someone posts."
+              : "Photos from the field, ready to favorite and download."}
           </p>
         </div>
-        <button
-          type="button"
-          disabled={downloading || filtered.length === 0}
-          onClick={() => void downloadZip(filtered)}
-          className={`press flex min-h-11 items-center gap-2 px-4 text-sm font-semibold ${
-            filtered.length === 0 ? "btn-quiet" : "btn-gold"
-          }`}
-        >
-          {downloading ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Download className="size-4" />
-          )}{" "}
-          Download {filter.favorites ? "favorites" : "shown"}
-        </button>
+        {!empty ? (
+          <button
+            type="button"
+            disabled={downloading || filtered.length === 0}
+            onClick={() => void downloadZip(filtered)}
+            className={`press flex min-h-11 items-center gap-2 px-4 text-sm font-semibold ${
+              filtered.length === 0 ? "btn-quiet" : "btn-gold"
+            }`}
+          >
+            {downloading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Download className="size-4" />
+            )}{" "}
+            Download {filter.favorites ? "favorites" : "shown"}
+          </button>
+        ) : null}
       </header>
+      {empty ? (
+        <p>
+          <Link to="/" className="press t-micro inline-flex min-h-11 items-center text-muted-foreground">
+            Back to Home
+          </Link>
+        </p>
+      ) : (
+      <>
       <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1" aria-label="Photo filters">
         <select
           aria-label="Filter by team"
@@ -260,22 +274,7 @@ export function MediaGallery({
           </button>
         )}
       </div>
-      {activity.isLoading ? (
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
-          <div className="aspect-square animate-pulse rounded-xl bg-secondary" />
-          <div className="aspect-square animate-pulse rounded-xl bg-secondary" />
-          <div className="aspect-square animate-pulse rounded-xl bg-secondary" />
-        </div>
-      ) : photos.length === 0 ? (
-        <div className="surface-inset px-5 py-12 text-center">
-          <Camera className="mx-auto size-6 text-muted-foreground" />
-          <p className="t-title mt-3">Nothing in the roll yet</p>
-          <p className="t-micro mt-1">Photos land here after someone posts from Home.</p>
-          <Link to="/" className="press btn-quiet t-body mt-4 inline-flex min-h-11 px-4">
-            Open Home
-          </Link>
-        </div>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="surface-inset px-5 py-12 text-center">
           <ImageOff className="mx-auto size-6 text-muted-foreground" />
           <p className="t-title mt-3">No photos in this view</p>
@@ -354,6 +353,8 @@ export function MediaGallery({
           {filtered.length} photo{filtered.length === 1 ? "" : "s"}
           {filter.favorites ? " in favorites" : " from the weekend"}
         </p>
+      )}
+      </>
       )}
     </section>
   );

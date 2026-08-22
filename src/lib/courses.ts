@@ -75,6 +75,7 @@ export const COURSE_DETAILS: Record<
     roundSlug: string;
     frontNine: string;
     backNine: string;
+    points: number;
   }
 > = {
   south: {
@@ -92,6 +93,7 @@ export const COURSE_DETAILS: Record<
     roundSlug: "friday",
     frontNine: "Scramble",
     backNine: "Alt shot",
+    points: 8,
   },
   copperhead: {
     character: "Championship · Saturday",
@@ -108,6 +110,7 @@ export const COURSE_DETAILS: Record<
     roundSlug: "saturday",
     frontNine: "Out",
     backNine: "In",
+    points: 6,
   },
   island: {
     character: "Water & elevation · Sunday",
@@ -124,6 +127,7 @@ export const COURSE_DETAILS: Record<
     roundSlug: "sunday",
     frontNine: "Out",
     backNine: "In",
+    points: 12,
   },
 };
 

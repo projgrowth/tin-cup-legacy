@@ -15,6 +15,7 @@ import { DAY1_PAIRINGS } from "@/lib/day1-pairings";
 import {
   COURSE_DETAILS,
   COURSE_LABEL,
+  COURSE_ORDER,
   defaultCourseId,
   ROUND_COURSE,
   type CourseId,
@@ -30,13 +31,6 @@ function useNow() {
     return () => window.clearInterval(id);
   }, []);
   return now;
-}
-
-function courseRail(course: string): string {
-  const c = course.toLowerCase();
-  if (c.includes("copperhead")) return "border-l-2 border-l-copper/60";
-  if (c.includes("island")) return "border-l-2 border-l-[color:var(--border-strong)]";
-  return "border-l-2 border-l-muted-foreground/40";
 }
 
 function courseIdFromRound(round: { slug: string; course: string }): CourseId | null {
@@ -67,14 +61,8 @@ export const Route = createFileRoute("/schedule")({
   component: SchedulePage,
 });
 
-const STATUS_PILL: Record<string, string> = {
-  live: "border-[color:var(--status-live)] text-[var(--status-live)]",
-  complete: "border-border text-muted-foreground",
-  upcoming: "border-border text-muted-foreground",
-};
-
 function SchedulePage() {
-  const { data, isPending, isError, refetch, isFetching } = useTournament();
+  const { data, isError, refetch, isFetching } = useTournament();
   const avatars = usePlayerAvatars(data?.players ?? [], data?.teams ?? []);
   const now = useNow();
   const todayCourse = defaultCourseId(now ?? undefined);
@@ -118,8 +106,17 @@ function SchedulePage() {
     return list;
   }, [todayDetails.dayLabel]);
 
-  const otherRounds = rounds.filter((round) => round.id !== todayRound?.id);
+  const otherCourseIds = COURSE_ORDER.filter((id) => id !== todayCourseId);
   const pairingsInToday = showDay1Pairings && todayCourseId === "south";
+
+  function roundForCourse(courseId: CourseId) {
+    const slug = COURSE_DETAILS[courseId].roundSlug;
+    return (
+      rounds.find((round) => round.slug === slug) ??
+      rounds.find((round) => courseIdFromRound(round) === courseId) ??
+      null
+    );
+  }
 
   return (
     <Shell variant="content">
@@ -134,7 +131,7 @@ function SchedulePage() {
             meta={
               <>
                 {todayDetails.firstTee} · {todayDetails.format}
-                {todayRound ? ` · ${todayRound.points} pts` : " · 8 pts"}
+                {` · ${todayRound?.points ?? todayDetails.points} pts`}
               </>
             }
           />
@@ -193,70 +190,59 @@ function SchedulePage() {
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
-        {otherRounds.length > 0 && (
-          <section className="stack-tight lg:grid lg:grid-cols-2 lg:gap-3">
-            <h2 className="t-section text-foreground lg:col-span-2">Also this weekend</h2>
-            {otherRounds.map((round) => {
-              const status = roundStatus(round, now ?? undefined);
-              const start = roundStart(round);
-              const tally = roundTally(data?.matches ?? [], round.id);
-              const decided = tally.strongMental + tally.grassRoots > 0;
+        <section className="stack-tight">
+          <h2 className="t-section text-foreground">Also this weekend</h2>
+          <ul className="divide-y divide-border">
+            {otherCourseIds.map((courseId) => {
+              const details = COURSE_DETAILS[courseId];
+              const round = roundForCourse(courseId);
+              const status = round ? roundStatus(round, now ?? undefined) : "upcoming";
+              const start = round ? roundStart(round) : null;
+              const tally = round ? roundTally(data?.matches ?? [], round.id) : null;
+              const decided = Boolean(tally && tally.strongMental + tally.grassRoots > 0);
               const countdown =
                 start && now && status !== "complete" ? formatCountdown(start - now) : null;
-              const courseId = courseIdFromRound(round);
+              const tee = round?.tee_window || details.firstTee;
+              const format = round?.format || details.format;
+              const pts = round?.points ?? details.points;
+              const phase =
+                status === "live" ? "Live" : status === "complete" ? "Final" : null;
 
               return (
-                <article
-                  key={round.id}
-                  className={`overflow-hidden surface-inset ${courseRail(round.course)}`}
-                >
-                  <div className="flex items-start justify-between gap-3 px-3.5 py-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="t-title text-foreground">{round.day_label}</h3>
-                        <span
-                          className={`rounded-full border px-2 py-0.5 t-micro font-semibold ${STATUS_PILL[status]}`}
-                        >
-                          {status === "live"
-                            ? "Live"
-                            : status === "complete"
-                              ? "Final"
-                              : "Upcoming"}
-                        </span>
-                      </div>
-                      <p className="t-micro mt-1 text-muted-foreground">
-                        {round.course} · {round.tee_window} · {round.format}
-                        {countdown ? ` · ${countdown}` : ""}
-                      </p>
-                      {decided && (
-                        <p className="t-numeral mt-2 text-foreground">
-                          {tally.strongMental}–{tally.grassRoots}
-                        </p>
-                      )}
-                      {courseId && (
-                        <Link
-                          to="/scout"
-                          search={{ course: courseId, card: true }}
-                          className="press t-micro mt-1 inline-flex min-h-11 items-center font-semibold text-foreground underline-offset-2 hover:underline"
-                        >
-                          {COURSE_LABEL[courseId]} planner →
-                        </Link>
-                      )}
-                    </div>
-                    <span className="t-numeral shrink-0 text-[1.25rem] text-foreground">
-                      {round.points}
-                    </span>
-                  </div>
-                  {round.slug !== "friday" && !decided && (
-                    <p className="t-micro border-t border-border px-4 py-2.5 text-muted-foreground">
+                <li key={courseId} className="px-1 py-3">
+                  <p className="t-body font-medium text-foreground">
+                    {details.dayLabel} · {COURSE_LABEL[courseId]}
+                    {phase ? (
+                      <span className="ml-2 t-micro font-semibold text-muted-foreground">
+                        {phase}
+                      </span>
+                    ) : null}
+                  </p>
+                  <p className="t-micro mt-1 text-muted-foreground">
+                    {tee} · {format} · {pts} pts
+                    {countdown ? ` · ${countdown}` : ""}
+                  </p>
+                  {decided && tally ? (
+                    <p className="t-numeral mt-1.5 text-foreground">
+                      {tally.strongMental}–{tally.grassRoots}
+                    </p>
+                  ) : courseId !== "south" ? (
+                    <p className="t-micro mt-1 text-muted-foreground">
                       Pairings when captains post
                     </p>
-                  )}
-                </article>
+                  ) : null}
+                  <Link
+                    to="/scout"
+                    search={{ course: courseId, card: true }}
+                    className="press t-micro mt-1 inline-flex min-h-11 items-center font-semibold text-foreground"
+                  >
+                    {COURSE_LABEL[courseId]} planner
+                  </Link>
+                </li>
               );
             })}
-          </section>
-        )}
+          </ul>
+        </section>
 
         <section className="stack-tight">
           <h2 className="t-section text-foreground">Dinners</h2>

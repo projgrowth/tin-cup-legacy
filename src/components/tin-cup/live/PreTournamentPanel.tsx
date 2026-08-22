@@ -54,13 +54,9 @@ export function PreTournamentPanel({
         <PageMasthead
           size="display"
           title={EVENT.title}
-          meta={
-            <>
-              {EVENT.dates} · {EVENT.location}
-              <span className="mt-1 block">{EVENT.subtitle}</span>
-            </>
-          }
+          meta={`${EVENT.dates} · ${EVENT.location}`}
         />
+        <p className="t-body mt-2 px-0.5 text-foreground">{EVENT.subtitle}</p>
       </div>
 
       <div className="fade-up" style={{ animationDelay: "80ms" }}>

@@ -18,6 +18,7 @@ describe("2026 tournament content invariants", () => {
     expect(components).toBe(BUY_IN);
     expect(EVENT.totalPoints).toBe(26);
     expect(EVENT.pointsToWin).toBe(13.5);
+    expect(COURSE_ORDER.reduce((sum, id) => sum + COURSE_DETAILS[id].points, 0)).toBe(26);
     expect(EVENT.title).toContain("4th Annual");
     expect(EVENT.dates).toBe("August 28–30, 2026");
   });

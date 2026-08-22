@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ChevronRight } from "lucide-react";
 
 import { Avatar } from "@/components/tin-cup/Avatar";
@@ -13,7 +13,6 @@ import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
 import { tallyStandings } from "@/lib/scoring";
-import { teamRailClass } from "@/lib/team-styles";
 import { EXPECTED_PLAYER_COUNT } from "@/lib/tin-cup";
 import { FIELD_SIDES } from "@/lib/day1-pairings";
 
@@ -37,14 +36,13 @@ export const Route = createFileRoute("/rosters")({
 });
 
 function RostersPage() {
-  const { data, isPending, isError, refetch, isFetching } = useTournament();
+  const { data, isError, refetch, isFetching } = useTournament();
   const { user } = useAuth();
   const standings = tallyStandings(data?.matches ?? []);
   const teams = data?.teams ?? [];
   const players = data?.players ?? [];
   const avatars = usePlayerAvatars(players, teams);
   const publicProfiles = usePublicProfiles();
-  const [activeSlug, setActiveSlug] = useState<string | null>("strong-mental");
 
   const { data: myPlayerId } = useQuery({
     queryKey: ["my-player", user?.id],
@@ -69,16 +67,11 @@ function RostersPage() {
     [myPlayer, teams],
   );
 
-  // Default tab to your team when claimed
-  useEffect(() => {
-    if (myTeam && !activeSlug) setActiveSlug(myTeam.slug);
-  }, [myTeam, activeSlug]);
-
-  const selected = useMemo(() => {
-    if (!teams.length) return null;
-    const slug = activeSlug ?? teams[0]?.slug ?? null;
-    return teams.find((t) => t.slug === slug) ?? teams[0];
-  }, [teams, activeSlug]);
+  const playersByName = useMemo(() => {
+    const map = new Map<string, (typeof players)[number]>();
+    for (const player of players) map.set(player.name.trim().toLowerCase(), player);
+    return map;
+  }, [players]);
 
   return (
     <Shell variant="content">
@@ -87,38 +80,12 @@ function RostersPage() {
           title="Two teams. One Cup."
           meta={`${EXPECTED_PLAYER_COUNT} players · 13.5 to win`}
         />
-        {standings.played > 0 && teams.length === 2 && (
-          <section className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
-            {teams.map((team, index) => {
-              const points =
-                team.slug === "strong-mental" ? standings.strongMental : standings.grassRoots;
-              const active = selected?.id === team.id;
-              const isMine = myTeam?.id === team.id;
-              return (
-                <button
-                  key={team.id}
-                  type="button"
-                  onClick={() => setActiveSlug(team.slug)}
-                  className={`press rounded-lg px-2 py-2 transition-colors ${
-                    index === 1 ? "col-start-3" : ""
-                  } ${active ? "bg-secondary/80" : ""}`}
-                >
-                  <p
-                    className={`t-micro ${
-                      team.slug === "strong-mental" ? "text-gold-light" : "text-copper"
-                    }`}
-                  >
-                    {team.name.replace("Team ", "")}
-                    {isMine ? " · You" : ""}
-                  </p>
-                  <p className="t-hero mt-1 text-foreground">{points}</p>
-                </button>
-              );
-            })}
-            <div className="col-start-2 row-start-1">
-              <p className="t-micro text-muted-foreground">vs</p>
-            </div>
-          </section>
+        {standings.played > 0 && (
+          <p className="t-body px-1 text-foreground">
+            <span className="text-gold-light">Strong Mental {standings.strongMental}</span>
+            <span className="mx-2 text-muted-foreground">vs</span>
+            <span className="text-copper">Grass Roots {standings.grassRoots}</span>
+          </p>
         )}
 
         {!myPlayerId && (
@@ -132,129 +99,98 @@ function RostersPage() {
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
-        {selected && (
-          <section className={`surface overflow-hidden ${teamRailClass(selected.slug)}`}>
-            <div className="border-b border-border px-4 py-3">
-              <div className="flex items-baseline justify-between gap-3">
-                <div className="min-w-0">
-                  <h2 className="t-title text-foreground">{selected.name}</h2>
-                  <p className="t-micro mt-0.5 text-muted-foreground">
-                    Capt. {selected.captain_name}
-                    {myTeam?.id === selected.id ? " · Your side" : ""}
-                  </p>
-                </div>
-                <span
-                  className={`t-numeral ${
-                    selected.slug === "strong-mental" ? "text-gold-light" : "text-copper"
+        <div className="stack-tight lg:grid lg:grid-cols-2 lg:gap-8">
+          {FIELD_SIDES.map((side) => {
+            const liveTeam = teams.find((team) => team.slug === side.slug);
+            return (
+              <section key={side.slug}>
+                <h2
+                  className={`t-section ${
+                    side.slug === "strong-mental" ? "text-gold-light" : "text-copper"
                   }`}
                 >
-                  {selected.slug === "strong-mental"
-                    ? standings.strongMental
-                    : standings.grassRoots}
-                </span>
-              </div>
-            </div>
-            <ul className="divide-y divide-border lg:grid lg:grid-cols-2 lg:divide-y-0">
-              {players
-                .filter((p) => p.team_id === selected.id)
-                .map((player) => {
-                  const isYou = myPlayerId === player.id;
-                  const social = publicProfiles.data?.find(
-                    (candidate) => candidate.player_id === player.id,
-                  );
-                  return (
-                    <li
-                      key={player.id}
-                      className={`border-b border-border lg:[&:nth-child(odd)]:border-r ${isYou ? "bg-secondary/40" : ""}`}
-                    >
-                      <div className="flex items-center pr-1">
-                        <Link
-                          to="/player/$playerId"
-                          params={{ playerId: player.id }}
-                          className="press flex min-h-14 min-w-0 flex-1 items-center justify-between gap-3 px-4 py-3.5"
-                        >
-                          <span className="flex min-w-0 flex-1 items-center gap-3">
-                            <Avatar
-                              name={player.name}
-                              teamSlug={selected.slug}
-                              src={avatars.data?.byPlayerId.get(player.id)?.url}
-                              size="md"
-                            />
-                            <span className="min-w-0 flex-1">
-                              <span className="t-body flex items-center gap-2 truncate font-medium text-foreground">
-                                <span className="truncate">{player.name}</span>
-                                {player.is_captain && (
-                                  <span className="t-micro text-muted-foreground">C</span>
-                                )}
-                                {isYou && (
-                                  <span className="t-micro shrink-0 text-muted-foreground">
-                                    You
-                                  </span>
-                                )}
-                              </span>
-                              {(social?.flair || social?.status_text) && (
-                                <span className="t-micro mt-0.5 block truncate">
-                                  {social.flair
-                                    ? social.flair.replace("vibes", "vibes captain")
-                                    : ""}
-                                  {social.flair && social.status_text ? " · " : ""}
-                                  {social.status_text ?? ""}
-                                </span>
-                              )}
-                            </span>
-                          </span>
-                          <ChevronRight
-                            className="size-4 shrink-0 text-muted-foreground"
-                            strokeWidth={1.7}
-                          />
-                        </Link>
-                        <ClaimQrButton
-                          player={{ id: player.id, name: player.name, teamName: selected.name }}
+                  {side.name.replace("Team ", "")}
+                </h2>
+                <p className="t-micro mt-1 px-1 text-muted-foreground">
+                  Capt. {liveTeam?.captain_name ?? side.captain}
+                  {myTeam?.slug === side.slug ? " · Your side" : ""}
+                </p>
+                <ul className="mt-2 divide-y divide-border">
+                  {side.players.map((name) => {
+                    const player = playersByName.get(name.trim().toLowerCase());
+                    const isYou = Boolean(player && myPlayerId === player.id);
+                    const isCaptain = name === side.captain || Boolean(player?.is_captain);
+                    const social = player
+                      ? publicProfiles.data?.find((candidate) => candidate.player_id === player.id)
+                      : undefined;
+                    const body = (
+                      <span className="flex min-w-0 flex-1 items-center gap-3">
+                        <Avatar
+                          name={name}
+                          teamSlug={side.slug}
+                          src={player ? avatars.data?.byPlayerId.get(player.id)?.url : undefined}
+                          size="md"
                         />
-                      </div>
-                    </li>
-                  );
-                })}
-            </ul>
-          </section>
-        )}
-
-        {!selected && (
-          <section>
-            <div className="mb-2 flex gap-1" role="tablist" aria-label="Team">
-              {FIELD_SIDES.map((side) => {
-                const on = (activeSlug ?? "strong-mental") === side.slug;
-                return (
-                  <button
-                    key={side.slug}
-                    type="button"
-                    role="tab"
-                    aria-selected={on}
-                    onClick={() => setActiveSlug(side.slug)}
-                    className={`press relative min-h-11 px-2.5 text-sm font-semibold ${
-                      on ? "text-gold-light" : "text-muted-foreground"
-                    }`}
-                  >
-                    {side.name.replace("Team ", "")}
-                    {on ? (
-                      <span aria-hidden className="absolute inset-x-2 bottom-1 h-px bg-gold" />
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
-            <ul className="divide-y divide-border">
-              {(
-                FIELD_SIDES.find((side) => side.slug === (activeSlug ?? "strong-mental")) ??
-                FIELD_SIDES[0]
-              ).players.map((name) => (
-                <li key={name} className="px-1 py-3">
-                  <p className="t-body font-medium text-foreground">{name}</p>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+                        <span className="min-w-0 flex-1">
+                          <span className="t-body flex items-center gap-2 truncate font-medium text-foreground">
+                            <span className="truncate">{name}</span>
+                            {isCaptain ? (
+                              <span className="t-micro text-muted-foreground">C</span>
+                            ) : null}
+                            {isYou ? (
+                              <span className="t-micro shrink-0 text-muted-foreground">You</span>
+                            ) : null}
+                          </span>
+                          {(social?.flair || social?.status_text) && (
+                            <span className="t-micro mt-0.5 block truncate">
+                              {social.flair
+                                ? social.flair.replace("vibes", "vibes captain")
+                                : ""}
+                              {social.flair && social.status_text ? " · " : ""}
+                              {social.status_text ?? ""}
+                            </span>
+                          )}
+                        </span>
+                      </span>
+                    );
+                    return (
+                      <li key={name} className={isYou ? "bg-secondary/40" : ""}>
+                        <div className="flex items-center pr-1">
+                          {player ? (
+                            <Link
+                              to="/player/$playerId"
+                              params={{ playerId: player.id }}
+                              className="press flex min-h-14 min-w-0 flex-1 items-center justify-between gap-3 px-1 py-3.5"
+                            >
+                              {body}
+                              <ChevronRight
+                                className="size-4 shrink-0 text-muted-foreground"
+                                strokeWidth={1.7}
+                              />
+                            </Link>
+                          ) : (
+                            <div className="flex min-h-14 min-w-0 flex-1 items-center px-1 py-3.5">
+                              {body}
+                            </div>
+                          )}
+                          {player ? (
+                            <ClaimQrButton
+                              player={{
+                                id: player.id,
+                                name: player.name,
+                                teamName: liveTeam?.name ?? side.name,
+                              }}
+                            />
+                          ) : null}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            );
+          })}
+        </div>
       </div>
     </Shell>
   );
