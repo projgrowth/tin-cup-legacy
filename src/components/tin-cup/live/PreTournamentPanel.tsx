@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
-import { PageMasthead } from "@/components/tin-cup/PageMasthead";
+import { BrandMark } from "@/components/tin-cup/BrandMark";
 import { FieldChatLink } from "@/components/tin-cup/WhatsAppLinks";
 import { WeekendCommandCenter } from "@/components/tin-cup/WeekendCommandCenter";
 
@@ -50,28 +50,26 @@ export function PreTournamentPanel({
       : `${time.days}d ${String(time.hours).padStart(2, "0")}h ${String(time.minutes).padStart(2, "0")}m`;
 
   return (
-    <section className="stack-page pb-4" aria-label="This weekend">
-      <PageMasthead title={EVENT.title}>
-        <p className="t-micro mt-2">{EVENT.dates} · {EVENT.location}</p>
-        <p suppressHydrationWarning className="t-micro mt-1">
+    <section aria-label="This weekend">
+      <article className="mx-auto max-w-sm px-1 py-8 text-center sm:py-12">
+        <BrandMark size="lg" decorative className="mx-auto" />
+        <h1 className="t-display mt-5 text-foreground">{EVENT.title}</h1>
+        <p className="t-micro mt-4">
+          {EVENT.dates}
+          <span className="mt-1 block">{EVENT.location}</span>
+        </p>
+        <p suppressHydrationWarning className="t-micro mt-3">
           Friday 12:19 · {COURSE_LABEL[nextCourseId]} · {today.points} pts
-          {remain ? (
-            <>
-              {" · "}
-              <span className="font-semibold text-foreground">{remain}</span>
-            </>
-          ) : (
-            " · On the tee"
-          )}
+          {remain ? ` · ${remain}` : ""}
         </p>
         {tonight ? <p className="t-micro mt-1">Tonight · {tonight.title}</p> : null}
-        <p className="t-micro mt-1">{EVENT.subtitle}</p>
+        <p className="t-micro mt-3">{EVENT.subtitle}</p>
         {!isClaimed ? (
           <a
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className="press btn-primary t-body mt-4 flex min-h-11 w-full max-w-sm justify-center"
+            className="press btn-primary t-body mt-6 flex min-h-11 w-full justify-center"
           >
             Pay ${BUY_IN}
           </a>
@@ -79,20 +77,27 @@ export function PreTournamentPanel({
         {needsClaim ? (
           <Link
             to="/profile"
-            className="press t-micro mt-1 inline-flex min-h-11 items-center text-muted-foreground"
+            className="press t-micro mt-2 inline-flex min-h-11 items-center text-muted-foreground"
           >
             Claim your name
           </Link>
         ) : null}
-      </PageMasthead>
+        {VENMO_IS_PLACEHOLDER && (
+          <p className="t-micro mt-3 text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>
+        )}
+      </article>
 
-      {VENMO_IS_PLACEHOLDER && (
-        <p className="t-micro text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>
+      {isClaimed && context ? (
+        <div className="mx-auto max-w-sm px-1">
+          <WeekendCommandCenter context={context} />
+        </div>
+      ) : null}
+
+      {WHATSAPP_GROUP_CONFIGURED && (
+        <div className="mx-auto max-w-sm px-1">
+          <FieldChatLink className="!min-h-11 w-full" />
+        </div>
       )}
-
-      {isClaimed && context ? <WeekendCommandCenter context={context} /> : null}
-
-      {WHATSAPP_GROUP_CONFIGURED && <FieldChatLink className="!min-h-11 w-full" />}
     </section>
   );
 }
