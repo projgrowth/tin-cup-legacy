@@ -32,7 +32,7 @@ export function playerInitials(name: string): string {
 /** Monogram surface classes by team. */
 export function monogramClass(slug?: TeamSlug | null, size: "sm" | "md" | "lg" = "md"): string {
   const dim =
-    size === "sm" ? "size-8 text-[0.65rem]" : size === "lg" ? "size-14 text-base" : "size-10 text-xs";
+    size === "sm" ? "size-7 text-[0.6rem]" : size === "lg" ? "size-12 text-sm" : "size-9 text-[0.65rem]";
   if (slug === "grass-roots") {
     return `${dim} rounded-full border border-stone/35 bg-stone/15 font-semibold tracking-wide text-stone`;
   }

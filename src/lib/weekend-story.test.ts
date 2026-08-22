@@ -23,4 +23,34 @@ describe("weekend story", () => {
     });
     expect(moments[0]).toMatchObject({ key: "match:m1:r2", kind: "match", shareable: true });
   });
+
+  it("does not blow a profile face up as a feed photo", () => {
+    const moments = buildStoryMoments({
+      matches: [],
+      sideBets: [],
+      trophies: [],
+      activity: [
+        {
+          id: "avatar-1",
+          kind: "avatar",
+          at: "2026-08-22T12:00:00Z",
+          title: "Andrew added a photo",
+          playerName: "Andrew Kezsbom",
+          avatarPath: "avatars/andrew.jpg",
+        },
+        {
+          id: "photo-1",
+          kind: "photo",
+          at: "2026-08-22T12:01:00Z",
+          title: "Andrew posted a photo",
+          mediaPath: "photos/south.jpg",
+          avatarPath: "avatars/andrew.jpg",
+        },
+      ],
+    });
+    const face = moments.find((row) => row.key === "activity:avatar-1");
+    const shot = moments.find((row) => row.key === "activity:photo-1");
+    expect(face).toMatchObject({ kind: "roster", mediaPath: null, shareable: false });
+    expect(shot).toMatchObject({ kind: "photo", mediaPath: "photos/south.jpg" });
+  });
 });

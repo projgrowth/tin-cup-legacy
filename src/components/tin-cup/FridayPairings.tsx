@@ -76,7 +76,9 @@ export function FridayPairings({
                   userId={user?.id}
                   claimed={Boolean(profile?.player_id)}
                   social={social}
-                  compact
+                  peopleA={peopleA}
+                  peopleB={peopleB}
+                  variant="controls"
                 />
               ) : null}
             </div>

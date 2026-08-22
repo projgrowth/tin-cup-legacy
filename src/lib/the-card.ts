@@ -114,6 +114,38 @@ export function fridayCardMarkets(matches: Match[], rounds: Round[]): CardMarket
   return cardMarkets(matches, rounds).filter((market) => market.roundLabel === "Friday");
 }
 
+export type CardPerson = { name: string; teamSlug: "strong-mental" | "grass-roots"; src?: string | null };
+
+export function peopleForMarket(
+  market: CardMarket,
+  getFace?: (name: string) => { url?: string | null } | undefined,
+): { peopleA: CardPerson[]; peopleB: CardPerson[] } {
+  const pairing = DAY1_PAIRINGS.find(
+    (row) => pairingKey(row.sideA, row.sideB) === pairingKey(market.sideA, market.sideB),
+  );
+  const namesA = pairing?.playersA ?? splitPairingNames(market.sideA);
+  const namesB = pairing?.playersB ?? splitPairingNames(market.sideB);
+  return {
+    peopleA: namesA.map((name) => ({
+      name,
+      teamSlug: "strong-mental",
+      src: getFace?.(name)?.url,
+    })),
+    peopleB: namesB.map((name) => ({
+      name,
+      teamSlug: "grass-roots",
+      src: getFace?.(name)?.url,
+    })),
+  };
+}
+
+function splitPairingNames(side: string): string[] {
+  return side
+    .split(/[/,&+]|\band\b/i)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
 export function pendingMatchIds(market: CardMarket, matches: Match[]): string[] {
   if (market.matchIds.length === 0) return [];
   const byId = new Map(matches.map((match) => [match.id, match]));

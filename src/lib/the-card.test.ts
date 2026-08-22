@@ -11,6 +11,7 @@ import {
   normalizeCardNote,
   pairingFirstNames,
   pendingMatchIds,
+  peopleForMarket,
   pickOnMarket,
   takeLabel,
   takenCount,
@@ -54,6 +55,16 @@ function match(partial: Partial<Match> & Pick<Match, "id" | "label" | "side_a" |
 }
 
 describe("the card", () => {
+  it("resolves full roster names for a Friday ticket", () => {
+    const [ticket] = fridayCardMarkets([], [friday]);
+    const people = peopleForMarket(ticket!, (name) =>
+      name === "Zack Smith" ? { url: "/zack.jpg" } : undefined,
+    );
+    expect(people.peopleA.map((row) => row.name)).toEqual(["Zack Smith", "Chris Maher"]);
+    expect(people.peopleA[0]?.src).toBe("/zack.jpg");
+    expect(people.peopleB[0]?.teamSlug).toBe("grass-roots");
+  });
+
   it("prints first names, never Side A", () => {
     expect(pairingFirstNames("Zack / Chris")).toBe("Zack · Chris");
     expect(takeLabel("side-a", "Zack / Chris", "Charles / Blake")).toBe("Zack · Chris");

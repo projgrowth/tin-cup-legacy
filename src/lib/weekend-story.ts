@@ -48,17 +48,18 @@ export function buildStoryMoments(input: {
   for (const item of input.activity ?? [])
     moments.push({
       key: `activity:${item.id}`,
-      kind: item.kind === "claim" ? "roster" : "photo",
+      kind: item.kind === "photo" ? "photo" : item.kind === "claim" ? "roster" : "roster",
       title: item.title,
       detail: item.subtitle,
       at: Date.parse(item.at) || 0,
-      shareable: item.kind !== "claim",
+      shareable: item.kind === "photo",
       authorId: item.authorId,
       playerId: item.playerId,
       playerName: item.playerName,
       teamSlug: item.teamSlug,
       avatarPath: item.avatarPath,
-      mediaPath: item.mediaPath ?? item.avatarPath ?? null,
+      // Face uploads stay in the header avatar — never as a full-bleed feed image.
+      mediaPath: item.kind === "photo" ? (item.mediaPath ?? null) : null,
     });
   for (const match of input.matches.filter((row) => row.result !== "pending"))
     moments.push({

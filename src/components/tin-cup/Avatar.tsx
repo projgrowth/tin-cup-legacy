@@ -1,12 +1,12 @@
 import { monogramClass, playerInitials, type TeamSlug } from "@/lib/team-styles";
 
 const SIZE = {
-  sm: "size-8 text-[0.65rem]",
-  md: "size-10 text-xs",
-  lg: "size-14 text-base",
+  sm: "size-7 text-[0.6rem]",
+  md: "size-9 text-[0.65rem]",
+  lg: "size-12 text-sm",
 } as const;
 
-/** Circular face or team-color monogram fallback. */
+/** Circular face or team-color monogram fallback. Faces never overlap. */
 export function Avatar({
   name,
   teamSlug,
@@ -25,12 +25,16 @@ export function Avatar({
   const dim = SIZE[size];
   if (src) {
     return (
-      <img
-        src={src}
-        alt={title ?? name}
-        title={title ?? name}
-        className={`${dim} shrink-0 rounded-full border border-border object-cover ${className}`}
-      />
+      <span
+        className={`inline-flex shrink-0 overflow-hidden rounded-full border border-border bg-secondary ${dim} ${className}`.trim()}
+      >
+        <img
+          src={src}
+          alt={title ?? name}
+          title={title ?? name}
+          className="size-full object-cover object-center"
+        />
+      </span>
     );
   }
   return (
@@ -44,7 +48,7 @@ export function Avatar({
   );
 }
 
-/** Overlapping pair of avatars for match / Day 1 sides. */
+/** Two faces side by side — no stacked overlap. */
 export function AvatarPair({
   people,
   size = "sm",
@@ -55,14 +59,9 @@ export function AvatarPair({
   if (people.length === 0) return null;
   const shown = people.slice(0, 2);
   return (
-    <span className="inline-flex shrink-0 items-center">
+    <span className="inline-flex shrink-0 items-center gap-1">
       {shown.map((p, i) => (
-        <span
-          key={`${p.name}-${i}`}
-          className={i === 0 ? "" : "-ml-2 ring-2 ring-background rounded-full"}
-        >
-          <Avatar name={p.name} teamSlug={p.teamSlug} src={p.src} size={size} />
-        </span>
+        <Avatar key={`${p.name}-${i}`} name={p.name} teamSlug={p.teamSlug} src={p.src} size={size} />
       ))}
     </span>
   );

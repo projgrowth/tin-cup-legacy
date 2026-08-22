@@ -192,11 +192,15 @@ function SchedulePage() {
         <section className="stack-tight">
           <h2 className="t-micro font-semibold text-foreground">Dinners</h2>
           {socialOrdered.map((row) => (
-            <div key={row.day} className="hairline px-1 py-3 first:border-t-0">
-              <p className="t-micro">{row.day}</p>
-              <p className="t-body mt-0.5 font-semibold text-foreground">{row.title}</p>
-              <p className="t-micro mt-1">{row.detail}</p>
-            </div>
+            <details key={row.day} className="hairline px-1 first:border-t-0">
+              <summary className="press flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                <span className="t-body min-w-0 truncate font-semibold text-foreground">
+                  {row.day} · {row.title}
+                </span>
+                <span className="t-micro shrink-0 text-muted-foreground">More</span>
+              </summary>
+              <p className="t-micro pb-3 text-muted-foreground">{row.detail}</p>
+            </details>
           ))}
         </section>
 

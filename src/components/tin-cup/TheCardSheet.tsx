@@ -5,12 +5,14 @@ import { TheCardTicket } from "@/components/tin-cup/TheCardTicket";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
 import { useMatchSocial } from "@/hooks/useMatchSocial";
+import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { usePublicProfiles } from "@/hooks/usePublicProfiles";
-import type { Match, Player, Round } from "@/hooks/useTournament";
+import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import {
   CARD_DISCLAIMER,
   cardRecords,
   fridayCardMarkets,
+  peopleForMarket,
   takenCount,
 } from "@/lib/the-card";
 
@@ -18,16 +20,20 @@ export function TheCardSheet({
   matches,
   rounds,
   players = [],
+  teams = [],
 }: {
   matches: Match[];
   rounds: Round[];
   players?: Player[];
+  teams?: Team[];
 }) {
   const { user } = useAuth();
   const { profile } = useProfile();
   const social = useMatchSocial(user?.id, profile?.player_id);
   const profiles = usePublicProfiles();
+  const avatars = usePlayerAvatars(players, teams);
   const markets = fridayCardMarkets(matches, rounds);
+  const face = (name: string) => avatars.data?.getByName(name);
   const claimed = Boolean(profile?.player_id);
   const progress = takenCount(social.predictions, user?.id, markets);
   const graded = matches.some((match) => match.result !== "pending");
@@ -45,7 +51,7 @@ export function TheCardSheet({
     <section aria-labelledby="the-card-title">
       <div className="mb-1.5 flex items-end justify-between gap-3 px-1">
         <div className="flex items-center gap-2">
-          <MedalMark />
+          <MedalMark size="xs" />
           <div>
             <h2 id="the-card-title" className="t-micro font-semibold text-foreground">
               The Card
@@ -60,16 +66,21 @@ export function TheCardSheet({
         ) : null}
       </div>
       <div className="surface divide-y divide-border overflow-hidden">
-        {markets.map((market) => (
-          <TheCardTicket
-            key={market.id}
-            market={market}
-            matches={matches}
-            userId={user?.id}
-            claimed={claimed}
-            social={social}
-          />
-        ))}
+        {markets.map((market) => {
+          const people = peopleForMarket(market, face);
+          return (
+            <TheCardTicket
+              key={market.id}
+              market={market}
+              matches={matches}
+              userId={user?.id}
+              claimed={claimed}
+              social={social}
+              peopleA={people.peopleA}
+              peopleB={people.peopleB}
+            />
+          );
+        })}
       </div>
       {records.length > 0 ? (
         <ul className="mt-2 px-1">

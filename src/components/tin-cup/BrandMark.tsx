@@ -4,10 +4,10 @@ export function MedalMark({
   size = "sm",
 }: {
   className?: string;
-  size?: "sm" | "md";
+  size?: "xs" | "sm" | "md";
 }) {
-  const box = size === "md" ? "size-14" : "size-10";
-  const px = size === "md" ? 56 : 40;
+  const box = size === "md" ? "size-14" : size === "xs" ? "size-8" : "size-10";
+  const px = size === "md" ? 56 : size === "xs" ? 32 : 40;
   return (
     <img
       src="/tin-cup-medal.png"

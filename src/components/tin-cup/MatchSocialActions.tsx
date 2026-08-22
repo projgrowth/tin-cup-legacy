@@ -9,7 +9,7 @@ import {
   playerParticipates,
   predictionLocked,
 } from "@/lib/social-platform";
-import type { CardMarket } from "@/lib/the-card";
+import { peopleForMarket, type CardMarket } from "@/lib/the-card";
 
 export function MatchSocialActions({
   match,
@@ -48,7 +48,9 @@ export function MatchSocialActions({
           userId={userId}
           claimed={Boolean(player)}
           social={social}
-          compact
+          peopleA={peopleForMarket(market).peopleA}
+          peopleB={peopleForMarket(market).peopleB}
+          variant="controls"
         />
       )}
 

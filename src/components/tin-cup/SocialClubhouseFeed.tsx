@@ -699,16 +699,16 @@ export function SocialClubhouseFeed({
               id={`post-${moment.key}`}
               className="feed-card overflow-hidden"
             >
-              {mediaUrl ? (
+              {moment.kind === "photo" && mediaUrl ? (
                 <img
                   src={mediaUrl}
                   alt={moment.detail || moment.title}
-                  className="max-h-80 w-full rounded-none bg-secondary object-cover"
+                  className="h-44 w-full bg-secondary object-cover object-center"
                 />
               ) : moment.kind === "photo" && moment.mediaPath ? (
-                <div className="skeleton h-48 w-full" />
+                <div className="skeleton h-44 w-full" />
               ) : null}
-              <div className="p-4 sm:p-5">
+              <div className="px-0 pt-2">
                 <header className="flex items-start gap-3">
                   <Avatar
                     name={moment.playerName || "Tin Cup"}
