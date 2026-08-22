@@ -52,6 +52,7 @@ export default defineConfig({
                 (url.pathname.startsWith("/assets/") ||
                   url.pathname.endsWith(".json") ||
                   url.pathname === "/tin-cup-logo.png" ||
+                  url.pathname === "/tin-cup-medal.png" ||
                   url.pathname === "/app-icon-512.png" ||
                   url.pathname === "/favicon.png"),
               handler: "CacheFirst",

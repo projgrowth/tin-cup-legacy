@@ -150,6 +150,8 @@ function SchedulePage() {
               getFace={(name) => avatars.data?.getByName(name)}
               claimedName={claimedPlayer?.name ?? null}
               playerIdByName={playerIdByName}
+              matches={data?.matches ?? []}
+              rounds={data?.rounds ?? []}
             />
           ) : (
             <div className="surface px-4 py-3.5">

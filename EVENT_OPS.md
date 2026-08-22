@@ -5,12 +5,14 @@ Do these **before** anyone arrives at Innisbrook. Order matters.
 **Production domain:** `https://tincupinv.com`. Keep this URL and
 `https://www.tincupinv.com` in the Nhost Auth allowed redirects before testing sign-in.
 
-**Production social flags stay off** until the additive Clubhouse SQL is applied.
-Do not set `VITE_CLUBHOUSE_V1`, `VITE_WEEKEND_STORY_V2`, polls, check-ins, prompts,
-predictions, or gallery on Production. Preview Vercel env should set
+**Production social flags:** Clubhouse feed and The Card (match picks) are on.
+Set `VITE_CLUBHOUSE_V1`, `VITE_WEEKEND_STORY_V2`, and `VITE_MATCH_PREDICTIONS_V1`.
+Leave polls, check-ins, prompts, confirmations, and gallery off. Preview Vercel env should set
 `VITE_RUNTIME_MODE=preview` so tournament writes stay simulated. Production omits
 that variable (defaults to live scoring). Friday contest holes 3 / 18 / 13 are
 client-overlaid even if the database still has `null`.
+
+The Card is bragging-rights only — no cash, no Cup points. Official scoring stays captain-controlled.
 
 **In-app helper:** open **`/ops`** after sign-in for live readiness lights, captain sync, and the safe two-phone test checklist.
 

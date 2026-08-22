@@ -1,0 +1,97 @@
+import { Link } from "@tanstack/react-router";
+
+import { MedalMark } from "@/components/tin-cup/BrandMark";
+import { TheCardTicket } from "@/components/tin-cup/TheCardTicket";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useJournal";
+import { useMatchSocial } from "@/hooks/useMatchSocial";
+import { usePublicProfiles } from "@/hooks/usePublicProfiles";
+import type { Match, Player, Round } from "@/hooks/useTournament";
+import {
+  CARD_DISCLAIMER,
+  cardRecords,
+  fridayCardMarkets,
+  takenCount,
+} from "@/lib/the-card";
+
+export function TheCardSheet({
+  matches,
+  rounds,
+  players = [],
+}: {
+  matches: Match[];
+  rounds: Round[];
+  players?: Player[];
+}) {
+  const { user } = useAuth();
+  const { profile } = useProfile();
+  const social = useMatchSocial(user?.id, profile?.player_id);
+  const profiles = usePublicProfiles();
+  const markets = fridayCardMarkets(matches, rounds);
+  const claimed = Boolean(profile?.player_id);
+  const progress = takenCount(social.predictions, user?.id, markets);
+  const graded = matches.some((match) => match.result !== "pending");
+  const records = graded ? cardRecords(social.predictions, matches).slice(0, 4) : [];
+  const nameOf = (userId: string) => {
+    const row = (profiles.data ?? []).find((item) => item.id === userId);
+    if (row?.display_name) return row.display_name.trim().split(/\s+/)[0] ?? row.display_name;
+    const player = players.find((item) => item.id === row?.player_id);
+    return player?.name.trim().split(/\s+/)[0] ?? "Player";
+  };
+
+  if (!social.predictionsEnabled) return null;
+
+  return (
+    <section aria-labelledby="the-card-title">
+      <div className="mb-1.5 flex items-end justify-between gap-3 px-1">
+        <div className="flex items-center gap-2">
+          <MedalMark />
+          <div>
+            <h2 id="the-card-title" className="t-micro font-semibold text-foreground">
+              The Card
+            </h2>
+            <p className="t-micro">{CARD_DISCLAIMER}</p>
+          </div>
+        </div>
+        {progress.total > 0 ? (
+          <p className="t-micro tabular-nums text-muted-foreground">
+            {progress.taken}/{progress.total} taken
+          </p>
+        ) : null}
+      </div>
+      <div className="surface divide-y divide-border overflow-hidden">
+        {markets.map((market) => (
+          <TheCardTicket
+            key={market.id}
+            market={market}
+            matches={matches}
+            userId={user?.id}
+            claimed={claimed}
+            social={social}
+          />
+        ))}
+      </div>
+      {records.length > 0 ? (
+        <ul className="mt-2 px-1">
+          {records.map((row) => (
+            <li key={row.userId} className="t-micro flex justify-between gap-3 py-1">
+              <span className="text-foreground">{nameOf(row.userId)}</span>
+              <span className="tabular-nums text-muted-foreground">
+                {row.cashed} cashed · {row.pending} live
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {!user ? (
+        <Link to="/profile" className="press t-micro mt-1 flex min-h-11 items-center px-1 text-muted-foreground">
+          Sign in to take a side
+        </Link>
+      ) : !claimed ? (
+        <Link to="/profile" className="press t-micro mt-1 flex min-h-11 items-center px-1 text-muted-foreground">
+          Claim a name to take a side
+        </Link>
+      ) : null}
+    </section>
+  );
+}

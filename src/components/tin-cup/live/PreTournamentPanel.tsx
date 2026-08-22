@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 
 import { MatchCard } from "@/components/tin-cup/MatchCard";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
+import { TheCardSheet } from "@/components/tin-cup/TheCardSheet";
 import { FieldChatLink } from "@/components/tin-cup/WhatsAppLinks";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
@@ -19,8 +20,8 @@ import type { WeekendContext } from "@/lib/weekend-context";
 
 /** Pre-event Home — next session, your match, Pay. Same kit as Weekend. */
 export function PreTournamentPanel({
-  rounds: _rounds = [],
-  matches: _matches = [],
+  rounds = [],
+  matches = [],
   players = [],
   teams = [],
   canUpload: _canUpload = false,
@@ -88,6 +89,8 @@ export function PreTournamentPanel({
           </div>
         </div>
       ) : null}
+
+      <TheCardSheet matches={matches} rounds={rounds} players={players} />
 
       <a
         href={venmoUrl}

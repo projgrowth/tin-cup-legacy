@@ -608,6 +608,7 @@ export type Database = {
           match_id: string;
           user_id: string;
           choice: string;
+          note: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -615,10 +616,11 @@ export type Database = {
           match_id: string;
           user_id: string;
           choice: string;
+          note?: string | null;
           created_at?: string;
           updated_at?: string;
         };
-        Update: { choice?: string; updated_at?: string };
+        Update: { choice?: string; note?: string | null; updated_at?: string };
         Relationships: [];
       };
       match_confirmations: {

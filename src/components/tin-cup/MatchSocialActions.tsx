@@ -1,21 +1,15 @@
-import { Check, Flag, Sparkles } from "lucide-react";
+import { Check, Flag } from "lucide-react";
 import { toast } from "sonner";
 
+import { TheCardTicket } from "@/components/tin-cup/TheCardTicket";
 import type { Match, Player } from "@/hooks/useTournament";
 import type { useMatchSocial } from "@/hooks/useMatchSocial";
 import {
   confirmationStatus,
   playerParticipates,
   predictionLocked,
-  predictionTotals,
-  type MatchPredictionChoice,
 } from "@/lib/social-platform";
-
-const choices: Array<{ value: MatchPredictionChoice; label: string }> = [
-  { value: "side-a", label: "Side A" },
-  { value: "halved", label: "Halved" },
-  { value: "side-b", label: "Side B" },
-];
+import type { CardMarket } from "@/lib/the-card";
 
 export function MatchSocialActions({
   match,
@@ -28,68 +22,34 @@ export function MatchSocialActions({
   player?: Player | null;
   social: ReturnType<typeof useMatchSocial>;
 }) {
-  const mine = social.predictions.find(
-    (prediction) => prediction.matchId === match.id && prediction.userId === userId,
-  );
-  const totals = predictionTotals(social.predictions, match.id);
   const locked = predictionLocked(match);
   const participant = Boolean(player && playerParticipates(match, player));
   const myConfirmation = social.confirmations.find(
     (row) => row.matchId === match.id && row.playerId === player?.id,
   );
   const review = confirmationStatus(match, social.confirmations);
-  const showTotals = Boolean(mine || locked);
+  const market: CardMarket = {
+    id: match.id,
+    matchIds: [match.id],
+    roundLabel: "",
+    index: match.sort_order,
+    sideA: match.side_a ?? "TBD",
+    sideB: match.side_b ?? "TBD",
+    locked,
+  };
 
   if (!social.predictionsEnabled && !social.confirmationsEnabled) return null;
   return (
     <div className="space-y-3">
       {social.predictionsEnabled && (
-        <div>
-          <div className="flex items-center justify-between gap-2">
-            <p className="t-micro flex items-center gap-1.5 text-foreground/75">
-              <Sparkles className="size-3.5 text-hunter" /> Who wins?
-            </p>
-            <span className="t-micro">Social · no Cup points</span>
-          </div>
-          <div className="mt-2 grid grid-cols-3 gap-1.5">
-            {choices.map((choice) => {
-              const count =
-                choice.value === "side-a"
-                  ? totals.sideA
-                  : choice.value === "side-b"
-                    ? totals.sideB
-                    : totals.halved;
-              const selected = mine?.choice === choice.value;
-              return (
-                <button
-                  key={choice.value}
-                  type="button"
-                  disabled={!userId || !player || locked || social.predict.isPending}
-                  aria-pressed={selected}
-                  onClick={() =>
-                    social.predict.mutate(
-                      { matchId: match.id, choice: choice.value },
-                      { onError: (error) => toast.error(error.message) },
-                    )
-                  }
-                  className={`press min-h-11 rounded-xl border px-2 text-xs font-semibold ${
-                    selected
-                      ? "border-hunter/45 bg-hunter/10 text-hunter"
-                      : "border-border bg-black/10 text-muted-foreground"
-                  }`}
-                >
-                  {choice.label}
-                  {showTotals && <span className="ml-1 opacity-70">{count}</span>}
-                </button>
-              );
-            })}
-          </div>
-          {!userId || !player ? (
-            <p className="t-micro mt-1.5">Claim your player to make a prediction.</p>
-          ) : locked ? (
-            <p className="t-micro mt-1.5">Voting closed when the official result posted.</p>
-          ) : null}
-        </div>
+        <TheCardTicket
+          market={market}
+          matches={[match]}
+          userId={userId}
+          claimed={Boolean(player)}
+          social={social}
+          compact
+        />
       )}
 
       {social.confirmationsEnabled && locked && (

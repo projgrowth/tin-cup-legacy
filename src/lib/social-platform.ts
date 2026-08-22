@@ -93,6 +93,7 @@ export type MatchPrediction = {
   matchId: string;
   userId: string;
   choice: MatchPredictionChoice;
+  note?: string | null;
   createdAt: string;
   updatedAt: string;
 };

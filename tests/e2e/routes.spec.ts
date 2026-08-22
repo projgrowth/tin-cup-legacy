@@ -49,6 +49,10 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Share weekend" })).toHaveCount(0);
   await expect(page.getByText("Field", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Updates" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "The Card" })).toBeVisible();
+  await expect(page.getByText("Social · no Cup points · no cash")).toBeVisible();
+  await expect(page.getByText("Side A", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /Sign in to take a side/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Sign in to post with the field/ })).toBeVisible();
   await expect(page.getByText("August 28–30, 2026", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Skip intro")).toHaveCount(0);
@@ -88,6 +92,9 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(page.getByText("Welcome to the weekend")).toHaveCount(0);
   await expect(page.getByText("Zack · Chris")).toBeVisible();
   await expect(page.getByText("Charles · Blake")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Take Zack · Chris" }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Take Zack · Chris" }).first()).toBeDisabled();
+  await expect(page.getByText("Side A", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("tab", { name: "Saturday" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Sunday" })).toBeVisible();
   await page.getByRole("tab", { name: "Saturday" }).click();

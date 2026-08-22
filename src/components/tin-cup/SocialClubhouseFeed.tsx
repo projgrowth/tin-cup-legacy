@@ -40,7 +40,8 @@ import type {
 } from "@/hooks/useTournament";
 import { signedVaultUrl, uploadVaultImage } from "@/integrations/supabase/storage";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
-import { CLUBHOUSE_MOMENT_KEY, predictionTotals, type FeedFilter } from "@/lib/social-platform";
+import { CLUBHOUSE_MOMENT_KEY, type FeedFilter } from "@/lib/social-platform";
+import { buildCardMoments } from "@/lib/the-card";
 import { trackProductEvent } from "@/lib/product-analytics";
 import { savePreviewPhoto } from "@/lib/preview-media";
 import { isPreviewMode } from "@/lib/runtime-mode";
@@ -117,17 +118,29 @@ export function SocialClubhouseFeed({
     [profiles.data],
   );
   const moments = useMemo(() => {
-    const predictions: StoryMoment[] = matches
-      .map((match) => ({ match, totals: predictionTotals(matchSocial.predictions, match.id) }))
-      .filter(({ match, totals }) => match.result === "pending" && totals.total > 0)
-      .map(({ match, totals }) => ({
-        key: `prediction:${match.id}`,
-        kind: "prediction" as const,
-        title: `${totals.total} clubhouse pick${totals.total === 1 ? "" : "s"} · ${match.label}`,
-        detail: `${totals.sideA} Side A · ${totals.halved} Halved · ${totals.sideB} Side B`,
-        at: Date.parse(match.updated_at) || 0,
-        shareable: false,
-      }));
+    const teamSlugById = new Map(teams.map((team) => [team.id, team.slug]));
+    const predictions = matchSocial.predictionsEnabled
+      ? buildCardMoments({
+          matches,
+          predictions: matchSocial.predictions,
+          authorName: (userId) => {
+            const row = profileById.get(userId);
+            return (
+              (row?.player_id && playerById.get(row.player_id)?.name) ||
+              row?.display_name ||
+              "Player"
+            );
+          },
+          authorPlayer: (userId) => {
+            const row = profileById.get(userId);
+            const player = row?.player_id ? playerById.get(row.player_id) : undefined;
+            return {
+              id: player?.id ?? row?.player_id ?? null,
+              teamSlug: player ? (teamSlugById.get(player.team_id) ?? null) : null,
+            };
+          },
+        })
+      : [];
     return [
       ...buildStoryMoments({ matches, sideBets, trophies, activity: activity.data }),
       ...predictions,
@@ -142,7 +155,18 @@ export function SocialClubhouseFeed({
               ? ["match", "prediction", "side-bet", "trophy", "lead-change"].includes(moment.kind)
               : false,
       );
-  }, [activity.data, filter, matchSocial.predictions, matches, sideBets, trophies]);
+  }, [
+    activity.data,
+    filter,
+    matchSocial.predictions,
+    matchSocial.predictionsEnabled,
+    matches,
+    playerById,
+    profileById,
+    sideBets,
+    teams,
+    trophies,
+  ]);
   const showClubhouse = filter === "all" || filter === "clubhouse";
   const emptyFeed = story.clubhousePosts.length === 0 && moments.length === 0;
   const mediaPaths = moments

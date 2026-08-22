@@ -35,6 +35,7 @@ function urlsFor(courseId: CourseId): string[] {
       `${origin}/scout?course=${courseId}&card=true`,
       `${origin}/manifest.webmanifest`,
       `${origin}/tin-cup-logo.png`,
+      `${origin}/tin-cup-medal.png`,
       ...resources,
     ]),
   ];

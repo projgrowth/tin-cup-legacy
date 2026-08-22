@@ -9,6 +9,7 @@ import {
   type MatchPrediction,
   type MatchPredictionChoice,
 } from "@/lib/social-platform";
+import { normalizeCardNote } from "@/lib/the-card";
 import { isPreviewMode, PREVIEW_STORAGE_PREFIX, socialFeatureEnabled } from "@/lib/runtime-mode";
 
 const PREDICTION_KEY = `${PREVIEW_STORAGE_PREFIX}:match-predictions`;
@@ -56,6 +57,7 @@ export function useMatchSocial(userId?: string, playerId?: string | null) {
         matchId: row.match_id,
         userId: row.user_id,
         choice: row.choice as MatchPredictionChoice,
+        note: row.note ?? null,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       }));
@@ -83,25 +85,46 @@ export function useMatchSocial(userId?: string, playerId?: string | null) {
   });
 
   const predict = useMutation({
-    mutationFn: async ({ matchId, choice }: { matchId: string; choice: MatchPredictionChoice }) => {
-      if (!userId) throw new Error("Claim your player before predicting.");
+    mutationFn: async ({
+      matchIds,
+      choice,
+      note,
+    }: {
+      matchIds: string[];
+      choice: MatchPredictionChoice;
+      note?: string | null;
+    }) => {
+      if (!userId) throw new Error("Claim your player before taking a side.");
+      if (matchIds.length === 0) throw new Error("This ticket is not on the board yet.");
+      const cleaned = normalizeCardNote(note);
+      const now = new Date().toISOString();
       if (isPreviewMode()) {
-        const now = new Date().toISOString();
-        const rows = localRead<MatchPrediction>(PREDICTION_KEY).filter(
-          (row) => !(row.matchId === matchId && row.userId === userId),
-        );
-        localWrite(PREDICTION_KEY, [
-          ...rows,
-          { matchId, userId, choice, createdAt: now, updatedAt: now },
-        ]);
+        let rows = localRead<MatchPrediction>(PREDICTION_KEY);
+        for (const matchId of matchIds) {
+          const previous = rows.find((row) => row.matchId === matchId && row.userId === userId);
+          rows = rows.filter((row) => !(row.matchId === matchId && row.userId === userId));
+          rows.push({
+            matchId,
+            userId,
+            choice,
+            note: note !== undefined ? cleaned : (previous?.note ?? null),
+            createdAt: previous?.createdAt ?? now,
+            updatedAt: now,
+          });
+        }
+        localWrite(PREDICTION_KEY, rows);
         return;
       }
-      const { error } = await supabase.from("match_predictions").upsert({
-        match_id: matchId,
-        user_id: userId,
-        choice,
-      });
-      if (error) throw error;
+      for (const matchId of matchIds) {
+        const payload: { match_id: string; user_id: string; choice: MatchPredictionChoice; note?: string | null } = {
+          match_id: matchId,
+          user_id: userId,
+          choice,
+        };
+        if (note !== undefined) payload.note = cleaned;
+        const { error } = await supabase.from("match_predictions").upsert(payload);
+        if (error) throw error;
+      }
     },
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["match-predictions"] }),
   });
