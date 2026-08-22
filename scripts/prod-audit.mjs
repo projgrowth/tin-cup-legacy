@@ -79,7 +79,7 @@ async function main() {
   // --- Schedule pairings ---
   await page.goto(BASE + '/schedule');
   await page.waitForTimeout(800);
-  for (const t of ['Zack / Chris', 'Charles / Blake', 'Kevin / Max', 'Seth / Keenan']) {
+  for (const t of ['Zack · Chris', 'Charles · Blake', 'Kevin · Max', 'Seth · Keenan']) {
     log(`Pairing: ${t}`, await page.getByText(t).count() > 0, 'visible');
   }
 

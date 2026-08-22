@@ -235,6 +235,7 @@ export function RoundPlanBoard({
         </p>
       </header>
       )}
+      <p className="t-body px-1 text-foreground/80">{details.formatTip}</p>
 
       <section className="overflow-hidden" aria-label="18-hole game plan">
         <NineRule

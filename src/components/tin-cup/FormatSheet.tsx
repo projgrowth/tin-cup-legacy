@@ -8,35 +8,12 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { FORMAT_RULES, MONEY_RULES, EVENT } from "@/lib/tin-cup";
-
-const DAYS = [
-  {
-    key: "fri",
-    title: "Friday · South",
-    blurb: "Scramble + Modified Alternate Shot · 8 pts (4 / 4)",
-    detail:
-      "Same foursomes for both formats. Scramble is team ball; modified alt shot trades shots. Captains set pairings only — not CTP holes.",
-  },
-  {
-    key: "sat",
-    title: "Saturday · Copperhead",
-    blurb: "Modified Stableford full team · 6 pts (2 / 2 / 2)",
-    detail:
-      "Full-team Stableford match play. Points on the board per session structure. Pairings announced the night before.",
-  },
-  {
-    key: "sun",
-    title: "Sunday · Island",
-    blurb: "Shamble + Singles · 12 pts (4 / 8)",
-    detail:
-      "Shamble in the morning block, singles to close. Most points of the weekend. Stick around for awards after.",
-  },
-] as const;
+import { MoneySplit, WeekendDayStories } from "@/components/tin-cup/DayStory";
+import { EVENT } from "@/lib/tin-cup";
 
 /** Non-invasive format / money explainer — chip opens bottom sheet. */
 export function FormatSheet({ triggerClassName = "" }: { triggerClassName?: string }) {
-  const [tab, setTab] = useState<"cup" | "days" | "money">("cup");
+  const [tab, setTab] = useState<"days" | "money">("days");
 
   return (
     <Drawer>
@@ -50,14 +27,13 @@ export function FormatSheet({ triggerClassName = "" }: { triggerClassName?: stri
         <DrawerHeader className="pb-2 text-left">
           <DrawerTitle className="t-title text-foreground">Weekend formats</DrawerTitle>
           <p className="t-micro text-muted-foreground">
-            {EVENT.totalPoints} pts total · {EVENT.pointsToWin} wins the Cup
+            {EVENT.totalPoints} pts · {EVENT.pointsToWin} wins the Cup
           </p>
         </DrawerHeader>
 
         <div className="flex gap-1 border-b border-border px-4 pb-0">
           {(
             [
-              ["cup", "Cup"],
               ["days", "Days"],
               ["money", "Money"],
             ] as const
@@ -75,35 +51,23 @@ export function FormatSheet({ triggerClassName = "" }: { triggerClassName?: stri
           ))}
         </div>
 
-        <div className="max-h-[50svh] overflow-y-auto px-4 py-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
-          {tab === "cup" && (
-            <ul className="space-y-3">
-              {FORMAT_RULES.map((rule) => (
-                <li key={rule} className="t-body border-l-2 border-border pl-3 text-foreground/90">
-                  {rule}
-                </li>
-              ))}
-            </ul>
-          )}
+        <div className="max-h-[50svh] space-y-2.5 overflow-y-auto px-4 py-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
           {tab === "days" && (
-            <ul className="space-y-4">
-              {DAYS.map((d) => (
-                <li key={d.key} className="surface-inset p-3.5">
-                  <p className="t-title text-foreground">{d.title}</p>
-                  <p className="t-micro mt-1 font-medium text-muted-foreground">{d.blurb}</p>
-                  <p className="t-micro mt-2 text-muted-foreground">{d.detail}</p>
-                </li>
-              ))}
-            </ul>
+            <>
+              <WeekendDayStories />
+              <p className="t-micro text-muted-foreground">
+                Halves are 0.5. Tie: captains each pick a scramble partner, one hole until decided.
+              </p>
+            </>
           )}
           {tab === "money" && (
-            <ul className="space-y-3">
-              {MONEY_RULES.map((rule) => (
-                <li key={rule} className="t-body border-l-2 border-border pl-3 text-foreground/90">
-                  {rule}
-                </li>
-              ))}
-            </ul>
+            <>
+              <MoneySplit />
+              <p className="t-body text-muted-foreground">
+                CTP 3 and 18, long drive 13 on Friday. Later holes TBD. Winning side takes $200 a
+                player.
+              </p>
+            </>
           )}
         </div>
       </DrawerContent>

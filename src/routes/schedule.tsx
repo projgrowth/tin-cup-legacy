@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
-import { PairingRow } from "@/components/tin-cup/PairingRow";
+import { MatchCard } from "@/components/tin-cup/MatchCard";
+import { CourseDayStory, DayStory } from "@/components/tin-cup/DayStory";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
@@ -16,8 +17,8 @@ import {
   COURSE_DETAILS,
   COURSE_LABEL,
   COURSE_ORDER,
+  courseIdFromRound,
   defaultCourseId,
-  ROUND_COURSE,
   type CourseId,
 } from "@/lib/courses";
 import { WEEKEND_SOCIAL } from "@/lib/tin-cup";
@@ -31,15 +32,6 @@ function useNow() {
     return () => window.clearInterval(id);
   }, []);
   return now;
-}
-
-function courseIdFromRound(round: { slug: string; course: string }): CourseId | null {
-  if (ROUND_COURSE[round.slug]) return ROUND_COURSE[round.slug];
-  const c = round.course.toLowerCase();
-  if (c.includes("copperhead")) return "copperhead";
-  if (c.includes("island")) return "island";
-  if (c.includes("south")) return "south";
-  return null;
 }
 
 export const Route = createFileRoute("/schedule")({
@@ -137,26 +129,28 @@ function SchedulePage() {
           />
 
           {pairingsInToday && (
-            <ul className="mt-3 divide-y divide-border">
+            <div className="mt-3 space-y-2.5">
               {DAY1_PAIRINGS.map((p) => (
-                <PairingRow
+                <MatchCard
                   key={p.matchIndex}
                   index={p.matchIndex}
-                  sideALabel={p.sideA}
-                  sideBLabel={p.sideB}
-                  sideAPeople={p.playersA.map((name) => ({
+                  sideA={p.sideA}
+                  sideB={p.sideB}
+                  peopleA={p.playersA.map((name) => ({
                     name,
                     teamSlug: "strong-mental",
                     src: avatars.data?.getByName(name)?.url,
                   }))}
-                  sideBPeople={p.playersB.map((name) => ({
+                  peopleB={p.playersB.map((name) => ({
                     name,
                     teamSlug: "grass-roots",
                     src: avatars.data?.getByName(name)?.url,
                   }))}
+                  format="Scramble · Alt shot"
+                  points={2}
                 />
               ))}
-            </ul>
+            </div>
           )}
 
           {todayRound && todayRound.slug !== "friday" && (
@@ -192,70 +186,49 @@ function SchedulePage() {
 
         <section className="stack-tight">
           <h2 className="t-section text-foreground">Also this weekend</h2>
-          <ul className="divide-y divide-border">
-            {otherCourseIds.map((courseId) => {
-              const details = COURSE_DETAILS[courseId];
-              const round = roundForCourse(courseId);
-              const status = round ? roundStatus(round, now ?? undefined) : "upcoming";
-              const start = round ? roundStart(round) : null;
-              const tally = round ? roundTally(data?.matches ?? [], round.id) : null;
-              const decided = Boolean(tally && tally.strongMental + tally.grassRoots > 0);
-              const countdown =
-                start && now && status !== "complete" ? formatCountdown(start - now) : null;
-              const tee = round?.tee_window || details.firstTee;
-              const format = round?.format || details.format;
-              const pts = round?.points ?? details.points;
-              const phase =
-                status === "live" ? "Live" : status === "complete" ? "Final" : null;
-
-              return (
-                <li key={courseId} className="px-1 py-3">
-                  <p className="t-body font-medium text-foreground">
-                    {details.dayLabel} · {COURSE_LABEL[courseId]}
-                    {phase ? (
-                      <span className="ml-2 t-micro font-semibold text-muted-foreground">
-                        {phase}
-                      </span>
+          {otherCourseIds.map((courseId) => {
+            const round = roundForCourse(courseId);
+            const status = round ? roundStatus(round, now ?? undefined) : "upcoming";
+            const start = round ? roundStart(round) : null;
+            const tally = round ? roundTally(data?.matches ?? [], round.id) : null;
+            const decided = Boolean(tally && tally.strongMental + tally.grassRoots > 0);
+            const countdown =
+              start && now && status !== "complete" ? formatCountdown(start - now) : null;
+            const phase =
+              status === "live" ? "Live" : status === "complete" ? "Final" : null;
+            return (
+              <CourseDayStory
+                key={courseId}
+                courseId={courseId}
+                extraMeta={[phase, countdown, decided && tally ? `${tally.strongMental}–${tally.grassRoots}` : null]
+                  .filter(Boolean)
+                  .join(" · ") || null}
+                action={
+                  <>
+                    {courseId !== "south" && !decided ? (
+                      <p className="t-micro mt-2 text-muted-foreground">
+                        Pairings when captains post
+                      </p>
                     ) : null}
-                  </p>
-                  <p className="t-micro mt-1 text-muted-foreground">
-                    {tee} · {format} · {pts} pts
-                    {countdown ? ` · ${countdown}` : ""}
-                  </p>
-                  {decided && tally ? (
-                    <p className="t-numeral mt-1.5 text-foreground">
-                      {tally.strongMental}–{tally.grassRoots}
-                    </p>
-                  ) : courseId !== "south" ? (
-                    <p className="t-micro mt-1 text-muted-foreground">
-                      Pairings when captains post
-                    </p>
-                  ) : null}
-                  <Link
-                    to="/scout"
-                    search={{ course: courseId, card: true }}
-                    className="press t-micro mt-1 inline-flex min-h-11 items-center font-semibold text-foreground"
-                  >
-                    {COURSE_LABEL[courseId]} planner
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+                    <Link
+                      to="/scout"
+                      search={{ course: courseId, card: true }}
+                      className="press t-micro mt-1 inline-flex min-h-11 items-center font-semibold text-foreground"
+                    >
+                      {COURSE_LABEL[courseId]} planner
+                    </Link>
+                  </>
+                }
+              />
+            );
+          })}
         </section>
 
         <section className="stack-tight">
           <h2 className="t-section text-foreground">Dinners</h2>
-          <ul className="divide-y divide-border">
-            {socialOrdered.map((row) => (
-              <li key={row.day} className="px-1 py-3">
-                <p className="t-body font-medium text-foreground">
-                  {row.day} · {row.title}
-                </p>
-                <p className="t-micro mt-1 text-muted-foreground">{row.detail}</p>
-              </li>
-            ))}
-          </ul>
+          {socialOrdered.map((row) => (
+            <DayStory key={row.day} kicker={row.day} title={row.title} body={row.detail} />
+          ))}
         </section>
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1">

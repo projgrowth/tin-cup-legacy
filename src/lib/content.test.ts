@@ -31,4 +31,14 @@ describe("2026 tournament content invariants", () => {
       expect(hole.yards.toLowerCase()).toContain("tbd");
     }
   });
+
+  it("tells each day as a story, not a duplicate rules list", () => {
+    expect(COURSE_DETAILS.south.format).toMatch(/Scramble/i);
+    expect(COURSE_DETAILS.copperhead.format).toMatch(/Stableford/i);
+    expect(COURSE_DETAILS.island.format).toMatch(/Shamble/i);
+    for (const course of COURSE_ORDER) {
+      expect(COURSE_DETAILS[course].formatTip.length).toBeGreaterThan(24);
+      expect(COURSE_DETAILS[course].points).toBeGreaterThan(0);
+    }
+  });
 });

@@ -2,21 +2,12 @@ import { Link } from "@tanstack/react-router";
 import { Map } from "lucide-react";
 import { useMemo } from "react";
 
-import { AvatarPair } from "@/components/tin-cup/Avatar";
+import { MatchCard } from "@/components/tin-cup/MatchCard";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
-import { COURSE_LABEL, ROUND_COURSE, defaultCourseId, type CourseId } from "@/lib/courses";
+import { COURSE_LABEL, courseIdFromRound, defaultCourseId, type CourseId } from "@/lib/courses";
 import { matchFormatChip, playerInMatch, pairingIncludesLoose, roundStatus } from "@/lib/scoring";
-
-function courseIdFromRound(round: Round): CourseId {
-  if (ROUND_COURSE[round.slug]) return ROUND_COURSE[round.slug];
-  const c = round.course.toLowerCase();
-  if (c.includes("copperhead")) return "copperhead";
-  if (c.includes("island")) return "island";
-  if (c.includes("south")) return "south";
-  return defaultCourseId();
-}
 
 type Featured = {
   kind: "match";
@@ -91,11 +82,11 @@ function pickFeatured(
   };
 }
 
-function resultLabel(result: string, points: number): string {
-  if (result === "pending") return `${points} pt`;
-  if (result === "halved") return "½";
-  if (result === "strong-mental") return "SM";
-  if (result === "grass-roots") return "GR";
+function resultLabel(result: string): string | null {
+  if (result === "pending") return null;
+  if (result === "halved") return "Halved";
+  if (result === "strong-mental") return "Strong Mental";
+  if (result === "grass-roots") return "Grass Roots";
   return result;
 }
 
@@ -128,119 +119,66 @@ export function MyMatchCard({
   const sideA = featured.sideA;
   const sideB = featured.sideB;
   const planCourse: CourseId =
-    featured.kind === "match" ? courseIdFromRound(featured.round) : "south";
+    featured.kind === "match"
+      ? (courseIdFromRound(featured.round) ?? "south")
+      : "south";
   const status = featured.kind === "match" ? roundStatus(featured.round) : "upcoming";
-  const formatChip = featured.kind === "match" ? matchFormatChip(featured.match.label) : "Day 1";
-  const pointsChip = featured.kind === "match" ? `${featured.match.points}pt` : "1pt";
+  const formatChip = featured.kind === "match" ? matchFormatChip(featured.match.label) : "Scramble · Alt shot";
+  const pointsChip = featured.kind === "match" ? featured.match.points : 2;
   const dayLine =
     featured.kind === "match"
       ? `${featured.round.day_label} · ${featured.round.course}`
-      : "Friday · South Course";
-  const partnerHint =
-    featured.kind === "day1"
-      ? `w/ ${featured.partner.split(" ")[0]} · Match ${featured.matchIndex}`
-      : null;
+      : `Friday · Match ${featured.matchIndex}`;
   const result =
-    featured.kind === "match" ? resultLabel(featured.match.result, featured.match.points) : "Open";
+    featured.kind === "match" ? resultLabel(featured.match.result) : null;
   const live = status === "live";
   const decided = featured.kind === "match" && featured.match.result !== "pending";
+  const peopleA = (avatars.data?.forSide(sideA) ?? []).map((e) => ({
+    name: e.name,
+    teamSlug: e.teamSlug,
+    src: e.url,
+  }));
+  const peopleB = (avatars.data?.forSide(sideB) ?? []).map((e) => ({
+    name: e.name,
+    teamSlug: e.teamSlug,
+    src: e.url,
+  }));
 
   return (
-    <section className="hud-pod border-gold/25 px-4 py-3.5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="hud-label text-gold-light/80">
-            {live ? "My match · Live" : decided ? "My match · Final" : "My match"}
-          </p>
-          <p className="t-title mt-1.5 truncate text-foreground">{dayLine}</p>
-          {partnerHint && <p className="t-micro mt-0.5 text-muted-foreground">{partnerHint}</p>}
-        </div>
-        <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <span className="inline-flex items-center gap-1.5">
-            <span className="rounded-full border border-[var(--hud-border)] bg-black/25 px-2.5 py-1 t-micro font-semibold text-[var(--hud-muted)]">
-              {formatChip}
-            </span>
-            <span className="rounded-full border border-gold/35 bg-gold/15 px-2.5 py-1 t-micro font-semibold text-gold-light">
-              {pointsChip}
-            </span>
-          </span>
-          <span
-            className={`hud-num text-lg ${
-              decided
-                ? featured.kind === "match" && featured.match.result === "strong-mental"
-                  ? "text-gold-light"
-                  : featured.kind === "match" && featured.match.result === "grass-roots"
-                    ? "text-copper"
-                    : "text-foreground"
-                : live
-                  ? "text-copper"
-                  : "text-muted-foreground"
-            }`}
-          >
-            {result}
-            {live && !decided ? (
-              <span className="ml-1.5 text-[0.65rem] font-bold tracking-wider text-copper">
-                LIVE
-              </span>
-            ) : null}
-          </span>
-        </div>
-      </div>
-
-      <div className="mt-3 flex items-center gap-3">
-        <AvatarPair
-          people={(avatars.data?.forSide(sideA) ?? []).map((e) => ({
-            name: e.name,
-            teamSlug: e.teamSlug,
-            src: e.url,
-          }))}
-          size="md"
-        />
-        <div className="min-w-0 flex-1">
-          <p className="t-body truncate font-medium leading-snug">
-            <span className={featured.onA ? "text-gold-light" : "text-foreground/90"}>{sideA}</span>
-            <span className="mx-1.5 text-muted-foreground">vs</span>
-            <span className={!featured.onA ? "text-copper" : "text-foreground/90"}>{sideB}</span>
-          </p>
-          <p className="t-micro mt-0.5 text-muted-foreground">
-            You on {featured.onA ? "Strong Mental" : "Grass Roots"}
-          </p>
-        </div>
-        <AvatarPair
-          people={(avatars.data?.forSide(sideB) ?? []).map((e) => ({
-            name: e.name,
-            teamSlug: e.teamSlug,
-            src: e.url,
-          }))}
-          size="md"
-        />
-      </div>
-
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[var(--hud-border)] pt-3">
-        <Link
-          to="/scout"
-          search={{ course: planCourse, card: true }}
-          className="press t-micro inline-flex items-center gap-1.5 font-semibold text-foreground underline-offset-2 hover:underline"
-        >
-          <Map className="size-3.5 opacity-70" />
-          Plan {COURSE_LABEL[planCourse]} →
-        </Link>
-        {canScore && featured.kind === "match" && !decided ? (
+    <MatchCard
+      size="feature"
+      index={dayLine}
+      sideA={sideA}
+      sideB={sideB}
+      peopleA={peopleA}
+      peopleB={peopleB}
+      format={formatChip}
+      points={pointsChip}
+      yours
+      yoursOnA={featured.onA}
+      live={live && !decided}
+      result={result}
+      action={
+        <div className="flex flex-wrap items-center gap-x-4">
           <Link
-            to="/"
-            search={{ score: true, match: featured.match.id }}
-            className="press t-micro font-semibold text-gold-light"
+            to="/scout"
+            search={{ course: planCourse, card: true }}
+            className="press t-micro inline-flex min-h-11 items-center gap-1.5 font-semibold text-foreground"
           >
-            Post result
+            <Map className="size-3.5 opacity-70" />
+            Plan {COURSE_LABEL[planCourse]}
           </Link>
-        ) : null}
-        <Link
-          to="/profile"
-          className="press t-micro text-muted-foreground underline-offset-2 hover:underline"
-        >
-          My hub
-        </Link>
-      </div>
-    </section>
+          {canScore && featured.kind === "match" && !decided ? (
+            <Link
+              to="/"
+              search={{ score: true, match: featured.match.id }}
+              className="press t-micro inline-flex min-h-11 items-center font-semibold text-gold-light"
+            >
+              Post result
+            </Link>
+          ) : null}
+        </div>
+      }
+    />
   );
 }

@@ -70,10 +70,13 @@ test("social-first Home preserves feed filters, deep links, and board compatibil
 test("weekend, scout and purse retain confirmed source-of-truth details", async ({ page }) => {
   await page.goto("/schedule");
   await expect(page.getByRole("heading", { name: /Friday · South/i })).toBeVisible();
-  await expect(page.getByText("Zack / Chris")).toBeVisible();
-  await expect(page.getByText("Charles / Blake")).toBeVisible();
+  await expect(page.getByText("Zack · Chris")).toBeVisible();
+  await expect(page.getByText("Charles · Blake")).toBeVisible();
   await expect(page.getByText("Saturday · Copperhead")).toBeVisible();
   await expect(page.getByText("Sunday · Island")).toBeVisible();
+  await expect(page.getByText("Pool & Salamander Grille")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Modified Stableford Match" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "How formats work" })).toBeVisible();
   await expect(page.getByText("Loading…")).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
 
@@ -89,6 +92,7 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
 
   await page.goto("/scout");
   await expect(page.getByRole("heading", { name: /South game plan/i })).toBeVisible();
+  await expect(page.getByText("Scramble first nine mindset")).toBeVisible();
   await expect(page.getByRole("link", { name: "Open hole 1 map" })).toBeVisible();
   await expect(page.getByText("335 yds").first()).toBeVisible();
   await expect(page.getByText("Scramble", { exact: true })).toBeVisible();
@@ -106,6 +110,8 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   const payment = page.getByRole("link", { name: /Pay \$150/ }).first();
   await expect(payment).toHaveAttribute("href", /https:\/\/venmo\.com\/Kmaher.*amount=150/);
   await expect(page.getByText("$800").first()).toBeVisible();
+  await expect(page.getByText("Team match stake")).toBeVisible();
+  await expect(page.getByText("Scramble + Modified Alt Shot")).toBeVisible();
   await expect(page.getByText("Loading…")).toHaveCount(0, { timeout: 15_000 });
   // Kevin admin: Day 1 CTP 3/18 and LD 13; remaining days stay TBD.
   await expect(page.getByText("$100", { exact: true }).first()).toBeVisible();

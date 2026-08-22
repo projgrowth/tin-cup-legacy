@@ -4,11 +4,10 @@ import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { useTournament } from "@/hooks/useTournament";
 import { sideCash, sideCashByPlayer, settlement, formatPayout } from "@/lib/purse";
+import { MoneySplit, WeekendDayStories } from "@/components/tin-cup/DayStory";
 import {
   BUY_IN,
   EXPECTED_PLAYER_COUNT,
-  FORMAT_RULES,
-  MONEY_RULES,
   TOURNAMENT_BANK,
   SIDE_BET_PAYOUTS_CONFIRMED,
   contestHoleLabel,
@@ -125,24 +124,23 @@ function PursePage() {
         )}
 
         <section className="stack-tight">
-          <h2 className="t-section text-foreground">Format & pairings</h2>
-          <ul className="space-y-2 px-1">
-            {FORMAT_RULES.map((rule) => (
-              <li key={rule} className="t-micro text-muted-foreground">
-                {rule}
-              </li>
-            ))}
-          </ul>
-          <h2 className="t-section text-foreground">Money rules</h2>
-          <ul className="space-y-2 px-1">
-            {MONEY_RULES.map((rule) => (
-              <li key={rule} className="t-micro text-muted-foreground">
-                {rule}
-              </li>
-            ))}
-          </ul>
+          <h2 className="t-section text-foreground">How the Cup is won</h2>
+          <WeekendDayStories />
           <p className="t-micro px-1 text-muted-foreground">
-            Official scoring stays captain-controlled. Predictions are social signals only.
+            13.5 wins the Cup. Halves are 0.5 each. If 13–13, captains each pick a scramble partner
+            for one hole until it’s decided.
+          </p>
+        </section>
+
+        <section className="stack-tight">
+          <h2 className="t-section text-foreground">Where the $150 goes</h2>
+          <MoneySplit />
+          <p className="t-body px-1 text-muted-foreground">
+            Six closest-to-the-pin and two long drives pay $100. Friday: CTP 3 and 18, long drive 13
+            in the fairway. Saturday and Sunday holes TBD. Captains do not pick them.
+          </p>
+          <p className="t-micro px-1 text-muted-foreground">
+            Official scoring stays captain-controlled.
           </p>
         </section>
       </div>

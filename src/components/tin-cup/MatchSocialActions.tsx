@@ -42,7 +42,7 @@ export function MatchSocialActions({
 
   if (!social.predictionsEnabled && !social.confirmationsEnabled) return null;
   return (
-    <div className="mt-3 space-y-3 border-t border-border/70 pt-3">
+    <div className="space-y-3">
       {social.predictionsEnabled && (
         <div>
           <div className="flex items-center justify-between gap-2">

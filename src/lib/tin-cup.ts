@@ -145,39 +145,6 @@ export const PURSE = [
   },
 ];
 
-/** Rules aligned to Desktop deck: `4th Annual Tin Cup Invitational 2026.pdf`. */
-export const RULES = [
-  "26 total points are available across the three days. 13.5 points wins the Cup.",
-  "A halved match awards 0.5 points to each side.",
-  "Friday: 8 points — Scramble and Modified Alternate Shot on the South Course (4 / 4).",
-  "Saturday: 6 points — Modified Stableford full-team match play on Copperhead (2 / 2 / 2).",
-  "Sunday: 12 points — Shamble (4) and Singles (8) on the Island Course.",
-  "Team captains set match pairings before each session — not contest holes.",
-  "If tied, each captain picks one player as their scramble partner for a one-hole playoff until a winner is decided. Playoff hole TBD.",
-  "Long Drive claims only count if the ball finishes in the fairway.",
-];
-
-/** Format / scoring rules for the purse page (scannable card). */
-export const FORMAT_RULES = [
-  "26 total points across three days. 13.5 points wins the Cup.",
-  "A halved match awards 0.5 points to each side.",
-  "Friday: 8 pts — Scramble + Modified Alternate Shot (South, 4 / 4).",
-  "Saturday: 6 pts — Modified Stableford full team (Copperhead, 2 / 2 / 2).",
-  "Sunday: 12 pts — Shamble (4) + Singles (8) on Island.",
-  "Captains set match pairings (not CTP/LD holes).",
-  "Tie → captains each pick a scramble partner for a one-hole playoff. Hole TBD.",
-];
-
-/** Money rules for the purse page. */
-export const MONEY_RULES = [
-  `$${BUY_IN} buy-in includes auto entry into CTP and long-drive pots ($100 team money + $50 side cash).`,
-  "Winning side: $200 per player ($100 returned + $100 opponent money).",
-  "Six CTPs pay $100 each; two Long Drives pay $100 each (Friday & Saturday).",
-  "Friday contest holes: CTP 3 and 18, long drive 13. Saturday and Sunday holes TBD — captains do not pick them.",
-  "Long Drive only counts if the ball finishes in the fairway.",
-  "Side skins are optional separate buy-ins on Stableford and Singles — not part of the $150.",
-];
-
 export const TROPHIES = [
   {
     name: "The Championship Trophy",

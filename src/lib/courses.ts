@@ -30,6 +30,17 @@ export const ROUND_COURSE: Record<string, CourseId> = {
   sunday: "island",
 };
 
+/** Map a live round row to South / Copperhead / Island. */
+export function courseIdFromRound(round: { slug?: string; course?: string } | null | undefined): CourseId | null {
+  if (!round) return null;
+  if (round.slug && ROUND_COURSE[round.slug]) return ROUND_COURSE[round.slug];
+  const c = (round.course ?? "").toLowerCase();
+  if (c.includes("copperhead")) return "copperhead";
+  if (c.includes("island")) return "island";
+  if (c.includes("south")) return "south";
+  return null;
+}
+
 /** Calendar day (Eastern) → course for “today at Tin Cup”. */
 export const DAY_COURSE: Record<string, CourseId> = {
   "2026-08-28": "south",

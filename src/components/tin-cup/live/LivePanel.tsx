@@ -8,20 +8,11 @@ import { roundStatus } from "@/lib/scoring";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { formatPayout } from "@/lib/purse";
 import { contestHoleLabel } from "@/lib/tin-cup";
-import { COURSE_LABEL, ROUND_COURSE, defaultCourseId, type CourseId } from "@/lib/courses";
+import { COURSE_LABEL, courseIdFromRound, defaultCourseId } from "@/lib/courses";
 import { BetClaim } from "./MatchControls";
 import { MyMatchCard } from "./MyMatchCard";
 import { LiveHero, RoundStrip, StatusLine } from "./ScoreBoard";
 import { RoundBlock } from "./RoundBlock";
-
-function courseIdFromRound(round: Round): CourseId {
-  if (ROUND_COURSE[round.slug]) return ROUND_COURSE[round.slug];
-  const c = round.course.toLowerCase();
-  if (c.includes("copperhead")) return "copperhead";
-  if (c.includes("island")) return "island";
-  if (c.includes("south")) return "south";
-  return defaultCourseId();
-}
 
 export function LivePanel({
   rounds,
@@ -76,7 +67,7 @@ export function LivePanel({
     orderedRounds.find((r) => roundStatus(r) === "live") ??
     orderedRounds.find((r) => roundStatus(r) === "upcoming") ??
     orderedRounds[0];
-  const planCourse = liveRound ? courseIdFromRound(liveRound) : defaultCourseId();
+  const planCourse = courseIdFromRound(liveRound) ?? defaultCourseId();
 
   const hero = (
     <>
