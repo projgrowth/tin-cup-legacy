@@ -87,7 +87,7 @@ export function Shell({
       className={`min-h-screen ${
         immersive
           ? "pb-[calc(var(--nav-height)+var(--space-4)+env(safe-area-inset-bottom))] md:pb-10"
-          : "pb-[calc(var(--nav-height)+var(--space-5)+env(safe-area-inset-bottom))] lg:pb-24"
+          : "pb-[calc(var(--nav-height)+var(--space-6)+env(safe-area-inset-bottom))] lg:pb-24"
       }`}
     >
       <a

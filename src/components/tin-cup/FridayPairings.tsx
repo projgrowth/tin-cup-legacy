@@ -5,10 +5,6 @@ import { DAY1_PAIRINGS } from "@/lib/day1-pairings";
 
 type Face = { name: string; url?: string | null };
 
-function given(names: string[]) {
-  return names.map((n) => n.trim().split(/\s+/)[0] ?? n).join(" · ");
-}
-
 function sameName(a: string, b: string) {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
@@ -43,16 +39,26 @@ export function FridayPairings({
         return (
           <li
             key={p.matchIndex}
-            className={`flex items-center gap-3 px-4 py-3 ${yours ? "bg-hunter/5" : ""}`}
+            className={`grid grid-cols-[1.25rem_minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-3 py-3 ${
+              yours ? "bg-hunter/5" : ""
+            }`}
           >
-            <span className="t-micro w-4 shrink-0 tabular-nums">{p.matchIndex}</span>
-            <AvatarPair people={peopleA} size="sm" />
-            <p className="t-body min-w-0 flex-1 font-semibold leading-snug">
-              <SideNames names={p.playersA} tone="hunter" playerIdByName={playerIdByName} />
-              <span className="mx-1.5 font-medium text-muted-foreground"> vs </span>
-              <SideNames names={p.playersB} tone="stone" playerIdByName={playerIdByName} />
-            </p>
-            <AvatarPair people={peopleB} size="sm" />
+            <span className="t-micro tabular-nums">{p.matchIndex}</span>
+            <div className="min-w-0">
+              <AvatarPair people={peopleA} size="sm" />
+              <p className="t-body mt-1 font-semibold leading-snug">
+                <SideNames names={p.playersA} tone="hunter" playerIdByName={playerIdByName} />
+              </p>
+            </div>
+            <span className="t-micro font-medium text-muted-foreground">vs</span>
+            <div className="min-w-0 text-right">
+              <span className="inline-flex justify-end">
+                <AvatarPair people={peopleB} size="sm" />
+              </span>
+              <p className="t-body mt-1 font-semibold leading-snug">
+                <SideNames names={p.playersB} tone="stone" playerIdByName={playerIdByName} />
+              </p>
+            </div>
           </li>
         );
       })}

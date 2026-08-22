@@ -316,7 +316,7 @@ function ScoutPage() {
     <Shell variant="content">
       <div className="mx-auto w-full max-w-3xl space-y-2.5">
         <div className="flex items-center gap-2">
-          <div className="flex min-w-0 flex-1 gap-1" role="tablist" aria-label="Course">
+          <div className="grid min-w-0 flex-1 grid-cols-3 gap-2" role="tablist" aria-label="Course">
             {COURSE_ORDER.map((id) => {
               const on = id === courseId;
               return (
@@ -331,7 +331,7 @@ function ScoutPage() {
                     hole: 1,
                     card: true,
                   }}
-                  className={`press chip min-h-11 ${on ? "chip-on" : ""}`}
+                  className={`press chip min-h-11 w-full ${on ? "chip-on" : ""}`}
                 >
                   {COURSE_LABEL[id]}
                 </Link>

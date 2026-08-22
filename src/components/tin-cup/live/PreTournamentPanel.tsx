@@ -26,7 +26,7 @@ export function PreTournamentPanel({
   canUpload: _canUpload = false,
   signedIn = false,
   claimedName = null,
-  needsClaim = false,
+  needsClaim: _needsClaim = false,
   context: _context,
 }: {
   rounds?: Round[];
@@ -99,22 +99,11 @@ export function PreTournamentPanel({
       </a>
 
       {tonight ? (
-        <p className="t-micro px-1">Tonight · {tonight.title}</p>
-      ) : null}
-
-      {needsClaim ? (
         <Link
-          to="/profile"
-          className="press t-micro inline-flex min-h-11 items-center px-1 text-muted-foreground"
+          to="/schedule"
+          className="press t-micro flex min-h-11 items-center px-1 font-semibold text-foreground"
         >
-          Claim your name
-        </Link>
-      ) : !signedIn ? (
-        <Link
-          to="/profile"
-          className="press t-micro inline-flex min-h-11 items-center px-1 text-muted-foreground"
-        >
-          Sign in
+          Tonight · {tonight.title}
         </Link>
       ) : null}
 

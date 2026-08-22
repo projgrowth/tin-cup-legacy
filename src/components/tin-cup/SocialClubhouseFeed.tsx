@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Camera,
@@ -272,6 +273,23 @@ export function SocialClubhouseFeed({
         )}
       </div>
 
+      {!user ? (
+        <Link
+          to="/profile"
+          className="press surface flex min-h-12 items-center justify-between px-4 py-3"
+        >
+          <span className="t-body font-medium text-foreground">Sign in to post with the field</span>
+          <span className="t-micro">Account</span>
+        </Link>
+      ) : !canParticipate ? (
+        <Link
+          to="/profile"
+          className="press surface flex min-h-12 items-center justify-between px-4 py-3"
+        >
+          <span className="t-body font-medium text-foreground">Claim your name to post</span>
+          <span className="t-micro">Account</span>
+        </Link>
+      ) : (
       <div className="feed-composer surface p-2.5 sm:p-3">
         <div className="flex gap-3">
           <Avatar
@@ -386,6 +404,7 @@ export function SocialClubhouseFeed({
           </div>
         </div>
       </div>
+      )}
 
       {canModerate && story.clubhouseEnabled && (
         <details className="surface-inset overflow-hidden">
@@ -930,7 +949,7 @@ export function SocialClubhouseFeed({
       {emptyFeed && (
         <p className="t-micro px-1 py-2">
           {story.clubhouseEnabled
-            ? "Post the first update or photo."
+            ? "Captain notes and field photos land here."
             : "Updates land here as the field posts."}
         </p>
       )}

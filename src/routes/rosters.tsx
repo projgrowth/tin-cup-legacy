@@ -13,10 +13,17 @@ import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
 import { tallyStandings } from "@/lib/scoring";
-import { EXPECTED_PLAYER_COUNT } from "@/lib/tin-cup";
 import { FIELD_SIDES } from "@/lib/day1-pairings";
 
+type RosterSearch = { side?: "strong-mental" | "grass-roots" };
+
 export const Route = createFileRoute("/rosters")({
+  validateSearch: (raw: Record<string, unknown>): RosterSearch => {
+    const side = String(raw.side ?? "");
+    return side === "grass-roots" || side === "strong-mental"
+      ? { side: side as RosterSearch["side"] }
+      : {};
+  },
   head: () => ({
     meta: [
       { title: "Rosters — Team Strong Mental vs Team Grass Roots" },
@@ -36,6 +43,7 @@ export const Route = createFileRoute("/rosters")({
 });
 
 function RostersPage() {
+  const search = Route.useSearch();
   const { data, isError, refetch, isFetching } = useTournament();
   const { user } = useAuth();
   const standings = tallyStandings(data?.matches ?? []);
@@ -72,35 +80,43 @@ function RostersPage() {
     for (const player of players) map.set(player.name.trim().toLowerCase(), player);
     return map;
   }, [players]);
+  const pickedSide = search.side ?? myTeam?.slug ?? "strong-mental";
 
   return (
     <Shell variant="content">
       <div className="stack-page">
         <PageMasthead
           title="Teams"
-          meta={`${EXPECTED_PLAYER_COUNT} players · 13.5 to win`}
+          meta={
+            standings.played > 0
+              ? `${standings.strongMental}–${standings.grassRoots} · 13.5 to win`
+              : `8 v 8 · 13.5 to win`
+          }
         />
-        {standings.played > 0 && (
-          <p className="t-body px-1 text-foreground">
-            <span className="text-hunter">Strong Mental {standings.strongMental}</span>
-            <span className="mx-2 text-muted-foreground">vs</span>
-            <span className="text-stone">Grass Roots {standings.grassRoots}</span>
-          </p>
-        )}
-
-        {!myPlayerId && (
-          <Link
-            to="/profile"
-            className="press t-micro inline-flex min-h-11 items-center text-muted-foreground"
-          >
-            Claim your spot
-          </Link>
-        )}
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
-        <div className="stack-tight lg:grid lg:grid-cols-2 lg:gap-8">
+        <div className="grid grid-cols-2 gap-2" role="tablist" aria-label="Side">
           {FIELD_SIDES.map((side) => {
+            const on = side.slug === pickedSide;
+            return (
+              <Link
+                key={side.slug}
+                role="tab"
+                aria-selected={on}
+                to="/rosters"
+                search={{ side: side.slug }}
+                replace
+                className={`press chip min-h-11 w-full ${on ? "chip-on" : ""}`}
+              >
+                {side.name.replace("Team ", "")}
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="stack-tight">
+          {FIELD_SIDES.filter((side) => side.slug === pickedSide).map((side) => {
             const liveTeam = teams.find((team) => team.slug === side.slug);
             return (
               <section key={side.slug} className="surface overflow-hidden">

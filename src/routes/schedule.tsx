@@ -116,10 +116,9 @@ function SchedulePage() {
     <Shell variant="content">
       <div className="stack-page pb-4">
         <section className="stack-tight">
-          <div className="flex flex-wrap gap-2" role="tablist" aria-label="Day">
+          <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Day">
             {COURSE_ORDER.map((id) => {
               const on = id === courseId;
-              const label = `${COURSE_DETAILS[id].dayLabel} · ${COURSE_LABEL[id]}`;
               return (
                 <Link
                   key={id}
@@ -128,23 +127,19 @@ function SchedulePage() {
                   to="/schedule"
                   search={{ course: id }}
                   replace
-                  className={`press chip min-h-11 ${on ? "chip-on" : ""}`}
+                  className={`press chip min-h-11 w-full ${on ? "chip-on" : ""}`}
                 >
-                  {label}
+                  {COURSE_DETAILS[id].dayLabel}
                 </Link>
               );
             })}
           </div>
 
           <PageMasthead
-            title={
-              <>
-                {details.dayLabel} · {COURSE_LABEL[courseId]}
-              </>
-            }
+            title={details.format}
             meta={
               <>
-                {details.firstTee} · {details.format}
+                {details.dayLabel} · {COURSE_LABEL[courseId]} · {details.firstTee}
                 {` · ${selectedRound?.points ?? details.points} pts`}
               </>
             }
@@ -157,7 +152,14 @@ function SchedulePage() {
               playerIdByName={playerIdByName}
             />
           ) : (
-            <p className="t-micro px-1 py-2.5">Pairings when captains post</p>
+            <div className="surface px-4 py-3.5">
+              <p className="t-body font-semibold text-foreground">{COURSE_LABEL[courseId]}</p>
+              <p className="t-micro mt-1">{details.character}</p>
+              <p className="t-micro mt-1">
+                {details.firstTee} · {details.points} pts
+              </p>
+              <p className="t-micro mt-2">Pairings when captains post</p>
+            </div>
           )}
 
           <div className="flex flex-wrap gap-2 px-1">

@@ -4,14 +4,14 @@ import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { useTournament } from "@/hooks/useTournament";
 import { sideCash, sideCashByPlayer, settlement, formatPayout } from "@/lib/purse";
-import { MoneySplit, WeekendDayStories } from "@/components/tin-cup/DayStory";
+import { MoneySplit } from "@/components/tin-cup/DayStory";
+import { Link } from "@tanstack/react-router";
 import {
   BUY_IN,
   EXPECTED_PLAYER_COUNT,
   TOURNAMENT_BANK,
   SIDE_BET_PAYOUTS_CONFIRMED,
   contestHoleLabel,
-  VENMO_HANDLE,
   venmoUrl,
 } from "@/lib/tin-cup";
 
@@ -52,7 +52,7 @@ function PursePage() {
           title="Purse"
           meta={
             <>
-              @{VENMO_HANDLE} · {TOURNAMENT_BANK}
+              Venmo {TOURNAMENT_BANK}
               <span className="mt-1 block">
                 Team win ${cup.winnerPayout} · side cash ${cash.pool}
                 {hasTbdPayouts ? " · holes TBD" : ""}
@@ -78,6 +78,11 @@ function PursePage() {
             busy={isFetching}
           />
         )}
+
+        <section className="stack-tight">
+          <h2 className="t-micro font-semibold text-foreground">Where the $150 goes</h2>
+          <MoneySplit />
+        </section>
 
         {bets.length > 0 && (
           <section>
@@ -124,17 +129,6 @@ function PursePage() {
         )}
 
         <section className="stack-tight">
-          <h2 className="t-micro font-semibold text-foreground">How the Cup is won</h2>
-          <WeekendDayStories />
-          <p className="t-micro px-1 text-muted-foreground">
-            13.5 wins the Cup. Halves are 0.5 each. If 13–13, captains each pick a scramble partner
-            for one hole until it’s decided.
-          </p>
-        </section>
-
-        <section className="stack-tight">
-          <h2 className="t-micro font-semibold text-foreground">Where the $150 goes</h2>
-          <MoneySplit />
           <p className="t-body px-1 text-muted-foreground">
             Six closest-to-the-pin and two long drives pay $100. Friday: CTP 3 and 18, long drive 13
             in the fairway. Saturday and Sunday holes TBD. Captains do not pick them.
@@ -142,6 +136,9 @@ function PursePage() {
           <p className="t-micro px-1 text-muted-foreground">
             Official scoring stays captain-controlled.
           </p>
+          <Link to="/schedule" className="press btn-quiet t-micro min-h-11 w-fit">
+            Weekend formats
+          </Link>
         </section>
       </div>
     </Shell>

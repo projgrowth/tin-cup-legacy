@@ -92,12 +92,14 @@ function HoleRow({
           <span
             className={`flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${
               selected
-                ? "bg-hunter/15 text-hunter ring-1 ring-hunter/35"
+                ? "bg-hunter text-primary-foreground"
                 : snake
-                  ? "bg-stone/10 text-copper"
-                  : planned
-                    ? "bg-hunter/10 text-hunter"
-                    : "bg-secondary text-muted-foreground"
+                  ? "ring-1 ring-copper text-copper"
+                  : contests.length
+                    ? "bg-hunter/15 text-hunter"
+                    : planned
+                      ? "ring-1 ring-hunter/40 text-hunter"
+                      : "ring-1 ring-border text-foreground"
             }`}
           >
             {line.hole}
@@ -113,7 +115,7 @@ function HoleRow({
               {contests.map((c) => (
                 <span
                   key={c}
-                  className={`t-micro font-semibold ${c === "ld" ? "text-stone" : "text-hunter"}`}
+                  className="rounded-full bg-hunter/15 px-1.5 py-0.5 text-[0.65rem] font-semibold text-hunter"
                 >
                   {c === "ld" ? "LD" : "CTP"}
                 </span>
@@ -133,9 +135,10 @@ function HoleRow({
           search={{ course: courseId, hole: line.hole, map: true }}
           replace
           aria-label={`Open hole ${line.hole} map`}
-          className="press flex w-12 shrink-0 items-center justify-center text-muted-foreground"
+          className="press flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 text-muted-foreground"
         >
           <MapIcon className="size-4" />
+          <span className="t-micro">Map</span>
         </Link>
       </div>
 
@@ -219,7 +222,7 @@ export function RoundPlanBoard({
     <div className={hero ? "space-y-3 pb-[calc(var(--nav-height)+0.75rem)]" : "space-y-3"}>
       {hero ? (
         <PageMasthead
-          title={`${COURSE_LABEL[courseId]} game plan`}
+          title={COURSE_LABEL[courseId]}
           meta={
             <>
               {details.dayLabel} · {details.firstTee} · {details.format}
@@ -230,7 +233,7 @@ export function RoundPlanBoard({
         />
       ) : (
       <header className="px-0.5">
-        <h1 className="t-title text-foreground">{COURSE_LABEL[courseId]} game plan</h1>
+        <h1 className="t-display text-foreground">{COURSE_LABEL[courseId]}</h1>
         {pairingLine ? <p className="t-micro mt-1.5 text-foreground">{pairingLine}</p> : null}
         <p className="t-micro mt-1.5">
           {details.dayLabel} · {details.format}
@@ -240,11 +243,14 @@ export function RoundPlanBoard({
       <p className="t-body px-1 text-foreground/80">{details.formatTip}</p>
 
       <section className="surface overflow-hidden" aria-label="18-hole game plan">
-        <div className="h-1 bg-[var(--track)]">
-          <div
-            className="h-1 bg-hunter"
-            style={{ width: `${Math.min(100, (planned / 18) * 100)}%` }}
-          />
+        <div className="flex items-center gap-3 border-b border-border px-4 py-2">
+          <div className="h-1.5 min-w-0 flex-1 rounded-full bg-[var(--track)]">
+            <div
+              className="h-1.5 rounded-full bg-hunter"
+              style={{ width: `${Math.min(100, (planned / 18) * 100)}%` }}
+            />
+          </div>
+          <p className="t-micro shrink-0 tabular-nums">{planned}/18</p>
         </div>
         <NineRule
           label={details.frontNine}
