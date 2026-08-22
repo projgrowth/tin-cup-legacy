@@ -51,7 +51,7 @@ export function HoleStage({
   courseLabel?: string;
   note?: string | null;
 }) {
-  const needGeo = gpsOn || mapMode === "sat";
+  const needGeo = true;
   const geoPack = useLazyGeoHole(courseId, hole.h, needGeo);
   const geo = geoPack?.geo ?? null;
   const triple = geoPack?.triple ?? null;
@@ -121,7 +121,7 @@ export function HoleStage({
         ) : null}
       </div>
 
-      {gpsOn && liveStack ? (
+      {liveStack ? (
         <div
           className="pointer-events-none absolute left-3 z-20"
           style={{
@@ -234,7 +234,7 @@ export function HoleStage({
   );
 }
 
-/** OSM hole frame — loaded only for GPS / satellite, not the 2D schematic. */
+/** OSM hole frame — tee F/C/B plus satellite/GPS when those modes are on. */
 function useLazyGeoHole(courseId: CourseId, hole: number, enabled: boolean) {
   const [pack, setPack] = useState<{
     geo: GeoHole | null;

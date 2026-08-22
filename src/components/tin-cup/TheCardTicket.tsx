@@ -24,6 +24,7 @@ export function TheCardTicket({
   peopleA = [],
   peopleB = [],
   variant = "slip",
+  yours = false,
 }: {
   market: CardMarket;
   matches: Match[];
@@ -33,6 +34,7 @@ export function TheCardTicket({
   peopleA?: CardFace[];
   peopleB?: CardFace[];
   variant?: "slip" | "controls";
+  yours?: boolean;
 }) {
   const mine = pickOnMarket(social.predictions, userId, market.matchIds);
   const openIds = pendingMatchIds(market, matches);
@@ -106,7 +108,7 @@ export function TheCardTicket({
   }
 
   return (
-    <article className="flex gap-3 px-4 py-2.5">
+    <article className={`flex gap-3 px-4 py-2.5 ${yours ? "bg-hunter/5" : ""}`}>
       <span className="t-micro w-4 shrink-0 pt-3 tabular-nums text-muted-foreground">
         {market.index}
       </span>

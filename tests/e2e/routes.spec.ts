@@ -54,6 +54,8 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByText("Side A", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("link", { name: /Sign in to take a side/ })).toBeVisible();
   await expect(page.getByRole("link", { name: "Add your face" })).toHaveCount(0);
+  await expect(page.getByText("Add to Home Screen", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Got it" })).toBeVisible();
   await expect(page.getByRole("link", { name: /Sign in to post with the field/ })).toBeVisible();
   await expect(page.getByText("August 28–30, 2026", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Skip intro")).toHaveCount(0);
@@ -165,6 +167,9 @@ test("plan hole map opens the 2D theater and pages holes", async ({ page }) => {
   await expect(page.getByRole("img", { name: /Schematic layout of hole 7/i })).toBeVisible({
     timeout: 15_000,
   });
+  await expect(page.locator(".hud-label").filter({ hasText: /^F$/ })).toBeVisible();
+  await expect(page.locator(".hud-label").filter({ hasText: /^C$/ })).toBeVisible();
+  await expect(page.locator(".hud-label").filter({ hasText: /^B$/ })).toBeVisible();
   await expect(page.getByRole("link", { name: "Back to scorecard" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Hole 1", exact: true })).toHaveCount(0);
   await page.getByRole("link", { name: "Next hole" }).click();

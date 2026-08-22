@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { MatchCard } from "@/components/tin-cup/MatchCard";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { TheCardSheet } from "@/components/tin-cup/TheCardSheet";
-import { FieldChatLink } from "@/components/tin-cup/WhatsAppLinks";
+import { FieldChatLink, InstallHint } from "@/components/tin-cup/WhatsAppLinks";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { Countdown } from "@/components/tin-cup/Countdown";
@@ -121,6 +121,8 @@ export function PreTournamentPanel({
           Tonight · {tonight.title}
         </Link>
       ) : null}
+
+      <InstallHint />
 
       {VENMO_IS_PLACEHOLDER && (
         <p className="t-micro px-1 text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>
