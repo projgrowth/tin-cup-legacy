@@ -98,7 +98,7 @@ function HoleRow({
                     ? "bg-hunter/15 text-hunter"
                     : planned
                       ? "ring-1 ring-hunter/40 text-hunter"
-                      : "border border-foreground/25 bg-card text-foreground"
+                      : "ring-1 ring-foreground/30 bg-card text-foreground"
             }`}
           >
             {line.hole}

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { AvatarPair } from "@/components/tin-cup/Avatar";
+import { Avatar, AvatarPair } from "@/components/tin-cup/Avatar";
 import type { useMatchSocial } from "@/hooks/useMatchSocial";
 import type { Match } from "@/hooks/useTournament";
 import { type MatchPredictionChoice } from "@/lib/social-platform";
@@ -24,6 +24,8 @@ export function TheCardTicket({
   social,
   peopleA = [],
   peopleB = [],
+  crowdA = [],
+  crowdB = [],
   yours = false,
 }: {
   market: CardMarket;
@@ -33,6 +35,8 @@ export function TheCardTicket({
   social: ReturnType<typeof useMatchSocial>;
   peopleA?: CardFace[];
   peopleB?: CardFace[];
+  crowdA?: CardFace[];
+  crowdB?: CardFace[];
   yours?: boolean;
 }) {
   const mine = pickOnMarket(social.predictions, userId, market.matchIds);
@@ -92,6 +96,7 @@ export function TheCardTicket({
           tone="hunter"
           selected={mine?.choice === "side-a"}
           crowd={crowd.sideA}
+          riders={crowdA}
           disabled={!canPick || busy}
           onClick={() => pick("side-a")}
         />
@@ -102,6 +107,7 @@ export function TheCardTicket({
           tone="stone"
           selected={mine?.choice === "side-b"}
           crowd={crowd.sideB}
+          riders={crowdB}
           disabled={!canPick || busy}
           onClick={() => pick("side-b")}
         />
@@ -146,6 +152,7 @@ function SideRow({
   tone,
   selected,
   crowd,
+  riders,
   disabled,
   onClick,
 }: {
@@ -154,6 +161,7 @@ function SideRow({
   tone: "hunter" | "stone";
   selected: boolean;
   crowd: number;
+  riders: CardFace[];
   disabled: boolean;
   onClick: () => void;
 }) {
@@ -175,7 +183,22 @@ function SideRow({
     >
       <AvatarPair people={people} size="sm" />
       <span className={`t-body min-w-0 flex-1 truncate font-semibold ${color}`}>{label}</span>
-      {crowd > 0 ? (
+      {riders.length > 0 ? (
+        <span className="inline-flex shrink-0 items-center gap-0.5">
+          {riders.slice(0, 2).map((rider, index) => (
+            <Avatar
+              key={`${rider.name}-${index}`}
+              name={rider.name}
+              teamSlug={rider.teamSlug}
+              src={rider.src}
+              size="sm"
+            />
+          ))}
+          {crowd > 2 ? (
+            <span className="t-micro pl-0.5 tabular-nums text-muted-foreground">+{crowd - 2}</span>
+          ) : null}
+        </span>
+      ) : crowd > 0 ? (
         <span className="t-micro tabular-nums text-muted-foreground">{crowd}</span>
       ) : null}
     </button>

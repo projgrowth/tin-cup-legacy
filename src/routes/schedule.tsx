@@ -8,8 +8,8 @@ import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { useProfile } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
-import { roundStart, roundStatus } from "@/lib/scoring";
-import { downloadRoundIcs, downloadWeekendIcs } from "@/lib/calendar";
+import { roundStatus } from "@/lib/scoring";
+import { downloadWeekendIcs } from "@/lib/calendar";
 import { trackProductEvent } from "@/lib/product-analytics";
 
 import {
@@ -164,27 +164,6 @@ function SchedulePage() {
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2 px-1">
-            <Link
-              to="/scout"
-              search={{ course: courseId, card: true }}
-              className="press btn-quiet t-micro min-h-11"
-            >
-              {COURSE_LABEL[courseId]} planner
-            </Link>
-            {selectedRound && roundStart(selectedRound) && (
-              <button
-                type="button"
-                onClick={() => {
-                  downloadRoundIcs(selectedRound);
-                  void trackProductEvent("calendar_downloaded", { kind: "round" });
-                }}
-                className="press btn-quiet t-micro min-h-11"
-              >
-                Add this round
-              </button>
-            )}
-          </div>
         </section>
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}

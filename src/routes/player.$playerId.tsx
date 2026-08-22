@@ -7,11 +7,13 @@ import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
 import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
+import { useMatchSocial } from "@/hooks/useMatchSocial";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
+import { cardLine, fridayCardMarkets, pickOnMarket } from "@/lib/the-card";
 import { formatRecord, pairingIncludes, playerRecord, roundStatus } from "@/lib/scoring";
 
 import { formatPayout } from "@/lib/purse";
@@ -74,6 +76,24 @@ function PlayerPage() {
   const face = avatars.data?.byPlayerId.get(playerId);
   const publicProfiles = usePublicProfiles();
   const socialProfile = publicProfiles.data?.find((candidate) => candidate.player_id === playerId);
+  const matchSocial = useMatchSocial();
+  const faceoffLines = fridayCardMarkets(matches, rounds)
+    .map((market) => {
+      if (!socialProfile) return null;
+      const pick = pickOnMarket(matchSocial.predictions, socialProfile.id, market.matchIds);
+      if (!pick) return null;
+      return {
+        id: market.id,
+        ...cardLine({
+          author: player?.name.trim().split(/\s+/)[0] ?? "Player",
+          choice: pick.choice,
+          sideA: market.sideA,
+          sideB: market.sideB,
+          note: pick.note,
+        }),
+      };
+    })
+    .filter((row): row is NonNullable<typeof row> => Boolean(row));
 
   if (isPending && !data) {
     return (
@@ -180,6 +200,20 @@ function PlayerPage() {
           </ul>
         </section>
       )}
+
+      {faceoffLines.length > 0 ? (
+        <section className="mt-6">
+          <h2 className="t-micro font-semibold text-foreground">Faceoff</h2>
+          <ul className="surface mt-2 divide-y divide-border overflow-hidden">
+            {faceoffLines.map((row) => (
+              <li key={row.id} className="px-4 py-3">
+                <p className="t-body font-medium text-foreground">{row.title}</p>
+                {row.detail ? <p className="t-micro mt-0.5 italic">{row.detail}</p> : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section className="mt-6">
         <h2 className="t-micro font-semibold text-foreground">Matches</h2>

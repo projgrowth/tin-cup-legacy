@@ -115,11 +115,16 @@ function RostersPage() {
         <div className="stack-tight">
           {FIELD_SIDES.filter((side) => side.slug === pickedSide).map((side) => {
             const liveTeam = teams.find((team) => team.slug === side.slug);
+            const faced = side.players.filter((name) => {
+              const player = playersByName.get(name.trim().toLowerCase());
+              return Boolean(player && avatars.data?.byPlayerId.get(player.id)?.url);
+            }).length;
             return (
               <section key={side.slug} className="surface overflow-hidden">
                 <p className="t-micro px-4 pb-1 pt-3">
                   Capt. {liveTeam?.captain_name ?? side.captain}
                   {myTeam?.slug === side.slug ? " · Your side" : ""}
+                  {` · ${faced} of ${side.players.length} have a face`}
                 </p>
                 <ul className="divide-y divide-border">
                   {side.players.map((name) => {

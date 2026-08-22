@@ -8,6 +8,7 @@ import {
   cardRecords,
   choiceHitsResult,
   faceoffCrowd,
+  faceoffRiders,
   fridayCardMarkets,
   normalizeCardNote,
   pairingFirstNames,
@@ -101,6 +102,23 @@ describe("the card", () => {
       ["s1", "a1"],
     );
     expect(crowd).toEqual({ sideA: 1, sideB: 1 });
+  });
+
+  it("lists rider user ids for crowd faces", () => {
+    expect(
+      faceoffRiders(
+        [
+          {
+            matchId: "s1",
+            userId: "u1",
+            choice: "side-a",
+            createdAt: "",
+            updatedAt: "2026-08-22T12:00:00Z",
+          },
+        ],
+        ["s1"],
+      ).sideA,
+    ).toEqual(["u1"]);
   });
 
   it("trims roast notes to 140", () => {

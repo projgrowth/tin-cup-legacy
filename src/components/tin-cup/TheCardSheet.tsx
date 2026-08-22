@@ -1,7 +1,5 @@
-import { Link } from "@tanstack/react-router";
-
 import { MedalMark } from "@/components/tin-cup/BrandMark";
-import { TheCardTicket } from "@/components/tin-cup/TheCardTicket";
+import { TheCardTicket, type CardFace } from "@/components/tin-cup/TheCardTicket";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
 import { useMatchSocial } from "@/hooks/useMatchSocial";
@@ -12,6 +10,7 @@ import { pairingIncludesLoose } from "@/lib/scoring";
 import {
   CARD_DISCLAIMER,
   cardRecords,
+  faceoffRiders,
   fridayCardMarkets,
   peopleForMarket,
   takenCount,
@@ -48,6 +47,17 @@ export function TheCardSheet({
     const player = players.find((item) => item.id === row?.player_id);
     return player?.name.trim().split(/\s+/)[0] ?? "Player";
   };
+  const faceForUser = (userId: string): CardFace => {
+    const row = (profiles.data ?? []).find((item) => item.id === userId);
+    const player = players.find((item) => item.id === row?.player_id);
+    const name = player?.name || row?.display_name || "Player";
+    const team = player ? teams.find((item) => item.id === player.team_id) : null;
+    return {
+      name,
+      teamSlug: team?.slug,
+      src: player ? avatars.data?.byPlayerId.get(player.id)?.url : null,
+    };
+  };
 
   if (!social.predictionsEnabled) return null;
 
@@ -72,6 +82,7 @@ export function TheCardSheet({
       <div className="surface divide-y divide-border overflow-hidden">
         {markets.map((market) => {
           const people = peopleForMarket(market, face);
+          const riders = faceoffRiders(social.predictions, market.matchIds);
           return (
             <TheCardTicket
               key={market.id}
@@ -82,6 +93,8 @@ export function TheCardSheet({
               social={social}
               peopleA={people.peopleA}
               peopleB={people.peopleB}
+              crowdA={riders.sideA.map(faceForUser)}
+              crowdB={riders.sideB.map(faceForUser)}
               yours={Boolean(
                 claimedName &&
                   (pairingIncludesLoose(market.sideA, claimedName) ||
@@ -97,20 +110,11 @@ export function TheCardSheet({
             <li key={row.userId} className="t-micro flex justify-between gap-3 py-1">
               <span className="text-foreground">{nameOf(row.userId)}</span>
               <span className="tabular-nums text-muted-foreground">
-                {row.cashed} cashed · {row.pending} live
+                {row.cashed} called · {row.pending} live
               </span>
             </li>
           ))}
         </ul>
-      ) : null}
-      {!user ? (
-        <Link to="/profile" className="press t-micro mt-1 flex min-h-11 items-center px-1 text-muted-foreground">
-          Sign in to pick a side
-        </Link>
-      ) : !claimed ? (
-        <Link to="/profile" className="press t-micro mt-1 flex min-h-11 items-center px-1 text-muted-foreground">
-          Claim a name to pick a side
-        </Link>
       ) : null}
     </section>
   );

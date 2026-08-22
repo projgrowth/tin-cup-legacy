@@ -215,17 +215,24 @@ export function takeLabel(choice: MatchPredictionChoice, sideA: string, sideB: s
   return pairingFirstNames(sideB);
 }
 
-export function faceoffCrowd(predictions: MatchPrediction[], matchIds: string[]) {
+export function faceoffRiders(predictions: MatchPrediction[], matchIds: string[]) {
   const latest = new Map<string, MatchPredictionChoice>();
   const rows = predictions
     .filter((pick) => matchIds.includes(pick.matchId))
     .sort((a, b) => Date.parse(a.updatedAt) - Date.parse(b.updatedAt));
   for (const pick of rows) latest.set(pick.userId, pick.choice);
-  const values = [...latest.values()];
-  return {
-    sideA: values.filter((choice) => choice === "side-a").length,
-    sideB: values.filter((choice) => choice === "side-b").length,
-  };
+  const sideA: string[] = [];
+  const sideB: string[] = [];
+  for (const [userId, choice] of latest) {
+    if (choice === "side-a") sideA.push(userId);
+    if (choice === "side-b") sideB.push(userId);
+  }
+  return { sideA, sideB };
+}
+
+export function faceoffCrowd(predictions: MatchPrediction[], matchIds: string[]) {
+  const riders = faceoffRiders(predictions, matchIds);
+  return { sideA: riders.sideA.length, sideB: riders.sideB.length };
 }
 
 export function cardLine(input: {

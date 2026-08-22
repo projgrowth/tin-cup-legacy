@@ -3,7 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { MedalMark } from "@/components/tin-cup/BrandMark";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
+import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { sideCash, sideCashByPlayer, settlement, formatPayout } from "@/lib/purse";
 import { MoneySplit } from "@/components/tin-cup/DayStory";
 import { Link } from "@tanstack/react-router";
@@ -36,7 +39,10 @@ export const Route = createFileRoute("/purse")({
 });
 
 function PursePage() {
+  const { user } = useAuth();
+  const { profile } = useProfile();
   const { data, isError, refetch, isFetching } = useTournament();
+  const claimedPlayer = Boolean(user && profile?.player_id);
   const bets = data?.sideBets ?? [];
   const players = data?.players ?? [];
   const claimed = bets.filter((b) => b.player_name);
@@ -70,7 +76,9 @@ function PursePage() {
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className="press btn-primary t-body mt-4 flex min-h-11 w-full justify-center"
+            className={`press t-body mt-4 flex min-h-11 w-full justify-center ${
+              claimedPlayer ? "btn-quiet" : "btn-primary"
+            }`}
           >
             Pay ${BUY_IN}
           </a>
@@ -104,8 +112,21 @@ function PursePage() {
                 .map((bet) => (
                 <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
                   <span className="min-w-0">
-                    <span className="t-body block truncate font-medium text-foreground">
-                      {bet.label}
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span
+                        className={`rounded-full px-1.5 py-0.5 text-[0.65rem] font-semibold ${
+                          isLongDrive(bet.kind)
+                            ? "bg-stone/20 text-stone"
+                            : isCtp(bet.kind)
+                              ? "bg-hunter/15 text-hunter"
+                              : "bg-secondary text-muted-foreground"
+                        }`}
+                      >
+                        {isLongDrive(bet.kind) ? "LD" : isCtp(bet.kind) ? "CTP" : bet.kind}
+                      </span>
+                      <span className="t-body min-w-0 truncate font-medium text-foreground">
+                        {bet.label}
+                      </span>
                     </span>
                     <span className="t-micro text-muted-foreground">
                       {bet.player_name ?? "Open"} · {contestHoleLabel(bet.hole)}

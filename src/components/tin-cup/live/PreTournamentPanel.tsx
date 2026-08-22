@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 
-import { MatchCard } from "@/components/tin-cup/MatchCard";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { TheCardSheet } from "@/components/tin-cup/TheCardSheet";
 import { FieldChatLink, InstallHint } from "@/components/tin-cup/WhatsAppLinks";
@@ -8,7 +7,7 @@ import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { Countdown } from "@/components/tin-cup/Countdown";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
-import { day1GroupForPlayer } from "@/lib/day1-pairings";
+
 import {
   BUY_IN,
   VENMO_IS_PLACEHOLDER,
@@ -18,7 +17,7 @@ import {
 } from "@/lib/tin-cup";
 import type { WeekendContext } from "@/lib/weekend-context";
 
-/** Pre-event Home — next session, your match, Pay. Same kit as Weekend. */
+/** Pre-event Home — clock, Faceoff, Field. Same kit as Weekend. */
 export function PreTournamentPanel({
   rounds = [],
   matches = [],
@@ -44,7 +43,6 @@ export function PreTournamentPanel({
   const today = COURSE_DETAILS[nextCourseId];
   const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
   const avatars = usePlayerAvatars(players, teams);
-  const group = claimedName ? day1GroupForPlayer(claimedName) : null;
   const face = (name: string) => avatars.data?.getByName(name);
 
   return (
@@ -63,32 +61,6 @@ export function PreTournamentPanel({
         }
       />
       <Countdown />
-
-      {group ? (
-        <div>
-          <p className="t-micro px-1 pb-1.5 font-semibold text-foreground">Your match</p>
-          <div className="surface overflow-hidden">
-            <MatchCard
-              size="row"
-              index={group.pairing.matchIndex}
-              sideA={group.pairing.sideA}
-              sideB={group.pairing.sideB}
-              peopleA={group.pairing.playersA.map((name) => ({
-                name,
-                teamSlug: "strong-mental",
-                src: face(name)?.url,
-              }))}
-              peopleB={group.pairing.playersB.map((name) => ({
-                name,
-                teamSlug: "grass-roots",
-                src: face(name)?.url,
-              }))}
-              yours
-              yoursOnA={group.side === "a"}
-            />
-          </div>
-        </div>
-      ) : null}
 
       {signedIn && claimedName && !face(claimedName)?.url ? (
         <Link

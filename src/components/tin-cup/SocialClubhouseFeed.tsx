@@ -291,7 +291,9 @@ export function SocialClubhouseFeed({
   return (
     <section aria-labelledby="updates-title" className="stack-tight">
       <div className="flex items-end justify-between gap-3 px-1">
-        <p className="t-micro font-semibold text-foreground">Field</p>
+        <h2 id="updates-title" className="t-micro font-semibold text-foreground">
+          Field
+        </h2>
         {story.unreadCount > 0 && (
           <span className="rounded-full bg-hunter px-2.5 py-1 text-xs font-bold text-primary-foreground">
             {story.unreadCount} new
@@ -304,7 +306,7 @@ export function SocialClubhouseFeed({
           to="/profile"
           className="press surface flex min-h-12 items-center justify-between px-4 py-3"
         >
-          <span className="t-body font-medium text-foreground">Sign in to post with the field</span>
+          <span className="t-body font-medium text-foreground">Sign in to post and pick sides</span>
           <span className="t-micro">Account</span>
         </Link>
       ) : !canParticipate ? (
@@ -468,11 +470,7 @@ export function SocialClubhouseFeed({
         </details>
       )}
 
-      <h2 id="updates-title" className="t-micro px-1 font-semibold text-foreground">
-        Updates
-      </h2>
-
-      {(!emptyFeed || filter !== "all") && (
+      {canModerate && (!emptyFeed || filter !== "all") && (
       <div
         className="no-scrollbar flex gap-2 overflow-x-auto pb-1"
         role="tablist"
@@ -947,7 +945,7 @@ export function SocialClubhouseFeed({
         <p className="t-micro px-1 py-2">
           {story.clubhouseEnabled
             ? "Captain notes and field photos land here."
-            : "Updates land here as the field posts."}
+            : "Field notes land here as people post."}
         </p>
       )}
       {matchSocial.unavailable && (
