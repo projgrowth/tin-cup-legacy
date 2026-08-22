@@ -57,7 +57,7 @@ export function PageMasthead({
           {title}
         </h1>
         {meta ? (
-          <div className={`t-body mt-1 max-w-xl ${photo ? "text-white/78" : "text-muted-foreground"}`}>
+          <div className={`t-micro mt-1 max-w-xl ${photo ? "text-white/78" : ""}`}>
             {meta}
           </div>
         ) : null}

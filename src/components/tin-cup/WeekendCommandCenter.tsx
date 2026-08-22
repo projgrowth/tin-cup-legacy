@@ -74,7 +74,7 @@ export function WeekendCommandCenter({ context }: { context: WeekendContext }) {
     >
       <div className="min-w-0 flex-1">
         <p className="t-micro">Next</p>
-        <h2 id="my-weekend-title" className="t-title mt-1 text-foreground">
+        <h2 id="my-weekend-title" className="t-body mt-1 font-semibold text-foreground">
           {title}
         </h2>
         {detail ? <p className="t-micro mt-0.5">{detail}</p> : null}
