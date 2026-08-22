@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
-import { AvatarPair } from "@/components/tin-cup/Avatar";
 import { Countdown } from "@/components/tin-cup/Countdown";
+import { MatchCard } from "@/components/tin-cup/MatchCard";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { FieldChatLink } from "@/components/tin-cup/WhatsAppLinks";
 import { WeekendCommandCenter } from "@/components/tin-cup/WeekendCommandCenter";
@@ -93,38 +93,33 @@ export function PreTournamentPanel({
       )}
 
       {isClaimed && (
-        <section className="space-y-3 px-0.5">
+        <section className="space-y-3">
           {myDay1 ? (
-            <div className="flex items-center gap-3">
-              <AvatarPair
-                people={[
-                  {
-                    name: claimedName!,
-                    teamSlug: avatars.data?.getByName(claimedName!)?.teamSlug,
-                    src: avatars.data?.getByName(claimedName!)?.url,
-                  },
-                  {
-                    name: myDay1.partner,
-                    teamSlug: avatars.data?.getByName(myDay1.partner)?.teamSlug,
-                    src: avatars.data?.getByName(myDay1.partner)?.url,
-                  },
-                ]}
-                size="md"
-              />
-              <div className="min-w-0">
-                <p className="t-title text-foreground">
-                  Friday · Match {myDay1.pairing.matchIndex}
-                </p>
-                <p className="t-micro mt-1 text-muted-foreground">
-                  w/ {myDay1.partner.split(" ")[0]} · vs {myDay1.opponents}
-                </p>
-              </div>
-            </div>
+            <MatchCard
+              size="feature"
+              index={`Friday · Match ${myDay1.pairing.matchIndex}`}
+              sideA={myDay1.pairing.sideA}
+              sideB={myDay1.pairing.sideB}
+              peopleA={myDay1.pairing.playersA.map((name) => ({
+                name,
+                teamSlug: "strong-mental",
+                src: avatars.data?.getByName(name)?.url,
+              }))}
+              peopleB={myDay1.pairing.playersB.map((name) => ({
+                name,
+                teamSlug: "grass-roots",
+                src: avatars.data?.getByName(name)?.url,
+              }))}
+              format="Scramble · Alt shot"
+              points={2}
+              yours
+              yoursOnA={myDay1.side === "a"}
+            />
           ) : null}
-          <p className="t-micro text-muted-foreground">
+          <p className="t-micro px-1 text-muted-foreground">
             {today.dayLabel} · {COURSE_LABEL[nextCourseId]} · first tee {today.firstTee}
           </p>
-          {tonight && <p className="t-micro text-muted-foreground">Tonight · {tonight.title}</p>}
+          {tonight && <p className="t-micro px-1 text-muted-foreground">Tonight · {tonight.title}</p>}
           <a
             href={venmoUrl}
             target="_blank"

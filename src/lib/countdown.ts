@@ -30,3 +30,12 @@ export function formatCountdown(milliseconds: number): string {
   ];
   return units.filter(Boolean).join(" · ");
 }
+
+/** Compact meta for day tiles — not a three-unit dump. */
+export function formatCountdownShort(milliseconds: number): string {
+  if (milliseconds <= 0) return "Now";
+  const { days, hours, minutes } = countdownParts(milliseconds);
+  if (days >= 1) return `${days}d`;
+  if (hours >= 1) return `${hours}h`;
+  return `${minutes}m`;
+}

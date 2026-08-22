@@ -57,37 +57,39 @@ export function RoundBlock({
   if (rows.length === 0 && pendingOnly) return null;
 
   return (
-    <article className="surface overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="press flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left"
-        aria-expanded={open}
-      >
-        <div className="min-w-0">
-          <h3 className="t-title truncate text-foreground">
-            {round.day_label}
-            {status === "live" && (
-              <span className="t-micro ml-2 font-normal text-copper">Live</span>
-            )}
-            {allDone && status !== "live" && (
-              <span className="t-micro ml-2 font-normal text-muted-foreground">Final</span>
-            )}
-          </h3>
-          <p className="t-micro mt-0.5 truncate text-muted-foreground">
-            {round.course}
-            {round.format ? ` · ${round.format}` : ""}
-          </p>
-        </div>
-        <span className="t-numeral shrink-0 text-foreground">
-          {tally.strongMental}–{tally.grassRoots}
-        </span>
-      </button>
+    <div>
+      <article className="surface overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="press flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left"
+          aria-expanded={open}
+        >
+          <div className="min-w-0">
+            <h3 className="t-title truncate text-foreground">
+              {round.day_label}
+              {status === "live" && (
+                <span className="t-micro ml-2 font-normal text-copper">Live</span>
+              )}
+              {allDone && status !== "live" && (
+                <span className="t-micro ml-2 font-normal text-muted-foreground">Final</span>
+              )}
+            </h3>
+            <p className="t-micro mt-0.5 truncate text-muted-foreground">
+              {round.course}
+              {round.format ? ` · ${round.format}` : ""}
+            </p>
+          </div>
+          <span className="t-numeral shrink-0 text-foreground">
+            {tally.strongMental}–{tally.grassRoots}
+          </span>
+        </button>
+      </article>
 
       {open && (
-        <div className="border-t border-border px-3 pb-3 pt-1 sm:px-4">
+        <div className="mt-2.5">
           {rows.length > 0 ? (
-            <ul className="space-y-2 pt-2">
+            <ul className="space-y-2.5">
               {rows.map((match) => {
                 const mine =
                   Boolean(claimedName) && playerInMatch(match, claimedName!);
@@ -148,12 +150,10 @@ export function RoundBlock({
               })}
             </ul>
           ) : (
-            <p className="t-micro mt-2 text-muted-foreground">
-              No open matches in this filter.
-            </p>
+            <p className="t-micro px-1 text-muted-foreground">No open matches in this filter.</p>
           )}
         </div>
       )}
-    </article>
+    </div>
   );
 }

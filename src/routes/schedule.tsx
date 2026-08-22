@@ -11,7 +11,7 @@ import { useTournament } from "@/hooks/useTournament";
 import { roundStart, roundStatus, roundTally } from "@/lib/scoring";
 import { downloadRoundIcs, downloadWeekendIcs } from "@/lib/calendar";
 import { trackProductEvent } from "@/lib/product-analytics";
-import { formatCountdown } from "@/lib/countdown";
+import { formatCountdownShort } from "@/lib/countdown";
 import { DAY1_PAIRINGS } from "@/lib/day1-pairings";
 import {
   COURSE_DETAILS,
@@ -193,7 +193,7 @@ function SchedulePage() {
             const tally = round ? roundTally(data?.matches ?? [], round.id) : null;
             const decided = Boolean(tally && tally.strongMental + tally.grassRoots > 0);
             const countdown =
-              start && now && status !== "complete" ? formatCountdown(start - now) : null;
+              start && now && status === "upcoming" ? formatCountdownShort(start - now) : null;
             const phase =
               status === "live" ? "Live" : status === "complete" ? "Final" : null;
             return (

@@ -13,8 +13,39 @@ function givenNames(people: MatchPerson[], fallback: string) {
   return people.map((p) => p.name.trim().split(/\s+/)[0] ?? p.name).join(" · ");
 }
 
+function Side({
+  people,
+  label,
+  tone,
+  dim,
+  feature,
+}: {
+  people: MatchPerson[];
+  label: string;
+  tone: "gold" | "copper";
+  dim?: boolean;
+  feature: boolean;
+}) {
+  const color = dim
+    ? tone === "gold"
+      ? "text-gold-light/70"
+      : "text-copper/70"
+    : tone === "gold"
+      ? "text-gold-light"
+      : "text-copper";
+  return (
+    <div className="flex min-w-0 flex-col items-center text-center">
+      <AvatarPair people={people} size={feature ? "md" : "sm"} />
+      <p className={`mt-1.5 font-semibold leading-snug ${feature ? "t-title" : "t-body"} ${color}`}>
+        {label}
+      </p>
+    </div>
+  );
+}
+
 /**
- * One match tile — Weekend pairings, live “my match”, and round rows.
+ * One match tile — Weekend pairings, live “my match”, Home, and round rows.
+ * Faces sit over names; vs is the center mark, not a cramped inline slash.
  */
 export function MatchCard({
   index,
@@ -49,45 +80,62 @@ export function MatchCard({
   const labelA = givenNames(peopleA, sideA);
   const labelB = givenNames(peopleB, sideB);
   const meta = [format, points != null ? `${points} pts` : null].filter(Boolean).join(" · ");
+  const eyebrow = [
+    index == null ? null : typeof index === "number" ? `Match ${index}` : index,
+    live ? "Live" : null,
+    yours ? "You" : null,
+  ].filter(Boolean);
 
   return (
     <article
+      aria-label={`${labelA} vs ${labelB}${meta ? ` · ${meta}` : ""}${result ? ` · ${result}` : ""}`}
       className={`surface overflow-hidden px-4 py-3.5 ${
         yours ? "ring-1 ring-gold/35" : ""
       } ${feature ? "py-4" : ""}`}
     >
-      <div className="flex items-center gap-3">
-        <AvatarPair people={peopleA} size={feature ? "md" : "sm"} />
-        <div className="min-w-0 flex-1 text-center">
-          {index != null ? (
-            <p className="t-micro text-muted-foreground">
-              {typeof index === "number" ? `Match ${index}` : index}
-              {live ? <span className="ml-1.5 text-copper">Live</span> : null}
-              {yours ? <span className="ml-1.5 text-gold-light">You</span> : null}
-            </p>
-          ) : yours || live ? (
-            <p className="t-micro">
-              {live ? <span className="text-copper">Live</span> : null}
-              {live && yours ? <span className="text-muted-foreground"> · </span> : null}
-              {yours ? <span className="text-gold-light">You</span> : null}
-            </p>
-          ) : null}
-          <p className={`mt-0.5 font-semibold leading-snug ${feature ? "t-title" : "t-body"}`}>
-            <span className={yours && yoursOnA === false ? "text-gold-light/70" : "text-gold-light"}>
-              {labelA}
+      {eyebrow.length > 0 ? (
+        <p className="t-micro text-center text-muted-foreground">
+          {eyebrow.map((bit, i) => (
+            <span key={bit}>
+              {i > 0 ? <span className="text-muted-foreground"> · </span> : null}
+              <span
+                className={
+                  bit === "Live" ? "text-copper" : bit === "You" ? "text-gold-light" : undefined
+                }
+              >
+                {bit}
+              </span>
             </span>
-            <span className="mx-1.5 text-[0.7rem] font-medium uppercase tracking-wide text-muted-foreground">
-              vs
-            </span>
-            <span className={yours && yoursOnA ? "text-copper/70" : "text-copper"}>{labelB}</span>
-          </p>
-          {meta ? <p className="t-micro mt-1 text-muted-foreground">{meta}</p> : null}
-          {result ? (
-            <p className="t-numeral mt-1 text-foreground">{result}</p>
-          ) : null}
-        </div>
-        <AvatarPair people={peopleB} size={feature ? "md" : "sm"} />
+          ))}
+        </p>
+      ) : null}
+
+      <div
+        className={`grid grid-cols-[1fr_auto_1fr] items-center gap-2 ${
+          eyebrow.length > 0 ? "mt-2.5" : ""
+        }`}
+      >
+        <Side
+          people={peopleA}
+          label={labelA}
+          tone="gold"
+          dim={yours && yoursOnA === false}
+          feature={feature}
+        />
+        <span className="t-micro px-0.5 font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          vs
+        </span>
+        <Side
+          people={peopleB}
+          label={labelB}
+          tone="copper"
+          dim={yours && yoursOnA === true}
+          feature={feature}
+        />
       </div>
+
+      {meta ? <p className="t-micro mt-2.5 text-center text-muted-foreground">{meta}</p> : null}
+      {result ? <p className="t-numeral mt-1 text-center text-foreground">{result}</p> : null}
       {action ? <div className="mt-3 border-t border-border pt-2">{action}</div> : null}
     </article>
   );

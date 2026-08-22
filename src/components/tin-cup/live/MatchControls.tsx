@@ -103,9 +103,23 @@ export function MatchResultButtons({ match, teams }: { match: Match; teams: Team
                     ? "Not reported"
                     : "Result synced"}
       </p>
-      <div className="grid grid-cols-4 gap-1.5">
+      <div
+        className={`grid gap-1.5 ${match.result !== "pending" ? "grid-cols-4" : "grid-cols-3"}`}
+      >
         {options.map((option) => {
           const active = match.result === option.value;
+          const tone =
+            option.value === "strong-mental"
+              ? active
+                ? "border-gold/45 bg-gold/15 text-gold-light"
+                : "border-border text-muted-foreground"
+              : option.value === "grass-roots"
+                ? active
+                  ? "border-copper/45 bg-copper/15 text-copper"
+                  : "border-border text-muted-foreground"
+                : active
+                  ? "border-foreground/30 bg-secondary text-foreground"
+                  : "border-border text-muted-foreground";
           return (
             <button
               key={option.value}
@@ -113,11 +127,7 @@ export function MatchResultButtons({ match, teams }: { match: Match; teams: Team
               disabled={saving !== null}
               aria-pressed={active}
               onClick={() => void post(option.value)}
-              className={`press min-h-12 w-full rounded-xl border t-body font-semibold disabled:opacity-50 ${
-                active
-                  ? "border-foreground/30 bg-secondary text-foreground"
-                  : "border-border text-muted-foreground"
-              }`}
+              className={`press t-body min-h-12 w-full rounded-xl border font-semibold disabled:opacity-50 ${tone}`}
             >
               {saving === option.value ? "…" : option.label}
             </button>
@@ -128,7 +138,7 @@ export function MatchResultButtons({ match, teams }: { match: Match; teams: Team
             type="button"
             disabled={saving !== null}
             onClick={() => void post("pending")}
-            className="press min-h-12 w-full rounded-xl border border-border t-body text-muted-foreground disabled:opacity-50"
+            className="press t-body min-h-12 w-full rounded-xl border border-border text-muted-foreground disabled:opacity-50"
           >
             Clear
           </button>

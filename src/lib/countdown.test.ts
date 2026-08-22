@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { countdownParts, formatCountdown } from "@/lib/countdown";
+import { countdownParts, formatCountdown, formatCountdownShort } from "@/lib/countdown";
 
 describe("countdown", () => {
   it("returns only days, hours and minutes", () => {
@@ -24,5 +24,12 @@ describe("countdown", () => {
     expect(formatCountdown(3_660_000)).toBe("1 hour · 1 minute");
     expect(formatCountdown(0)).toBe("Teeing off now");
     expect(countdownParts(-1).done).toBe(true);
+  });
+
+  it("shortens day-story meta to a single unit", () => {
+    expect(formatCountdownShort(7 * 86_400_000 + 11 * 3_600_000)).toBe("7d");
+    expect(formatCountdownShort(3_600_000)).toBe("1h");
+    expect(formatCountdownShort(90_000)).toBe("1m");
+    expect(formatCountdownShort(0)).toBe("Now");
   });
 });
