@@ -82,7 +82,7 @@ function PursePage() {
         {bets.length > 0 && (
           <section>
             <div className="mb-3 flex items-baseline justify-between gap-3">
-              <h2 className="t-section text-foreground">Side pots</h2>
+              <h2 className="t-micro font-semibold text-foreground">Side pots</h2>
               <span className="t-micro text-muted-foreground">
                 {claimed.length}/{bets.length}
               </span>
@@ -124,7 +124,7 @@ function PursePage() {
         )}
 
         <section className="stack-tight">
-          <h2 className="t-section text-foreground">How the Cup is won</h2>
+          <h2 className="t-micro font-semibold text-foreground">How the Cup is won</h2>
           <WeekendDayStories />
           <p className="t-micro px-1 text-muted-foreground">
             13.5 wins the Cup. Halves are 0.5 each. If 13–13, captains each pick a scramble partner
@@ -133,7 +133,7 @@ function PursePage() {
         </section>
 
         <section className="stack-tight">
-          <h2 className="t-section text-foreground">Where the $150 goes</h2>
+          <h2 className="t-micro font-semibold text-foreground">Where the $150 goes</h2>
           <MoneySplit />
           <p className="t-body px-1 text-muted-foreground">
             Six closest-to-the-pin and two long drives pay $100. Friday: CTP 3 and 18, long drive 13

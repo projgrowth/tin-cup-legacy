@@ -20,7 +20,7 @@ export function DayStory({
   return (
     <article className="surface px-4 py-3.5">
       {kicker ? <p className="t-micro text-muted-foreground">{kicker}</p> : null}
-      <h3 className={`t-title text-foreground ${kicker ? "mt-1" : ""}`}>{title}</h3>
+      <h3 className={`t-body font-semibold text-foreground ${kicker ? "mt-1" : ""}`}>{title}</h3>
       {meta ? <p className="t-micro mt-1 font-medium text-foreground/80">{meta}</p> : null}
       {body ? <p className="t-body mt-2 text-muted-foreground">{body}</p> : null}
       {children}

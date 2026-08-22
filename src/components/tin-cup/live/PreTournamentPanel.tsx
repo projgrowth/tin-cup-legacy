@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
 import { Countdown } from "@/components/tin-cup/Countdown";
-import { CourseDayStory, DayStory } from "@/components/tin-cup/DayStory";
 import { MatchCard } from "@/components/tin-cup/MatchCard";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { FieldChatLink } from "@/components/tin-cup/WhatsAppLinks";
@@ -17,7 +16,7 @@ import {
   venmoUrl,
 } from "@/lib/tin-cup";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
-import { DAY1_PAIRINGS, day1GroupForPlayer } from "@/lib/day1-pairings";
+import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
 import type { WeekendContext } from "@/lib/weekend-context";
 
@@ -51,10 +50,7 @@ export function PreTournamentPanel({
 
   return (
     <section className="stack-page pb-4" aria-label="This weekend">
-      <PageMasthead
-        title={EVENT.title}
-        meta={`${EVENT.dates} · ${EVENT.location}`}
-      >
+      <PageMasthead title={EVENT.title} meta={`${EVENT.dates} · ${EVENT.location}`}>
         <p className="t-micro mt-2">{EVENT.subtitle}</p>
         <div className="mt-2">
           <Countdown />
@@ -107,59 +103,19 @@ export function PreTournamentPanel({
           yoursOnA={myDay1.side === "a"}
         />
       ) : (
-        <div className="space-y-2.5">
-          {DAY1_PAIRINGS.map((p) => (
-            <Link
-              key={p.matchIndex}
-              to="/scout"
-              search={{ course: "south", card: true }}
-              className="block"
-            >
-              <MatchCard
-                index={p.matchIndex}
-                sideA={p.sideA}
-                sideB={p.sideB}
-                peopleA={p.playersA.map((name) => ({
-                  name,
-                  teamSlug: "strong-mental",
-                  src: avatars.data?.getByName(name)?.url,
-                }))}
-                peopleB={p.playersB.map((name) => ({
-                  name,
-                  teamSlug: "grass-roots",
-                  src: avatars.data?.getByName(name)?.url,
-                }))}
-                format="Scramble · Alt shot"
-                points={2}
-              />
-            </Link>
-          ))}
-        </div>
+        <Link
+          to="/schedule"
+          className="press t-body inline-flex min-h-11 items-center font-semibold text-foreground"
+        >
+          Friday · four matches · {COURSE_LABEL[nextCourseId]}
+        </Link>
       )}
 
-      <CourseDayStory
-        courseId={nextCourseId}
-        action={
-          <Link
-            to="/scout"
-            search={{ course: nextCourseId, card: true }}
-            className="press t-micro mt-1 inline-flex min-h-11 items-center font-semibold text-foreground"
-          >
-            {COURSE_LABEL[nextCourseId]} planner
-          </Link>
-        }
-      />
-
       {tonight ? (
-        <DayStory kicker={tonight.day} title={tonight.title} body={tonight.detail} />
+        <p className="t-micro">
+          Tonight · {tonight.title}
+        </p>
       ) : null}
-
-      <Link
-        to="/schedule"
-        className="press t-micro inline-flex min-h-11 items-center font-semibold text-foreground"
-      >
-        Weekend guide
-      </Link>
 
       {WHATSAPP_GROUP_CONFIGURED && <FieldChatLink className="!min-h-11 w-full" />}
     </section>

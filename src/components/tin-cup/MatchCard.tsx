@@ -36,16 +36,13 @@ function Side({
   return (
     <div className="flex min-w-0 flex-col items-center text-center">
       <AvatarPair people={people} size={feature ? "md" : "sm"} />
-      <p className={`mt-1.5 font-semibold leading-snug ${feature ? "t-title" : "t-body"} ${color}`}>
-        {label}
-      </p>
+      <p className={`mt-1.5 font-semibold leading-snug t-title ${color}`}>{label}</p>
     </div>
   );
 }
 
 /**
- * One match tile — Weekend pairings, live “my match”, Home, and round rows.
- * Faces sit over names; vs is the center mark, not a cramped inline slash.
+ * Feature = one “your match” poster. Row = draw-sheet line (Weekend list).
  */
 export function MatchCard({
   index,
@@ -80,61 +77,75 @@ export function MatchCard({
   const labelA = givenNames(peopleA, sideA);
   const labelB = givenNames(peopleB, sideB);
   const meta = [format, points != null ? `${points} pts` : null].filter(Boolean).join(" · ");
-  const eyebrow = [
-    index == null ? null : typeof index === "number" ? `Match ${index}` : index,
-    live ? "Live" : null,
-    yours ? "You" : null,
-  ].filter(Boolean);
+  const matchLabel = index == null ? null : typeof index === "number" ? `Match ${index}` : index;
+  const aria = `${labelA} vs ${labelB}${meta ? ` · ${meta}` : ""}${result ? ` · ${result}` : ""}`;
+
+  if (!feature) {
+    return (
+      <article aria-label={aria} className={yours ? "bg-hunter/5" : undefined}>
+      <div className="flex items-center gap-3 px-4 py-3">
+        <AvatarPair people={peopleA} size="sm" />
+        <div className="min-w-0 flex-1">
+          <p className="t-body font-semibold leading-snug">
+            <span className={yours && yoursOnA === false ? "text-hunter/70" : "text-hunter"}>
+              {labelA}
+            </span>
+            <span className="mx-1.5 text-muted-foreground">vs</span>
+            <span className={yours && yoursOnA ? "text-stone/70" : "text-stone"}>{labelB}</span>
+          </p>
+          <p className="t-micro mt-0.5 truncate">
+            {matchLabel}
+            {live ? <span className="text-[var(--status-live)]"> · Live</span> : null}
+            {yours ? <span className="text-hunter"> · You</span> : null}
+            {meta ? ` · ${meta}` : ""}
+            {result ? ` · ${result}` : ""}
+          </p>
+        </div>
+        <AvatarPair people={peopleB} size="sm" />
+      </div>
+      {action ? <div className="border-t border-border px-4 py-2">{action}</div> : null}
+    </article>
+    );
+  }
 
   return (
     <article
-      aria-label={`${labelA} vs ${labelB}${meta ? ` · ${meta}` : ""}${result ? ` · ${result}` : ""}`}
-      className={`surface overflow-hidden px-4 py-3.5 ${
-        yours ? "ring-1 ring-hunter/35" : ""
-      } ${feature ? "py-4" : ""}`}
+      aria-label={aria}
+      className={`surface overflow-hidden px-4 py-4 ${yours ? "ring-1 ring-hunter/35" : ""}`}
     >
-      {eyebrow.length > 0 ? (
-        <p className="t-micro text-center text-muted-foreground">
-          {eyebrow.map((bit, i) => (
-            <span key={bit}>
-              {i > 0 ? <span className="text-muted-foreground"> · </span> : null}
-              <span
-                className={
-                  bit === "Live" ? "text-[var(--status-live)]" : bit === "You" ? "text-hunter" : undefined
-                }
-              >
-                {bit}
-              </span>
-            </span>
-          ))}
-        </p>
-      ) : null}
-
-      <div
-        className={`grid grid-cols-[1fr_auto_1fr] items-center gap-2 ${
-          eyebrow.length > 0 ? "mt-2.5" : ""
-        }`}
-      >
+      <p className="t-micro text-center text-muted-foreground">
+        {matchLabel}
+        {live ? (
+          <>
+            {matchLabel ? " · " : null}
+            <span className="text-[var(--status-live)]">Live</span>
+          </>
+        ) : null}
+        {yours ? (
+          <>
+            {matchLabel || live ? " · " : null}
+            <span className="text-hunter">You</span>
+          </>
+        ) : null}
+      </p>
+      <div className="mt-2.5 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <Side
           people={peopleA}
           label={labelA}
           tone="gold"
           dim={yours && yoursOnA === false}
-          feature={feature}
+          feature
         />
-        <span className="t-micro px-0.5 font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          vs
-        </span>
+        <span className="t-micro px-0.5 font-semibold text-muted-foreground">vs</span>
         <Side
           people={peopleB}
           label={labelB}
           tone="copper"
           dim={yours && yoursOnA === true}
-          feature={feature}
+          feature
         />
       </div>
-
-      {meta ? <p className="t-micro mt-2.5 text-center text-muted-foreground">{meta}</p> : null}
+      {meta ? <p className="t-micro mt-2.5 text-center">{meta}</p> : null}
       {result ? <p className="t-numeral mt-1 text-center text-foreground">{result}</p> : null}
       {action ? <div className="mt-3 border-t border-border pt-2">{action}</div> : null}
     </article>

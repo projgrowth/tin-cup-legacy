@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
-import { MatchCard } from "@/components/tin-cup/MatchCard";
+import { FridayPairings } from "@/components/tin-cup/FridayPairings";
 import { CourseDayStory, DayStory } from "@/components/tin-cup/DayStory";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
@@ -12,7 +12,7 @@ import { roundStart, roundStatus, roundTally } from "@/lib/scoring";
 import { downloadRoundIcs, downloadWeekendIcs } from "@/lib/calendar";
 import { trackProductEvent } from "@/lib/product-analytics";
 import { formatCountdownShort } from "@/lib/countdown";
-import { DAY1_PAIRINGS } from "@/lib/day1-pairings";
+
 import {
   COURSE_DETAILS,
   COURSE_LABEL,
@@ -129,33 +129,8 @@ function SchedulePage() {
           />
 
           {pairingsInToday && (
-            <div className="mt-3 space-y-2.5">
-              {DAY1_PAIRINGS.map((p) => (
-                <Link
-                  key={p.matchIndex}
-                  to="/scout"
-                  search={{ course: "south", card: true }}
-                  className="block"
-                >
-                  <MatchCard
-                    index={p.matchIndex}
-                    sideA={p.sideA}
-                    sideB={p.sideB}
-                    peopleA={p.playersA.map((name) => ({
-                      name,
-                      teamSlug: "strong-mental",
-                      src: avatars.data?.getByName(name)?.url,
-                    }))}
-                    peopleB={p.playersB.map((name) => ({
-                      name,
-                      teamSlug: "grass-roots",
-                      src: avatars.data?.getByName(name)?.url,
-                    }))}
-                    format="Scramble · Alt shot"
-                    points={2}
-                  />
-                </Link>
-              ))}
+            <div className="mt-3">
+              <FridayPairings getFace={(name) => avatars.data?.getByName(name)} />
             </div>
           )}
 
@@ -191,7 +166,7 @@ function SchedulePage() {
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
         <section className="stack-tight">
-          <h2 className="t-section text-foreground">Also this weekend</h2>
+          <h2 className="t-micro font-semibold text-foreground">Also this weekend</h2>
           {otherCourseIds.map((courseId) => {
             const round = roundForCourse(courseId);
             const status = round ? roundStatus(round, now ?? undefined) : "upcoming";
@@ -231,7 +206,7 @@ function SchedulePage() {
         </section>
 
         <section className="stack-tight">
-          <h2 className="t-section text-foreground">Dinners</h2>
+          <h2 className="t-micro font-semibold text-foreground">Dinners</h2>
           {socialOrdered.map((row) => (
             <DayStory key={row.day} kicker={row.day} title={row.title} body={row.detail} />
           ))}
