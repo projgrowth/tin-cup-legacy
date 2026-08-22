@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { CinematicIntro } from "@/components/tin-cup/CinematicIntro";
+
 import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
 import { WeekendRecap } from "@/components/tin-cup/WeekendRecap";
 import { SocialClubhouseFeed } from "@/components/tin-cup/SocialClubhouseFeed";
@@ -19,7 +19,7 @@ import { useExperiencePreferences } from "@/hooks/useExperiencePreferences";
 import { getEventPhase, phaseMode } from "@/lib/event-phase";
 import { type BoardMode } from "@/lib/tin-cup";
 import { tallyStandings } from "@/lib/scoring";
-import { shouldPlayIntro } from "@/lib/intro";
+
 import { hasAuthCallbackParams, parseAuthCallbackParams } from "@/lib/auth-recovery";
 import { resolveIdentity } from "@/lib/profile-identity";
 import { buildWeekendContext } from "@/lib/weekend-context";
@@ -114,7 +114,7 @@ function Index() {
   const { user, loading: authLoading, passwordRecovery, canScore, isAdmin } = useAuth();
   const [autoMode, setAutoMode] = useState<BoardMode>("pre");
   const [override, setOverride] = useState<BoardMode | null>(null);
-  const [introDone, setIntroDone] = useState(true);
+  const introDone = true;
 
   useEffect(() => {
     const params = parseAuthCallbackParams(window.location.href);
@@ -142,8 +142,6 @@ function Index() {
     setAutoMode(phaseMode(getEventPhase()));
     const saved = window.sessionStorage.getItem(PHASE_OVERRIDE_KEY);
     if (saved === "pre" || saved === "live" || saved === "post") setOverride(saved);
-    // Show film only once per browser (localStorage) and never during live phase.
-    setIntroDone(!shouldPlayIntro());
   }, []);
 
   // Keep the board honest if the app is left open across the first tee.
@@ -273,7 +271,6 @@ function Index() {
 
   return (
     <>
-      {!introDone && <CinematicIntro onDone={() => setIntroDone(true)} />}
       <Shell variant={mode === "pre" ? "content" : "dashboard"}>
         {/* Claim nudge on live; pre mode uses the raised card in PreTournamentPanel */}
         {needsClaim && mode === "live" && (
