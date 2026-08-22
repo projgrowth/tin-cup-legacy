@@ -110,33 +110,33 @@ function PursePage() {
               {bets
                 .filter((bet) => bet.hole != null)
                 .map((bet) => (
-                <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
-                  <span className="min-w-0">
-                    <span className="flex min-w-0 items-center gap-2">
-                      <span
-                        className={`rounded-full px-1.5 py-0.5 text-[0.65rem] font-semibold ${
-                          isLongDrive(bet.kind)
-                            ? "bg-stone/20 text-stone"
-                            : isCtp(bet.kind)
-                              ? "bg-hunter/15 text-hunter"
-                              : "bg-secondary text-muted-foreground"
-                        }`}
-                      >
-                        {isLongDrive(bet.kind) ? "LD" : isCtp(bet.kind) ? "CTP" : bet.kind}
+                  <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
+                    <span className="min-w-0">
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span
+                          className={`rounded-full px-1.5 py-0.5 text-[0.65rem] font-semibold ${
+                            isLongDrive(bet.kind)
+                              ? "bg-stone/20 text-stone"
+                              : isCtp(bet.kind)
+                                ? "bg-hunter/15 text-hunter"
+                                : "bg-secondary text-muted-foreground"
+                          }`}
+                        >
+                          {isLongDrive(bet.kind) ? "LD" : isCtp(bet.kind) ? "CTP" : bet.kind}
+                        </span>
+                        <span className="t-body min-w-0 truncate font-medium text-foreground">
+                          {bet.label}
+                        </span>
                       </span>
-                      <span className="t-body min-w-0 truncate font-medium text-foreground">
-                        {bet.label}
+                      <span className="t-micro text-muted-foreground">
+                        {bet.player_name ?? "Open"} · {contestHoleLabel(bet.hole)}
                       </span>
                     </span>
-                    <span className="t-micro text-muted-foreground">
-                      {bet.player_name ?? "Open"} · {contestHoleLabel(bet.hole)}
+                    <span className="t-numeral shrink-0 text-foreground">
+                      {formatPayout(bet.amount)}
                     </span>
-                  </span>
-                  <span className="t-numeral shrink-0 text-foreground">
-                    {formatPayout(bet.amount)}
-                  </span>
-                </li>
-              ))}
+                  </li>
+                ))}
             </ul>
             {bets.some((bet) => bet.hole == null) ? (
               <details className="mt-2">
@@ -147,7 +147,10 @@ function PursePage() {
                   {bets
                     .filter((bet) => bet.hole == null)
                     .map((bet) => (
-                      <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                      <li
+                        key={bet.id}
+                        className="flex items-center justify-between gap-3 px-4 py-3"
+                      >
                         <span className="t-body min-w-0 truncate">{bet.label}</span>
                         <span className="t-numeral shrink-0">{formatPayout(bet.amount)}</span>
                       </li>
@@ -182,9 +185,15 @@ function PursePage() {
           <p className="t-micro px-1 text-muted-foreground">
             Official scoring stays captain-controlled.
           </p>
-          <Link to="/schedule" className="press btn-quiet t-micro min-h-11 w-fit">
-            Weekend formats
-          </Link>
+          <div className="surface overflow-hidden">
+            <Link
+              to="/schedule"
+              className="press flex min-h-12 items-center justify-between px-4 py-3"
+            >
+              <span className="t-body font-medium text-foreground">Weekend formats</span>
+              <span className="t-micro">Weekend</span>
+            </Link>
+          </div>
         </section>
       </div>
     </Shell>

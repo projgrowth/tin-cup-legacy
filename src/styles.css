@@ -82,9 +82,7 @@
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  --shadow-card:
-    0 1px 0 oklch(0.24 0.035 155 / 3%),
-    0 12px 32px -24px oklch(0.24 0.035 155 / 8%);
+  --shadow-card: 0 1px 0 oklch(0.24 0.035 155 / 3%), 0 12px 32px -24px oklch(0.24 0.035 155 / 8%);
   --hunter: oklch(0.34 0.055 155);
   --stone: oklch(0.46 0.055 75);
   --aim: oklch(0.92 0.08 95);
@@ -329,8 +327,6 @@
     text-rendering: optimizeLegibility;
   }
 
-
-
   h1,
   h2,
   h3 {
@@ -494,6 +490,11 @@
   border-color: oklch(from var(--hunter) l c h / 35%);
   background: oklch(from var(--hunter) l c h / 10%);
   color: var(--hunter);
+}
+
+@utility chip-sm {
+  min-height: 2rem;
+  padding-inline: 0.5rem;
 }
 
 /* ---- Skeletons: one shimmer for every loading surface ---- */
@@ -715,8 +716,6 @@
     column-gap: 1.5rem;
   }
 }
-
-
 
 .feed-card {
   border-bottom: 1px solid var(--border);

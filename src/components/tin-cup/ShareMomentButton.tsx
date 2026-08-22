@@ -1,5 +1,4 @@
 import { useState, type ReactNode } from "react";
-import { Share2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { shareMoment, type ShareMomentPayload } from "@/lib/share-moment";
@@ -27,9 +26,8 @@ export function ShareMomentButton({
         else if (result === "copied") toast.success("Share caption copied.");
         else if (result === "failed") toast.error("Could not create the share image.");
       }}
-      className={`press btn-quiet t-body inline-flex min-h-11 items-center justify-center gap-2 ${className}`}
+      className={`press btn-quiet t-body inline-flex min-h-11 items-center justify-center ${className}`}
     >
-      <Share2 className="size-4" aria-hidden="true" />
       {busy ? "Creating…" : children}
     </button>
   );

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { MessageCircle, Share2 } from "lucide-react";
 
 import {
   WHATSAPP_GROUP_CONFIGURED,
@@ -16,9 +15,8 @@ export function WhatsAppGroupButton({ className = "" }: { className?: string }) 
       href={WHATSAPP_GROUP_URL}
       target="_blank"
       rel="noreferrer"
-      className={`press btn-quiet t-body inline-flex items-center justify-center gap-2 ${className}`}
+      className={`press btn-quiet t-body inline-flex items-center justify-center ${className}`}
     >
-      <MessageCircle className="size-4" strokeWidth={1.7} />
       Field chat
     </a>
   );
@@ -68,9 +66,8 @@ export function ShareBoardButton({
     <button
       type="button"
       onClick={() => void share()}
-      className={`press btn-quiet t-body inline-flex items-center justify-center gap-2 ${className}`}
+      className={`press btn-quiet t-body inline-flex items-center justify-center ${className}`}
     >
-      <Share2 className="size-4" strokeWidth={1.7} />
       Share board
     </button>
   );

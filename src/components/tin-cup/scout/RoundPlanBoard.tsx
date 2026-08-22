@@ -225,18 +225,20 @@ export function RoundPlanBoard({
             <>
               {details.dayLabel} · {details.firstTee} · {details.format}
               {` · ${planned}/18 planned`}
-              {pairingLine ? <span className="mt-1 block text-foreground">{pairingLine}</span> : null}
+              {pairingLine ? (
+                <span className="mt-1 block text-foreground">{pairingLine}</span>
+              ) : null}
             </>
           }
         />
       ) : (
-      <header className="px-0.5">
-        <h1 className="t-display text-foreground">{COURSE_LABEL[courseId]}</h1>
-        {pairingLine ? <p className="t-micro mt-1.5 text-foreground">{pairingLine}</p> : null}
-        <p className="t-micro mt-1.5">
-          {details.dayLabel} · {details.format}
-        </p>
-      </header>
+        <header className="px-0.5">
+          <h1 className="t-display text-foreground">{COURSE_LABEL[courseId]}</h1>
+          {pairingLine ? <p className="t-micro mt-1.5 text-foreground">{pairingLine}</p> : null}
+          <p className="t-micro mt-1.5">
+            {details.dayLabel} · {details.format}
+          </p>
+        </header>
       )}
       <p className="t-body px-1 text-foreground/80">{details.formatTip}</p>
 
@@ -250,11 +252,7 @@ export function RoundPlanBoard({
           </div>
           <p className="t-micro shrink-0 tabular-nums">{planned}/18</p>
         </div>
-        <NineRule
-          label={details.frontNine}
-          par={split.out.par}
-          yards={split.out.yards}
-        />
+        <NineRule label={details.frontNine} par={split.out.par} yards={split.out.yards} />
         {frontLines.map((line) => (
           <HoleRow
             key={line.hole}
@@ -334,7 +332,7 @@ export function RoundPlanBoard({
                 type="button"
                 disabled={!canSaveDay || savingDay}
                 onClick={onSaveDay}
-                className="press btn-quiet t-body min-h-11 text-sm disabled:opacity-40"
+                className="press t-micro min-h-11 px-1 font-semibold text-hunter disabled:opacity-40"
               >
                 {savingDay ? "Saving…" : "Save day plan"}
               </button>

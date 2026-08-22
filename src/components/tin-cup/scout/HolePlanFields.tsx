@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { Link as LinkIcon } from "lucide-react";
 
 import { Chip } from "@/components/tin-cup/ui/primitives";
 import { MISS_SHAPES, TEE_CLUBS, type useHolePlanEditor } from "@/hooks/useHolePlanEditor";
@@ -24,7 +23,12 @@ export function HolePlanFields({
         <p className="t-micro mb-2 text-muted-foreground">Club</p>
         <div className="flex flex-wrap gap-1.5">
           {TEE_CLUBS.map((c) => (
-            <Chip key={c} on={club === c} onClick={() => setClub(club === c ? "" : c)}>
+            <Chip
+              key={c}
+              on={club === c}
+              onClick={() => setClub(club === c ? "" : c)}
+              className="chip-sm"
+            >
               {c === "Driver" ? "Dr" : c}
             </Chip>
           ))}
@@ -39,6 +43,7 @@ export function HolePlanFields({
               key={m.label}
               on={green === m.value}
               onClick={() => setGreen(green === m.value ? "" : m.value)}
+              className="chip-sm"
             >
               {m.label}
             </Chip>
@@ -74,14 +79,12 @@ export function HolePlanFields({
       </details>
 
       {mode === "guest" && (
-        <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
-          <LinkIcon className="mt-0.5 size-3.5 shrink-0" />
-          <span>
-            On this device until you{" "}
-            <Link to="/profile" className="font-semibold text-hunter underline">
-              sign in
-            </Link>
-          </span>
+        <p className="t-micro">
+          On this device until you{" "}
+          <Link to="/profile" className="font-semibold text-foreground">
+            sign in
+          </Link>
+          .
         </p>
       )}
       {loading && mode === "cloud" && <p className="t-micro">Loading…</p>}
