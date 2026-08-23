@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 
-import { MatchLiveCard } from "@/components/tin-cup/MatchLiveCard";
 import { TheCardSheet } from "@/components/tin-cup/TheCardSheet";
 import { FieldChatLink, InstallHint } from "@/components/tin-cup/WhatsAppLinks";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
@@ -8,8 +7,7 @@ import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { Countdown } from "@/components/tin-cup/Countdown";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
 
-import { day1GroupForPlayer, yourGroupLine } from "@/lib/day1-pairings";
-import { useAuth } from "@/hooks/useAuth";
+import { yourGroupLine } from "@/lib/day1-pairings";
 import {
   VENMO_IS_PLACEHOLDER,
   WEEKEND_SOCIAL,
@@ -17,7 +15,7 @@ import {
 } from "@/lib/tin-cup";
 import type { WeekendContext } from "@/lib/weekend-context";
 
-/** Pre-event Home — claimed spine above the fold; Faceoff stays below. */
+/** Pre-event Home — clock as luxury; pairing caption; one next door. */
 export function PreTournamentPanel({
   rounds = [],
   matches = [],
@@ -39,53 +37,25 @@ export function PreTournamentPanel({
   needsClaim?: boolean;
   context?: WeekendContext;
 }) {
-  const { canScore } = useAuth();
   const nextCourseId = defaultCourseId() as CourseId;
-  const d1 = claimedName ? day1GroupForPlayer(claimedName) : null;
   const today = COURSE_DETAILS[nextCourseId];
   const groupLine = claimedName ? yourGroupLine(claimedName) : null;
   const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
-  const fridayMatch = d1
-    ? (matches.find((row) => playerSides(row, d1.pairing.sideA, d1.pairing.sideB)) ?? null)
-    : null;
 
   return (
-    <section aria-label="This weekend" className="space-y-3">
+    <section aria-label="This weekend" className="stack">
       <div>
         <Countdown />
-        {groupLine ? (
-          <h1 className="t-display mt-1 truncate whitespace-nowrap px-1 text-center text-foreground">
-            {groupLine}
-          </h1>
-        ) : null}
         <p className="t-micro mt-0.5 px-1 text-center">
           {today.dayLabel} · {COURSE_LABEL[nextCourseId]} · {today.firstTee}
         </p>
+        {groupLine ? (
+          <p className="t-micro-strong mt-0.5 px-1 text-center text-foreground/80">{groupLine}</p>
+        ) : null}
       </div>
-
-      {claimedName && d1 ? (
-        <MatchLiveCard
-          claimedName={claimedName}
-          players={players}
-          match={fridayMatch}
-          day1Index={d1.pairing.matchIndex}
-          sideA={d1.pairing.sideA}
-          sideB={d1.pairing.sideB}
-          formatLabel="Scramble · Alt shot"
-          canScore={canScore}
-        />
-      ) : null}
 
       {claimedName ? (
         <div className="surface divide-y divide-border overflow-hidden">
-          <Link
-            to="/scout"
-            search={{ course: "south", hole: 1, map: true }}
-            className="press flex h-11 items-center justify-between px-3"
-          >
-            <span className="t-body font-medium text-foreground">Friday book</span>
-            <span className="t-micro">South 1</span>
-          </Link>
           {tonight ? (
             <Link
               to="/schedule"
@@ -95,11 +65,20 @@ export function PreTournamentPanel({
               <span className="t-body font-medium text-foreground">Tonight · {tonight.title}</span>
               <span className="t-micro">Weekend</span>
             </Link>
-          ) : null}
+          ) : (
+            <Link
+              to="/scout"
+              search={{ course: "south", hole: 1, map: true }}
+              className="press flex h-11 items-center justify-between px-3"
+            >
+              <span className="t-body font-medium text-foreground">Friday book</span>
+              <span className="t-micro">South 1</span>
+            </Link>
+          )}
         </div>
       ) : null}
 
-      <TheCardSheet matches={matches} rounds={rounds} players={players} teams={teams} />
+      <TheCardSheet matches={matches} rounds={rounds} players={players} teams={teams} compact />
     </section>
   );
 }
@@ -153,12 +132,4 @@ export function HomeWeekendDoors({
       {WHATSAPP_GROUP_CONFIGURED && <FieldChatLink className="!min-h-11 w-full" />}
     </div>
   );
-}
-
-function playerSides(
-  match: Match,
-  sideA: string,
-  sideB: string,
-): boolean {
-  return (match.side_a ?? "") === sideA && (match.side_b ?? "") === sideB;
 }

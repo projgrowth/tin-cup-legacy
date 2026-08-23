@@ -45,7 +45,7 @@ export function FridayPairings({
             [...p.playersA, ...p.playersB].some((name) => sameName(name, claimedName)),
         );
         return (
-          <li key={p.matchIndex} className={`${ROW_GRID} h-14 px-3 sm:px-4 ${yours ? "bg-hunter/5 ring-1 ring-inset ring-hunter/25" : ""}`}>
+          <li key={p.matchIndex} className={`${ROW_GRID} h-14 px-3 sm:px-4 ${yours ? "ring-1 ring-inset ring-hunter" : ""}`}>
             <span className={`t-numeral text-[0.7rem] ${yours ? "text-hunter" : "text-muted-foreground/70"}`}>{p.matchIndex}</span>
             <span className="flex h-9 items-center justify-center">
               <AvatarPair people={peopleA} size="md" />

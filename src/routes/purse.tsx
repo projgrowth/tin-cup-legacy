@@ -103,9 +103,9 @@ function PursePage() {
                         <span
                           className={`rounded-full px-1.5 py-0.5 text-[0.65rem] font-semibold ${
                             isLongDrive(bet.kind)
-                              ? "bg-stone/20 text-stone"
+                              ? "ring-1 ring-stone text-stone"
                               : isCtp(bet.kind)
-                                ? "bg-hunter/15 text-hunter"
+                                ? "ring-1 ring-hunter text-hunter"
                                 : "bg-secondary text-muted-foreground"
                           }`}
                         >

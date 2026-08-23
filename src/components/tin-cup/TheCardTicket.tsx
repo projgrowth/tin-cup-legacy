@@ -34,6 +34,7 @@ export function TheCardTicket({
   crowdB = [],
   roasts = [],
   yours = false,
+  compact = false,
 }: {
   market: CardMarket;
   matches: Match[];
@@ -46,6 +47,7 @@ export function TheCardTicket({
   crowdB?: CardFace[];
   roasts?: CardRoast[];
   yours?: boolean;
+  compact?: boolean;
 }) {
   const mine = pickOnMarket(social.predictions, userId, market.matchIds);
   const openIds = pendingMatchIds(market, matches);
@@ -104,7 +106,7 @@ export function TheCardTicket({
         <Link
           to="/scout"
           search={{ course: "south", card: true }}
-          className="press block px-3 py-2"
+          className="press block px-3 py-[var(--space-3)]"
           aria-label="Open Friday book"
         >
           <p className="t-micro text-hunter">Yours · already set</p>
@@ -125,7 +127,7 @@ export function TheCardTicket({
   }
 
   return (
-    <article className="px-3 py-2">
+    <article className="px-3 py-[var(--space-3)]">
       <div className={TICKET_GRID}>
         <SidePick
           people={peopleA}
@@ -148,7 +150,7 @@ export function TheCardTicket({
         />
       </div>
       <SplitBar sideA={crowd.sideA} sideB={crowd.sideB} />
-      <CrowdUnderBar left={crowdA} right={crowdB} />
+      {compact ? null : <CrowdUnderBar left={crowdA} right={crowdB} />}
       {roastLine && !composing ? (
         <p className="t-micro mt-1.5 truncate italic text-foreground/80">
           “{roastLine.note}”
@@ -177,7 +179,7 @@ export function TheCardTicket({
             type="button"
             onClick={saveLine}
             disabled={busy}
-            className="press btn-quiet min-h-10 px-3 text-sm font-semibold"
+            className="press btn-primary min-h-10 px-3 text-sm font-semibold"
           >
             Post
           </button>
@@ -249,8 +251,8 @@ function SidePick({
   to?: string;
   onClick: () => void;
 }) {
-  const color = selected ? "text-hunter" : tone === "hunter" ? "text-hunter" : "text-stone";
-  const fill = selected ? "bg-hunter/15 ring-1 ring-hunter/30" : "";
+  const color = selected ? "text-hunter" : tone === "hunter" ? "text-foreground" : "text-stone";
+  const fill = selected ? "ring-1 ring-hunter" : "";
   const className = `contents`;
   const inner = (
     <>

@@ -72,6 +72,7 @@
   --space-4: 1rem;
   --space-5: 1.5rem;
   --space-6: 1.75rem;
+  --space-8: 2.5rem;
   --header-height: 3.25rem;
   --nav-height: 4.25rem;
   --text-display: clamp(1.65rem, 6vw, 2.15rem);
@@ -418,7 +419,7 @@
 
 @utility surface-raised {
   background-color: var(--card);
-  border: 1px solid oklch(from var(--hunter) l c h / 18%);
+  border: 1px solid var(--border);
   border-radius: var(--radius-card);
 }
 
@@ -456,6 +457,12 @@
   gap: var(--space-6);
 }
 
+@utility stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
 html {
   scroll-padding-top: calc(var(--header-height) + env(safe-area-inset-top));
   overscroll-behavior: contain;
@@ -473,9 +480,7 @@ body {
 }
 
 @utility stack-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+  margin-top: var(--space-6);
 }
 
 /* Quiet chip (app-wide, not only HUD) */
@@ -498,8 +503,8 @@ body {
 }
 
 @utility chip-on {
-  border-color: oklch(from var(--hunter) l c h / 35%);
-  background: oklch(from var(--hunter) l c h / 10%);
+  border-color: var(--hunter);
+  background: transparent;
   color: var(--hunter);
 }
 
@@ -755,7 +760,8 @@ body {
   border-bottom: 0;
 }
 .announcement-card {
-  background: oklch(from var(--hunter) l c h / 8%);
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--hunter);
 }
 .player-flair {
   display: inline-flex;
@@ -771,10 +777,8 @@ body {
   background: oklch(1 0 0 / 4%);
 }
 .engagement-prompt {
-  border-color: oklch(from var(--hunter) l c h / 18%);
-  background:
-    radial-gradient(circle at 90% 10%, oklch(from var(--hunter) l c h / 8%), transparent 34%),
-    var(--card);
+  border-color: var(--border);
+  background: var(--card);
 }
 .deep-link-target {
   outline: 3px solid oklch(from var(--hunter) l c h / 50%);

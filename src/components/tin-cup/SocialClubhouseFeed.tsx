@@ -80,6 +80,7 @@ export function SocialClubhouseFeed({
   canModerate = false,
   canUpload = false,
   compact = false,
+  homePeek = false,
 }: {
   matches: Match[];
   sideBets: SideBet[];
@@ -92,6 +93,7 @@ export function SocialClubhouseFeed({
   canModerate?: boolean;
   canUpload?: boolean;
   compact?: boolean;
+  homePeek?: boolean;
 }) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -173,9 +175,20 @@ export function SocialClubhouseFeed({
     trophies,
   ]);
   const showClubhouse = filter === "all" || filter === "clubhouse";
-  const photoMoments = moments.filter((moment) => moment.kind === "photo");
-  const restMoments = moments.filter((moment) => moment.kind !== "photo");
-  const visiblePosts = story.clubhousePosts.filter((post) => !isJunkBody(post.body));
+  const photoMomentsAll = moments.filter((moment) => moment.kind === "photo");
+  const restMomentsAll = moments.filter((moment) => moment.kind !== "photo");
+  const visiblePostsAll = story.clubhousePosts.filter((post) => !isJunkBody(post.body));
+  const photoMoments = homePeek ? photoMomentsAll.slice(0, 1) : photoMomentsAll;
+  const visiblePosts = homePeek
+    ? photoMomentsAll.length
+      ? []
+      : visiblePostsAll.slice(0, 1)
+    : visiblePostsAll;
+  const restMoments = homePeek
+    ? photoMomentsAll.length || visiblePostsAll.length
+      ? []
+      : restMomentsAll.slice(0, 1)
+    : restMomentsAll;
   const emptyFeed =
     visiblePosts.length === 0 && photoMoments.length === 0 && restMoments.length === 0;
   const mediaPaths = moments
@@ -313,13 +326,13 @@ export function SocialClubhouseFeed({
           Field
         </h2>
         {story.unreadCount > 0 && (
-          <span className="rounded-full bg-hunter px-2.5 py-1 text-xs font-bold text-primary-foreground">
+          <span className="t-micro">
             {story.unreadCount} new
           </span>
         )}
       </div>
 
-      {user && claimed && canParticipate ? (
+      {!homePeek && user && claimed && canParticipate ? (
         <div className="feed-composer surface-raised p-2.5 sm:p-3">
           <div className="flex gap-3">
             <Avatar
@@ -369,7 +382,7 @@ export function SocialClubhouseFeed({
         </div>
       ) : null}
 
-      {canModerate && story.clubhouseEnabled && (
+      {!homePeek && canModerate && story.clubhouseEnabled && (
         <details className="surface-inset overflow-hidden">
           <summary className="press flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
             <span>Organizer announcement</span>
@@ -434,7 +447,7 @@ export function SocialClubhouseFeed({
         </details>
       )}
 
-      {canModerate && (!emptyFeed || filter !== "all") && (
+      {!homePeek && canModerate && (!emptyFeed || filter !== "all") && (
         <div
           className="no-scrollbar flex gap-2 overflow-x-auto pb-1"
           role="tablist"
@@ -469,7 +482,7 @@ export function SocialClubhouseFeed({
       )}
 
       <div className={compact ? "space-y-2" : "space-y-4"}>
-        {showClubhouse && story.clubhouseEnabled && canParticipate ? (
+        {!homePeek && showClubhouse && story.clubhouseEnabled && canParticipate ? (
           <ClubhouseEngagement
             userId={user?.id}
             playerId={profile?.player_id}
@@ -581,8 +594,7 @@ export function SocialClubhouseFeed({
 
         <div className="feed-moments divide-y divide-border overflow-hidden empty:hidden">
           {showClubhouse &&
-            story.clubhousePosts
-            .filter((post) => !isJunkBody(post.body))
+            visiblePosts
             .map((post) => {
               const reactionKey = `clubhouse-post:${post.id}`;
               const reactions = story.reactions.filter((row) => row.moment_key === reactionKey);
@@ -615,7 +627,7 @@ export function SocialClubhouseFeed({
                           </span>
                         )}
                         {post.pinned_at && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-hunter/15 px-2 py-0.5 text-xs font-semibold text-hunter">
+                          <span className="inline-flex items-center gap-1 px-1 text-xs font-semibold text-hunter">
                             <Pin className="size-3" /> Pinned
                           </span>
                         )}

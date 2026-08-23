@@ -21,11 +21,13 @@ export function TheCardSheet({
   rounds,
   players = [],
   teams = [],
+  compact = false,
 }: {
   matches: Match[];
   rounds: Round[];
   players?: Player[];
   teams?: Team[];
+  compact?: boolean;
 }) {
   const { user } = useAuth();
   const { profile } = useProfile();
@@ -90,6 +92,7 @@ export function TheCardSheet({
               crowdB={riders.sideB.map(faceForUser)}
               roasts={roasts}
               yours={isYourMarket(market, claimedName)}
+              compact={compact}
             />
           );
         })}

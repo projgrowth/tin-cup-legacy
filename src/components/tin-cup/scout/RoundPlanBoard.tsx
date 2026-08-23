@@ -53,14 +53,14 @@ function HoleRow({
       : snake
         ? "ring-1 ring-copper text-copper"
         : contests.length
-          ? "bg-hunter/15 text-hunter"
+          ? "ring-1 ring-hunter text-hunter"
           : planned
             ? "ring-1 ring-hunter/40 text-hunter"
             : "ring-1 ring-foreground/30 bg-card text-foreground"
   }`;
 
   return (
-    <div className={`border-t border-border ${onStage ? "bg-hunter/10" : ""}`}>
+    <div className="border-t border-border">
       <Link
         to="/scout"
         search={{ course: courseId, hole: line.hole, map: true }}
@@ -72,7 +72,7 @@ function HoleRow({
         <span className={holeMark}>{line.hole}</span>
         <span className="min-w-0 flex-1">
           <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="text-base font-semibold tabular-nums text-foreground">
+            <span className="t-body font-semibold tabular-nums text-foreground">
               {formatScorecardYards(line.yards)}
             </span>
             <span className="t-micro tabular-nums text-muted-foreground">Par {line.par}</span>
@@ -179,7 +179,7 @@ export function RoundPlanBoard({
   );
 
   return (
-    <div className={hero ? "space-y-3 pb-[calc(var(--nav-height)+0.75rem)]" : "space-y-3"}>
+    <div className={hero ? "stack-tight pb-[calc(var(--nav-height)+0.75rem)]" : "stack-tight"}>
       {hero ? (
         <PageMasthead
           title={COURSE_LABEL[courseId]}
@@ -197,7 +197,7 @@ export function RoundPlanBoard({
         />
       ) : (
         <header className="px-0.5">
-          <h1 className="t-display text-foreground">{COURSE_LABEL[courseId]}</h1>
+          <h1 className="t-title text-foreground">{COURSE_LABEL[courseId]}</h1>
           <p className="t-micro mt-1.5">
             Par {coursePar(courseId)} · {details.blackTotal.toLocaleString()} yds
           </p>

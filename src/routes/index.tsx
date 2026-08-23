@@ -293,7 +293,7 @@ function Index() {
             ) : null}
           </div>
         ) : (
-          <div className={mode === "pre" ? "stack-page" : "home-dashboard mt-1"}>
+          <div className={mode === "pre" ? "stack" : "home-dashboard mt-1"}>
             {mode === "pre" && (
               <div className="home-action">
                 <PreTournamentPanel
@@ -355,6 +355,7 @@ function Index() {
                   canModerate={canScore || isAdmin}
                   canUpload={Boolean(claimedPlayer)}
                   compact={experience.preferences.compactFeed}
+                  homePeek
                 />
               </div>
               {mode === "pre" ? (

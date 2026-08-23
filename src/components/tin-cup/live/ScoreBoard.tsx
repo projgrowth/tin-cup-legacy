@@ -245,10 +245,10 @@ export function CupDigest({
     );
   }
   return (
-    <section className="surface-raised px-4 py-3" aria-label="Cup board">
+    <section className="surface px-4 py-[var(--space-3)]" aria-label="Cup board">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="t-micro text-hunter">Strong Mental</p>
-        <p className={`t-title tabular-nums ${decided ? "text-hunter" : "text-muted-foreground"}`}>
+        <p className="t-micro text-foreground">Strong Mental</p>
+        <p className={`t-display tabular-nums ${decided ? "text-hunter" : "text-muted-foreground"}`}>
           {line}
         </p>
         <p className="t-micro text-stone">Grass Roots</p>

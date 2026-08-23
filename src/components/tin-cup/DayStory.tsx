@@ -53,21 +53,23 @@ export function CourseDayStory({
 /** Three short format cards — one sentence, tee, points; expand for full copy. */
 export function FormatCards() {
   return (
-    <div className="surface-raised divide-y divide-border overflow-hidden">
+    <div className="surface divide-y divide-border overflow-hidden">
       {COURSE_ORDER.map((id) => {
         const d = COURSE_DETAILS[id];
         return (
           <details key={id} className="group">
-            <summary className="press cursor-pointer list-none px-4 py-3.5 [&::-webkit-details-marker]:hidden">
-              <p className="t-body font-semibold text-foreground">
+            <summary className="press cursor-pointer list-none px-4 py-[var(--space-3)] [&::-webkit-details-marker]:hidden">
+              <p className="t-title text-foreground">
                 {d.dayLabel} · {d.format}
               </p>
-              <p className="t-micro mt-1">{d.formatTip}</p>
+              <p className="t-body mt-1 text-foreground/90">{d.formatTip}</p>
               <p className="t-micro mt-1">
-                {d.firstTee} · {d.points} pts · {COURSE_LABEL[id]}
+                {d.firstTee} · {d.points} pts
               </p>
             </summary>
-            <p className="t-body px-4 pb-3.5 text-muted-foreground">{d.description}</p>
+            <p className="t-body px-4 pb-[var(--space-3)] text-muted-foreground">
+              {COURSE_LABEL[id]} · {d.description}
+            </p>
           </details>
         );
       })}
@@ -93,9 +95,9 @@ export function WeekendDayStories({
 
 export function MoneySplit() {
   return (
-    <div className="surface-raised divide-y divide-border overflow-hidden">
+    <div className="surface divide-y divide-border overflow-hidden">
       {FEE_BREAKDOWN.map((row) => (
-        <article key={row.label} className="px-4 py-3.5">
+        <article key={row.label} className="px-4 py-[var(--space-3)]">
           <p className="t-micro">{row.label}</p>
           <p className="t-title mt-1 tabular-nums text-foreground">{row.value}</p>
           <p className="t-micro mt-1.5">{row.note}</p>

@@ -138,7 +138,7 @@ function PlayerPage() {
         Teams
       </Link>
 
-      <article className="surface-raised px-4 py-5">
+      <article className="surface px-4 py-[var(--space-5)]">
         <div className="flex items-center gap-4">
           <Link
             to={isYou ? "/profile" : "/photos"}
