@@ -361,7 +361,7 @@ export function SocialClubhouseFeed({
                     size="compact"
                     cameraLabel="Camera"
                     libraryLabel="Library"
-                    className="min-w-0 flex-1"
+                    className="min-w-0"
                   />
                 ) : null}
                 <button
@@ -728,13 +728,13 @@ export function SocialClubhouseFeed({
               typeof window === "undefined" ? "https://www.tincupinv.com" : window.location.origin;
             const canonicalUrl = `${origin}/?feed=${moment.kind === "photo" ? "photos" : "scores"}&post=${encodeURIComponent(moment.key)}`;
             return (
-              <article key={moment.key} id={`post-${moment.key}`} className="overflow-hidden">
+              <article key={moment.key} id={`post-${moment.key}`}>
                 {moment.kind === "photo" && mediaUrl ? (
-                  <div className="bg-secondary">
+                  <div className="flex justify-center bg-secondary">
                     <img
                       src={mediaUrl}
                       alt={moment.detail || moment.title}
-                      className="mx-auto max-h-[32rem] w-full object-contain"
+                      className="h-auto max-h-[32rem] w-auto max-w-full object-contain"
                     />
                   </div>
                 ) : moment.kind === "photo" && moment.mediaPath ? (

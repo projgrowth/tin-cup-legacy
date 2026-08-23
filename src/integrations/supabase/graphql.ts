@@ -169,7 +169,7 @@ export async function graphqlRequest<
     const [profiles, photos] = await Promise.all([
       rows("profiles", profileCols, (q) => q.not("player_id", "is", null)),
       rows("photos", "id,caption,created_at,uploaded_by,storage_path", (q) =>
-        q.order("created_at", { ascending: false }).limit(12),
+        q.order("created_at", { ascending: false }).limit(60),
       ),
     ]);
     return { profiles, photos } as TData;

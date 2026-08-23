@@ -35,7 +35,7 @@ export function PhotoPicker({
 
   const btn =
     size === "compact"
-      ? "press t-micro inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-border px-2.5 text-muted-foreground disabled:opacity-50"
+      ? "press t-micro inline-flex min-h-11 items-center justify-center gap-1.5 rounded-[var(--radius-card)] border border-border px-3 text-muted-foreground disabled:opacity-50"
       : "press btn-quiet t-body inline-flex min-h-11 flex-1 items-center justify-center gap-2 disabled:opacity-50";
 
   return (
