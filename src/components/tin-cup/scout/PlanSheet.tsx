@@ -142,7 +142,7 @@ export function PlanSheet({
             search={{ course: courseId, hole: h.h, map: true }}
             replace
             onClick={() => onSelectHole(h.h)}
-            aria-label={`Hole ${h.h}`}
+            aria-label={`Open hole ${h.h} map`}
             aria-current={active ? "true" : undefined}
             className={`press relative size-11 shrink-0 rounded-full text-sm font-bold tabular-nums transition-colors ${
               active
@@ -189,7 +189,13 @@ export function PlanSheet({
       {overlay ? strip : handle}
       {expanded && (
         <div className="border-t border-white/8 px-4 pb-4 pt-3">
-          <HolePlanFields par={par} mode={mode} loading={loading} editor={editor} />
+          {overlay ? (
+            <div className="surface p-3">
+              <HolePlanFields par={par} mode={mode} loading={loading} editor={editor} />
+            </div>
+          ) : (
+            <HolePlanFields par={par} mode={mode} loading={loading} editor={editor} />
+          )}
         </div>
       )}
     </div>

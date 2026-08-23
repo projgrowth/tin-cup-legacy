@@ -10,6 +10,7 @@ import {
   CARD_DISCLAIMER,
   cardRecords,
   faceoffRiders,
+  faceoffRoasts,
   fridayCardMarkets,
   isYourMarket,
   peopleForMarket,
@@ -83,6 +84,11 @@ export function TheCardSheet({
         {markets.map((market) => {
           const people = peopleForMarket(market, face);
           const riders = faceoffRiders(social.predictions, market.matchIds);
+          const roasts = faceoffRoasts(social.predictions, market.matchIds).map((pick) => ({
+            userId: pick.userId,
+            name: nameOf(pick.userId),
+            note: pick.note!.trim(),
+          }));
           return (
             <TheCardTicket
               key={market.id}
@@ -95,6 +101,7 @@ export function TheCardSheet({
               peopleB={people.peopleB}
               crowdA={riders.sideA.map(faceForUser)}
               crowdB={riders.sideB.map(faceForUser)}
+              roasts={roasts}
               yours={isYourMarket(market, claimedName)}
             />
           );

@@ -9,6 +9,7 @@ import {
   choiceHitsResult,
   faceoffCrowd,
   faceoffRiders,
+  faceoffRoasts,
   fridayCardMarkets,
   normalizeCardNote,
   pairingFirstNames,
@@ -120,6 +121,40 @@ describe("the card", () => {
         ["s1"],
       ).sideA,
     ).toEqual(["u1"]);
+  });
+
+  it("keeps one roast per rider, newest first", () => {
+    const roasts = faceoffRoasts(
+      [
+        {
+          matchId: "s1",
+          userId: "u1",
+          choice: "side-a",
+          note: "old line",
+          createdAt: "",
+          updatedAt: "2026-08-22T12:00:00Z",
+        },
+        {
+          matchId: "a1",
+          userId: "u1",
+          choice: "side-a",
+          note: "Josef packed a compass.",
+          createdAt: "",
+          updatedAt: "2026-08-22T12:00:02Z",
+        },
+        {
+          matchId: "s1",
+          userId: "u2",
+          choice: "side-b",
+          createdAt: "",
+          updatedAt: "2026-08-22T12:00:01Z",
+        },
+      ],
+      ["s1", "a1"],
+    );
+    expect(roasts).toHaveLength(1);
+    expect(roasts[0]?.userId).toBe("u1");
+    expect(roasts[0]?.note).toBe("Josef packed a compass.");
   });
 
   it("trims roast notes to 140", () => {

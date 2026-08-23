@@ -4,6 +4,6 @@
  * a single 800-line module.
  */
 export { ScoreBar } from "./live/ScoreBoard";
-export { PreTournamentPanel } from "./live/PreTournamentPanel";
+export { HomeWeekendDoors, PreTournamentPanel } from "./live/PreTournamentPanel";
 export { LivePanel } from "./live/LivePanel";
 export { HallOfFamePanel } from "./live/HallOfFamePanel";

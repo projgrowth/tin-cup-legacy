@@ -236,6 +236,21 @@ export function faceoffCrowd(predictions: MatchPrediction[], matchIds: string[])
   return { sideA: riders.sideA.length, sideB: riders.sideB.length };
 }
 
+/** Latest roast per rider on a ticket — newest first. */
+export function faceoffRoasts(
+  predictions: MatchPrediction[],
+  matchIds: string[],
+): MatchPrediction[] {
+  const latest = new Map<string, MatchPrediction>();
+  const rows = [...predictions]
+    .filter((pick) => matchIds.includes(pick.matchId))
+    .sort((a, b) => Date.parse(a.updatedAt) - Date.parse(b.updatedAt));
+  for (const pick of rows) latest.set(pick.userId, pick);
+  return [...latest.values()]
+    .filter((pick) => Boolean(pick.note?.trim()))
+    .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+}
+
 export function cardLine(input: {
   author: string;
   choice: MatchPredictionChoice;

@@ -25,7 +25,7 @@ export function PreTournamentPanel({
   players = [],
   teams = [],
   canUpload: _canUpload = false,
-  signedIn = false,
+  signedIn: _signedIn = false,
   claimedName = null,
   needsClaim: _needsClaim = false,
   context: _context,
@@ -42,9 +42,6 @@ export function PreTournamentPanel({
 }) {
   const nextCourseId = defaultCourseId() as CourseId;
   const today = COURSE_DETAILS[nextCourseId];
-  const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
-  const avatars = usePlayerAvatars(players, teams);
-  const face = (name: string) => avatars.data?.getByName(name);
   const groupLine = claimedName ? yourGroupLine(claimedName) : null;
 
   return (
@@ -70,7 +67,30 @@ export function PreTournamentPanel({
       </div>
 
       <TheCardSheet matches={matches} rounds={rounds} players={players} teams={teams} />
+    </section>
+  );
+}
 
+/** Pay / tonight / install — after Field, not in the hangout spine. */
+export function HomeWeekendDoors({
+  signedIn = false,
+  claimedName = null,
+  players = [],
+  teams = [],
+}: {
+  signedIn?: boolean;
+  claimedName?: string | null;
+  players?: Player[];
+  teams?: Team[];
+}) {
+  const nextCourseId = defaultCourseId() as CourseId;
+  const today = COURSE_DETAILS[nextCourseId];
+  const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
+  const avatars = usePlayerAvatars(players, teams);
+  const face = (name: string) => avatars.data?.getByName(name);
+
+  return (
+    <div className="stack-tight">
       <div className="surface divide-y divide-border overflow-hidden empty:hidden">
         <a
           href={venmoUrl}
@@ -101,11 +121,10 @@ export function PreTournamentPanel({
         ) : null}
         <InstallHint embedded />
       </div>
-
       {VENMO_IS_PLACEHOLDER && (
         <p className="t-micro px-1 text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>
       )}
       {WHATSAPP_GROUP_CONFIGURED && <FieldChatLink className="!min-h-11 w-full" />}
-    </section>
+    </div>
   );
 }

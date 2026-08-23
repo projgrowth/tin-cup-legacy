@@ -125,7 +125,7 @@ export function HoleStage({
         <div
           className="pointer-events-none absolute left-3 z-20"
           style={{
-            bottom: "max(4.75rem, calc(env(safe-area-inset-bottom) + 4.25rem))",
+            bottom: "max(10.5rem, calc(env(safe-area-inset-bottom) + 9.75rem))",
           }}
         >
           <DistanceStack

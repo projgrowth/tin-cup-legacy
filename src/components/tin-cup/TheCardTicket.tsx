@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { Avatar, AvatarPair } from "@/components/tin-cup/Avatar";
@@ -15,6 +16,7 @@ import {
 } from "@/lib/the-card";
 
 export type CardFace = { name: string; teamSlug?: string | null; src?: string | null };
+export type CardRoast = { userId: string; name: string; note: string };
 
 export function TheCardTicket({
   market,
@@ -26,6 +28,7 @@ export function TheCardTicket({
   peopleB = [],
   crowdA = [],
   crowdB = [],
+  roasts = [],
   yours = false,
 }: {
   market: CardMarket;
@@ -37,6 +40,7 @@ export function TheCardTicket({
   peopleB?: CardFace[];
   crowdA?: CardFace[];
   crowdB?: CardFace[];
+  roasts?: CardRoast[];
   yours?: boolean;
 }) {
   const mine = pickOnMarket(social.predictions, userId, market.matchIds);
@@ -49,6 +53,8 @@ export function TheCardTicket({
   const busy = social.predict.isPending || social.clear.isPending;
   const labelA = pairingFirstNames(market.sideA);
   const labelB = pairingFirstNames(market.sideB);
+  const claimToRide = !yours && !locked && (!userId || !claimed);
+  const otherRoasts = roasts.filter((roast) => roast.userId !== userId).slice(0, 2);
 
   function pick(choice: MatchPredictionChoice) {
     if (!canPick) return;
@@ -98,6 +104,7 @@ export function TheCardTicket({
           crowd={crowd.sideA}
           riders={crowdA}
           disabled={!canPick || busy}
+          to={claimToRide ? "/profile" : undefined}
           onClick={() => pick("side-a")}
         />
         <p className="t-micro py-0.5 text-center text-muted-foreground">vs</p>
@@ -109,9 +116,16 @@ export function TheCardTicket({
           crowd={crowd.sideB}
           riders={crowdB}
           disabled={!canPick || busy}
+          to={claimToRide ? "/profile" : undefined}
           onClick={() => pick("side-b")}
         />
       </div>
+      {otherRoasts.map((roast) => (
+        <p key={roast.userId} className="t-micro mt-1.5 italic text-foreground/80">
+          “{roast.note}”
+          <span className="not-italic text-muted-foreground"> · {roast.name}</span>
+        </p>
+      ))}
       {yours ? (
         <p className="t-micro mt-1.5 text-hunter">You're in it.</p>
       ) : canPick && mine && (composing || !mine.note) ? (
@@ -156,6 +170,7 @@ function SideRow({
   crowd,
   riders,
   disabled,
+  to,
   onClick,
 }: {
   people: CardFace[];
@@ -165,6 +180,7 @@ function SideRow({
   crowd: number;
   riders: CardFace[];
   disabled: boolean;
+  to?: string;
   onClick: () => void;
 }) {
   const color = tone === "hunter" ? "text-hunter" : "text-stone";
@@ -172,17 +188,11 @@ function SideRow({
     tone === "hunter"
       ? "bg-hunter/10 ring-1 ring-hunter/30"
       : "bg-stone/15 ring-1 ring-stone/30";
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      aria-pressed={selected}
-      aria-label={selected ? `Undo ${label}` : `Ride with ${label}`}
-      onClick={onClick}
-      className={`flex min-h-12 w-full items-center gap-2 rounded-xl px-2 text-left transition-colors duration-150 disabled:opacity-100 ${
-        disabled ? "cursor-default" : "press"
-      } ${selected ? fill : ""}`}
-    >
+  const className = `flex min-h-12 w-full items-center gap-2 rounded-xl px-2 text-left transition-colors duration-150 disabled:opacity-100 ${
+    disabled && !to ? "cursor-default" : "press"
+  } ${selected ? fill : ""}`;
+  const inner = (
+    <>
       <AvatarPair people={people} size="sm" />
       <span className={`t-body min-w-0 flex-1 truncate font-semibold ${color}`}>{label}</span>
       {riders.length > 0 ? (
@@ -203,6 +213,25 @@ function SideRow({
       ) : crowd > 0 ? (
         <span className="t-micro tabular-nums text-muted-foreground">{crowd}</span>
       ) : null}
+    </>
+  );
+  if (to) {
+    return (
+      <Link to={to} aria-label={`Ride with ${label}`} className={className}>
+        {inner}
+      </Link>
+    );
+  }
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      aria-pressed={selected}
+      aria-label={selected ? `Undo ${label}` : `Ride with ${label}`}
+      onClick={onClick}
+      className={className}
+    >
+      {inner}
     </button>
   );
 }

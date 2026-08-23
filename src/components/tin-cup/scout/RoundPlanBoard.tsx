@@ -1,9 +1,6 @@
-import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
-import { HolePlanFields } from "@/components/tin-cup/scout/HolePlanFields";
-import type { useHolePlanEditor } from "@/hooks/useHolePlanEditor";
 import {
   COURSE_DETAILS,
   COURSE_LABEL,
@@ -15,13 +12,6 @@ import {
 } from "@/lib/courses";
 import { hasPlanContent, nineSplit, type PlanLine } from "@/lib/round-sheet";
 
-function planSummary(draft: PlanLine["draft"]): string {
-  if (!hasPlanContent(draft)) return "";
-  return [draft?.tee_club, draft?.green_note, draft?.notes || draft?.target_line]
-    .filter(Boolean)
-    .join(" · ");
-}
-
 function NineRule({
   label,
   par,
@@ -30,7 +20,6 @@ function NineRule({
   label: string;
   par: number;
   yards: number;
-  planned?: number;
 }) {
   return (
     <div className="flex items-baseline justify-between gap-3 px-4 py-2">
@@ -48,66 +37,36 @@ function HoleRow({
   line,
   holeMeta,
   courseId,
-  selected,
   contests,
-  editor,
-  mode,
-  loading,
-  onSelect,
 }: {
   line: PlanLine;
   holeMeta: Hole;
   courseId: CourseId;
-  selected: boolean;
   contests: Array<"ctp" | "ld">;
-  editor: ReturnType<typeof useHolePlanEditor>;
-  mode: "cloud" | "guest";
-  loading: boolean;
-  onSelect: () => void;
 }) {
-  const rowRef = useRef<HTMLDivElement>(null);
   const snake = courseId === "copperhead" && SNAKE_PIT.includes(line.hole);
   const planned = hasPlanContent(line.draft);
-
-  useEffect(() => {
-    if (!selected) return;
-    const id = window.setTimeout(() => {
-      rowRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    }, 40);
-    return () => window.clearTimeout(id);
-  }, [selected]);
-
   const holeMark = `flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${
-    selected
-      ? "bg-hunter text-primary-foreground"
-      : snake
-        ? "ring-1 ring-copper text-copper"
-        : contests.length
-          ? "bg-hunter/15 text-hunter"
-          : planned
-            ? "ring-1 ring-hunter/40 text-hunter"
-            : "ring-1 ring-foreground/30 bg-card text-foreground"
+    snake
+      ? "ring-1 ring-copper text-copper"
+      : contests.length
+        ? "bg-hunter/15 text-hunter"
+        : planned
+          ? "ring-1 ring-hunter/40 text-hunter"
+          : "ring-1 ring-foreground/30 bg-card text-foreground"
   }`;
 
   return (
-    <div ref={rowRef} className={`border-t border-border ${selected ? "bg-hunter/[0.04]" : ""}`}>
-      <div className="flex items-center gap-3 px-4 py-3">
-        <Link
-          to="/scout"
-          search={{ course: courseId, hole: line.hole, map: true }}
-          replace
-          aria-label={`Open hole ${line.hole} map`}
-          className={`press ${holeMark}`}
-        >
-          {line.hole}
-        </Link>
-        <button
-          type="button"
-          onClick={onSelect}
-          aria-expanded={selected}
-          aria-label={`Hole ${line.hole} notes, par ${line.par}, ${line.yards} yards${planned ? `, ${planSummary(line.draft)}` : ""}`}
-          className="press min-w-0 flex-1 text-left"
-        >
+    <div className="border-t border-border">
+      <Link
+        to="/scout"
+        search={{ course: courseId, hole: line.hole, map: true }}
+        replace
+        aria-label={`Open hole ${line.hole} map`}
+        className="press flex items-center gap-3 px-4 py-3"
+      >
+        <span className={holeMark}>{line.hole}</span>
+        <span className="min-w-0 flex-1">
           <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
             <span className="text-sm font-bold tabular-nums text-foreground">Par {line.par}</span>
             <span className="t-micro tabular-nums">{formatScorecardYards(line.yards)}</span>
@@ -126,37 +85,26 @@ function HoleRow({
           </span>
           {planned ? (
             <span className="mt-0.5 block truncate text-sm text-foreground/85">
-              {selected && editor.filled
-                ? editor.summary || planSummary(line.draft)
-                : planSummary(line.draft)}
+              {[line.draft?.tee_club, line.draft?.green_note, line.draft?.notes || line.draft?.target_line]
+                .filter(Boolean)
+                .join(" · ")}
             </span>
           ) : null}
-        </button>
-      </div>
-
-      {selected && (
-        <div className="px-4 pb-4">
-          <HolePlanFields par={line.par} mode={mode} loading={loading} editor={editor} />
-        </div>
-      )}
+        </span>
+      </Link>
     </div>
   );
 }
 
 /**
- * Default Plan surface — an 18-hole scorecard you fill like a yardage book.
- * Hole theater is one tap away on each row.
+ * Default Plan surface — an 18-hole scorecard. Tap a hole for theater.
+ * Club / miss / line live in the hole dock, not on this page.
  */
 export function RoundPlanBoard({
   courseId,
-  hole: _hole,
   holes,
   lines,
-  mode,
-  loading,
-  editor,
   contestByHole,
-  onSelectHole: _onSelectHole,
   dayDraft,
   onDayDraft,
   onSaveDay,
@@ -167,14 +115,10 @@ export function RoundPlanBoard({
   hero = false,
 }: {
   courseId: CourseId;
-  hole: number;
+  hole?: number;
   holes: Hole[];
   lines: PlanLine[];
-  mode: "cloud" | "guest";
-  loading: boolean;
-  editor: ReturnType<typeof useHolePlanEditor>;
   contestByHole: Map<number, Array<"ctp" | "ld">>;
-  onSelectHole: (h: number) => void;
   dayDraft: string;
   onDayDraft: (v: string) => void;
   onSaveDay: () => void;
@@ -187,7 +131,6 @@ export function RoundPlanBoard({
   const details = COURSE_DETAILS[courseId];
   const split = nineSplit(lines);
   const holeByN = new Map(holes.map((h) => [h.h, h]));
-  const [openHole, setOpenHole] = useState<number | null>(null);
   const frontLines = split.front;
   const pit = courseId === "copperhead";
   const backLines = pit ? split.back.filter((line) => line.hole < 16) : split.back;
@@ -224,7 +167,7 @@ export function RoundPlanBoard({
           </p>
         </header>
       )}
-      <p className="t-body px-1 text-foreground/80">{details.formatTip}</p>
+      <p className="t-micro px-1">{details.formatTip}</p>
 
       <section className="surface overflow-hidden" aria-label="18-hole game plan">
         <NineRule label={details.frontNine} par={split.out.par} yards={split.out.yards} />
@@ -234,12 +177,7 @@ export function RoundPlanBoard({
             line={line}
             holeMeta={holeByN.get(line.hole) ?? holes[0]!}
             courseId={courseId}
-            selected={openHole === line.hole}
             contests={contestByHole.get(line.hole) ?? []}
-            editor={editor}
-            mode={mode}
-            loading={loading}
-            onSelect={() => setOpenHole((h) => (h === line.hole ? null : line.hole))}
           />
         ))}
         <NineRule
@@ -253,12 +191,7 @@ export function RoundPlanBoard({
             line={line}
             holeMeta={holeByN.get(line.hole) ?? holes[0]!}
             courseId={courseId}
-            selected={openHole === line.hole}
             contests={contestByHole.get(line.hole) ?? []}
-            editor={editor}
-            mode={mode}
-            loading={loading}
-            onSelect={() => setOpenHole((h) => (h === line.hole ? null : line.hole))}
           />
         ))}
         {pitLines.length > 0 ? (
@@ -270,12 +203,7 @@ export function RoundPlanBoard({
                 line={line}
                 holeMeta={holeByN.get(line.hole) ?? holes[0]!}
                 courseId={courseId}
-                selected={openHole === line.hole}
                 contests={contestByHole.get(line.hole) ?? []}
-                editor={editor}
-                mode={mode}
-                loading={loading}
-                onSelect={() => setOpenHole((h) => (h === line.hole ? null : line.hole))}
               />
             ))}
           </>

@@ -5,12 +5,12 @@ import { toast } from "sonner";
 
 import { Shell } from "@/components/tin-cup/Shell";
 import type { MapMode } from "@/components/tin-cup/scout/HoleStage";
-import { useScoutPlanEditor } from "@/components/tin-cup/scout/PlanSheet";
+import { PlanSheet, useScoutPlanEditor } from "@/components/tin-cup/scout/PlanSheet";
 import { RoundPlanBoard } from "@/components/tin-cup/scout/RoundPlanBoard";
 import { useAuth } from "@/hooks/useAuth";
 import { useHoleNotes, useProfile, useRoundPlan, type HoleNoteDraft } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
-import { day1GroupForPlayer } from "@/lib/day1-pairings";
+import { yourGroupLine } from "@/lib/day1-pairings";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { knownContestsForHole } from "@/lib/contest-holes";
 import {
@@ -26,7 +26,7 @@ import {
   type CourseId,
 } from "@/lib/courses";
 import { getGuestNote } from "@/lib/guest-notes";
-import { buildPlanLines, type PlanLine } from "@/lib/round-sheet";
+import { buildPlanLines, hasPlanContent, type PlanLine } from "@/lib/round-sheet";
 
 const HoleStage = lazy(() =>
   import("@/components/tin-cup/scout/HoleStage").then((module) => ({
@@ -157,14 +157,7 @@ function ScoutPage() {
   const claimedName = profile?.player_id
     ? tournament?.players.find((p) => p.id === profile.player_id)?.name
     : null;
-  const fridayGroup = claimedName ? day1GroupForPlayer(claimedName) : null;
-  const pairingLine =
-    courseId === "south" && fridayGroup
-      ? `You · ${fridayGroup.partner.split(" ")[0]} vs ${fridayGroup.opponents
-          .split(/\s*[/&+]\s*/)
-          .map((name) => name.trim().split(/\s+/)[0] ?? name)
-          .join(" · ")}`
-      : null;
+  const pairingLine = courseId === "south" && claimedName ? yourGroupLine(claimedName) : null;
 
   const contestByHole = useMemo(() => {
     const map = new Map<number, Array<"ctp" | "ld">>();
@@ -278,23 +271,38 @@ function ScoutPage() {
               }
             }}
             className={`${mapChip} absolute right-3 z-40 ${playGpsOn ? "chip-on" : ""}`}
-            style={{ bottom: "max(1.25rem, calc(env(safe-area-inset-bottom) + 0.75rem))" }}
+            style={{ top: "max(0.75rem, env(safe-area-inset-top))" }}
           >
             Satellite
           </button>
 
-          {wideTheater ? (
-            <aside className="absolute inset-y-0 right-0 z-30 w-96 overflow-y-auto border-l border-border bg-background/98 px-3 pb-8 pt-20">
-              <RoundPlanBoard
+          {!wideTheater ? (
+            <div
+              className="absolute inset-x-0 bottom-0 z-40"
+              style={{ paddingBottom: "max(0.35rem, env(safe-area-inset-bottom))" }}
+            >
+              <PlanSheet
+                overlay
                 courseId={courseId}
                 hole={current.h}
+                par={current.par}
                 holes={course.holes}
-                lines={planLines}
                 mode={planMode}
                 loading={authLoading || journal.loading}
                 editor={planEditor}
+                hasNote={(h) => hasPlanContent(noteForDraft(h))}
                 contestByHole={contestByHole}
-                onSelectHole={(h) => setSelection({ hole: h })}
+                onSelectHole={(h) => setSelection({ hole: h, map: true })}
+                pitLabel={isSnake ? "Pit" : null}
+              />
+            </div>
+          ) : (
+            <aside className="absolute inset-y-0 right-0 z-30 w-96 overflow-y-auto border-l border-border bg-background/98 px-3 pb-8 pt-20">
+              <RoundPlanBoard
+                courseId={courseId}
+                holes={course.holes}
+                lines={planLines}
+                contestByHole={contestByHole}
                 dayDraft={dayDraft}
                 onDayDraft={setDayDraft}
                 onSaveDay={() =>
@@ -309,7 +317,7 @@ function ScoutPage() {
                 pairingLine={pairingLine}
               />
             </aside>
-          ) : null}
+          )}
         </div>
       </Shell>
     );
@@ -345,14 +353,9 @@ function ScoutPage() {
         <RoundPlanBoard
           hero
           courseId={courseId}
-          hole={current.h}
           holes={course.holes}
           lines={planLines}
-          mode={planMode}
-          loading={authLoading || journal.loading}
-          editor={planEditor}
           contestByHole={contestByHole}
-          onSelectHole={(h) => setSelection({ hole: h, map: false })}
           dayDraft={dayDraft}
           onDayDraft={setDayDraft}
           onSaveDay={() =>
