@@ -6,7 +6,6 @@ import {
   Check,
   Clock3,
   Flame,
-  MessageCircle,
   MoreHorizontal,
   PartyPopper,
   Pin,
@@ -1032,9 +1031,9 @@ function CommentThread({
           aria-label={`Comments on ${label}, ${comments.length}`}
           aria-expanded={open}
           onClick={onToggle}
-          className="press t-micro inline-flex min-h-11 items-center gap-1 px-1 font-semibold"
+          className="press t-micro inline-flex min-h-11 items-center px-1 font-semibold"
         >
-          <MessageCircle className="size-3.5" /> {comments.length || "Reply"}
+          {comments.length ? `${comments.length} replies` : "Reply"}
         </button>
         {trailing}
       </div>

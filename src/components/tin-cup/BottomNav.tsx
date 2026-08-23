@@ -11,7 +11,7 @@ const items = [
 
 export function BottomNav({ live = false }: { live?: boolean }) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-[env(safe-area-inset-bottom)]">
       <div className="mx-auto flex w-full max-w-4xl items-stretch px-4 sm:px-5">
         {items.map(({ to, label, icon: Icon, exact }) => (
           <Link

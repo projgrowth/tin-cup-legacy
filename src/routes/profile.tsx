@@ -233,6 +233,9 @@ function ProfilePage() {
             />
           )}
           <GuestNotesMerge />
+          <div className="surface overflow-hidden">
+            <ThemeToggle />
+          </div>
           <ul className="surface divide-y divide-border overflow-hidden">
             {claimedPlayer && (
               <li>
@@ -245,30 +248,6 @@ function ProfilePage() {
                 </Link>
               </li>
             )}
-            <li>
-              <Link to="/schedule" className="press flex min-h-12 items-center px-4 py-3">
-                <span className="t-body font-medium">Weekend</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/scout"
-                search={{ card: true }}
-                className="press flex min-h-12 items-center px-4 py-3"
-              >
-                <span className="t-body font-medium">Plan</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/purse" className="press flex min-h-12 items-center px-4 py-3">
-                <span className="t-body font-medium">Purse</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/scout" className="press flex min-h-12 items-center px-4 py-3">
-                <span className="t-body font-medium">Notes</span>
-              </Link>
-            </li>
             <li>
               <button
                 type="button"
@@ -288,7 +267,6 @@ function ProfilePage() {
               More
             </summary>
             <div className="divide-y divide-border border-t border-border">
-              <ThemeToggle />
               {claimedPlayer ? (
                 <details>
                   <summary className="press flex min-h-12 cursor-pointer list-none items-center px-4 py-3 t-body text-foreground [&::-webkit-details-marker]:hidden">
@@ -651,7 +629,7 @@ function Identity({
         <h2 className="t-eyebrow">{needsClaim ? "Claim your name" : "Identity"}</h2>
         <span className="pill t-micro text-muted-foreground">{roleLabel}</span>
       </div>
-      <div className={`space-y-3 p-4 ${needsClaim ? "surface-raised" : "surface"}`}>
+      <div className="surface space-y-3 p-4">
         <p className="t-micro truncate text-muted-foreground">{email}</p>
         <select
           value={playerId}

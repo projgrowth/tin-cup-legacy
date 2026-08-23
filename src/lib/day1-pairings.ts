@@ -103,8 +103,8 @@ export function day1GroupForPlayer(playerName: string): {
   return null;
 }
 
-/** Claimed Home line: You · partner vs them. */
-export function yourGroupLine(playerName: string): string | null {
+/** Pairing line. Claimed seat reads You · partner vs them. */
+export function groupLine(playerName: string, asYou = false): string | null {
   const group = day1GroupForPlayer(playerName);
   if (!group) return null;
   const them = group.opponents
@@ -112,5 +112,10 @@ export function yourGroupLine(playerName: string): string | null {
     .map((part) => firstName(part.trim()))
     .filter(Boolean)
     .join(" · ");
-  return `You · ${firstName(group.partner)} vs ${them}`;
+  const lead = asYou ? "You" : firstName(playerName);
+  return `${lead} · ${firstName(group.partner)} vs ${them}`;
+}
+
+export function yourGroupLine(playerName: string): string | null {
+  return groupLine(playerName, true);
 }

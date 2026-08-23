@@ -1,5 +1,4 @@
-import { useRef, type ReactNode } from "react";
-import { Camera, ImageIcon } from "lucide-react";
+import { useRef } from "react";
 
 type Props = {
   onFile: (file: File) => void;
@@ -67,7 +66,6 @@ export function PhotoPicker({
         onClick={() => cameraRef.current?.click()}
         className={btn}
       >
-        <Camera className="size-4 shrink-0" strokeWidth={1.7} />
         {cameraLabel}
       </button>
       <button
@@ -76,7 +74,6 @@ export function PhotoPicker({
         onClick={() => libraryRef.current?.click()}
         className={btn}
       >
-        <ImageIcon className="size-4 shrink-0" strokeWidth={1.7} />
         {libraryLabel}
       </button>
     </div>
@@ -93,7 +90,7 @@ export function PhotoPickerIconButton({
   disabled?: boolean;
   cameraFacing?: "environment" | "user";
   label?: string;
-}): ReactNode {
+}) {
   return (
     <div className="flex flex-col items-end gap-1">
       <PhotoPicker

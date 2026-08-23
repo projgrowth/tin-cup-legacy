@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { MedalMark } from "@/components/tin-cup/BrandMark";
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
@@ -56,12 +55,7 @@ function PursePage() {
     <Shell variant="content">
       <div className="stack-page pb-10">
         <PageMasthead
-          title={
-            <span className="flex items-center gap-2">
-              <MedalMark size="xs" />
-              Purse
-            </span>
-          }
+          title="Purse"
           meta={
             <>
               Venmo {TOURNAMENT_BANK}

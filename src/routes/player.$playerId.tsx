@@ -10,7 +10,7 @@ import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
-import { day1GroupForPlayer } from "@/lib/day1-pairings";
+import { groupLine } from "@/lib/day1-pairings";
 import { cardLine, fridayCardMarkets, pickOnMarket } from "@/lib/the-card";
 import { formatRecord, pairingIncludes, playerRecord, roundStatus } from "@/lib/scoring";
 
@@ -111,7 +111,7 @@ function PlayerPage() {
       <Shell>
         <p className="t-body text-foreground">That player isn&apos;t on the roster.</p>
         <Link to="/rosters" className="press t-body mt-3 inline-block text-muted-foreground">
-          Back to rosters →
+          Teams
         </Link>
       </Shell>
     );
@@ -124,7 +124,7 @@ function PlayerPage() {
   );
   const claims = (data?.sideBets ?? []).filter((b) => b.player_name === player.name);
   const cash = claims.reduce((sum, c) => sum + Number(c.amount), 0);
-  const d1 = day1GroupForPlayer(player.name);
+  const matchLine = groupLine(player.name, isYou);
 
   return (
     <Shell>
@@ -142,8 +142,7 @@ function PlayerPage() {
           meta={[
             team.name.replace("Team ", ""),
             player.is_captain ? "Captain" : null,
-            isYou ? "You" : null,
-            d1 ? `w/ ${d1.partner.split(" ")[0]} · vs ${d1.opponents}` : null,
+            matchLine,
             shorthand || "No results yet",
           ]
             .filter(Boolean)
@@ -165,7 +164,7 @@ function PlayerPage() {
             typeof window === "undefined" ? "https://www.tincupinv.com/" : window.location.href,
         }}
       >
-        Share player card
+        Share card
       </ShareMomentButton>
 
       <div className="mt-6 grid grid-cols-3 gap-3">
