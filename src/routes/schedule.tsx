@@ -188,15 +188,15 @@ function SchedulePage() {
 
         <section className="stack-tight">
           <h2 className="t-eyebrow">Dinners</h2>
-          <div className="surface divide-y divide-border overflow-hidden">
+          <div className="grid gap-[var(--space-5)]">
             {socialOrdered.map((row, index) => (
-              <details key={row.day} open={index === 0 || undefined}>
-                <summary className="press flex min-h-11 cursor-pointer list-none items-center px-4 py-3 [&::-webkit-details-marker]:hidden">
-                  <span className="t-body min-w-0 font-medium text-foreground">
+              <details key={row.day} className="surface" open={index === 0 || undefined}>
+                <summary className="press flex min-h-11 cursor-pointer list-none items-center p-[var(--space-4)] [&::-webkit-details-marker]:hidden">
+                  <span className="t-body min-w-0 text-foreground">
                     {row.day} · {row.title}
                   </span>
                 </summary>
-                <p className="t-micro px-4 pb-3 text-muted-foreground">{row.detail}</p>
+                <p className="t-micro px-[var(--space-4)] pb-[var(--space-4)]">{row.detail}</p>
               </details>
             ))}
           </div>

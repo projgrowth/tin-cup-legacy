@@ -10,10 +10,14 @@ function sameName(a: string, b: string) {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
 
-const ROW_GRID =
-  "grid grid-cols-[1.25rem_4.75rem_minmax(0,1fr)_1.5rem_4.75rem_minmax(0,1fr)] items-center gap-x-2";
+function firstName(name: string) {
+  return name.trim().split(/\s+/)[0] ?? name;
+}
 
-/** One Friday sheet — format lives in the Weekend masthead, not on every row. */
+export const FRIDAY_HOW = "8 v 8. Four groups. You and a partner vs two of them.";
+export const FRIDAY_FORMAT_LINE = "Scramble then alt shot · 8 pts";
+
+/** Four equal Friday group cards. Format line lives once above. */
 export function FridayPairings({
   getFace,
   claimedName = null,
@@ -28,79 +32,81 @@ export function FridayPairings({
   rounds?: Round[];
 }) {
   return (
-    <ol className="surface divide-y divide-border overflow-hidden">
-      {DAY1_PAIRINGS.map((p) => {
-        const peopleA = p.playersA.map((name) => ({
-          name,
-          teamSlug: "strong-mental" as const,
-          src: getFace?.(name)?.url,
-        }));
-        const peopleB = p.playersB.map((name) => ({
-          name,
-          teamSlug: "grass-roots" as const,
-          src: getFace?.(name)?.url,
-        }));
-        const yours = Boolean(
-          claimedName &&
-            [...p.playersA, ...p.playersB].some((name) => sameName(name, claimedName)),
-        );
-        return (
-          <li key={p.matchIndex} className={`${ROW_GRID} h-14 px-3 sm:px-4 ${yours ? "ring-1 ring-inset ring-hunter" : ""}`}>
-            <span className={`t-numeral text-[0.7rem] ${yours ? "text-hunter" : "text-muted-foreground/70"}`}>{p.matchIndex}</span>
-            <span className="flex h-9 items-center justify-center">
-              <AvatarPair people={peopleA} size="md" />
-            </span>
-            <p className="t-body min-w-0 truncate whitespace-nowrap leading-none font-medium">
-              <SideNames names={p.playersA} tone="hunter" quiet={!yours} playerIdByName={playerIdByName} />
-            </p>
-            <p className="t-micro text-center text-muted-foreground">vs</p>
-            <span className="flex h-9 items-center justify-center">
-              <AvatarPair people={peopleB} size="md" />
-            </span>
-            <p className="t-body min-w-0 truncate whitespace-nowrap leading-none font-medium">
-              <SideNames names={p.playersB} tone="stone" quiet={!yours} playerIdByName={playerIdByName} />
-            </p>
-          </li>
-        );
-      })}
-    </ol>
+    <div className="stack">
+      <div>
+        <p className="t-body text-foreground">{FRIDAY_HOW}</p>
+        <p className="t-micro mt-[var(--space-3)]">{FRIDAY_FORMAT_LINE}</p>
+      </div>
+      <ol className="grid grid-cols-1 gap-[var(--space-5)] min-[420px]:grid-cols-2">
+        {DAY1_PAIRINGS.map((p) => {
+          const peopleA = p.playersA.map((name) => ({
+            name,
+            teamSlug: "strong-mental" as const,
+            src: getFace?.(name)?.url,
+          }));
+          const peopleB = p.playersB.map((name) => ({
+            name,
+            teamSlug: "grass-roots" as const,
+            src: getFace?.(name)?.url,
+          }));
+          const yours = Boolean(
+            claimedName &&
+              [...p.playersA, ...p.playersB].some((name) => sameName(name, claimedName)),
+          );
+          return (
+            <li
+              key={p.matchIndex}
+              className={`surface flex h-full min-h-[11rem] flex-col p-[var(--space-4)] ${
+                yours ? "outline outline-1 outline-hunter" : ""
+              }`}
+            >
+              <p className={`t-micro ${yours ? "text-hunter" : ""}`}>Group {p.matchIndex}</p>
+              <div className="mt-[var(--space-3)] flex items-center gap-2">
+                <AvatarPair people={peopleA} size="md" />
+                <p className="t-title min-w-0 text-foreground">
+                  <SideNames names={p.playersA} playerIdByName={playerIdByName} />
+                </p>
+              </div>
+              <p className="t-micro my-[var(--space-3)]">vs</p>
+              <div className="flex items-center gap-2">
+                <AvatarPair people={peopleB} size="md" />
+                <p className="t-title min-w-0 text-foreground">
+                  <SideNames names={p.playersB} playerIdByName={playerIdByName} />
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 }
 
 function SideNames({
   names,
-  tone,
-  quiet = false,
   playerIdByName,
 }: {
   names: string[];
-  tone: "hunter" | "stone";
-  quiet?: boolean;
   playerIdByName?: (name: string) => string | undefined;
 }) {
-  const color = quiet
-    ? "text-muted-foreground"
-    : tone === "hunter"
-      ? "text-hunter"
-      : "text-stone";
   return (
     <>
       {names.map((name, index) => {
         const id = playerIdByName?.(name);
-        const label = name.trim().split(/\s+/)[0] ?? name;
+        const label = firstName(name);
         const sep = index === 0 ? null : " · ";
         if (id) {
           return (
             <span key={name}>
               {sep}
-              <Link to="/player/$playerId" params={{ playerId: id }} className={`press ${color}`}>
+              <Link to="/player/$playerId" params={{ playerId: id }} className="press">
                 {label}
               </Link>
             </span>
           );
         }
         return (
-          <span key={name} className={color}>
+          <span key={name}>
             {sep}
             {label}
           </span>

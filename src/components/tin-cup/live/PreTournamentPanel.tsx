@@ -1,13 +1,14 @@
 import { Link } from "@tanstack/react-router";
 
-import { TheCardSheet } from "@/components/tin-cup/TheCardSheet";
+import { FridayFoursome } from "@/components/tin-cup/FridayFoursome";
+import { LockerWall } from "@/components/tin-cup/LockerWall";
 import { FieldChatLink, InstallHint } from "@/components/tin-cup/WhatsAppLinks";
+import { useBanterVotes } from "@/hooks/useBanterVotes";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { Countdown } from "@/components/tin-cup/Countdown";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
 
-import { yourGroupLine } from "@/lib/day1-pairings";
 import {
   VENMO_IS_PLACEHOLDER,
   WEEKEND_SOCIAL,
@@ -15,10 +16,10 @@ import {
 } from "@/lib/tin-cup";
 import type { WeekendContext } from "@/lib/weekend-context";
 
-/** Pre-event Home — clock as luxury; pairing caption; one next door. */
+/** Pre-event Home — clock, foursome, one door, then the wall. */
 export function PreTournamentPanel({
-  rounds = [],
-  matches = [],
+  rounds: _rounds = [],
+  matches: _matches = [],
   players = [],
   teams = [],
   canUpload: _canUpload = false,
@@ -39,8 +40,8 @@ export function PreTournamentPanel({
 }) {
   const nextCourseId = defaultCourseId() as CourseId;
   const today = COURSE_DETAILS[nextCourseId];
-  const groupLine = claimedName ? yourGroupLine(claimedName) : null;
   const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
+  const { votes } = useBanterVotes();
 
   return (
     <section aria-label="This weekend" className="stack">
@@ -49,10 +50,16 @@ export function PreTournamentPanel({
         <p className="t-micro mt-0.5 px-1 text-center">
           {today.dayLabel} · {COURSE_LABEL[nextCourseId]} · {today.firstTee}
         </p>
-        {groupLine ? (
-          <p className="t-micro-strong mt-0.5 px-1 text-center text-foreground/80">{groupLine}</p>
-        ) : null}
       </div>
+
+      {claimedName ? (
+        <FridayFoursome
+          claimedName={claimedName}
+          players={players}
+          teams={teams}
+          votes={votes}
+        />
+      ) : null}
 
       {claimedName ? (
         <div className="surface divide-y divide-border overflow-hidden">
@@ -78,7 +85,7 @@ export function PreTournamentPanel({
         </div>
       ) : null}
 
-      <TheCardSheet matches={matches} rounds={rounds} players={players} teams={teams} compact />
+      <LockerWall players={players} teams={teams} />
     </section>
   );
 }

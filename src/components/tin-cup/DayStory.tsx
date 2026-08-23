@@ -53,21 +53,21 @@ export function CourseDayStory({
 /** Three short format cards — one sentence, tee, points; expand for full copy. */
 export function FormatCards() {
   return (
-    <div className="surface divide-y divide-border overflow-hidden">
+    <div className="grid gap-[var(--space-5)]">
       {COURSE_ORDER.map((id) => {
         const d = COURSE_DETAILS[id];
         return (
-          <details key={id} className="group">
-            <summary className="press cursor-pointer list-none px-[var(--space-5)] py-[var(--space-3)] [&::-webkit-details-marker]:hidden">
+          <details key={id} className="surface group">
+            <summary className="press min-h-[7.5rem] cursor-pointer list-none p-[var(--space-4)] [&::-webkit-details-marker]:hidden">
               <p className="t-title text-foreground">
                 {d.dayLabel} · {d.format}
               </p>
-              <p className="t-body mt-[var(--space-3)] text-foreground/90">{d.formatTip}</p>
+              <p className="t-body mt-[var(--space-3)]">{d.formatTip}</p>
               <p className="t-micro mt-[var(--space-3)]">
                 {d.firstTee} · {d.points} pts
               </p>
             </summary>
-            <p className="t-body px-[var(--space-5)] pb-[var(--space-5)] text-muted-foreground">
+            <p className="t-body px-[var(--space-4)] pb-[var(--space-4)] text-muted-foreground">
               {COURSE_LABEL[id]} · {d.description}
             </p>
           </details>
@@ -97,7 +97,7 @@ export function MoneySplit() {
   return (
     <div className="surface divide-y divide-border overflow-hidden">
       {FEE_BREAKDOWN.map((row) => (
-        <article key={row.label} className="px-4 py-[var(--space-3)]">
+        <article key={row.label} className="p-[var(--space-4)]">
           <p className="t-micro">{row.label}</p>
           <p className="t-title mt-1 tabular-nums text-foreground">{row.value}</p>
           <p className="t-micro mt-1.5">{row.note}</p>

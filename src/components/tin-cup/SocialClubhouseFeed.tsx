@@ -178,17 +178,9 @@ export function SocialClubhouseFeed({
   const photoMomentsAll = moments.filter((moment) => moment.kind === "photo");
   const restMomentsAll = moments.filter((moment) => moment.kind !== "photo");
   const visiblePostsAll = story.clubhousePosts.filter((post) => !isJunkBody(post.body));
-  const photoMoments = homePeek ? photoMomentsAll.slice(0, 1) : photoMomentsAll;
-  const visiblePosts = homePeek
-    ? photoMomentsAll.length
-      ? []
-      : visiblePostsAll.slice(0, 1)
-    : visiblePostsAll;
-  const restMoments = homePeek
-    ? photoMomentsAll.length || visiblePostsAll.length
-      ? []
-      : restMomentsAll.slice(0, 1)
-    : restMomentsAll;
+  const photoMoments = homePeek ? photoMomentsAll.slice(0, 8) : photoMomentsAll;
+  const visiblePosts = homePeek ? visiblePostsAll.slice(0, 8) : visiblePostsAll;
+  const restMoments = homePeek ? [] : restMomentsAll;
   const emptyFeed =
     visiblePosts.length === 0 && photoMoments.length === 0 && restMoments.length === 0;
   const mediaPaths = moments
@@ -755,6 +747,7 @@ export function SocialClubhouseFeed({
                   )}
                   <ReactionBar
                     visible={canParticipate}
+                    heatOnly={homePeek}
                     momentKey={reactionKey}
                     reactions={reactions}
                     userId={user?.id}
@@ -1159,31 +1152,35 @@ function ReactionBar({
   userId,
   onToggle,
   visible = true,
+  heatOnly = false,
 }: {
   momentKey: string;
   reactions: Array<{ kind: string; user_id: string }>;
   userId?: string;
   onToggle: (kind: ReactionKind) => void;
   visible?: boolean;
+  heatOnly?: boolean;
 }) {
   if (!visible) return null;
+  const kinds = heatOnly ? REACTIONS.filter((row) => row.kind === "fire") : REACTIONS;
   return (
     <div className="mt-2 flex gap-1">
-      {REACTIONS.map(({ kind, label, icon: Icon }) => {
+      {kinds.map(({ kind, label, icon: Icon }) => {
         const count = reactions.filter((row) => row.kind === kind).length;
         const mine = reactions.some((row) => row.kind === kind && row.user_id === userId);
         return (
           <button
             key={kind}
             type="button"
-            aria-label={`${label}, ${count}`}
+            aria-label={heatOnly ? label : `${label}, ${count}`}
             aria-pressed={mine}
             onClick={() => onToggle(kind)}
             className={`press inline-flex min-h-11 items-center gap-1 rounded-full px-2.5 t-micro ${
-              mine ? "chip-on" : "text-muted-foreground"
+              mine ? "text-hunter" : "text-muted-foreground"
             }`}
           >
-            <Icon className="size-3.5" /> {count || ""}
+            <Icon className="size-3.5" />
+            {heatOnly ? null : count || ""}
           </button>
         );
       })}

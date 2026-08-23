@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { DAY1_PAIRINGS, day1GroupForPlayer, fridayPartnerLine, groupLine, yourGroupLine } from "@/lib/day1-pairings";
+import {
+  DAY1_PAIRINGS,
+  day1GroupForPlayer,
+  fridayFoursome,
+  fridayPartnerLine,
+  groupLine,
+  yourGroupLine,
+} from "@/lib/day1-pairings";
 
 describe("day1 pairings", () => {
   it("has four locked matches", () => {
@@ -24,5 +31,16 @@ describe("day1 pairings", () => {
     expect(yourGroupLine("Nobody")).toBeNull();
     expect(fridayPartnerLine("Zack Smith")).toBe("Chris · vs Charles · Blake");
     expect(fridayPartnerLine("Nobody")).toBeNull();
+  });
+
+  it("orders Friday seats you, partner, then across", () => {
+    const seats = fridayFoursome("Dan Rodriguez");
+    expect(seats?.map((s) => s.name)).toEqual([
+      "Dan Rodriguez",
+      "Josef Yehia",
+      "Kevin Maher",
+      "Max Furth",
+    ]);
+    expect(seats?.[0]?.you).toBe(true);
   });
 });

@@ -4,13 +4,13 @@ import { Avatar } from "@/components/tin-cup/Avatar";
 import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
 import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
-import { useMatchSocial } from "@/hooks/useMatchSocial";
+import { useBanterVotes } from "@/hooks/useBanterVotes";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
 import { day1GroupForPlayer, fridayPartnerLine, groupLine } from "@/lib/day1-pairings";
-import { cardLine, fridayCardMarkets, pickOnMarket } from "@/lib/the-card";
+import { chipForPlayer } from "@/lib/banter";
 import { formatRecord, pairingIncludes, playerRecord, roundStatus } from "@/lib/scoring";
 
 import { formatPayout } from "@/lib/purse";
@@ -72,24 +72,10 @@ function PlayerPage() {
   const face = avatars.data?.byPlayerId.get(playerId);
   const publicProfiles = usePublicProfiles();
   const socialProfile = publicProfiles.data?.find((candidate) => candidate.player_id === playerId);
-  const matchSocial = useMatchSocial();
-  const faceoffLines = fridayCardMarkets(matches, rounds)
-    .map((market) => {
-      if (!socialProfile) return null;
-      const pick = pickOnMarket(matchSocial.predictions, socialProfile.id, market.matchIds);
-      if (!pick) return null;
-      return {
-        id: market.id,
-        ...cardLine({
-          author: player?.name.trim().split(/\s+/)[0] ?? "Player",
-          choice: pick.choice,
-          sideA: market.sideA,
-          sideB: market.sideB,
-          note: pick.note,
-        }),
-      };
-    })
-    .filter((row): row is NonNullable<typeof row> => Boolean(row));
+  const { votes } = useBanterVotes();
+  const banterChips = player
+    ? chipForPlayer(votes, player.id, player.name.trim().split(/\s+/)[0] ?? player.name)
+    : [];
 
   if (isPending && !data) {
     return (
@@ -215,18 +201,14 @@ function PlayerPage() {
         </section>
       )}
 
-      {faceoffLines.length > 0 ? (
-        <section className="mt-6">
-          <h2 className="t-eyebrow">Faceoff</h2>
-          <ul className="mt-2 flex flex-wrap gap-2">
-            {faceoffLines.map((row) => (
-              <li key={row.id} className="player-flair max-w-full">
-                {row.title}
-                {row.detail ? <span className="ml-1 font-medium italic">{row.detail}</span> : null}
-              </li>
-            ))}
-          </ul>
-        </section>
+      {banterChips.length > 0 ? (
+        <ul className="mt-6 flex flex-wrap gap-2">
+          {banterChips.map((chip) => (
+            <li key={chip} className="player-flair max-w-full">
+              {chip}
+            </li>
+          ))}
+        </ul>
       ) : null}
 
       <section className="mt-6">

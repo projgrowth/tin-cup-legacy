@@ -131,3 +131,29 @@ export function fridayPartnerLine(playerName: string): string | null {
     .join(" · ");
   return `${firstName(group.partner)} · vs ${them}`;
 }
+
+export type FoursomeSeat = {
+  name: string;
+  you: boolean;
+  teamSlug: "strong-mental" | "grass-roots";
+};
+
+/** You, partner, then the two across. */
+export function fridayFoursome(playerName: string): FoursomeSeat[] | null {
+  const group = day1GroupForPlayer(playerName);
+  if (!group) return null;
+  const yours = group.side === "a" ? group.pairing.playersA : group.pairing.playersB;
+  const across = group.side === "a" ? group.pairing.playersB : group.pairing.playersA;
+  const you = yours.find((name) => name.toLowerCase() === playerName.trim().toLowerCase()) ?? yours[0]!;
+  const partner = yours.find((name) => name !== you) ?? yours[1]!;
+  return [
+    { name: you, you: true, teamSlug: group.side === "a" ? "strong-mental" : "grass-roots" },
+    { name: partner, you: false, teamSlug: group.side === "a" ? "strong-mental" : "grass-roots" },
+    { name: across[0]!, you: false, teamSlug: group.side === "a" ? "grass-roots" : "strong-mental" },
+    { name: across[1]!, you: false, teamSlug: group.side === "a" ? "grass-roots" : "strong-mental" },
+  ];
+}
+
+export function fridayRosterNames(): string[] {
+  return DAY1_PAIRINGS.flatMap((row) => [...row.playersA, ...row.playersB]);
+}
