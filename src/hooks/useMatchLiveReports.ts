@@ -144,6 +144,13 @@ export function useMatchLiveReports(
         updated_at: new Date().toISOString(),
       };
       upsertLocal(row);
+      setRows((prev) => {
+        const next = prev.filter(
+          (item) => !(item.pairing_key === row.pairing_key && item.reporter_id === row.reporter_id),
+        );
+        next.push(row);
+        return next;
+      });
       if (isPreviewMode()) {
         return { source: "local" as const };
       }

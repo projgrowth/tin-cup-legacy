@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -20,6 +20,10 @@ type Props = {
   canScore?: boolean;
 };
 
+function firstName(name: string): string {
+  return name.trim().split(/\s+/)[0] || name;
+}
+
 export function MatchLiveCard({
   claimedName,
   players,
@@ -38,17 +42,31 @@ export function MatchLiveCard({
   const mine = Boolean(claimedName) && (
     pairingIncludesLoose(sideA, claimedName!) || pairingIncludesLoose(sideB, claimedName!)
   );
-  const onA = claimedName ? pairingIncludesLoose(sideA, claimedName) : false;
   const stableford = isStablefordLabel(formatLabel ?? match?.label);
   const mineReport = reports.find((row) => row.reporterId === user?.id);
   const others = reports.filter((row) => row.reporterId !== user?.id);
+  const locked = Boolean(match?.result && match.result !== "pending");
   const [pointsA, setPointsA] = useState(mineReport?.holes?.pointsA ?? 0);
   const [pointsB, setPointsB] = useState(mineReport?.holes?.pointsB ?? 0);
-  const marks = (mineReport?.holes?.marks ?? []) as HoleMark[];
+  const [marks, setMarks] = useState<HoleMark[]>((mineReport?.holes?.marks ?? []) as HoleMark[]);
+
+  useEffect(() => {
+    if (mineReport?.holes?.kind === "match-play" && mineReport.holes.marks) {
+      setMarks(mineReport.holes.marks as HoleMark[]);
+    }
+    if (mineReport?.holes?.kind === "stableford") {
+      setPointsA(mineReport.holes.pointsA ?? 0);
+      setPointsB(mineReport.holes.pointsB ?? 0);
+    }
+  }, [mineReport]);
+
   const live = useMemo(() => {
     if (stableford) return summarizeStableford(pointsA, pointsB);
     return summarizeMatchPlay(marks);
   }, [marks, pointsA, pointsB, stableford]);
+
+  const peer = others[0];
+  const peerBeside = peer ? `${firstName(peer.playerName)} ${peer.status}` : null;
 
   if (!claimedName && reports.length === 0) return null;
 
@@ -78,12 +96,27 @@ export function MatchLiveCard({
     }
   }
 
+  function tapHole(mark: HoleMark) {
+    const next = [...marks, mark];
+    setMarks(next);
+    void persist(next);
+  }
+
+  function undoHole() {
+    const next = marks.slice(0, -1);
+    setMarks(next);
+    void persist(next);
+  }
+
   return (
     <section className="surface mt-2 space-y-3 px-4 py-3.5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="t-eyebrow">Live · unofficial</p>
-          <p className="t-title mt-1 text-hunter">{live.headline}</p>
+          <p className="t-eyebrow">{locked ? "Live" : "Live · unofficial"}</p>
+          <p className="t-title mt-1 text-hunter">
+            {live.headline}
+            {peerBeside ? <span className="t-body font-semibold text-foreground"> · {peerBeside}</span> : null}
+          </p>
           <p className="t-micro text-muted-foreground">{live.detail}</p>
         </div>
         {!remoteReady ? (
@@ -91,15 +124,11 @@ export function MatchLiveCard({
         ) : null}
       </div>
 
-      {others.length > 0 ? (
-        <ul className="space-y-1">
-          {others.map((row) => (
-            <li key={row.reporterId} className="t-micro text-muted-foreground">
-              {formatPeerLine(row.playerName, row.status)}
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      {others.slice(1).map((row) => (
+        <p key={row.reporterId} className="t-micro text-muted-foreground">
+          {formatPeerLine(row.playerName, row.status)}
+        </p>
+      ))}
 
       {user && mine && player ? (
         stableford ? (
@@ -109,7 +138,7 @@ export function MatchLiveCard({
               <input
                 type="number"
                 inputMode="numeric"
-                className="ml-1 w-14 rounded border border-border bg-background px-2 py-1 t-body"
+                className="ml-1 min-h-11 w-16 rounded border border-border bg-background px-2 py-1 t-body"
                 value={pointsA}
                 onChange={(event) => setPointsA(Number(event.target.value) || 0)}
               />
@@ -119,14 +148,14 @@ export function MatchLiveCard({
               <input
                 type="number"
                 inputMode="numeric"
-                className="ml-1 w-14 rounded border border-border bg-background px-2 py-1 t-body"
+                className="ml-1 min-h-11 w-16 rounded border border-border bg-background px-2 py-1 t-body"
                 value={pointsB}
                 onChange={(event) => setPointsB(Number(event.target.value) || 0)}
               />
             </label>
             <button
               type="button"
-              className="press chip t-micro chip-on"
+              className="press chip t-micro chip-on min-h-11"
               onClick={() => void persist(marks, pointsA, pointsB)}
             >
               Post live
@@ -144,8 +173,8 @@ export function MatchLiveCard({
               <button
                 key={mark}
                 type="button"
-                className="press chip t-micro"
-                onClick={() => void persist([...marks, mark])}
+                className="press chip t-micro min-h-11 px-4"
+                onClick={() => tapHole(mark)}
               >
                 {label}
               </button>
@@ -153,8 +182,8 @@ export function MatchLiveCard({
             {marks.length > 0 ? (
               <button
                 type="button"
-                className="press chip t-micro"
-                onClick={() => void persist(marks.slice(0, -1))}
+                className="press chip t-micro min-h-11 px-4"
+                onClick={undoHole}
               >
                 Undo hole
               </button>

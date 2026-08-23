@@ -6,7 +6,6 @@ import { FieldChatLink, InstallHint } from "@/components/tin-cup/WhatsAppLinks";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { Countdown } from "@/components/tin-cup/Countdown";
-import { CupDigest } from "@/components/tin-cup/live/ScoreBoard";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
 
 import { day1GroupForPlayer, yourGroupLine } from "@/lib/day1-pairings";
@@ -18,7 +17,7 @@ import {
 } from "@/lib/tin-cup";
 import type { WeekendContext } from "@/lib/weekend-context";
 
-/** Pre-event Home — clock, Faceoff, Field. Same kit as Weekend. */
+/** Pre-event Home — claimed spine above the fold; Faceoff stays below. */
 export function PreTournamentPanel({
   rounds = [],
   matches = [],
@@ -45,6 +44,10 @@ export function PreTournamentPanel({
   const d1 = claimedName ? day1GroupForPlayer(claimedName) : null;
   const today = COURSE_DETAILS[nextCourseId];
   const groupLine = claimedName ? yourGroupLine(claimedName) : null;
+  const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
+  const fridayMatch = d1
+    ? (matches.find((row) => playerSides(row, d1.pairing.sideA, d1.pairing.sideB)) ?? null)
+    : null;
 
   return (
     <section aria-label="This weekend" className="space-y-5">
@@ -52,30 +55,19 @@ export function PreTournamentPanel({
         <Countdown />
         <header className="px-1 text-center">
           <h1 className="t-title text-foreground">
-            {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
+            {today.dayLabel} · {COURSE_LABEL[nextCourseId]} · {today.firstTee}
           </h1>
-          <p className="t-micro mt-1">{today.firstTee}</p>
         </header>
-        {claimedName ? <div className="mt-3"><CupDigest matches={matches} quiet /></div> : null}
         {groupLine ? (
-          <div className="mt-2 space-y-1 px-1 text-center">
-            <p className="text-sm font-semibold text-foreground">{groupLine}</p>
-            <Link
-              to="/scout"
-              search={{ course: "south" }}
-              className="t-micro text-muted-foreground underline-offset-2 hover:underline"
-            >
-              Friday book · South
-            </Link>
-          </div>
+          <p className="mt-2 px-1 text-center text-sm font-semibold text-foreground">{groupLine}</p>
         ) : null}
       </div>
 
-      {d1 ? (
+      {claimedName && d1 ? (
         <MatchLiveCard
           claimedName={claimedName}
           players={players}
-          match={matches.find((row) => playerSides(row, d1.pairing.sideA, d1.pairing.sideB)) ?? null}
+          match={fridayMatch}
           day1Index={d1.pairing.matchIndex}
           sideA={d1.pairing.sideA}
           sideB={d1.pairing.sideB}
@@ -83,12 +75,36 @@ export function PreTournamentPanel({
           canScore={canScore}
         />
       ) : null}
+
+      {claimedName ? (
+        <div className="surface divide-y divide-border overflow-hidden">
+          <Link
+            to="/scout"
+            search={{ course: "south", hole: 1, map: true }}
+            className="press flex min-h-11 items-center justify-between px-4 py-3"
+          >
+            <span className="t-body font-medium text-foreground">Friday book</span>
+            <span className="t-micro">South 1</span>
+          </Link>
+          {tonight ? (
+            <Link
+              to="/schedule"
+              search={{}}
+              className="press flex min-h-11 items-center justify-between px-4 py-3"
+            >
+              <span className="t-body font-medium text-foreground">Tonight · {tonight.title}</span>
+              <span className="t-micro">Weekend</span>
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
+
       <TheCardSheet matches={matches} rounds={rounds} players={players} teams={teams} />
     </section>
   );
 }
 
-/** Pay / tonight / install — after Field, not in the hangout spine. */
+/** Guest doors after Field. No Pay. Claimed Tonight lives in the spine. */
 export function HomeWeekendDoors({
   signedIn = false,
   claimedName = null,
@@ -105,6 +121,7 @@ export function HomeWeekendDoors({
   const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
   const avatars = usePlayerAvatars(players, teams);
   const face = (name: string) => avatars.data?.getByName(name);
+  const guest = !claimedName;
 
   return (
     <div className="stack-tight">
@@ -118,16 +135,17 @@ export function HomeWeekendDoors({
             <span className="t-micro">Account</span>
           </Link>
         ) : null}
-        {tonight ? (
+        {guest && tonight ? (
           <Link
             to="/schedule"
+            search={{}}
             className="press flex min-h-11 items-center justify-between px-4 py-3"
           >
             <span className="t-body font-medium text-foreground">Tonight · {tonight.title}</span>
             <span className="t-micro">Weekend</span>
           </Link>
         ) : null}
-        <InstallHint embedded />
+        {guest ? <InstallHint embedded /> : null}
       </div>
       {VENMO_IS_PLACEHOLDER && (
         <p className="t-micro px-1 text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>
