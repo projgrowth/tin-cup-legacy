@@ -53,14 +53,14 @@ export function PreTournamentPanel({
     <section aria-label="This weekend" className="space-y-5">
       <div>
         <Countdown />
-        <header className="px-1 text-center">
-          <h1 className="t-title text-foreground">
-            {today.dayLabel} · {COURSE_LABEL[nextCourseId]} · {today.firstTee}
-          </h1>
-        </header>
         {groupLine ? (
-          <p className="mt-2 px-1 text-center text-sm font-semibold text-foreground">{groupLine}</p>
+          <h1 className="t-display mt-2 truncate whitespace-nowrap px-1 text-center text-foreground">
+            {groupLine}
+          </h1>
         ) : null}
+        <p className="t-micro mt-1 px-1 text-center">
+          {today.dayLabel} · {COURSE_LABEL[nextCourseId]} · {today.firstTee}
+        </p>
       </div>
 
       {claimedName && d1 ? (

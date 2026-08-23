@@ -962,7 +962,7 @@ export function SocialClubhouseFeed({
       </div>
 
       {emptyFeed && (
-        <p className="t-micro px-1 py-2 text-muted-foreground">Nothing on the field yet</p>
+        <p className="t-micro px-1 py-1">Nothing on the field yet.</p>
       )}
       {canParticipate && matchSocial.unavailable ? (
         <p className="t-micro text-muted-foreground">Field tools are temporarily read-only.</p>

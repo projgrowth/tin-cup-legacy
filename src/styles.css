@@ -850,7 +850,7 @@ html[data-theme="night"] {
   --secondary: oklch(0.25 0.02 155);
   --secondary-foreground: oklch(0.96 0.012 95);
   --muted: oklch(0.23 0.018 155);
-  --muted-foreground: oklch(0.78 0.02 150);
+  --muted-foreground: oklch(0.84 0.016 155);
   --accent: var(--stone);
   --accent-foreground: oklch(0.16 0.02 155);
   --border: oklch(0.96 0.012 95 / 10%);

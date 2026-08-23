@@ -250,14 +250,14 @@ function SidePick({
   onClick: () => void;
 }) {
   const color = selected ? "text-hunter" : tone === "hunter" ? "text-hunter" : "text-stone";
-  const fill = selected ? "bg-hunter/10 ring-1 ring-hunter/30" : "";
+  const fill = selected ? "bg-hunter/15 ring-1 ring-hunter/30" : "";
   const className = `contents`;
   const inner = (
     <>
-      <span className={`flex min-h-12 items-center justify-center rounded-xl ${fill}`}>
+      <span className={`flex min-h-12 items-center justify-center rounded-xl transition-colors duration-[120ms] ${fill}`}>
         <AvatarPair people={people} size="sm" />
       </span>
-      <span className={`min-w-0 rounded-xl px-1 py-1 text-left ${fill}`}>
+      <span className={`min-w-0 rounded-xl px-1 py-1 text-left transition-colors duration-[120ms] ${fill}`}>
         <span className={`t-body block font-semibold leading-snug break-words ${color}`}>{label}</span>
       </span>
     </>
