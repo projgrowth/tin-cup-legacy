@@ -11,7 +11,7 @@ export function SnakePitDrawer({ triggerClassName = "" }: { triggerClassName?: s
   const stretch = SNAKE_PIT.map((hole) => `${hole.hole} ${hole.name}`).join(", ");
   return (
     <Drawer>
-      <DrawerTrigger className={`press min-h-11 ${triggerClassName || "btn-quiet t-micro"}`}>
+      <DrawerTrigger className={`press ${triggerClassName || "t-micro"}`}>
         Snake Pit
       </DrawerTrigger>
       <DrawerContent className="border-border bg-card">

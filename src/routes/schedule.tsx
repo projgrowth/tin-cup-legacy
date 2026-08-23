@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
-import { FridayPairings, FRIDAY_HOW } from "@/components/tin-cup/FridayPairings";
+import { FridayPairings } from "@/components/tin-cup/FridayPairings";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
@@ -57,6 +57,10 @@ export const Route = createFileRoute("/schedule")({
   component: SchedulePage,
 });
 
+function dinnerFor(dayLabel: string) {
+  return WEEKEND_SOCIAL.find((row) => row.day.startsWith(dayLabel));
+}
+
 function SchedulePage() {
   const search = Route.useSearch();
   const { data, isError, refetch, isFetching } = useTournament();
@@ -94,6 +98,8 @@ function SchedulePage() {
   const playerIdByName = (name: string) =>
     (data?.players ?? []).find((player) => player.name.trim().toLowerCase() === name.trim().toLowerCase())
       ?.id;
+  const dinner = dinnerFor(details.dayLabel);
+  const isFriday = courseId === "south";
 
   return (
     <Shell variant="content">
@@ -118,61 +124,58 @@ function SchedulePage() {
             })}
           </div>
 
-          <header className="px-0.5">
-            <h1 className="t-title text-foreground">{details.format}</h1>
-            <p className="t-micro mt-1">
-              {details.dayLabel} · {COURSE_LABEL[courseId]} · {details.firstTee}
-            </p>
-          </header>
-
-          {courseId === "south" ? (
-            <p className="t-micro">{FRIDAY_HOW}</p>
-          ) : null}
-
-          {courseId === "south" ? (
-            <FridayPairings
-              hideIntro
-              getFace={(name) => avatars.data?.getByName(name)}
-              claimedName={claimedPlayer?.name ?? null}
-              playerIdByName={playerIdByName}
-              matches={data?.matches ?? []}
-              rounds={data?.rounds ?? []}
-            />
+          {isFriday ? (
+            <>
+              <header className="px-0.5">
+                <h1 className="t-title text-foreground">{details.format}</h1>
+                <p className="t-micro mt-1">
+                  {details.dayLabel} · {COURSE_LABEL[courseId]} · {details.firstTee}
+                </p>
+              </header>
+              <FridayPairings
+                hideIntro
+                getFace={(name) => avatars.data?.getByName(name)}
+                claimedName={claimedPlayer?.name ?? null}
+                playerIdByName={playerIdByName}
+                matches={data?.matches ?? []}
+                rounds={data?.rounds ?? []}
+              />
+            </>
           ) : (
-            <p className="t-micro">Pairings when captains post</p>
+            <header className="px-0.5">
+              <h1 className="t-hero text-foreground">{details.format}</h1>
+              <p className="t-micro mt-2">
+                {COURSE_LABEL[courseId]} · {details.firstTee} · {details.points} pts
+              </p>
+              <p className="t-micro mt-[var(--space-5)]">Pairings when captains post</p>
+            </header>
           )}
 
-          {WEEKEND_SOCIAL.filter((row) => row.day.startsWith(details.dayLabel)).slice(0, 1).map((row) => (
-            <p key={row.day} className="t-body text-foreground">
-              Tonight · {row.title}
-            </p>
-          ))}
-
+          {dinner ? <p className="t-micro">Tonight · {dinner.title}</p> : null}
         </section>
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
-        <details className="group">
-          <summary className="press t-micro cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-            How formats · Snake Pit · Calendar
-          </summary>
-          <div className="mt-[var(--space-3)] stack-tight">
-            <FormatSheet triggerClassName="t-micro" />
-            <SnakePitDrawer triggerClassName="t-micro" />
-            {rounds.length > 0 && (
+        <p className="t-micro flex flex-wrap items-baseline gap-x-2">
+          <FormatSheet triggerClassName="t-micro" />
+          <span aria-hidden="true">·</span>
+          <SnakePitDrawer triggerClassName="t-micro" />
+          {rounds.length > 0 ? (
+            <>
+              <span aria-hidden="true">·</span>
               <button
                 type="button"
                 onClick={() => {
                   downloadWeekendIcs(rounds);
                   void trackProductEvent("calendar_downloaded", { kind: "weekend" });
                 }}
-                className="press t-micro min-h-11 text-left"
+                className="press t-micro"
               >
-                Add weekend to calendar
+                Calendar
               </button>
-            )}
-          </div>
-        </details>
+            </>
+          ) : null}
+        </p>
         <p className="t-micro px-1 text-muted-foreground">
           Playoff · If 13–13: captains each pick a scramble partner · one hole until decided.
         </p>

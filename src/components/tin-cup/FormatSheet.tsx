@@ -10,16 +10,14 @@ import {
 import { FormatCards, MoneySplit } from "@/components/tin-cup/DayStory";
 import { EVENT } from "@/lib/tin-cup";
 
-/** Non-invasive format / money explainer — chip opens bottom sheet. */
+/** Format / money explainer — quiet text opens the sheet. */
 export function FormatSheet({ triggerClassName = "" }: { triggerClassName?: string }) {
   const [tab, setTab] = useState<"days" | "money">("days");
 
   return (
     <Drawer>
-      <DrawerTrigger
-        className={`press min-h-11 ${triggerClassName || "t-micro inline-flex items-center gap-1.5 text-muted-foreground"}`}
-      >
-        How formats work
+      <DrawerTrigger className={`press ${triggerClassName || "t-micro"}`}>
+        How formats
       </DrawerTrigger>
       <DrawerContent className="border-border bg-card">
         <DrawerHeader className="pb-2 text-left">
