@@ -89,15 +89,15 @@ export function TheCardTicket({
   }
 
   return (
-    <article className={`px-4 py-3 ${yours ? "bg-hunter/5" : ""}`}>
+    <article className={`px-3 py-3 ${yours ? "bg-hunter/5" : ""}`}>
       {yours || locked ? (
-        <p className="t-micro text-muted-foreground">
+        <p className="t-micro mb-1.5 text-muted-foreground">
           {yours ? <span className="text-hunter">You</span> : null}
           {yours && locked ? " · " : null}
           {locked ? "Locked" : null}
         </p>
       ) : null}
-      <div className={yours || locked ? "mt-1.5" : undefined}>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1">
         <SideRow
           people={peopleA}
           label={labelA}
@@ -109,7 +109,7 @@ export function TheCardTicket({
           to={claimToRide ? "/profile" : undefined}
           onClick={() => pick("side-a")}
         />
-        <p className="t-micro py-0.5 text-center text-muted-foreground">vs</p>
+        <p className="t-micro self-center px-0.5 text-muted-foreground">vs</p>
         <SideRow
           people={peopleB}
           label={labelB}
@@ -157,8 +157,6 @@ export function TheCardTicket({
         </div>
       ) : mine?.note ? (
         <p className="t-micro mt-2 italic text-foreground/80">“{mine.note}”</p>
-      ) : canPick ? (
-        <p className="t-micro mt-1.5 text-muted-foreground">Tap a side. Tap again to undo.</p>
       ) : null}
     </article>
   );
@@ -190,15 +188,15 @@ function SideRow({
     tone === "hunter"
       ? "bg-hunter/10 ring-1 ring-hunter/30"
       : "bg-stone/15 ring-1 ring-stone/30";
-  const className = `flex min-h-12 w-full items-center gap-2 rounded-xl px-2 text-left transition-colors duration-150 disabled:opacity-100 ${
+  const className = `flex min-h-16 min-w-0 w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-center transition-colors duration-150 disabled:opacity-100 ${
     disabled && !to ? "cursor-default" : "press"
   } ${selected ? fill : ""}`;
   const inner = (
     <>
       <AvatarPair people={people} size="sm" />
-      <span className={`t-body min-w-0 flex-1 truncate font-semibold ${color}`}>{label}</span>
+      <span className={`t-body max-w-full font-semibold leading-snug break-words ${color}`}>{label}</span>
       {riders.length > 0 ? (
-        <span className="inline-flex shrink-0 items-center gap-0.5">
+        <span className="inline-flex items-center justify-center gap-0.5">
           {riders.slice(0, 2).map((rider, index) => (
             <Avatar
               key={`${rider.name}-${index}`}

@@ -76,19 +76,20 @@ export function ShareBoardButton({
 const INSTALL_KEY = "tc-install-hint-dismissed";
 
 /** One-time install row so Safari chrome stops eating the hole map. */
+function installHintOpen() {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(INSTALL_KEY) !== "1";
+  } catch {
+    return false;
+  }
+}
+
 export function InstallHint({ embedded = false }: { embedded?: boolean }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    try {
-      if (window.localStorage.getItem(INSTALL_KEY) === "1") return;
-    } catch {
-      return;
-    }
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
-    if (!standalone) setVisible(true);
+    setVisible(installHintOpen());
   }, []);
 
   if (!visible) return null;

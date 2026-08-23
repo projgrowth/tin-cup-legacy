@@ -46,7 +46,8 @@ export function PreTournamentPanel({
   return (
     <section aria-label="This weekend" className="space-y-5">
       <div>
-        <header className="px-1 pt-1 text-center">
+        <Countdown />
+        <header className="px-1 text-center">
           <h1 className="text-[0.95rem] font-semibold tracking-tight text-foreground">
             {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
           </h1>
@@ -55,9 +56,8 @@ export function PreTournamentPanel({
             {` · ${today.points} pts`}
           </p>
         </header>
-        <Countdown />
         {groupLine ? (
-          <p className="px-1 text-center text-sm font-semibold text-foreground">{groupLine}</p>
+          <p className="mt-2 px-1 text-center text-sm font-semibold text-foreground">{groupLine}</p>
         ) : null}
       </div>
 
