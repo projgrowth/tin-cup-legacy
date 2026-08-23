@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Camera,
@@ -88,6 +88,7 @@ export function SocialClubhouseFeed({
   compact?: boolean;
 }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { profile } = useProfile();
   const story = useWeekendStory(user?.id);
@@ -266,6 +267,17 @@ export function SocialClubhouseFeed({
     } finally {
       setUploading(false);
     }
+  }
+
+  function react(momentKey: string, kind: ReactionKind) {
+    if (!canParticipate) {
+      void navigate({ to: "/profile" });
+      return;
+    }
+    story.toggleReaction.mutate(
+      { momentKey, kind },
+      { onError: (error) => toast.error(error.message) },
+    );
   }
 
   function submitPost() {
@@ -640,10 +652,7 @@ export function SocialClubhouseFeed({
                     momentKey={reactionKey}
                     reactions={reactions}
                     userId={user?.id}
-                    enabled={canParticipate}
-                    onToggle={(kind) =>
-                      story.toggleReaction.mutate({ momentKey: reactionKey, kind })
-                    }
+                    onToggle={(kind) => react(reactionKey, kind)}
                   />
                   <CommentThread
                     momentKey={fieldReplyKey(post.id)}
@@ -721,13 +730,15 @@ export function SocialClubhouseFeed({
             return (
               <article key={moment.key} id={`post-${moment.key}`} className="overflow-hidden">
                 {moment.kind === "photo" && mediaUrl ? (
-                  <img
-                    src={mediaUrl}
-                    alt={moment.detail || moment.title}
-                    className="h-64 w-full bg-secondary object-cover object-center"
-                  />
+                  <div className="bg-secondary">
+                    <img
+                      src={mediaUrl}
+                      alt={moment.detail || moment.title}
+                      className="mx-auto max-h-[32rem] w-full object-contain"
+                    />
+                  </div>
                 ) : moment.kind === "photo" && moment.mediaPath ? (
-                  <div className="skeleton h-64 w-full" />
+                  <div className="skeleton h-48 w-full" />
                 ) : null}
                 <div className="px-4 py-3.5">
                   <header className="flex items-start gap-3">
@@ -754,10 +765,7 @@ export function SocialClubhouseFeed({
                       momentKey={moment.key}
                       reactions={reactions}
                       userId={user?.id}
-                      enabled={canParticipate}
-                      onToggle={(kind) =>
-                        story.toggleReaction.mutate({ momentKey: moment.key, kind })
-                      }
+                      onToggle={(kind) => react(moment.key, kind)}
                     />
                     <CommentThread
                       momentKey={moment.key}
@@ -1029,13 +1037,11 @@ function ReactionBar({
   momentKey: _momentKey,
   reactions,
   userId,
-  enabled,
   onToggle,
 }: {
   momentKey: string;
   reactions: Array<{ kind: string; user_id: string }>;
   userId?: string;
-  enabled: boolean;
   onToggle: (kind: ReactionKind) => void;
 }) {
   return (
@@ -1047,7 +1053,6 @@ function ReactionBar({
           <button
             key={kind}
             type="button"
-            disabled={!enabled}
             aria-label={`${label}, ${count}`}
             aria-pressed={mine}
             onClick={() => onToggle(kind)}

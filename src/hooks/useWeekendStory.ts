@@ -207,15 +207,19 @@ export function useWeekendStory(userId?: string) {
   });
   const toggleReaction = useMutation({
     mutationFn: async ({ momentKey, kind }: { momentKey: string; kind: ReactionKind }) => {
-      if (!userId) throw new Error("Claim your player before reacting.");
+      if (!userId) throw new Error("Claim your name to react.");
+      const cached = queryClient.getQueryData<StoryReaction[]>(["story-reactions"]) ?? [];
+      const exists = cached.some(
+        (row) => row.moment_key === momentKey && row.user_id === userId && row.kind === kind,
+      );
       if (isPreviewMode()) {
         const list = localRead<StoryReaction>(REACTION_KEY);
-        const exists = list.some(
+        const previewExists = list.some(
           (row) => row.moment_key === momentKey && row.user_id === userId && row.kind === kind,
         );
         localWrite(
           REACTION_KEY,
-          exists
+          previewExists
             ? list.filter(
                 (row) =>
                   !(row.moment_key === momentKey && row.user_id === userId && row.kind === kind),
@@ -232,19 +236,46 @@ export function useWeekendStory(userId?: string) {
         );
         return;
       }
-      const existing = reactions.data?.some(
-        (row) => row.moment_key === momentKey && row.user_id === userId && row.kind === kind,
-      );
-      const request = existing
+      const request = exists
         ? supabase
             .from("story_reactions")
             .delete()
             .match({ moment_key: momentKey, user_id: userId, kind })
         : supabase.from("story_reactions").insert({ moment_key: momentKey, user_id: userId, kind });
       const { error } = await request;
-      if (error) throw error;
+      if (error && error.code !== "23505") throw error;
     },
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["story-reactions"] }),
+    onMutate: async ({ momentKey, kind }) => {
+      if (!userId) return { previous: undefined };
+      await queryClient.cancelQueries({ queryKey: ["story-reactions"] });
+      const previous = queryClient.getQueryData<StoryReaction[]>(["story-reactions"]);
+      const list = previous ?? [];
+      const exists = list.some(
+        (row) => row.moment_key === momentKey && row.user_id === userId && row.kind === kind,
+      );
+      queryClient.setQueryData<StoryReaction[]>(
+        ["story-reactions"],
+        exists
+          ? list.filter(
+              (row) =>
+                !(row.moment_key === momentKey && row.user_id === userId && row.kind === kind),
+            )
+          : [
+              ...list,
+              {
+                moment_key: momentKey,
+                user_id: userId,
+                kind,
+                created_at: new Date().toISOString(),
+              },
+            ],
+      );
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) queryClient.setQueryData(["story-reactions"], context.previous);
+    },
+    onSettled: () => void queryClient.invalidateQueries({ queryKey: ["story-reactions"] }),
   });
   const reports = useQuery({
     queryKey: ["story-reports", userId],
