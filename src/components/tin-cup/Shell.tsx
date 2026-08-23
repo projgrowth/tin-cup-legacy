@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, CloudOff, User } from "lucide-react";
+import { AlertTriangle, CloudOff } from "lucide-react";
 
 import { BottomNav } from "./BottomNav";
 import { BrandMark } from "./BrandMark";
@@ -138,24 +138,16 @@ export function Shell({
                   : "Claim your roster name"
                 : "Sign in"
             }
-            className="press relative flex size-11 shrink-0 items-center justify-center"
+            className="press relative flex min-h-11 shrink-0 items-center justify-center gap-2"
           >
             {claimed ? (
               <Avatar name={claimed.name} teamSlug={claimedTeam?.slug} src={face?.url} size="md" />
-            ) : (
-              <span
-                className={`flex size-10 items-center justify-center rounded-full border ${
-                  user
-                    ? "border-border bg-secondary text-sm font-semibold uppercase text-foreground"
-                    : "border-border text-muted-foreground"
-                }`}
-              >
-                {user ? (
-                  playerInitials(user.email?.split("@")[0] || "P")
-                ) : (
-                  <User className="size-4" strokeWidth={1.7} aria-hidden />
-                )}
+            ) : user ? (
+              <span className="flex size-10 items-center justify-center rounded-full border border-border bg-secondary text-sm font-semibold uppercase text-foreground">
+                {playerInitials(user.email?.split("@")[0] || "P")}
               </span>
+            ) : (
+              <span className="t-body px-1 font-semibold text-foreground">Sign in</span>
             )}
             {user && !claimed && !profile?.player_id && (
               <span

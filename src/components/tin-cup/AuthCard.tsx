@@ -22,14 +22,11 @@ type Mode = "password-in" | "password-up" | "magic";
  * Password first — reliable on a phone when magic-link email is rate-limited.
  */
 function pathAfterAuth(redirectPath: string) {
-  if (
-    redirectPath.startsWith("/ops") ||
-    redirectPath.startsWith("/captain") ||
-    redirectPath.startsWith("/admin")
-  ) {
-    return redirectPath.split("?")[0] || "/";
-  }
-  return "/";
+  const path = redirectPath.split("?")[0] || "/profile";
+  if (path.startsWith("/ops")) return "/ops";
+  if (path.startsWith("/captain")) return "/captain";
+  if (path.startsWith("/admin")) return "/admin";
+  return "/profile";
 }
 
 export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
@@ -49,7 +46,7 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
     if (next === "/ops") void navigate({ to: "/ops" });
     else if (next === "/captain") void navigate({ to: "/captain" });
     else if (next === "/admin") void navigate({ to: "/admin" });
-    else void navigate({ to: "/" });
+    else void navigate({ to: "/profile" });
   }
 
   function validEmail(value: string) {
@@ -249,7 +246,7 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
         </>
       )}
 
-      <div className="flex flex-col gap-2 pt-1">
+      <div className="flex flex-col pt-1">
         {mode === "magic" ? (
           <button
             type="button"

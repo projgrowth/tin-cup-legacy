@@ -1,7 +1,5 @@
 import { Link } from "@tanstack/react-router";
 
-import { BrandMark } from "@/components/tin-cup/BrandMark";
-import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { TheCardSheet } from "@/components/tin-cup/TheCardSheet";
 import { FieldChatLink, InstallHint } from "@/components/tin-cup/WhatsAppLinks";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
@@ -48,23 +46,15 @@ export function PreTournamentPanel({
   return (
     <section aria-label="This weekend" className="stack-tight">
       <div className="stack-tight">
-        <div className="flex justify-center pt-1">
-          <BrandMark size="lg" decorative />
-        </div>
-        <PageMasthead
-          align="center"
-          title={
-            <>
-              {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
-            </>
-          }
-          meta={
-            <>
-              {today.firstTee} · {today.format}
-              {` · ${today.points} pts`}
-            </>
-          }
-        />
+        <header className="px-1 pt-2 text-center">
+          <h1 className="t-title text-foreground">
+            {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
+          </h1>
+          <p className="t-micro mt-1">
+            {today.firstTee} · {today.format}
+            {` · ${today.points} pts`}
+          </p>
+        </header>
         <Countdown />
         {groupLine ? (
           <p className="px-1 text-center text-sm font-semibold text-foreground">{groupLine}</p>

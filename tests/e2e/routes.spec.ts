@@ -32,6 +32,7 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   );
   await page.goto("/");
   await expectTinCupIdentity(page);
+  await expect(page.getByRole("link", { name: "Sign in", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: /Friday · South/i })).toBeVisible();
   await expect(page.getByText("Where the vibes are high and the divots are deep")).toHaveCount(0);
   await expect(page.getByText(/12:19 PM/)).toBeVisible();
