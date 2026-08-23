@@ -68,7 +68,10 @@ export function useWeekendStory(userId?: string) {
         .select("*")
         .is("deleted_at", null)
         .order("created_at", { ascending: true });
-      if (error) throw error;
+      if (error) {
+        if (error.code === "PGRST205" || /schema cache/i.test(error.message)) return [];
+        throw error;
+      }
       return data as StoryComment[];
     },
     retry: false,
@@ -79,7 +82,10 @@ export function useWeekendStory(userId?: string) {
     queryFn: async () => {
       if (isPreviewMode()) return localRead<StoryReaction>(REACTION_KEY);
       const { data, error } = await supabase.from("story_reactions").select("*");
-      if (error) throw error;
+      if (error) {
+        if (error.code === "PGRST205" || /schema cache/i.test(error.message)) return [];
+        throw error;
+      }
       return data as StoryReaction[];
     },
     retry: false,
