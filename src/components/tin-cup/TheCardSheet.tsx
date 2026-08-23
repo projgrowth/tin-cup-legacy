@@ -64,7 +64,7 @@ export function TheCardSheet({
 
   return (
     <section aria-labelledby="the-card-title">
-      <h2 id="the-card-title" className="t-eyebrow mb-1.5 px-1">
+      <h2 id="the-card-title" className="t-eyebrow mb-1 px-1">
         {CARD_DISCLAIMER}
       </h2>
       <div className="surface divide-y divide-border overflow-hidden">

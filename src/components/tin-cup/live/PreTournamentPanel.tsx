@@ -50,15 +50,15 @@ export function PreTournamentPanel({
     : null;
 
   return (
-    <section aria-label="This weekend" className="space-y-5">
+    <section aria-label="This weekend" className="space-y-3">
       <div>
         <Countdown />
         {groupLine ? (
-          <h1 className="t-display mt-2 truncate whitespace-nowrap px-1 text-center text-foreground">
+          <h1 className="t-display mt-1 truncate whitespace-nowrap px-1 text-center text-foreground">
             {groupLine}
           </h1>
         ) : null}
-        <p className="t-micro mt-1 px-1 text-center">
+        <p className="t-micro mt-0.5 px-1 text-center">
           {today.dayLabel} · {COURSE_LABEL[nextCourseId]} · {today.firstTee}
         </p>
       </div>
@@ -81,7 +81,7 @@ export function PreTournamentPanel({
           <Link
             to="/scout"
             search={{ course: "south", hole: 1, map: true }}
-            className="press flex min-h-11 items-center justify-between px-4 py-3"
+            className="press flex h-11 items-center justify-between px-3"
           >
             <span className="t-body font-medium text-foreground">Friday book</span>
             <span className="t-micro">South 1</span>
@@ -90,7 +90,7 @@ export function PreTournamentPanel({
             <Link
               to="/schedule"
               search={{}}
-              className="press flex min-h-11 items-center justify-between px-4 py-3"
+              className="press flex h-11 items-center justify-between px-3"
             >
               <span className="t-body font-medium text-foreground">Tonight · {tonight.title}</span>
               <span className="t-micro">Weekend</span>
@@ -129,7 +129,7 @@ export function HomeWeekendDoors({
         {signedIn && claimedName && !face(claimedName)?.url ? (
           <Link
             to="/profile"
-            className="press flex min-h-11 items-center justify-between px-4 py-3"
+            className="press flex h-11 items-center justify-between px-3"
           >
             <span className="t-body font-medium text-foreground">Add your face</span>
             <span className="t-micro">Account</span>
@@ -139,7 +139,7 @@ export function HomeWeekendDoors({
           <Link
             to="/schedule"
             search={{}}
-            className="press flex min-h-11 items-center justify-between px-4 py-3"
+            className="press flex h-11 items-center justify-between px-3"
           >
             <span className="t-body font-medium text-foreground">Tonight · {tonight.title}</span>
             <span className="t-micro">Weekend</span>

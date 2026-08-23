@@ -104,7 +104,7 @@ export function TheCardTicket({
         <Link
           to="/scout"
           search={{ course: "south", card: true }}
-          className="press block px-3 py-3"
+          className="press block px-3 py-2"
           aria-label="Open Friday book"
         >
           <p className="t-micro text-hunter">Yours · already set</p>
@@ -125,7 +125,7 @@ export function TheCardTicket({
   }
 
   return (
-    <article className="px-3 py-3">
+    <article className="px-3 py-2">
       <div className={TICKET_GRID}>
         <SidePick
           people={peopleA}

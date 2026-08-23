@@ -45,20 +45,20 @@ export function FridayPairings({
             [...p.playersA, ...p.playersB].some((name) => sameName(name, claimedName)),
         );
         return (
-          <li key={p.matchIndex} className={`${ROW_GRID} px-3 py-3 sm:px-4 ${yours ? "bg-hunter/5" : ""}`}>
-            <span className="t-micro tabular-nums text-muted-foreground">{p.matchIndex}</span>
-            <span className="flex justify-center">
+          <li key={p.matchIndex} className={`${ROW_GRID} h-14 px-3 sm:px-4 ${yours ? "bg-hunter/5 ring-1 ring-inset ring-hunter/25" : ""}`}>
+            <span className={`t-numeral text-[0.7rem] ${yours ? "text-hunter" : "text-muted-foreground/70"}`}>{p.matchIndex}</span>
+            <span className="flex h-9 items-center justify-center">
               <AvatarPair people={peopleA} size="md" />
             </span>
-            <p className="t-body min-w-0 font-semibold leading-snug">
-              <SideNames names={p.playersA} tone="hunter" playerIdByName={playerIdByName} />
+            <p className="t-body min-w-0 truncate whitespace-nowrap leading-none font-medium">
+              <SideNames names={p.playersA} tone="hunter" quiet={!yours} playerIdByName={playerIdByName} />
             </p>
             <p className="t-micro text-center text-muted-foreground">vs</p>
-            <span className="flex justify-center">
+            <span className="flex h-9 items-center justify-center">
               <AvatarPair people={peopleB} size="md" />
             </span>
-            <p className="t-body min-w-0 font-semibold leading-snug">
-              <SideNames names={p.playersB} tone="stone" playerIdByName={playerIdByName} />
+            <p className="t-body min-w-0 truncate whitespace-nowrap leading-none font-medium">
+              <SideNames names={p.playersB} tone="stone" quiet={!yours} playerIdByName={playerIdByName} />
             </p>
           </li>
         );
@@ -70,13 +70,19 @@ export function FridayPairings({
 function SideNames({
   names,
   tone,
+  quiet = false,
   playerIdByName,
 }: {
   names: string[];
   tone: "hunter" | "stone";
+  quiet?: boolean;
   playerIdByName?: (name: string) => string | undefined;
 }) {
-  const color = tone === "hunter" ? "text-hunter" : "text-stone";
+  const color = quiet
+    ? "text-muted-foreground"
+    : tone === "hunter"
+      ? "text-hunter"
+      : "text-stone";
   return (
     <>
       {names.map((name, index) => {
