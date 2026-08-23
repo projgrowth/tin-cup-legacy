@@ -154,6 +154,7 @@ export function RoundBlock({
                       sideB={match.side_b ?? "TBD"}
                       formatLabel={format}
                       canScore={canScore}
+                      sessionLive={status === "live"}
                     />
                   </li>
                 );

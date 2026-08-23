@@ -4,7 +4,6 @@ import { FridayFoursome } from "@/components/tin-cup/FridayFoursome";
 import { FridayPairings } from "@/components/tin-cup/FridayPairings";
 import { LockerWall } from "@/components/tin-cup/LockerWall";
 import { FieldChatLink, InstallHint } from "@/components/tin-cup/WhatsAppLinks";
-import { useBanterVotes } from "@/hooks/useBanterVotes";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { Countdown } from "@/components/tin-cup/Countdown";
@@ -42,7 +41,6 @@ export function PreTournamentPanel({
   const nextCourseId = defaultCourseId() as CourseId;
   const today = COURSE_DETAILS[nextCourseId];
   const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
-  const { votes, prompts } = useBanterVotes();
   const avatars = usePlayerAvatars(players, teams);
 
   return (
@@ -59,8 +57,6 @@ export function PreTournamentPanel({
             claimedName={claimedName}
             players={players}
             teams={teams}
-            votes={votes}
-            prompts={prompts}
           />
         ) : (
           <FridayPairings
@@ -70,12 +66,12 @@ export function PreTournamentPanel({
         )}
       </div>
 
-      <div className="surface overflow-hidden">
+      <div>
         {tonight ? (
           <Link
             to="/schedule"
             search={{}}
-            className="press flex min-h-11 items-center justify-between px-[var(--space-4)]"
+            className="press flex min-h-11 items-center justify-between"
           >
             <span className="t-body font-medium text-foreground">Tonight · {tonight.title}</span>
             <span className="t-micro">Weekend</span>
@@ -84,7 +80,7 @@ export function PreTournamentPanel({
           <Link
             to="/scout"
             search={{ course: "south", hole: 1, map: true }}
-            className="press flex min-h-11 items-center justify-between px-[var(--space-4)]"
+            className="press flex min-h-11 items-center justify-between"
           >
             <span className="t-body font-medium text-foreground">Friday book</span>
             <span className="t-micro">South 1</span>

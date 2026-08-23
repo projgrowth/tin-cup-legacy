@@ -88,18 +88,44 @@ export function winnerForPrompt(
   return best ? { playerId: best.playerId, count: best.count } : null;
 }
 
+export function resultForPrompt(
+  votes: BanterVote[],
+  promptId: string,
+): { playerId: string; count: number; total: number; percent: number } | null {
+  const win = winnerForPrompt(votes, promptId);
+  const total = votesForPrompt(votes, promptId).length;
+  if (!win || total === 0) return null;
+  return {
+    playerId: win.playerId,
+    count: win.count,
+    total,
+    percent: Math.round((win.count / total) * 100),
+  };
+}
+
+/** Prompt as a clause after "is gonna be the one to …" */
+export function darePlain(prompt: BanterPrompt): string {
+  if (prompt.id === "three-putt") return "3-putt";
+  const stripped = prompt.prompt.replace(/^most likely to\s+/i, "").trim();
+  return stripped || prompt.chip;
+}
+
+export function crowdSays(firstName: string, prompt: BanterPrompt, percent: number): string {
+  return `${percent}% of people say ${firstName} is gonna be the one to ${darePlain(prompt)}`;
+}
+
 export function chipForPlayer(
   votes: BanterVote[],
   playerId: string,
   firstName: string,
   prompts: BanterPrompt[] = BANTER_PROMPTS,
 ): string[] {
-  const chips: string[] = [];
+  const lines: string[] = [];
   for (const prompt of prompts) {
-    const win = winnerForPrompt(votes, prompt.id);
-    if (win?.playerId === playerId) chips.push(`${firstName} · ${prompt.chip}`);
+    const result = resultForPrompt(votes, prompt.id);
+    if (result?.playerId === playerId) lines.push(crowdSays(firstName, prompt, result.percent));
   }
-  return chips;
+  return lines;
 }
 
 export function mineOnPrompt(

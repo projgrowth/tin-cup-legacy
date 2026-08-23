@@ -54,13 +54,8 @@ export function FridayPairings({
               [...p.playersA, ...p.playersB].some((name) => sameName(name, claimedName)),
           );
           return (
-            <li
-              key={p.matchIndex}
-              className={`surface flex h-full min-h-[12rem] flex-col p-[var(--space-4)] ${
-                yours ? "outline outline-1 outline-hunter" : ""
-              }`}
-            >
-              <p className={`t-micro ${yours ? "text-hunter" : ""}`}>Group {p.matchIndex}</p>
+            <li key={p.matchIndex} className="flex h-full min-h-[12rem] flex-col py-[var(--space-2)]">
+              <p className="t-micro">{yours ? "Your group" : `Group ${p.matchIndex}`}</p>
               <div className="mt-[var(--space-3)] flex items-center gap-2">
                 <AvatarPair people={peopleA} size="md" />
                 <p className="t-title min-w-0 text-foreground">

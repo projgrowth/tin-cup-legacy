@@ -68,11 +68,23 @@ describe("banter", () => {
     expect(winnerForPrompt(next, "nassau")?.playerId).toBe("zack");
   });
 
-  it("prints a chip without poll numbers", () => {
+  it("writes the crowd line with the leader percent", () => {
     const votes = [
       { promptId: "three-putt", voterId: "u1", playerId: "p1", updatedAt: "2026-08-22T12:00:00Z" },
     ];
-    expect(chipForPlayer(votes, "p1", "Dan")).toEqual(["Dan · 3-putt 1"]);
+    expect(chipForPlayer(votes, "p1", "Kevin")).toEqual([
+      "100% of people say Kevin is gonna be the one to 3-putt",
+    ]);
+    const split = [
+      { promptId: "sandbag", voterId: "u1", playerId: "dan", updatedAt: "2026-08-22T12:00:00Z" },
+      { promptId: "sandbag", voterId: "u2", playerId: "dan", updatedAt: "2026-08-22T12:01:00Z" },
+      { promptId: "sandbag", voterId: "u3", playerId: "dan", updatedAt: "2026-08-22T12:02:00Z" },
+      { promptId: "sandbag", voterId: "u4", playerId: "dan", updatedAt: "2026-08-22T12:03:00Z" },
+      { promptId: "sandbag", voterId: "u5", playerId: "zack", updatedAt: "2026-08-22T12:04:00Z" },
+    ];
+    expect(chipForPlayer(split, "dan", "Dan")).toEqual([
+      "80% of people say Dan is gonna be the one to sandbag the first tee and then stripe one",
+    ]);
   });
 
   it("creates a custom most-likely and lists it after canned", () => {
@@ -117,6 +129,6 @@ describe("banter", () => {
           chip: "Titleist in the fescue",
         },
       ]),
-    ).toEqual(["Zack · Titleist in the fescue"]);
+    ).toEqual(["100% of people say Zack is gonna be the one to lose a Titleist in the fescue"]);
   });
 });

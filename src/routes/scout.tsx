@@ -26,6 +26,7 @@ import {
   type CourseId,
 } from "@/lib/courses";
 import { getGuestNote } from "@/lib/guest-notes";
+import { readLastHole, writeLastHole } from "@/lib/scout-memory";
 import { buildPlanLines, hasPlanContent, type PlanLine } from "@/lib/round-sheet";
 
 const HoleStage = lazy(() =>
@@ -118,10 +119,19 @@ function ScoutPage() {
     }
   }
 
-  const courseId: CourseId = search.course ?? defaultCourseId();
+  const remembered = readLastHole();
+  const courseId: CourseId = search.course ?? remembered?.course ?? defaultCourseId();
   const course = getCourse(courseId);
-  const hole = clampHole(search.hole ?? 1, course.holes.length);
+  const hole = clampHole(
+    search.hole ??
+      (search.course && search.course !== remembered?.course ? 1 : (remembered?.hole ?? 1)),
+    course.holes.length,
+  );
   const showMap = search.map === true;
+
+  useEffect(() => {
+    writeLastHole(courseId, hole);
+  }, [courseId, hole]);
 
   const setSelection = (next: { course?: CourseId; hole?: number; map?: boolean }) => {
     const nextCourse = next.course ?? courseId;

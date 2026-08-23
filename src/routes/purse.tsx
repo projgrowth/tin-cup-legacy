@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { useTournament } from "@/hooks/useTournament";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
-import { sideCash, sideCashByPlayer, settlement, formatPayout } from "@/lib/purse";
+import { sideCash, sideCashByPlayer, formatPayout } from "@/lib/purse";
 import { MoneySplit } from "@/components/tin-cup/DayStory";
 import {
   BUY_IN,
@@ -42,27 +42,26 @@ function PursePage() {
   const cash = sideCash(bets, fieldSize);
   const hasTbdPayouts = !SIDE_BET_PAYOUTS_CONFIRMED || cash.unconfigured > 0;
   const perPlayer = sideCashByPlayer(bets);
-  const cup = settlement(data?.matches ?? []);
 
   return (
     <Shell variant="content">
       <div className="stack-page">
-        <section className="surface p-[var(--space-4)]">
+        <section>
           <h1 className="t-hero text-foreground">${BUY_IN}</h1>
-          <p className="t-micro mt-[var(--space-3)]">
-            Venmo {TOURNAMENT_BANK} · team win ${cup.winnerPayout} · side ${cash.pool}
-            {hasTbdPayouts ? " · holes TBD" : ""}
-          </p>
           <div className="mt-[var(--space-5)]">
             <MoneySplit bare />
           </div>
+          <p className="t-micro mt-[var(--space-5)]">
+            Venmo {TOURNAMENT_BANK}
+            {hasTbdPayouts ? " · holes TBD" : ""}
+          </p>
           <a
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className="press btn-quiet t-body mt-[var(--space-5)] flex min-h-11 w-full justify-center"
+            className="press t-micro mt-[var(--space-3)] inline-flex min-h-11 items-center text-muted-foreground"
           >
-            Pay ${BUY_IN}
+            Pay ${BUY_IN} on Venmo
           </a>
         </section>
 
@@ -83,7 +82,7 @@ function PursePage() {
                 {claimed.length > 0 ? claimed.length + "/" + bets.length : ""}
               </span>
             </div>
-            <ul className="surface divide-y divide-border overflow-hidden">
+            <ul className="divide-y divide-border/60">
               {claimed
                 .filter((bet) => bet.hole != null)
                 .map((bet) => (
@@ -121,7 +120,7 @@ function PursePage() {
         {perPlayer.length > 0 && (
           <section>
             <h2 className="t-eyebrow">Won so far</h2>
-            <ul className="surface divide-y divide-border overflow-hidden">
+            <ul className="divide-y divide-border/60">
               {perPlayer.map((row) => (
                 <li key={row.name} className="flex items-center justify-between gap-3 px-4 py-3">
                   <span className="t-body min-w-0 truncate text-foreground">{row.name}</span>

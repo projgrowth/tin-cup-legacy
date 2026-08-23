@@ -194,10 +194,10 @@ function PlayerPage() {
       )}
 
       {banterChips.length > 0 ? (
-        <ul className="mt-6 flex flex-wrap gap-2">
-          {banterChips.map((chip) => (
-            <li key={chip} className="player-flair max-w-full">
-              {chip}
+        <ul className="mt-6 space-y-2">
+          {banterChips.map((line) => (
+            <li key={line} className="t-body text-foreground">
+              {line}
             </li>
           ))}
         </ul>

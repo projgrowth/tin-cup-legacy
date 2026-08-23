@@ -50,23 +50,24 @@ export function CourseDayStory({
   );
 }
 
-/** Three short format cards — one sentence, tee, points; expand for full copy. */
+/** Editorial program notes — day, format, one sentence, quiet tee·pts. */
 export function FormatCards() {
   return (
-    <div className="grid gap-[var(--space-5)]">
+    <div className="grid gap-[var(--space-6)]">
       {COURSE_ORDER.map((id) => {
         const d = COURSE_DETAILS[id];
         return (
-          <details key={id} className="surface group">
-            <summary className="press flex min-h-[9.25rem] cursor-pointer list-none flex-col justify-between p-[var(--space-4)] [&::-webkit-details-marker]:hidden">
-              <p className="t-title text-foreground">{d.format}</p>
-              <p className="t-body mt-[var(--space-3)]">{d.formatTip}</p>
+          <details key={id} className="group">
+            <summary className="press cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+              <p className="t-micro">{d.dayLabel}</p>
+              <p className="t-title mt-1 text-foreground">{d.format}</p>
+              <p className="t-body mt-[var(--space-3)] text-muted-foreground">{d.formatTip}</p>
               <p className="t-micro mt-[var(--space-3)]">
-                {d.dayLabel} · {d.firstTee} · {d.points} pts
+                {d.firstTee} · {d.points} pts
               </p>
             </summary>
-            <p className="t-body px-[var(--space-4)] pb-[var(--space-4)] text-muted-foreground">
-              {COURSE_LABEL[id]} · {d.description}
+            <p className="t-body mt-[var(--space-3)] text-muted-foreground">
+              {COURSE_LABEL[id]}. {d.description}
             </p>
           </details>
         );
@@ -91,14 +92,16 @@ export function WeekendDayStories({
   );
 }
 
-export function MoneySplit({ bare = false }: { bare?: boolean }) {
+export function MoneySplit({ bare: _bare = false }: { bare?: boolean }) {
   return (
-    <div className={bare ? "divide-y divide-border" : "surface divide-y divide-border overflow-hidden"}>
+    <div className="space-y-[var(--space-3)]">
       {FEE_BREAKDOWN.map((row) => (
-        <article key={row.label} className={bare ? "py-[var(--space-4)] first:pt-0" : "p-[var(--space-4)]"}>
-          <p className="t-micro">{row.label}</p>
-          <p className="t-title mt-1 tabular-nums text-foreground">{row.value}</p>
-          <p className="t-micro mt-1.5">{row.note}</p>
+        <article key={row.label}>
+          <p className="t-title tabular-nums text-foreground">{row.value}</p>
+          <p className="t-micro mt-1">
+            {row.label}
+            {row.note ? ` · ${row.note}` : ""}
+          </p>
         </article>
       ))}
     </div>

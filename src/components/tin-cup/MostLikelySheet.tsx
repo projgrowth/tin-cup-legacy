@@ -12,8 +12,9 @@ import {
   BANTER_HEADER,
   BANTER_SUBLINE,
   CUSTOM_PROMPT_MAX,
+  crowdSays,
   mineOnPrompt,
-  winnerForPrompt,
+  resultForPrompt,
 } from "@/lib/banter";
 import { fridayRosterNames } from "@/lib/day1-pairings";
 import { claimedPlayerIdFor } from "@/lib/profile-identity";
@@ -43,8 +44,8 @@ export function MostLikelySheet({
   const roster = fridayRosterNames()
     .map((name) => players.find((player) => player.name.trim().toLowerCase() === name.toLowerCase()))
     .filter((player): player is Player => Boolean(player));
-  const winner = winnerForPrompt(votes, prompt.id);
-  const winnerPlayer = winner ? players.find((player) => player.id === winner.playerId) : null;
+  const result = resultForPrompt(votes, prompt.id);
+  const winnerPlayer = result ? players.find((player) => player.id === result.playerId) : null;
   const mine = mineOnPrompt(votes, prompt.id, user?.id);
 
   async function pick(playerId: string) {
@@ -73,22 +74,13 @@ export function MostLikelySheet({
         {BANTER_HEADER}
       </h2>
       <p className="t-micro mb-1 px-1">{BANTER_SUBLINE}</p>
-      <div className="surface px-[var(--space-5)] py-[var(--space-5)]">
+      <div className="py-[var(--space-2)]">
         <p className="t-micro uppercase tracking-wide text-muted-foreground">Most likely</p>
         <p className="t-title mt-1 text-foreground">{prompt.prompt}</p>
-        {winnerPlayer ? (
-          <div className="mt-[var(--space-3)] inline-flex items-center gap-2 rounded-full border border-hunter/40 bg-hunter/10 px-2 py-1">
-            <Avatar
-              name={winnerPlayer.name}
-              teamSlug={teams.find((team) => team.id === winnerPlayer.team_id)?.slug}
-              src={avatars.data?.byPlayerId.get(winnerPlayer.id)?.url}
-              size="sm"
-              className={FACE}
-            />
-            <p className="t-micro font-semibold text-foreground">
-              {firstName(winnerPlayer.name)} · {prompt.chip}
-            </p>
-          </div>
+        {winnerPlayer && result ? (
+          <p className="t-body mt-[var(--space-3)] text-foreground">
+            {crowdSays(firstName(winnerPlayer.name), prompt, result.percent)}
+          </p>
         ) : (
           <p className="t-micro mt-[var(--space-3)] text-muted-foreground">Tap a face. No odds. Just the room.</p>
         )}

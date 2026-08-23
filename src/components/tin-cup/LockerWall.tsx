@@ -14,8 +14,9 @@ import {
   BANTER_HEADER,
   BANTER_SUBLINE,
   CUSTOM_PROMPT_MAX,
+  crowdSays,
   mineOnPrompt,
-  winnerForPrompt,
+  resultForPrompt,
 } from "@/lib/banter";
 import { fridayRosterNames } from "@/lib/day1-pairings";
 import { claimedPlayerIdFor } from "@/lib/profile-identity";
@@ -108,7 +109,7 @@ export function LockerWall({
         <p className="t-micro mt-[var(--space-3)]">{BANTER_SUBLINE}</p>
       </div>
 
-      <div className="surface p-[var(--space-4)]">
+      <div>
         {canTalk ? (
           <>
             <label className="sr-only" htmlFor="wall-roast">
@@ -163,8 +164,8 @@ export function LockerWall({
         ) : null}
       </div>
 
-      <div className="surface overflow-hidden">
-        <div className="flex items-end justify-between gap-3 px-[var(--space-4)] pt-[var(--space-4)]">
+      <div>
+        <div className="flex items-end justify-between gap-3">
           <p className="t-title text-foreground">Most likely to…</p>
           {prompts.length > 1 ? (
             <p className="t-micro tabular-nums">
@@ -174,29 +175,20 @@ export function LockerWall({
         </div>
 
         {prompt ? (
-          <div className="px-[var(--space-4)] py-[var(--space-5)]">
+          <div className="py-[var(--space-5)]">
             <p className="t-body text-foreground">{prompt.prompt}</p>
             {(() => {
-              const winner = winnerForPrompt(votes, prompt.id);
-              const winnerPlayer = winner
-                ? players.find((player) => player.id === winner.playerId)
+              const result = resultForPrompt(votes, prompt.id);
+              const winnerPlayer = result
+                ? players.find((player) => player.id === result.playerId)
                 : null;
               const mine = mineOnPrompt(votes, prompt.id, user?.id);
               return (
                 <>
-                  {winnerPlayer ? (
-                    <div className="mt-[var(--space-4)] flex items-center gap-3">
-                      <Avatar
-                        name={winnerPlayer.name}
-                        teamSlug={teams.find((team) => team.id === winnerPlayer.team_id)?.slug}
-                        src={avatars.data?.byPlayerId.get(winnerPlayer.id)?.url}
-                        size="lg"
-                      />
-                      <div>
-                        <p className="t-title text-foreground">{firstName(winnerPlayer.name)}</p>
-                        <p className="t-micro mt-1 text-hunter">{prompt.chip}</p>
-                      </div>
-                    </div>
+                  {winnerPlayer && result ? (
+                    <p className="t-body mt-[var(--space-4)] text-foreground">
+                      {crowdSays(firstName(winnerPlayer.name), prompt, result.percent)}
+                    </p>
                   ) : null}
                   <div className="mt-[var(--space-5)] grid grid-cols-4 gap-[var(--space-4)]">
                     {roster.map((player) => {
@@ -277,10 +269,10 @@ export function LockerWall({
             ) : null}
           </div>
         ) : (
-          <p className="t-micro px-[var(--space-4)] py-[var(--space-5)]">No dares yet.</p>
+          <p className="t-micro py-[var(--space-5)]">No dares yet.</p>
         )}
 
-        <div className="border-t border-border px-[var(--space-4)] py-[var(--space-4)]">
+        <div className="py-[var(--space-4)]">
           {canTalk ? (
             <>
               <label className="sr-only" htmlFor="wall-most-likely">

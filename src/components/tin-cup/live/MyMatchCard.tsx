@@ -187,6 +187,7 @@ export function MyMatchCard({
       sideB={sideB}
       formatLabel={formatChip}
       canScore={canScore}
+      sessionLive={live}
     />
     </div>
   );

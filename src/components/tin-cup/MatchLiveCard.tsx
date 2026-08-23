@@ -8,6 +8,7 @@ import { useMatchLiveReports } from "@/hooks/useMatchLiveReports";
 import type { Match, Player } from "@/hooks/useTournament";
 import { formatPeerLine, isStablefordLabel, pairingKeyFor, summarizeMatchPlay, summarizeStableford, type HoleMark } from "@/lib/live-report";
 import { pairingIncludesLoose } from "@/lib/scoring";
+import { liveScorecardOpen } from "@/lib/event-phase";
 
 type Props = {
   claimedName: string | null;
@@ -18,6 +19,7 @@ type Props = {
   sideB: string;
   formatLabel?: string;
   canScore?: boolean;
+  sessionLive?: boolean;
 };
 
 function firstName(name: string): string {
@@ -42,6 +44,7 @@ export function MatchLiveCard({
   sideB,
   formatLabel,
   canScore = false,
+  sessionLive = false,
 }: Props) {
   const { user } = useAuth();
   const { profile } = useProfile();
@@ -77,6 +80,15 @@ export function MatchLiveCard({
   const peer = others[0];
 
   if (!claimedName && reports.length === 0) return null;
+  if (
+    !liveScorecardOpen({
+      result: match?.result,
+      hasReports: reports.length > 0,
+      sessionLive,
+    })
+  ) {
+    return null;
+  }
 
   async function persist(nextMarks: HoleMark[], nextA = pointsA, nextB = pointsB) {
     if (!user || !player) {
