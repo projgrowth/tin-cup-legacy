@@ -36,6 +36,15 @@ export function readClaimedPlayerId(userId?: string | null): string | null {
   return cached?.userId === userId ? cached.playerId : null;
 }
 
+/** Profile row wins; cache covers hydrate so a claimed user never sees Claim. */
+export function claimedPlayerIdFor(
+  userId?: string | null,
+  profilePlayerId?: string | null,
+): string | null {
+  if (profilePlayerId) return profilePlayerId;
+  return readClaimedPlayerId(userId);
+}
+
 export function writeClaimedPlayerId(userId: string, playerId: string | null) {
   if (typeof window === "undefined") return;
   try {

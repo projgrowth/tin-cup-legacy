@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
@@ -20,7 +20,7 @@ import { type BoardMode } from "@/lib/tin-cup";
 import { tallyStandings } from "@/lib/scoring";
 
 import { hasAuthCallbackParams, parseAuthCallbackParams } from "@/lib/auth-recovery";
-import { resolveIdentity } from "@/lib/profile-identity";
+import { claimedPlayerIdFor, resolveIdentity } from "@/lib/profile-identity";
 import { buildWeekendContext } from "@/lib/weekend-context";
 import { smartHomeModules, type FeedFilter } from "@/lib/social-platform";
 
@@ -184,18 +184,19 @@ function Index() {
   const experience = useExperiencePreferences(user?.id);
   const planning = usePlanningProgress();
   const stale = isError && Boolean(data);
-  const claimedPlayer = profile?.player_id
-    ? (data?.players ?? []).find((p) => p.id === profile.player_id)
+  const playerId = claimedPlayerIdFor(user?.id, profile?.player_id);
+  const claimedPlayer = playerId
+    ? (data?.players ?? []).find((p) => p.id === playerId)
     : undefined;
   const identity = resolveIdentity({
     signedIn: Boolean(user),
-    profilePending: profileLoading,
-    profileError: Boolean(profileError),
-    playerId: profile?.player_id ?? null,
-    tournamentPending: Boolean(profile?.player_id && isPending && !data),
+    profilePending: profileLoading && !playerId,
+    profileError: Boolean(profileError) && !playerId,
+    playerId: playerId ?? null,
+    tournamentPending: Boolean(playerId && isPending && !data),
     playerOnRoster: Boolean(claimedPlayer),
   });
-  const needsClaim = Boolean(user) && identity.kind === "claim";
+  const needsClaim = Boolean(user) && identity.kind === "claim" && !playerId;
   const standings = tallyStandings(data?.matches ?? []);
   const canonicalUrl =
     typeof window === "undefined" ? "https://www.tincupinv.com/" : window.location.href;
@@ -203,6 +204,7 @@ function Index() {
     phase: mode,
     signedIn: Boolean(user),
     identityPending: Boolean(user) && identity.kind === "loading",
+    claimedId: playerId ?? null,
     player: claimedPlayer ?? null,
     rounds: data?.rounds ?? [],
     matches: data?.matches ?? [],
@@ -270,23 +272,6 @@ function Index() {
   return (
     <>
       <Shell variant={mode === "pre" ? "content" : "dashboard"}>
-        {/* Claim nudge on live; pre mode uses the raised card in PreTournamentPanel */}
-        {needsClaim && mode === "live" && (
-          <Link
-            to="/profile"
-            className="press surface mb-3 flex items-center justify-between gap-3 px-4 py-3"
-          >
-            <span className="min-w-0">
-              <span className="t-body block font-medium text-foreground">
-                Claim your roster name
-              </span>
-              <span className="t-micro block text-muted-foreground">
-                Unlocks your player card, private notes, and photo credits
-              </span>
-            </span>
-            <span className="t-micro shrink-0">Account</span>
-          </Link>
-        )}
         {(canScore || isAdmin) && (
           <PhaseControl mode={mode} automatic={!override} onChange={selectMode} />
         )}

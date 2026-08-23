@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarPair } from "@/components/tin-cup/Avatar";
 import type { useMatchSocial } from "@/hooks/useMatchSocial";
 import type { Match } from "@/hooks/useTournament";
+import { claimedPlayerIdFor } from "@/lib/profile-identity";
 import { type MatchPredictionChoice } from "@/lib/social-platform";
 import {
   CARD_NOTE_MAX,
@@ -46,14 +47,15 @@ export function TheCardTicket({
   const mine = pickOnMarket(social.predictions, userId, market.matchIds);
   const openIds = pendingMatchIds(market, matches);
   const locked = market.locked || (market.matchIds.length > 0 && openIds.length === 0);
-  const canPick = Boolean(userId && claimed && !yours && !locked && openIds.length > 0);
+  const isClaimed = Boolean(claimed || claimedPlayerIdFor(userId));
+  const canPick = Boolean(userId && isClaimed && !yours && !locked && openIds.length > 0);
   const [line, setLine] = useState(mine?.note ?? "");
   const [composing, setComposing] = useState(false);
   const crowd = faceoffCrowd(social.predictions, market.matchIds);
   const busy = social.predict.isPending || social.clear.isPending;
   const labelA = pairingFirstNames(market.sideA);
   const labelB = pairingFirstNames(market.sideB);
-  const claimToRide = !yours && !locked && (!userId || !claimed);
+  const claimToRide = !yours && !locked && (!userId || !isClaimed);
   const otherRoasts = roasts.filter((roast) => roast.userId !== userId).slice(0, 2);
 
   function pick(choice: MatchPredictionChoice) {
@@ -88,22 +90,28 @@ export function TheCardTicket({
     );
   }
 
-  return (
-    <article className={`px-3 py-3 ${yours ? "bg-hunter/5" : ""}`}>
-      {yours || locked ? (
-        <p className="t-micro mb-1.5 text-muted-foreground">
-          {yours ? <span className="text-hunter">You</span> : null}
-          {yours && locked ? " · " : null}
-          {locked ? "Locked" : null}
+  if (yours) {
+    return (
+      <article className="px-3 py-3">
+        <p className="t-micro text-hunter">Yours · already set</p>
+        <p className="t-body mt-1.5 font-semibold leading-snug">
+          <span className="text-hunter">{labelA}</span>
+          <span className="t-micro mx-1.5 font-normal text-muted-foreground">vs</span>
+          <span className="text-stone">{labelB}</span>
         </p>
-      ) : null}
+      </article>
+    );
+  }
+
+  return (
+    <article className="px-3 py-3">
+      {locked ? <p className="t-micro mb-1.5 text-muted-foreground">Locked</p> : null}
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1">
         <SideRow
           people={peopleA}
           label={labelA}
           tone="hunter"
           selected={mine?.choice === "side-a"}
-          crowd={crowd.sideA}
           riders={crowdA}
           disabled={!canPick || busy}
           to={claimToRide ? "/profile" : undefined}
@@ -115,22 +123,20 @@ export function TheCardTicket({
           label={labelB}
           tone="stone"
           selected={mine?.choice === "side-b"}
-          crowd={crowd.sideB}
           riders={crowdB}
           disabled={!canPick || busy}
           to={claimToRide ? "/profile" : undefined}
           onClick={() => pick("side-b")}
         />
       </div>
+      <SplitBar sideA={crowd.sideA} sideB={crowd.sideB} />
       {otherRoasts.map((roast) => (
         <p key={roast.userId} className="t-micro mt-1.5 italic text-foreground/80">
           “{roast.note}”
           <span className="not-italic text-muted-foreground"> · {roast.name}</span>
         </p>
       ))}
-      {yours ? (
-        <p className="t-micro mt-1.5 text-hunter">You're in it.</p>
-      ) : canPick && mine && (composing || !mine.note) ? (
+      {canPick && mine && (composing || !mine.note) ? (
         <div className="mt-2 flex gap-2">
           <label className="sr-only" htmlFor={`card-line-${market.id}`}>
             Talk your shit
@@ -162,12 +168,27 @@ export function TheCardTicket({
   );
 }
 
+function SplitBar({ sideA, sideB }: { sideA: number; sideB: number }) {
+  const total = sideA + sideB;
+  if (total <= 0) return null;
+  const left = Math.round((sideA / total) * 100);
+  return (
+    <div
+      className="mt-2 flex h-1 overflow-hidden rounded-full bg-border"
+      aria-hidden
+      title={`${sideA}–${sideB}`}
+    >
+      <span className="h-full bg-hunter" style={{ width: `${left}%` }} />
+      <span className="h-full flex-1 bg-stone/70" />
+    </div>
+  );
+}
+
 function SideRow({
   people,
   label,
   tone,
   selected,
-  crowd,
   riders,
   disabled,
   to,
@@ -177,7 +198,6 @@ function SideRow({
   label: string;
   tone: "hunter" | "stone";
   selected: boolean;
-  crowd: number;
   riders: CardFace[];
   disabled: boolean;
   to?: string;
@@ -206,12 +226,7 @@ function SideRow({
               size="sm"
             />
           ))}
-          {crowd > 2 ? (
-            <span className="t-micro pl-0.5 tabular-nums text-muted-foreground">+{crowd - 2}</span>
-          ) : null}
         </span>
-      ) : crowd > 0 ? (
-        <span className="t-micro tabular-nums text-muted-foreground">{crowd}</span>
       ) : null}
     </>
   );

@@ -110,12 +110,9 @@ function ProfilePage() {
   return (
     <Shell>
       {!user ? (
-        <div className="mb-6">
-          <PageMasthead
-            title="Account"
-            meta="Sign in once for your player card and private course notes."
-          />
-        </div>
+        <p className="t-micro mb-4 text-muted-foreground">
+          Sign in once for your player card and private course notes.
+        </p>
       ) : claimedPlayer ? (
         <PageMasthead
           title={claimedPlayer.name.split(" ")[0] ?? claimedPlayer.name}

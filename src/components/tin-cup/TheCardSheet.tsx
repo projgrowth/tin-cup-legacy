@@ -5,6 +5,7 @@ import { useMatchSocial } from "@/hooks/useMatchSocial";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
+import { claimedPlayerIdFor } from "@/lib/profile-identity";
 import {
   CARD_DISCLAIMER,
   cardRecords,
@@ -29,13 +30,14 @@ export function TheCardSheet({
 }) {
   const { user } = useAuth();
   const { profile } = useProfile();
-  const social = useMatchSocial(user?.id, profile?.player_id);
+  const playerId = claimedPlayerIdFor(user?.id, profile?.player_id);
+  const social = useMatchSocial(user?.id, playerId);
   const profiles = usePublicProfiles();
   const avatars = usePlayerAvatars(players, teams);
   const face = (name: string) => avatars.data?.getByName(name);
-  const claimed = Boolean(profile?.player_id);
+  const claimed = Boolean(playerId);
   const claimedName = claimed
-    ? (players.find((player) => player.id === profile?.player_id)?.name ?? null)
+    ? (players.find((player) => player.id === playerId)?.name ?? null)
     : null;
   const allMarkets = fridayCardMarkets(matches, rounds);
   const markets = allMarkets;

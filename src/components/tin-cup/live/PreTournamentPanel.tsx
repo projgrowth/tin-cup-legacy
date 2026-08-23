@@ -52,7 +52,16 @@ export function PreTournamentPanel({
           <p className="t-micro mt-1">{today.firstTee}</p>
         </header>
         {groupLine ? (
-          <p className="mt-2 px-1 text-center text-sm font-semibold text-foreground">{groupLine}</p>
+          <div className="mt-2 space-y-1 px-1 text-center">
+            <p className="text-sm font-semibold text-foreground">{groupLine}</p>
+            <Link
+              to="/scout"
+              search={{ course: "south" }}
+              className="t-micro text-muted-foreground underline-offset-2 hover:underline"
+            >
+              Friday book · South
+            </Link>
+          </div>
         ) : null}
       </div>
 

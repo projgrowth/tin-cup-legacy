@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Camera,
@@ -39,6 +39,7 @@ import { buildCardMoments } from "@/lib/the-card";
 import { trackProductEvent } from "@/lib/product-analytics";
 import { savePreviewPhoto } from "@/lib/preview-media";
 import { isPreviewMode } from "@/lib/runtime-mode";
+import { claimedPlayerIdFor } from "@/lib/profile-identity";
 import {
   buildStoryMoments,
   isHangoutMoment,
@@ -104,8 +105,10 @@ export function SocialClubhouseFeed({
   const [editing, setEditing] = useState<{ id: string; body: string } | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const [announcementHours, setAnnouncementHours] = useState("24");
+  const playerId = claimedPlayerIdFor(user?.id, profile?.player_id);
+  const claimed = Boolean(playerId);
   const canParticipate = Boolean(
-    user && profile?.player_id && story.enabled && story.clubhouseEnabled,
+    user && claimed && story.enabled && story.clubhouseEnabled,
   );
   const playerById = useMemo(
     () => new Map(players.map((player) => [player.id, player])),
@@ -310,15 +313,7 @@ export function SocialClubhouseFeed({
         )}
       </div>
 
-      {!user ? null : !canParticipate ? (
-        <Link
-          to="/profile"
-          className="press surface flex min-h-12 items-center justify-between px-4 py-3"
-        >
-          <span className="t-body font-medium text-foreground">Claim your name to post</span>
-          <span className="t-micro">Account</span>
-        </Link>
-      ) : (
+      {user && claimed && canParticipate ? (
         <div className="feed-composer surface p-2.5 sm:p-3">
           <div className="flex gap-3">
             <Avatar
@@ -338,13 +333,7 @@ export function SocialClubhouseFeed({
                 disabled={!canParticipate}
                 maxLength={500}
                 rows={2}
-                placeholder={
-                  canParticipate
-                    ? "What’s going on…"
-                    : user
-                      ? "Claim your name to post"
-                      : "Sign in to post"
-                }
+                placeholder="What’s going on…"
                 className="control w-full resize-none border-0 bg-transparent px-0 text-base shadow-none focus:ring-0"
               />
               <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -372,7 +361,7 @@ export function SocialClubhouseFeed({
             </div>
           </div>
         </div>
-      )}
+      ) : null}
 
       {canModerate && story.clubhouseEnabled && (
         <details className="surface-inset overflow-hidden">
@@ -961,11 +950,7 @@ export function SocialClubhouseFeed({
       </div>
 
       {emptyFeed && (
-        <p className="t-micro px-1 py-2">
-          {story.clubhouseEnabled
-            ? "Captain notes and field photos land here."
-            : "Field notes land here as people post."}
-        </p>
+        <p className="t-micro px-1 py-2 text-muted-foreground">Nothing on the field yet</p>
       )}
       {matchSocial.unavailable && (
         <p className="t-micro text-muted-foreground">

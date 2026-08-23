@@ -20,6 +20,7 @@ import { retryFailed } from "@/lib/write-queue";
 import { playerInitials } from "@/lib/team-styles";
 import { getEventPhase } from "@/lib/event-phase";
 import { isPreviewMode } from "@/lib/runtime-mode";
+import { claimedPlayerIdFor } from "@/lib/profile-identity";
 
 type ShellVariant = "compact" | "content" | "dashboard" | "immersive" | "theater";
 
@@ -39,7 +40,8 @@ export function Shell({
   const [online, setOnline] = useState(true);
   const [preview, setPreview] = useState(() => isPreviewMode());
   const staleBoard = tournamentError && Boolean(tournament);
-  const claimed = tournament?.players.find((p) => p.id === profile?.player_id);
+  const playerId = claimedPlayerIdFor(user?.id, profile?.player_id);
+  const claimed = tournament?.players.find((p) => p.id === playerId);
   const claimedTeam = claimed ? tournament?.teams.find((t) => t.id === claimed.team_id) : undefined;
   const avatars = usePlayerAvatars(tournament?.players ?? [], tournament?.teams ?? []);
   const face = claimed ? avatars.data?.byPlayerId.get(claimed.id) : undefined;
@@ -133,9 +135,9 @@ export function Shell({
             to="/profile"
             aria-label={
               user
-                ? claimed || profile?.player_id
+                ? claimed || playerId
                   ? "Your hub"
-                  : "Claim your roster name"
+                  : "Your account"
                 : "Sign in"
             }
             className="press relative flex min-h-11 shrink-0 items-center justify-center gap-2"
@@ -149,9 +151,9 @@ export function Shell({
             ) : (
               <span className="t-body px-1 font-semibold text-foreground">Sign in</span>
             )}
-            {user && !claimed && !profile?.player_id && (
+            {user && !playerId && (
               <span
-                aria-label="Claim your name"
+                aria-label="Open account"
                 className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border border-background bg-hunter"
               />
             )}

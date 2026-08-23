@@ -164,7 +164,7 @@ function SchedulePage() {
             {socialOrdered.map((row, index) => (
               <details key={row.day} open={index === 0 || undefined}>
                 <summary className="press flex min-h-11 cursor-pointer list-none items-center px-4 py-3 [&::-webkit-details-marker]:hidden">
-                  <span className="t-body min-w-0 truncate font-medium text-foreground">
+                  <span className="t-body min-w-0 font-medium text-foreground">
                     {row.day} · {row.title}
                   </span>
                 </summary>

@@ -41,6 +41,7 @@ export function buildWeekendContext(input: {
   phase: BoardMode;
   signedIn: boolean;
   identityPending?: boolean;
+  claimedId?: string | null;
   player?: Player | null;
   rounds: Round[];
   matches: Match[];
@@ -80,6 +81,8 @@ export function buildWeekendContext(input: {
     nextAction = { kind: "sign-in", label: "Sign in · claim your spot", href: "/profile" };
   } else if (input.identityPending) {
     nextAction = { kind: "loading-identity", label: "Loading your weekend…", href: "/" };
+  } else if (!player && input.claimedId) {
+    nextAction = { kind: "view-pairing", label: "View my Friday pairing", href: "/schedule" };
   } else if (!player) {
     nextAction = { kind: "claim-player", label: "Claim your roster name", href: "/profile" };
   } else if (input.phase === "post") {

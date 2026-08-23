@@ -35,7 +35,6 @@ function NineRule({
 
 function HoleRow({
   line,
-  holeMeta,
   courseId,
   contests,
 }: {
@@ -46,7 +45,7 @@ function HoleRow({
 }) {
   const snake = courseId === "copperhead" && SNAKE_PIT.includes(line.hole);
   const planned = hasPlanContent(line.draft);
-  const holeMark = `flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${
+  const holeMark = `flex size-[3.25rem] shrink-0 items-center justify-center rounded-full text-xl font-bold tabular-nums ${
     snake
       ? "ring-1 ring-copper text-copper"
       : contests.length
@@ -68,20 +67,11 @@ function HoleRow({
         <span className={holeMark}>{line.hole}</span>
         <span className="min-w-0 flex-1">
           <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="text-sm font-bold tabular-nums text-foreground">Par {line.par}</span>
-            <span className="t-micro tabular-nums">{formatScorecardYards(line.yards)}</span>
-            {holeMeta.name ? (
-              <span className="t-micro truncate text-muted-foreground">{holeMeta.name}</span>
-            ) : null}
+            <span className="text-base font-semibold tabular-nums text-foreground">
+              {formatScorecardYards(line.yards)}
+            </span>
+            <span className="t-micro tabular-nums text-muted-foreground">Par {line.par}</span>
             {snake ? <span className="t-micro font-semibold text-copper">Pit</span> : null}
-            {contests.map((c) => (
-              <span
-                key={c}
-                className="rounded-full bg-hunter/15 px-1.5 py-0.5 text-[0.65rem] font-semibold text-hunter"
-              >
-                {c === "ld" ? "LD" : "CTP"}
-              </span>
-            ))}
           </span>
           {planned ? (
             <span className="mt-0.5 block truncate text-sm text-foreground/85">
