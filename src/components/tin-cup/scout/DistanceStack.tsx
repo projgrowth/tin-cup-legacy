@@ -8,6 +8,7 @@ export function DistanceStack({
   gpsEnabled = false,
   gpsActive = false,
   gpsError = null,
+  origin,
 }: {
   front: number;
   center: number;
@@ -15,9 +16,11 @@ export function DistanceStack({
   gpsEnabled?: boolean;
   gpsActive?: boolean;
   gpsError?: string | null;
+  origin?: "tee" | "green";
 }) {
   const live = gpsEnabled && gpsActive;
   const blocked = gpsEnabled && Boolean(gpsError);
+  const caption = origin === "tee" ? "from tee" : origin === "green" ? "to green" : null;
 
   return (
     <div className="px-1">
@@ -26,7 +29,7 @@ export function DistanceStack({
       ) : (
         <div className="flex items-end gap-3">
           <YardCol label="F" value={front} tone="muted" live={live} />
-          <YardCol label="C" value={center} tone={live ? "sky" : "gold"} live={live} hero />
+          <YardCol label="C" value={center} tone={live ? "sky" : "gold"} live={live} hero caption={caption} />
           <YardCol label="B" value={back} tone="muted" live={live} />
         </div>
       )}
@@ -40,12 +43,14 @@ function YardCol({
   tone,
   hero,
   live,
+  caption,
 }: {
   label: string;
   value: number;
   tone: "gold" | "sky" | "muted";
   hero?: boolean;
   live?: boolean;
+  caption?: string | null;
 }) {
   const color =
     tone === "gold"
@@ -70,6 +75,9 @@ function YardCol({
       <p className={`hud-num mt-0.5 ${size} ${color}`}>
         {live ? `~${value}` : value}
       </p>
+      {caption ? (
+        <p className="mt-0.5 text-[0.58rem] font-semibold tracking-wide text-white/50">{caption}</p>
+      ) : null}
     </div>
   );
 }

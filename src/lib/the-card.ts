@@ -9,7 +9,7 @@ import {
 import type { StoryMoment } from "@/lib/weekend-story";
 
 export const CARD_NOTE_MAX = 140;
-export const CARD_DISCLAIMER = "Ride the other groups. Yours is already set.";
+export const CARD_DISCLAIMER = "Ride the other groups.";
 
 export function pairingFirstNames(side: string | null | undefined): string {
   if (!side?.trim()) return "TBD";

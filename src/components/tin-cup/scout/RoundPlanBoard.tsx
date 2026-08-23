@@ -10,7 +10,7 @@ import {
   type CourseId,
   type Hole,
 } from "@/lib/courses";
-import { hasPlanContent, nineSplit, type PlanLine } from "@/lib/round-sheet";
+import { formatPlanPeek, hasPlanContent, nineSplit, type PlanLine } from "@/lib/round-sheet";
 
 function NineRule({
   label,
@@ -22,7 +22,7 @@ function NineRule({
   yards: number;
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 px-4 py-2">
+    <div className="flex items-baseline justify-between gap-3 px-3 py-1.5 sm:px-4 sm:py-2">
       <p className="t-eyebrow">{label}</p>
       <p className="t-micro tabular-nums">
         Par {par}
@@ -67,7 +67,7 @@ function HoleRow({
         replace
         aria-label={`Open hole ${line.hole} map`}
         aria-current={onStage ? "true" : undefined}
-        className="press flex items-center gap-3 px-4 py-3"
+        className="press flex items-center gap-3 px-3 py-2 sm:px-4 sm:py-3"
       >
         <span className={holeMark}>{line.hole}</span>
         <span className="min-w-0 flex-1">
@@ -76,13 +76,17 @@ function HoleRow({
               {formatScorecardYards(line.yards)}
             </span>
             <span className="t-micro tabular-nums text-muted-foreground">Par {line.par}</span>
+            {contests.includes("ctp") ? (
+              <span className="t-micro font-semibold text-hunter">CTP</span>
+            ) : null}
+            {contests.includes("ld") ? (
+              <span className="t-micro font-semibold text-hunter">LD</span>
+            ) : null}
             {snake ? <span className="t-micro font-semibold text-copper">Pit</span> : null}
           </span>
-          {planned ? (
+          {planned && formatPlanPeek(line.draft) ? (
             <span className="mt-0.5 block truncate text-sm text-foreground/85">
-              {[line.draft?.tee_club, line.draft?.green_note, line.draft?.notes || line.draft?.target_line]
-                .filter(Boolean)
-                .join(" · ")}
+              {formatPlanPeek(line.draft)}
             </span>
           ) : null}
         </span>
@@ -181,7 +185,10 @@ export function RoundPlanBoard({
           title={COURSE_LABEL[courseId]}
           meta={
             <>
-              {details.dayLabel} · {details.firstTee} · {details.format}
+              Par {coursePar(courseId)} · {details.blackTotal.toLocaleString()} yds
+              <span className="mt-1 block">
+                {details.dayLabel} · {details.firstTee} · {details.format}
+              </span>
               {pairingLine ? (
                 <span className="mt-1 block text-foreground">{pairingLine}</span>
               ) : null}
@@ -191,6 +198,9 @@ export function RoundPlanBoard({
       ) : (
         <header className="px-0.5">
           <h1 className="t-display text-foreground">{COURSE_LABEL[courseId]}</h1>
+          <p className="t-micro mt-1.5">
+            Par {coursePar(courseId)} · {details.blackTotal.toLocaleString()} yds
+          </p>
           {pairingLine ? <p className="t-micro mt-1.5 text-foreground">{pairingLine}</p> : null}
           <p className="t-micro mt-1.5">
             {details.dayLabel} · {details.format}
@@ -217,35 +227,33 @@ export function RoundPlanBoard({
         </div>
       </section>
 
-      <details className="group">
-        <summary className="press cursor-pointer list-none px-1 py-3 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
-          Day notes
-        </summary>
-        <div className="space-y-2 px-1 pb-3">
-          {!signedIn ? (
-            <p className="t-micro">On this device until you sign in.</p>
-          ) : (
-            <>
-              <textarea
-                value={dayDraft}
-                onChange={(e) => onDayDraft(e.target.value)}
-                rows={3}
-                maxLength={800}
-                className="control w-full resize-none text-base"
-                placeholder="Pairing thoughts, attack holes…"
-              />
-              <button
-                type="button"
-                disabled={!canSaveDay || savingDay}
-                onClick={onSaveDay}
-                className="press t-micro min-h-11 px-1 font-semibold text-hunter disabled:opacity-40"
-              >
-                {savingDay ? "Saving…" : "Save day plan"}
-              </button>
-            </>
-          )}
+      {signedIn ? (
+        <div className="space-y-2 px-1 pb-1">
+          <textarea
+            value={dayDraft}
+            onChange={(e) => onDayDraft(e.target.value)}
+            rows={3}
+            maxLength={800}
+            className="control w-full resize-none text-base"
+            placeholder="Pairing thoughts, attack holes…"
+            aria-label="Day notes"
+          />
+          <button
+            type="button"
+            disabled={!canSaveDay || savingDay}
+            onClick={onSaveDay}
+            className="press t-micro min-h-11 px-1 font-semibold text-hunter disabled:opacity-40"
+          >
+            {savingDay ? "Saving…" : "Save day plan"}
+          </button>
         </div>
-      </details>
+      ) : (
+        <p className="t-micro px-1">
+          <Link to="/profile" className="font-semibold text-foreground">
+            Sign in to keep notes
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

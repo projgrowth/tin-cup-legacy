@@ -59,7 +59,12 @@ export function TheCardTicket({
   const labelA = pairingFirstNames(market.sideA);
   const labelB = pairingFirstNames(market.sideB);
   const claimToRide = !yours && !locked && (!userId || !isClaimed);
-  const otherRoasts = roasts.filter((roast) => roast.userId !== userId).slice(0, 2);
+  const roastLine = mine?.note?.trim()
+    ? { note: mine.note.trim(), name: null as string | null }
+    : (() => {
+        const other = roasts.find((roast) => roast.userId !== userId);
+        return other ? { note: other.note, name: other.name } : null;
+      })();
 
   function pick(choice: MatchPredictionChoice) {
     if (!canPick) return;
@@ -95,33 +100,38 @@ export function TheCardTicket({
 
   if (yours) {
     return (
-      <article className="px-3 py-3">
-        <p className="t-micro text-hunter">Yours · already set</p>
-        <div className={`${TICKET_GRID} mt-1.5`}>
-          <span className="flex justify-center">
-            <AvatarPair people={peopleA} size="sm" />
-          </span>
-          <p className="t-body min-w-0 font-semibold leading-snug text-hunter">{labelA}</p>
-          <p className="t-micro text-center text-muted-foreground">vs</p>
-          <span className="flex justify-center">
-            <AvatarPair people={peopleB} size="sm" />
-          </span>
-          <p className="t-body min-w-0 font-semibold leading-snug text-stone">{labelB}</p>
-        </div>
+      <article>
+        <Link
+          to="/scout"
+          search={{ course: "south", card: true }}
+          className="press block px-3 py-3"
+          aria-label="Open Friday book"
+        >
+          <p className="t-micro text-hunter">Yours · already set</p>
+          <div className={`${TICKET_GRID} mt-1.5`}>
+            <span className="flex justify-center">
+              <AvatarPair people={peopleA} size="sm" />
+            </span>
+            <p className="t-body min-w-0 font-semibold leading-snug text-hunter">{labelA}</p>
+            <p className="t-micro text-center text-muted-foreground">vs</p>
+            <span className="flex justify-center">
+              <AvatarPair people={peopleB} size="sm" />
+            </span>
+            <p className="t-body min-w-0 font-semibold leading-snug text-stone">{labelB}</p>
+          </div>
+        </Link>
       </article>
     );
   }
 
   return (
     <article className="px-3 py-3">
-      {locked ? <p className="t-micro mb-1.5 text-muted-foreground">Locked</p> : null}
       <div className={TICKET_GRID}>
         <SidePick
           people={peopleA}
           label={labelA}
           tone="hunter"
           selected={mine?.choice === "side-a"}
-          riders={crowdA}
           disabled={!canPick || busy}
           to={claimToRide ? "/profile" : undefined}
           onClick={() => pick("side-a")}
@@ -132,19 +142,21 @@ export function TheCardTicket({
           label={labelB}
           tone="stone"
           selected={mine?.choice === "side-b"}
-          riders={crowdB}
           disabled={!canPick || busy}
           to={claimToRide ? "/profile" : undefined}
           onClick={() => pick("side-b")}
         />
       </div>
       <SplitBar sideA={crowd.sideA} sideB={crowd.sideB} />
-      {otherRoasts.map((roast) => (
-        <p key={roast.userId} className="t-micro mt-1.5 italic text-foreground/80">
-          “{roast.note}”
-          <span className="not-italic text-muted-foreground"> · {roast.name}</span>
+      <CrowdUnderBar left={crowdA} right={crowdB} />
+      {roastLine && !composing ? (
+        <p className="t-micro mt-1.5 truncate italic text-foreground/80">
+          “{roastLine.note}”
+          {roastLine.name ? (
+            <span className="not-italic text-muted-foreground"> · {roastLine.name}</span>
+          ) : null}
         </p>
-      ))}
+      ) : null}
       {canPick && mine && (composing || !mine.note) ? (
         <div className="mt-2 flex gap-2">
           <label className="sr-only" htmlFor={`card-line-${market.id}`}>
@@ -170,8 +182,6 @@ export function TheCardTicket({
             Post
           </button>
         </div>
-      ) : mine?.note ? (
-        <p className="t-micro mt-2 italic text-foreground/80">“{mine.note}”</p>
       ) : null}
     </article>
   );
@@ -193,12 +203,40 @@ function SplitBar({ sideA, sideB }: { sideA: number; sideB: number }) {
   );
 }
 
+function CrowdUnderBar({ left, right }: { left: CardFace[]; right: CardFace[] }) {
+  if (left.length + right.length === 0) return null;
+  return (
+    <div className="mt-1.5 flex items-center justify-between gap-3">
+      <FaceStack people={left} />
+      <FaceStack people={right} align="end" />
+    </div>
+  );
+}
+
+function FaceStack({ people, align = "start" }: { people: CardFace[]; align?: "start" | "end" }) {
+  if (people.length === 0) return <span />;
+  const extra = people.length - 3;
+  return (
+    <span className={`inline-flex items-center gap-0.5 ${align === "end" ? "justify-end" : ""}`}>
+      {people.slice(0, 3).map((rider, index) => (
+        <Avatar
+          key={`${rider.name}-${index}`}
+          name={rider.name}
+          teamSlug={rider.teamSlug}
+          src={rider.src}
+          size="sm"
+        />
+      ))}
+      {extra > 0 ? <span className="t-micro pl-0.5 text-muted-foreground">+{extra}</span> : null}
+    </span>
+  );
+}
+
 function SidePick({
   people,
   label,
   tone,
   selected,
-  riders,
   disabled,
   to,
   onClick,
@@ -207,37 +245,20 @@ function SidePick({
   label: string;
   tone: "hunter" | "stone";
   selected: boolean;
-  riders: CardFace[];
   disabled: boolean;
   to?: string;
   onClick: () => void;
 }) {
-  const color = tone === "hunter" ? "text-hunter" : "text-stone";
-  const fill =
-    tone === "hunter"
-      ? "bg-hunter/10 ring-1 ring-hunter/30"
-      : "bg-stone/15 ring-1 ring-stone/30";
+  const color = selected ? "text-hunter" : tone === "hunter" ? "text-hunter" : "text-stone";
+  const fill = selected ? "bg-hunter/10 ring-1 ring-hunter/30" : "";
   const className = `contents`;
   const inner = (
     <>
-      <span className={`flex min-h-12 items-center justify-center rounded-xl ${selected ? fill : ""}`}>
+      <span className={`flex min-h-12 items-center justify-center rounded-xl ${fill}`}>
         <AvatarPair people={people} size="sm" />
       </span>
-      <span className={`min-w-0 rounded-xl px-1 py-1 text-left ${selected ? fill : ""}`}>
+      <span className={`min-w-0 rounded-xl px-1 py-1 text-left ${fill}`}>
         <span className={`t-body block font-semibold leading-snug break-words ${color}`}>{label}</span>
-        {riders.length > 0 ? (
-          <span className="mt-0.5 inline-flex items-center gap-0.5">
-            {riders.slice(0, 2).map((rider, index) => (
-              <Avatar
-                key={`${rider.name}-${index}`}
-                name={rider.name}
-                teamSlug={rider.teamSlug}
-                src={rider.src}
-                size="sm"
-              />
-            ))}
-          </span>
-        ) : null}
       </span>
     </>
   );

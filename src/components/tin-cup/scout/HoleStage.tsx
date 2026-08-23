@@ -135,6 +135,7 @@ export function HoleStage({
             gpsEnabled={gpsOn}
             gpsActive={gpsActive}
             gpsError={gpsError}
+            origin={gpsOn && gpsActive && fix && triple ? "green" : triple ? "tee" : undefined}
           />
         </div>
       ) : null}

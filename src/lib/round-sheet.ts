@@ -58,6 +58,18 @@ export function hasPlanContent(draft: HoleNoteDraft | null | undefined): boolean
   );
 }
 
+export function formatPlanPeek(draft: HoleNoteDraft | null | undefined): string | null {
+  if (!draft || !hasPlanContent(draft)) return null;
+  const club = draft.tee_club === "Driver" ? "Dr" : draft.tee_club;
+  const miss = draft.green_note
+    ? draft.green_note.replace(/^Miss\s+/i, "miss ")
+    : null;
+  const line = draft.target_line || null;
+  const peek = [club, miss, line].filter(Boolean).join(" · ");
+  return peek || null;
+}
+
+
 export function formatRoundSheetText(courseId: CourseId, lines: PlanLine[]): string {
   const label = COURSE_LABEL[courseId];
   const planned = countPlanned(lines);

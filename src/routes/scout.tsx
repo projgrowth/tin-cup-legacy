@@ -10,7 +10,6 @@ import { RoundPlanBoard } from "@/components/tin-cup/scout/RoundPlanBoard";
 import { useAuth } from "@/hooks/useAuth";
 import { useHoleNotes, useProfile, useRoundPlan, type HoleNoteDraft } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
-import { yourGroupLine } from "@/lib/day1-pairings";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { knownContestsForHole } from "@/lib/contest-holes";
 import {
@@ -158,7 +157,9 @@ function ScoutPage() {
   const claimedName = profile?.player_id
     ? tournament?.players.find((p) => p.id === profile.player_id)?.name
     : null;
-  const pairingLine = courseId === "south" && claimedName ? yourGroupLine(claimedName) : null;
+  const pairingLine = claimedName
+    ? `You · ${details.dayLabel} · ${details.firstTee}`
+    : null;
 
   const contestByHole = useMemo(() => {
     const map = new Map<number, Array<"ctp" | "ld">>();
@@ -344,9 +345,16 @@ function ScoutPage() {
                     hole: 1,
                     card: true,
                   }}
-                  className={`press chip min-h-11 w-full ${on ? "chip-on" : ""}`}
+                  className={`press chip min-h-11 w-full ${on ? "chip-on" : "text-muted-foreground"}`}
                 >
-                  {COURSE_LABEL[id]}
+                  {id === "copperhead" ? (
+                    <>
+                      <span className="sm:hidden">Pit</span>
+                      <span className="hidden sm:inline">{COURSE_LABEL[id]}</span>
+                    </>
+                  ) : (
+                    COURSE_LABEL[id]
+                  )}
                 </Link>
               );
             })}

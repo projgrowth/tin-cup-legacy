@@ -14,7 +14,6 @@ import {
   fridayCardMarkets,
   isYourMarket,
   peopleForMarket,
-  takenCount,
 } from "@/lib/the-card";
 
 export function TheCardSheet({
@@ -41,7 +40,6 @@ export function TheCardSheet({
     : null;
   const allMarkets = fridayCardMarkets(matches, rounds);
   const markets = allMarkets;
-  const progress = takenCount(social.predictions, user?.id, markets, claimedName);
   const graded = matches.some((match) => match.result !== "pending");
   const records = graded ? cardRecords(social.predictions, matches).slice(0, 4) : [];
   const nameOf = (userId: string) => {
@@ -66,19 +64,9 @@ export function TheCardSheet({
 
   return (
     <section aria-labelledby="the-card-title">
-      <div className="mb-1.5 flex items-end justify-between gap-3 px-1">
-        <div>
-          <h2 id="the-card-title" className="t-eyebrow">
-            Faceoff
-          </h2>
-          <p className="t-micro">{CARD_DISCLAIMER}</p>
-        </div>
-        {claimed && progress.taken > 0 ? (
-          <p className="t-micro tabular-nums text-muted-foreground">
-            {progress.taken}/{progress.total} lined up
-          </p>
-        ) : null}
-      </div>
+      <h2 id="the-card-title" className="t-eyebrow mb-1.5 px-1">
+        {CARD_DISCLAIMER}
+      </h2>
       <div className="surface divide-y divide-border overflow-hidden">
         {markets.map((market) => {
           const people = peopleForMarket(market, face);
