@@ -19,6 +19,9 @@ import {
 export type CardFace = { name: string; teamSlug?: string | null; src?: string | null };
 export type CardRoast = { userId: string; name: string; note: string };
 
+const TICKET_GRID =
+  "grid w-full grid-cols-[4.75rem_minmax(0,1fr)_2rem_4.75rem_minmax(0,1fr)] items-center gap-x-2";
+
 export function TheCardTicket({
   market,
   matches,
@@ -94,11 +97,17 @@ export function TheCardTicket({
     return (
       <article className="px-3 py-3">
         <p className="t-micro text-hunter">Yours · already set</p>
-        <p className="t-body mt-1.5 font-semibold leading-snug">
-          <span className="text-hunter">{labelA}</span>
-          <span className="t-micro mx-1.5 font-normal text-muted-foreground">vs</span>
-          <span className="text-stone">{labelB}</span>
-        </p>
+        <div className={`${TICKET_GRID} mt-1.5`}>
+          <span className="flex justify-center">
+            <AvatarPair people={peopleA} size="sm" />
+          </span>
+          <p className="t-body min-w-0 font-semibold leading-snug text-hunter">{labelA}</p>
+          <p className="t-micro text-center text-muted-foreground">vs</p>
+          <span className="flex justify-center">
+            <AvatarPair people={peopleB} size="sm" />
+          </span>
+          <p className="t-body min-w-0 font-semibold leading-snug text-stone">{labelB}</p>
+        </div>
       </article>
     );
   }
@@ -106,8 +115,8 @@ export function TheCardTicket({
   return (
     <article className="px-3 py-3">
       {locked ? <p className="t-micro mb-1.5 text-muted-foreground">Locked</p> : null}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1">
-        <SideRow
+      <div className={TICKET_GRID}>
+        <SidePick
           people={peopleA}
           label={labelA}
           tone="hunter"
@@ -117,8 +126,8 @@ export function TheCardTicket({
           to={claimToRide ? "/profile" : undefined}
           onClick={() => pick("side-a")}
         />
-        <p className="t-micro self-center px-0.5 text-muted-foreground">vs</p>
-        <SideRow
+        <p className="t-micro self-center text-center text-muted-foreground">vs</p>
+        <SidePick
           people={peopleB}
           label={labelB}
           tone="stone"
@@ -184,7 +193,7 @@ function SplitBar({ sideA, sideB }: { sideA: number; sideB: number }) {
   );
 }
 
-function SideRow({
+function SidePick({
   people,
   label,
   tone,
@@ -208,26 +217,28 @@ function SideRow({
     tone === "hunter"
       ? "bg-hunter/10 ring-1 ring-hunter/30"
       : "bg-stone/15 ring-1 ring-stone/30";
-  const className = `flex min-h-16 min-w-0 w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-center transition-colors duration-150 disabled:opacity-100 ${
-    disabled && !to ? "cursor-default" : "press"
-  } ${selected ? fill : ""}`;
+  const className = `contents`;
   const inner = (
     <>
-      <AvatarPair people={people} size="sm" />
-      <span className={`t-body max-w-full font-semibold leading-snug break-words ${color}`}>{label}</span>
-      {riders.length > 0 ? (
-        <span className="inline-flex items-center justify-center gap-0.5">
-          {riders.slice(0, 2).map((rider, index) => (
-            <Avatar
-              key={`${rider.name}-${index}`}
-              name={rider.name}
-              teamSlug={rider.teamSlug}
-              src={rider.src}
-              size="sm"
-            />
-          ))}
-        </span>
-      ) : null}
+      <span className={`flex min-h-12 items-center justify-center rounded-xl ${selected ? fill : ""}`}>
+        <AvatarPair people={people} size="sm" />
+      </span>
+      <span className={`min-w-0 rounded-xl px-1 py-1 text-left ${selected ? fill : ""}`}>
+        <span className={`t-body block font-semibold leading-snug break-words ${color}`}>{label}</span>
+        {riders.length > 0 ? (
+          <span className="mt-0.5 inline-flex items-center gap-0.5">
+            {riders.slice(0, 2).map((rider, index) => (
+              <Avatar
+                key={`${rider.name}-${index}`}
+                name={rider.name}
+                teamSlug={rider.teamSlug}
+                src={rider.src}
+                size="sm"
+              />
+            ))}
+          </span>
+        ) : null}
+      </span>
     </>
   );
   if (to) {
@@ -244,7 +255,7 @@ function SideRow({
       aria-pressed={selected}
       aria-label={selected ? `Undo ${label}` : `Ride with ${label}`}
       onClick={onClick}
-      className={className}
+      className={`${className} ${disabled && !to ? "cursor-default" : "press"}`}
     >
       {inner}
     </button>

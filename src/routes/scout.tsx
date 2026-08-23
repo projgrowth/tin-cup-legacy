@@ -301,6 +301,7 @@ function ScoutPage() {
             <aside className="absolute inset-y-0 right-0 z-30 w-96 overflow-y-auto border-l border-border bg-background/98 px-3 pb-8 pt-20">
               <RoundPlanBoard
                 courseId={courseId}
+                hole={hole}
                 holes={course.holes}
                 lines={planLines}
                 contestByHole={contestByHole}

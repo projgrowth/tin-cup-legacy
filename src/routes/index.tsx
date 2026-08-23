@@ -271,7 +271,7 @@ function Index() {
 
   return (
     <>
-      <Shell variant={mode === "pre" ? "content" : "dashboard"}>
+      <Shell variant="content">
         {(canScore || isAdmin) && (
           <PhaseControl mode={mode} automatic={!override} onChange={selectMode} />
         )}

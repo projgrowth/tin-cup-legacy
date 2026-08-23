@@ -37,31 +37,36 @@ function HoleRow({
   line,
   courseId,
   contests,
+  onStage,
 }: {
   line: PlanLine;
   holeMeta: Hole;
   courseId: CourseId;
   contests: Array<"ctp" | "ld">;
+  onStage?: boolean;
 }) {
   const snake = courseId === "copperhead" && SNAKE_PIT.includes(line.hole);
   const planned = hasPlanContent(line.draft);
   const holeMark = `flex size-[3.25rem] shrink-0 items-center justify-center rounded-full text-xl font-bold tabular-nums ${
-    snake
-      ? "ring-1 ring-copper text-copper"
-      : contests.length
-        ? "bg-hunter/15 text-hunter"
-        : planned
-          ? "ring-1 ring-hunter/40 text-hunter"
-          : "ring-1 ring-foreground/30 bg-card text-foreground"
+    onStage
+      ? "bg-hunter text-primary-foreground"
+      : snake
+        ? "ring-1 ring-copper text-copper"
+        : contests.length
+          ? "bg-hunter/15 text-hunter"
+          : planned
+            ? "ring-1 ring-hunter/40 text-hunter"
+            : "ring-1 ring-foreground/30 bg-card text-foreground"
   }`;
 
   return (
-    <div className="border-t border-border">
+    <div className={`border-t border-border ${onStage ? "bg-hunter/10" : ""}`}>
       <Link
         to="/scout"
         search={{ course: courseId, hole: line.hole, map: true }}
         replace
         aria-label={`Open hole ${line.hole} map`}
+        aria-current={onStage ? "true" : undefined}
         className="press flex items-center gap-3 px-4 py-3"
       >
         <span className={holeMark}>{line.hole}</span>
@@ -92,6 +97,7 @@ function HoleRow({
  */
 export function RoundPlanBoard({
   courseId,
+  hole,
   holes,
   lines,
   contestByHole,
@@ -134,6 +140,40 @@ export function RoundPlanBoard({
     yards: pitLines.reduce((sum, line) => sum + line.yards, 0),
   };
 
+  const renderHole = (line: PlanLine) => (
+    <HoleRow
+      key={line.hole}
+      line={line}
+      holeMeta={holeByN.get(line.hole) ?? holes[0]!}
+      courseId={courseId}
+      contests={contestByHole.get(line.hole) ?? []}
+      onStage={hole != null && line.hole === hole}
+    />
+  );
+
+  const frontBlock = (
+    <div>
+      <NineRule label={details.frontNine} par={split.out.par} yards={split.out.yards} />
+      {frontLines.map(renderHole)}
+    </div>
+  );
+  const backBlock = (
+    <div>
+      <NineRule
+        label={details.backNine}
+        par={backStats.par || split.inn.par}
+        yards={backStats.yards || split.inn.yards}
+      />
+      {backLines.map(renderHole)}
+      {pitLines.length > 0 ? (
+        <>
+          <NineRule label="Snake Pit" par={pitStats.par} yards={pitStats.yards} />
+          {pitLines.map(renderHole)}
+        </>
+      ) : null}
+    </div>
+  );
+
   return (
     <div className={hero ? "space-y-3 pb-[calc(var(--nav-height)+0.75rem)]" : "space-y-3"}>
       {hero ? (
@@ -160,44 +200,17 @@ export function RoundPlanBoard({
       <p className="t-micro px-1">{details.formatTip}</p>
 
       <section className="surface overflow-hidden" aria-label="18-hole game plan">
-        <NineRule label={details.frontNine} par={split.out.par} yards={split.out.yards} />
-        {frontLines.map((line) => (
-          <HoleRow
-            key={line.hole}
-            line={line}
-            holeMeta={holeByN.get(line.hole) ?? holes[0]!}
-            courseId={courseId}
-            contests={contestByHole.get(line.hole) ?? []}
-          />
-        ))}
-        <NineRule
-          label={details.backNine}
-          par={backStats.par || split.inn.par}
-          yards={backStats.yards || split.inn.yards}
-        />
-        {backLines.map((line) => (
-          <HoleRow
-            key={line.hole}
-            line={line}
-            holeMeta={holeByN.get(line.hole) ?? holes[0]!}
-            courseId={courseId}
-            contests={contestByHole.get(line.hole) ?? []}
-          />
-        ))}
-        {pitLines.length > 0 ? (
+        {hero ? (
+          <div className="md:grid md:grid-cols-2 md:items-start">
+            {frontBlock}
+            <div className="md:border-l md:border-border">{backBlock}</div>
+          </div>
+        ) : (
           <>
-            <NineRule label="Snake Pit" par={pitStats.par} yards={pitStats.yards} />
-            {pitLines.map((line) => (
-              <HoleRow
-                key={line.hole}
-                line={line}
-                holeMeta={holeByN.get(line.hole) ?? holes[0]!}
-                courseId={courseId}
-                contests={contestByHole.get(line.hole) ?? []}
-              />
-            ))}
+            {frontBlock}
+            {backBlock}
           </>
-        ) : null}
+        )}
         <div className="flex items-baseline justify-between border-t border-border px-4 py-3">
           <p className="text-sm font-bold text-foreground">Par {coursePar(courseId)}</p>
           <p className="t-micro tabular-nums">{split.all.yards.toLocaleString()} yds Black</p>

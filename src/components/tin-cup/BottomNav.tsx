@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { CalendarDays, House, Map, Users, Wallet } from "lucide-react";
 
 const items = [
@@ -9,29 +9,55 @@ const items = [
   { to: "/purse", label: "Purse", icon: Wallet, exact: false },
 ] as const;
 
+function homeIsActive(pathname: string) {
+  if (pathname === "/profile" || pathname.startsWith("/profile/")) return false;
+  if (pathname === "/player" || pathname.startsWith("/player/")) return false;
+  return pathname === "/";
+}
+
 export function BottomNav({ live = false }: { live?: boolean }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-[env(safe-area-inset-bottom)]">
       <div className="mx-auto flex w-full max-w-4xl items-stretch px-4 sm:px-5">
-        {items.map(({ to, label, icon: Icon, exact }) => (
-          <Link
-            key={to}
-            to={to}
-            activeOptions={{ exact }}
-            className="group press t-micro relative flex min-h-11 flex-1 flex-col items-center justify-center gap-1 px-1 py-1.5 font-semibold text-muted-foreground data-[status=active]:text-hunter"
-          >
-            <span className="relative flex size-8 items-center justify-center rounded-full group-data-[status=active]:bg-hunter/10">
-              <Icon className="size-4" strokeWidth={1.7} />
-              {label === "Home" && live ? (
-                <span
-                  className="absolute -right-1 -top-0.5 size-1.5 rounded-full bg-[var(--status-live)]"
-                  aria-label="Cup live"
-                />
-              ) : null}
-            </span>
-            <span>{label}</span>
-          </Link>
-        ))}
+        {items.map(({ to, label, icon: Icon, exact }) => {
+          const isHome = label === "Home";
+          const homeOn = isHome && homeIsActive(pathname);
+          return (
+            <Link
+              key={to}
+              to={to}
+              activeOptions={{ exact }}
+              className={`group press t-micro relative flex min-h-11 flex-1 flex-col items-center justify-center gap-1 px-1 py-1.5 font-semibold ${
+                isHome
+                  ? homeOn
+                    ? "text-hunter"
+                    : "text-muted-foreground"
+                  : "text-muted-foreground data-[status=active]:text-hunter"
+              }`}
+              data-status={isHome ? (homeOn ? "active" : "inactive") : undefined}
+            >
+              <span
+                className={`relative flex size-8 items-center justify-center rounded-full ${
+                  isHome
+                    ? homeOn
+                      ? "bg-hunter/10"
+                      : ""
+                    : "group-data-[status=active]:bg-hunter/10"
+                }`}
+              >
+                <Icon className="size-4" strokeWidth={1.7} />
+                {isHome && live ? (
+                  <span
+                    className="absolute -right-1 -top-0.5 size-1.5 rounded-full bg-[var(--status-live)]"
+                    aria-label="Cup live"
+                  />
+                ) : null}
+              </span>
+              <span>{label}</span>
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );

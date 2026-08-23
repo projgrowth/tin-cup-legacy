@@ -10,6 +10,9 @@ function sameName(a: string, b: string) {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
 
+const ROW_GRID =
+  "grid grid-cols-[1.25rem_4.75rem_minmax(0,1fr)_1.5rem_4.75rem_minmax(0,1fr)] items-center gap-x-2";
+
 /** One Friday sheet — format lives in the Weekend masthead, not on every row. */
 export function FridayPairings({
   getFace,
@@ -42,22 +45,21 @@ export function FridayPairings({
             [...p.playersA, ...p.playersB].some((name) => sameName(name, claimedName)),
         );
         return (
-          <li key={p.matchIndex} className={`flex gap-3 px-4 py-3 ${yours ? "bg-hunter/5" : ""}`}>
-            <span className="t-micro w-4 shrink-0 pt-1.5 tabular-nums">{p.matchIndex}</span>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <AvatarPair people={peopleA} size="md" />
-                <p className="t-body min-w-0 font-semibold leading-snug">
-                  <SideNames names={p.playersA} tone="hunter" playerIdByName={playerIdByName} />
-                </p>
-              </div>
-              <div className="mt-1.5 flex items-center gap-2">
-                <AvatarPair people={peopleB} size="md" />
-                <p className="t-body min-w-0 font-semibold leading-snug">
-                  <SideNames names={p.playersB} tone="stone" playerIdByName={playerIdByName} />
-                </p>
-              </div>
-            </div>
+          <li key={p.matchIndex} className={`${ROW_GRID} px-3 py-3 sm:px-4 ${yours ? "bg-hunter/5" : ""}`}>
+            <span className="t-micro tabular-nums text-muted-foreground">{p.matchIndex}</span>
+            <span className="flex justify-center">
+              <AvatarPair people={peopleA} size="md" />
+            </span>
+            <p className="t-body min-w-0 font-semibold leading-snug">
+              <SideNames names={p.playersA} tone="hunter" playerIdByName={playerIdByName} />
+            </p>
+            <p className="t-micro text-center text-muted-foreground">vs</p>
+            <span className="flex justify-center">
+              <AvatarPair people={peopleB} size="md" />
+            </span>
+            <p className="t-body min-w-0 font-semibold leading-snug">
+              <SideNames names={p.playersB} tone="stone" playerIdByName={playerIdByName} />
+            </p>
           </li>
         );
       })}
