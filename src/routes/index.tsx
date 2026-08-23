@@ -8,7 +8,7 @@ import { HomeSecondaryModules } from "@/components/tin-cup/HomeDashboard";
 import { ScoreModal } from "@/components/tin-cup/ScoreModal";
 import { Shell, SkeletonBlock } from "@/components/tin-cup/Shell";
 import { DisplayBoard } from "@/components/tin-cup/live/DisplayBoard";
-import { HomeWeekendDoors, LivePanel, PreTournamentPanel } from "@/components/tin-cup/panels";
+import { LivePanel, PreTournamentPanel } from "@/components/tin-cup/panels";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
@@ -336,35 +336,29 @@ function Index() {
               </div>
             )}
             <>
-              <div className="home-feed min-w-0">
-                <SocialClubhouseFeed
-                  matches={data?.matches ?? []}
-                  sideBets={data?.sideBets ?? []}
-                  trophies={data?.trophies ?? []}
-                  players={data?.players ?? []}
-                  teams={data?.teams ?? []}
-                  rounds={data?.rounds ?? []}
-                  filter={search.feed ?? "all"}
-                  onFilter={(feed) =>
-                    void navigate({
-                      to: "/",
-                      search: { ...search, feed: feed === "all" ? undefined : feed },
-                      replace: true,
-                    })
-                  }
-                  canModerate={canScore || isAdmin}
-                  canUpload={Boolean(claimedPlayer)}
-                  compact={experience.preferences.compactFeed}
-                  homePeek
-                />
-              </div>
-              {mode === "pre" ? (
-                <HomeWeekendDoors
-                  signedIn={Boolean(user)}
-                  claimedName={claimedPlayer?.name ?? null}
-                  players={data?.players ?? []}
-                  teams={data?.teams ?? []}
-                />
+              {mode !== "pre" ? (
+                <div className="home-feed min-w-0">
+                  <SocialClubhouseFeed
+                    matches={data?.matches ?? []}
+                    sideBets={data?.sideBets ?? []}
+                    trophies={data?.trophies ?? []}
+                    players={data?.players ?? []}
+                    teams={data?.teams ?? []}
+                    rounds={data?.rounds ?? []}
+                    filter={search.feed ?? "all"}
+                    onFilter={(feed) =>
+                      void navigate({
+                        to: "/",
+                        search: { ...search, feed: feed === "all" ? undefined : feed },
+                        replace: true,
+                      })
+                    }
+                    canModerate={canScore || isAdmin}
+                    canUpload={Boolean(claimedPlayer)}
+                    compact={experience.preferences.compactFeed}
+                    homePeek
+                  />
+                </div>
               ) : null}
               {mode !== "pre" && (
                 <aside className="home-secondary min-w-0 space-y-5 lg:sticky lg:top-28 lg:self-start">

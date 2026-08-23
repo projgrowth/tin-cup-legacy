@@ -7,12 +7,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useBanterVotes } from "@/hooks/useBanterVotes";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { useProfile } from "@/hooks/useJournal";
-import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import { useWeekendStory } from "@/hooks/useWeekendStory";
 import type { Player, Team } from "@/hooks/useTournament";
 import {
-  BANTER_HEADER,
-  BANTER_SUBLINE,
   CUSTOM_PROMPT_MAX,
   activeWallPrompt,
   crowdSays,
@@ -42,40 +39,27 @@ export function LockerWall({
   const { votes, vote, createPrompt, prompts } = useBanterVotes();
   const story = useWeekendStory(user?.id);
   const avatars = usePlayerAvatars(players, teams);
-  const profiles = usePublicProfiles();
   const [draft, setDraft] = useState("");
-  const [tagId, setTagId] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
   const roster = fridayRosterNames()
     .map((name) => players.find((player) => player.name.trim().toLowerCase() === name.toLowerCase()))
     .filter((player): player is Player => Boolean(player));
-  const tagged = tagId ? players.find((player) => player.id === tagId) : null;
   const latestRoast = [...story.clubhousePosts]
     .filter((post) => post.body.trim() && !post.pinned_at)
     .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0];
   const prompt = activeWallPrompt(prompts);
-  const faces = prompt ? pollFaces(roster, votes, prompt.id, tagId ? [tagId] : []) : [];
+  const faces = prompt ? pollFaces(roster, votes, prompt.id) : roster;
 
-  function userIdForPlayer(playerId: string) {
-    return profiles.data?.find((row) => row.player_id === playerId)?.id;
-  }
-
-  function postRoast() {
+  async function postRoast() {
     const body = draft.trim();
     if (!body) return;
-    const taggedName = tagged ? firstName(tagged.name) : null;
-    const text = taggedName && !body.includes(taggedName) ? `${body} · @${taggedName}` : body;
     story.addComment.mutate(
       {
         momentKey: CLUBHOUSE_MOMENT_KEY,
-        body: text,
-        mentionedUserId: tagged ? userIdForPlayer(tagged.id) : undefined,
+        body,
       },
       {
-        onSuccess: () => {
-          setDraft("");
-          setTagId(null);
-        },
+        onSuccess: () => setDraft(""),
         onError: (error) => toast.error(error.message),
       },
     );
@@ -104,13 +88,15 @@ export function LockerWall({
   return (
     <section aria-labelledby="wall-title" className="stack">
       <div>
-        <h2 id="wall-title" className="t-title text-foreground">
-          {BANTER_HEADER}
-        </h2>
-        <p className="t-micro mt-[var(--space-3)]">{BANTER_SUBLINE}</p>
-      </div>
-
-      <div>
+        {latestRoast ? (
+          <p id="wall-title" className="t-body italic text-foreground">
+            “{latestRoast.body.trim()}”
+          </p>
+        ) : (
+          <h2 id="wall-title" className="t-title text-foreground">
+            The wall
+          </h2>
+        )}
         {canTalk ? (
           <>
             <label className="sr-only" htmlFor="wall-roast">
@@ -121,56 +107,30 @@ export function LockerWall({
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               maxLength={500}
-              rows={3}
+              rows={2}
               placeholder="Talk your shit"
-              className="control w-full resize-none text-base"
+              className="control mt-[var(--space-4)] w-full resize-none text-base"
             />
-            <div className="mt-[var(--space-4)] flex flex-wrap items-center gap-2">
-              {roster.slice(0, 16).map((player) => (
-                <button
-                  key={player.id}
-                  type="button"
-                  onClick={() => setTagId((cur) => (cur === player.id ? null : player.id))}
-                  aria-pressed={tagId === player.id}
-                  className={`press ${tagId === player.id ? "ring-2 ring-hunter rounded-full" : ""}`}
-                  aria-label={`Tag ${firstName(player.name)}`}
-                >
-                  <Avatar
-                    name={player.name}
-                    teamSlug={teams.find((team) => team.id === player.team_id)?.slug}
-                    src={avatars.data?.byPlayerId.get(player.id)?.url}
-                    size="sm"
-                  />
-                </button>
-              ))}
-            </div>
             <button
               type="button"
               disabled={!draft.trim() || story.addComment.isPending}
-              onClick={postRoast}
-              className="press btn-primary mt-[var(--space-4)] min-h-11 px-4 text-sm font-semibold"
+              onClick={() => void postRoast()}
+              className="press btn-primary mt-[var(--space-3)] min-h-11 px-4 text-sm font-semibold"
             >
               Post
             </button>
           </>
         ) : (
-          <Link to="/profile" className="press block min-h-11">
+          <Link to="/profile" className="press mt-[var(--space-4)] block min-h-11">
             <p className="t-body text-muted-foreground">Talk your shit</p>
           </Link>
         )}
-        {latestRoast ? (
-          <p className="t-body mt-[var(--space-5)] italic text-foreground">
-            “{latestRoast.body.trim()}”
-          </p>
-        ) : null}
       </div>
 
       <div>
-        <p className="t-title text-foreground">Most likely to…</p>
-
         {prompt ? (
-          <div className="py-[var(--space-5)]">
-            <p className="t-body text-foreground">{prompt.prompt}</p>
+          <>
+            <h2 className="t-title text-foreground">{prompt.prompt}</h2>
             {(() => {
               const result = resultForPrompt(votes, prompt.id);
               const winnerPlayer = result
@@ -184,7 +144,7 @@ export function LockerWall({
                       {crowdSays(firstName(winnerPlayer.name), prompt, result.percent)}
                     </p>
                   ) : null}
-                  <div className="mt-[var(--space-5)] grid grid-cols-2 gap-3">
+                  <div className="mt-[var(--space-4)] flex flex-wrap justify-center gap-x-2 gap-y-3">
                     {faces.map((player) => {
                       const selected = mine?.playerId === player.id;
                       const face = (
@@ -193,10 +153,10 @@ export function LockerWall({
                             name={player.name}
                             teamSlug={teams.find((team) => team.id === player.team_id)?.slug}
                             src={avatars.data?.byPlayerId.get(player.id)?.url}
-                            size="lg"
-                            className={`size-[3.25rem] text-[0.7rem] ${selected ? "ring-2 ring-hunter" : ""}`}
+                            size="sm"
+                            className={selected ? "ring-2 ring-hunter" : ""}
                           />
-                          <span className={`t-micro mt-1.5 block ${selected ? "text-hunter" : ""}`}>
+                          <span className={`t-micro mt-1 block ${selected ? "text-hunter" : ""}`}>
                             {firstName(player.name)}
                           </span>
                         </>
@@ -206,7 +166,7 @@ export function LockerWall({
                           <Link
                             key={player.id}
                             to="/profile"
-                            className="press flex min-h-11 flex-col items-center text-center"
+                            className="press flex w-10 flex-col items-center text-center"
                           >
                             {face}
                           </Link>
@@ -217,8 +177,9 @@ export function LockerWall({
                           key={player.id}
                           type="button"
                           aria-pressed={selected}
+                          aria-label={firstName(player.name)}
                           onClick={() => void pick(prompt.id, player.id)}
-                          className="press flex min-h-11 flex-col items-center text-center"
+                          className="press flex w-10 flex-col items-center text-center"
                         >
                           {face}
                         </button>
@@ -228,12 +189,12 @@ export function LockerWall({
                 </>
               );
             })()}
-          </div>
+          </>
         ) : (
-          <p className="t-micro py-[var(--space-5)]">No dares yet.</p>
+          <p className="t-micro">No dares yet.</p>
         )}
 
-        <div className="py-[var(--space-4)]">
+        <div className="mt-[var(--space-4)]">
           {canTalk ? (
             <>
               <label className="sr-only" htmlFor="wall-most-likely">

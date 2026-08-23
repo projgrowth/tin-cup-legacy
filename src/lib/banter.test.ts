@@ -134,14 +134,24 @@ describe("banter", () => {
     ).toEqual(["100% of people say Zack is gonna be the one to lose a Titleist in the fescue"]);
   });
 
-  it("picks four poll faces from leaders then a subset", () => {
+  it("lists every roster face for a most-likely, leaders first", () => {
     const roster = ["a", "b", "c", "d", "e", "f", "g", "h"].map((id) => ({ id }));
     const votes = [
       { promptId: "sandbag", voterId: "u1", playerId: "e", updatedAt: "2026-08-22T12:00:00Z" },
       { promptId: "sandbag", voterId: "u2", playerId: "e", updatedAt: "2026-08-22T12:01:00Z" },
       { promptId: "sandbag", voterId: "u3", playerId: "c", updatedAt: "2026-08-22T12:02:00Z" },
     ];
-    expect(pollFaces(roster, votes, "sandbag").map((row) => row.id)).toEqual(["e", "c", "a", "b"]);
+    expect(pollFaces(roster, votes, "sandbag").map((row) => row.id)).toEqual([
+      "e",
+      "c",
+      "a",
+      "b",
+      "d",
+      "f",
+      "g",
+      "h",
+    ]);
+    expect(pollFaces(roster, votes, "sandbag", [], 4).map((row) => row.id)).toEqual(["e", "c", "a", "b"]);
     expect(activeWallPrompt([{ id: "canned", prompt: "x", chip: "x" }, { id: "new", prompt: "y", chip: "y", custom: true }])?.id).toBe("new");
   });
 });

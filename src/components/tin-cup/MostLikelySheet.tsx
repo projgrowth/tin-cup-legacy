@@ -9,8 +9,6 @@ import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { useProfile } from "@/hooks/useJournal";
 import type { Player, Team } from "@/hooks/useTournament";
 import {
-  BANTER_HEADER,
-  BANTER_SUBLINE,
   CUSTOM_PROMPT_MAX,
   activeWallPrompt,
   crowdSays,
@@ -24,8 +22,6 @@ import { claimedPlayerIdFor } from "@/lib/profile-identity";
 function firstName(name: string) {
   return name.trim().split(/\s+/)[0] ?? name;
 }
-
-const FACE = "size-[44px] text-[0.65rem]";
 
 export function MostLikelySheet({
   players,
@@ -45,7 +41,7 @@ export function MostLikelySheet({
   const roster = fridayRosterNames()
     .map((name) => players.find((player) => player.name.trim().toLowerCase() === name.toLowerCase()))
     .filter((player): player is Player => Boolean(player));
-  const faces = prompt ? pollFaces(roster, votes, prompt.id) : [];
+  const faces = prompt ? pollFaces(roster, votes, prompt.id) : roster;
   if (!prompt) return null;
   const promptId = prompt.id;
   const result = resultForPrompt(votes, promptId);
@@ -74,91 +70,84 @@ export function MostLikelySheet({
 
   return (
     <section aria-labelledby="banter-title">
-      <h2 id="banter-title" className="t-title px-1 text-foreground">
-        {BANTER_HEADER}
+      <h2 id="banter-title" className="t-title text-foreground">
+        {prompt.prompt}
       </h2>
-      <p className="t-micro mb-1 px-1">{BANTER_SUBLINE}</p>
-      <div className="py-[var(--space-2)]">
-        <p className="t-micro uppercase tracking-wide text-muted-foreground">Most likely</p>
-        <p className="t-title mt-1 text-foreground">{prompt.prompt}</p>
-        {winnerPlayer && result ? (
-          <p className="t-body mt-[var(--space-3)] text-foreground">
-            {crowdSays(firstName(winnerPlayer.name), prompt, result.percent)}
-          </p>
-        ) : (
-          <p className="t-micro mt-[var(--space-3)] text-muted-foreground">Tap a face. No odds. Just the room.</p>
-        )}
-        <div className="mt-[var(--space-5)] grid grid-cols-2 gap-3">
-          {faces.map((player) => {
-            const selected = mine?.playerId === player.id;
-            const face = (
-              <>
-                <Avatar
-                  name={player.name}
-                  teamSlug={teams.find((team) => team.id === player.team_id)?.slug}
-                  src={avatars.data?.byPlayerId.get(player.id)?.url}
-                  size="md"
-                  className={`${FACE} ${selected ? "ring-2 ring-hunter" : ""}`}
-                />
-                <span className={`t-micro mt-1 block ${selected ? "text-hunter" : ""}`}>
-                  {firstName(player.name)}
-                </span>
-              </>
-            );
-            if (!canVote) {
-              return (
-                <Link
-                  key={player.id}
-                  to="/profile"
-                  className="press flex flex-col items-center text-center"
-                  aria-label={firstName(player.name)}
-                >
-                  {face}
-                </Link>
-              );
-            }
+      {winnerPlayer && result ? (
+        <p className="t-body mt-[var(--space-3)] text-foreground">
+          {crowdSays(firstName(winnerPlayer.name), prompt, result.percent)}
+        </p>
+      ) : null}
+      <div className="mt-[var(--space-4)] flex flex-wrap justify-center gap-x-2 gap-y-3">
+        {faces.map((player) => {
+          const selected = mine?.playerId === player.id;
+          const face = (
+            <>
+              <Avatar
+                name={player.name}
+                teamSlug={teams.find((team) => team.id === player.team_id)?.slug}
+                src={avatars.data?.byPlayerId.get(player.id)?.url}
+                size="sm"
+                className={selected ? "ring-2 ring-hunter" : ""}
+              />
+              <span className={`t-micro mt-1 block ${selected ? "text-hunter" : ""}`}>
+                {firstName(player.name)}
+              </span>
+            </>
+          );
+          if (!canVote) {
             return (
-              <button
+              <Link
                 key={player.id}
-                type="button"
-                onClick={() => void pick(player.id)}
-                aria-pressed={selected}
+                to="/profile"
+                className="press flex w-10 flex-col items-center text-center"
                 aria-label={firstName(player.name)}
-                className="press flex flex-col items-center text-center"
               >
                 {face}
-              </button>
+              </Link>
             );
-          })}
-        </div>
-        {canVote ? (
-          <div className="mt-[var(--space-5)]">
-            <label className="sr-only" htmlFor="sheet-most-likely">
-              Most likely to…
-            </label>
-            <input
-              id="sheet-most-likely"
-              value={question}
-              onChange={(event) => setQuestion(event.target.value)}
-              maxLength={CUSTOM_PROMPT_MAX}
-              placeholder="Most likely to…"
-              className="control w-full text-base"
-            />
+          }
+          return (
             <button
+              key={player.id}
               type="button"
-              disabled={!question.trim()}
-              onClick={() => void postQuestion()}
-              className="press btn-primary mt-[var(--space-3)] min-h-11 px-4 text-sm font-semibold"
+              onClick={() => void pick(player.id)}
+              aria-pressed={selected}
+              aria-label={firstName(player.name)}
+              className="press flex w-10 flex-col items-center text-center"
             >
-              Post
+              {face}
             </button>
-          </div>
-        ) : (
-          <Link to="/profile" className="press mt-[var(--space-5)] block">
-            <p className="t-body text-muted-foreground">Most likely to…</p>
-          </Link>
-        )}
+          );
+        })}
       </div>
+      {canVote ? (
+        <div className="mt-[var(--space-5)]">
+          <label className="sr-only" htmlFor="sheet-most-likely">
+            Most likely to…
+          </label>
+          <input
+            id="sheet-most-likely"
+            value={question}
+            onChange={(event) => setQuestion(event.target.value)}
+            maxLength={CUSTOM_PROMPT_MAX}
+            placeholder="Most likely to…"
+            className="control w-full text-base"
+          />
+          <button
+            type="button"
+            disabled={!question.trim()}
+            onClick={() => void postQuestion()}
+            className="press btn-primary mt-[var(--space-3)] min-h-11 px-4 text-sm font-semibold"
+          >
+            Post
+          </button>
+        </div>
+      ) : (
+        <Link to="/profile" className="press mt-[var(--space-5)] block">
+          <p className="t-body text-muted-foreground">Most likely to…</p>
+        </Link>
+      )}
     </section>
   );
 }

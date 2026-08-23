@@ -39,3 +39,10 @@ export function formatCountdownShort(milliseconds: number): string {
   if (hours >= 1) return `${hours}h`;
   return `${minutes}m`;
 }
+
+/** Poster caption under the Friday spread — 04d 16h. */
+export function formatCountdownPoster(milliseconds: number): string {
+  if (milliseconds <= 0) return "On the tee";
+  const { days, hours } = countdownParts(milliseconds);
+  return `${String(days).padStart(2, "0")}d ${String(hours).padStart(2, "0")}h`;
+}

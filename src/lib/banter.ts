@@ -175,13 +175,13 @@ export function upsertPrompt(prompts: BanterPrompt[], next: BanterPrompt): Bante
 }
 
 
-/** Four faces for one most-likely: vote leaders, then a sensible subset. */
+/** Faces for one most-likely. Default is the full roster — every player votable. */
 export function pollFaces<T extends { id: string }>(
   roster: T[],
   votes: BanterVote[],
   promptId: string,
   preferIds: string[] = [],
-  limit = 4,
+  limit?: number,
 ): T[] {
   const byId = new Map(roster.map((player) => [player.id, player]));
   const counts = new Map<string, number>();
@@ -202,7 +202,7 @@ export function pollFaces<T extends { id: string }>(
     if (index % 4 === 0) take(player.id);
   });
   roster.forEach((player) => take(player.id));
-  return picked.slice(0, limit);
+  return picked.slice(0, limit ?? roster.length);
 }
 
 /** Latest custom question, else the first canned prompt. */
