@@ -96,26 +96,37 @@ export function Shell({
       >
         Skip to content
       </a>
-      <header className={`sticky top-0 z-30 ${immersive ? "bg-background/90" : "bg-background"}`}>
+      <header
+        className={`sticky top-0 z-30 ${immersive ? "bg-background/90" : "bg-background"}`}
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
         <div
-          className={`mx-auto grid w-full ${width} min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 sm:px-5`}
+          className={`mx-auto grid w-full ${width} min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 sm:px-5`}
         >
-          <Link to="/" className="flex min-w-0 items-center gap-2.5">
+          <Link to="/" className="flex min-w-0 items-center gap-3">
             <BrandMark />
             {cupLive ? (
-              <span className="flex items-center gap-2">
-                <span
-                  className="size-1.5 animate-pulse rounded-full bg-[var(--status-live)]"
-                  aria-label="Cup live"
-                />
-                <span className="t-numeral text-[0.95rem] tracking-tight">
-                  <span className="text-hunter">{fmtPts(standings.strongMental)}</span>
-                  <span className="mx-0.5 text-muted-foreground">–</span>
-                  <span className="text-stone">{fmtPts(standings.grassRoots)}</span>
+              <span className="min-w-0">
+                <span className="flex items-center gap-2">
+                  <span
+                    className="size-1.5 animate-pulse rounded-full bg-[var(--status-live)]"
+                    aria-label="Cup live"
+                  />
+                  <span className="t-numeral text-[1.05rem] tracking-tight">
+                    <span className="text-hunter">{fmtPts(standings.strongMental)}</span>
+                    <span className="mx-0.5 text-muted-foreground">–</span>
+                    <span className="text-stone">{fmtPts(standings.grassRoots)}</span>
+                  </span>
                 </span>
+                <span className="t-micro mt-0.5 block truncate">Tin Cup</span>
               </span>
             ) : (
-              <span className="t-body truncate font-semibold text-foreground">Tin Cup</span>
+              <span className="min-w-0">
+                <span className="block truncate text-[0.98rem] font-semibold leading-none tracking-tight text-foreground">
+                  Tin Cup
+                </span>
+                <span className="t-micro mt-1 block truncate leading-none">Invitational</span>
+              </span>
             )}
           </Link>
           <Link
@@ -127,29 +138,24 @@ export function Shell({
                   : "Claim your roster name"
                 : "Sign in"
             }
-            className="press relative flex shrink-0 items-center gap-2"
+            className="press relative flex size-11 shrink-0 items-center justify-center"
           >
             {claimed ? (
               <Avatar name={claimed.name} teamSlug={claimedTeam?.slug} src={face?.url} size="md" />
             ) : (
-              <>
-                <span
-                  className={`flex size-11 items-center justify-center rounded-full border ${
-                    user
-                      ? "border-border bg-secondary text-sm font-semibold uppercase text-foreground"
-                      : "border-border text-muted-foreground"
-                  }`}
-                >
-                  {user ? (
-                    playerInitials(user.email?.split("@")[0] || "P")
-                  ) : (
-                    <User className="size-4" strokeWidth={1.7} aria-hidden />
-                  )}
-                </span>
-                {!user ? (
-                  <span className="t-micro hidden text-muted-foreground sm:inline">Sign in</span>
-                ) : null}
-              </>
+              <span
+                className={`flex size-10 items-center justify-center rounded-full border ${
+                  user
+                    ? "border-border bg-secondary text-sm font-semibold uppercase text-foreground"
+                    : "border-border text-muted-foreground"
+                }`}
+              >
+                {user ? (
+                  playerInitials(user.email?.split("@")[0] || "P")
+                ) : (
+                  <User className="size-4" strokeWidth={1.7} aria-hidden />
+                )}
+              </span>
             )}
             {user && !claimed && !profile?.player_id && (
               <span
@@ -218,7 +224,7 @@ function GlobalSyncStatus({
 }) {
   const when = formatSyncTime(syncedAt);
   const banner =
-    "sticky top-[var(--header-height)] z-20 mx-auto mt-0 flex w-full max-w-6xl items-center gap-2 border-b px-4 py-2.5 sm:px-5";
+    "sticky top-[calc(var(--header-height)+env(safe-area-inset-top))] z-20 mx-auto mt-0 flex w-full max-w-6xl items-center gap-2 border-b px-4 py-2.5 sm:px-5";
 
   if (conflicts > 0) {
     return (

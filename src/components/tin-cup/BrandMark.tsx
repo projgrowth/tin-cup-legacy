@@ -1,4 +1,4 @@
-/** Bronze 3D medal — object mark only (The Card, purse). Not the 40px header. */
+/** Bronze 3D medal — object mark only. Not the header crest. */
 export function MedalMark({
   className = "",
   size = "sm",
@@ -19,40 +19,41 @@ export function MedalMark({
   );
 }
 
-/** Crest in hunter ink on paper — luminance of the gold PNG is the mask. */
+const CREST = {
+  sm: { box: "size-10", px: 40, round: "rounded-[0.7rem]" },
+  md: { box: "size-14", px: 56, round: "rounded-[0.9rem]" },
+  lg: {
+    box: "size-[7.25rem] sm:size-36",
+    px: 144,
+    round: "rounded-[1.35rem]",
+  },
+} as const;
+
+/**
+ * Official crest — same gold PNG everywhere. Small in the header, large on Home.
+ * Sits in a black well so the gold shield reads on paper and night.
+ */
 export function BrandMark({
   className = "",
   size = "sm",
   decorative = false,
 }: {
   className?: string;
-  size?: "sm" | "lg";
+  size?: keyof typeof CREST;
   decorative?: boolean;
 }) {
-  const box = size === "lg" ? "size-[4.5rem]" : "size-10";
+  const { box, px, round } = CREST[size];
   return (
-    <span className={`relative inline-flex shrink-0 ${box} ${className}`.trim()}>
-      <span
-        aria-hidden
-        className="absolute inset-0 bg-hunter"
-        style={{
-          maskImage: "url(/tin-cup-logo.png)",
-          WebkitMaskImage: "url(/tin-cup-logo.png)",
-          maskSize: "contain",
-          WebkitMaskSize: "contain",
-          maskRepeat: "no-repeat",
-          WebkitMaskRepeat: "no-repeat",
-          maskPosition: "center",
-          WebkitMaskPosition: "center",
-        }}
-      />
+    <span
+      className={`relative inline-flex shrink-0 overflow-hidden bg-black ring-1 ring-foreground/12 ${round} ${box} ${className}`.trim()}
+    >
       <img
         src="/tin-cup-logo.png"
         alt={decorative ? "" : "The Tin Cup Invitational"}
-        width={size === "lg" ? 72 : 40}
-        height={size === "lg" ? 72 : 40}
+        width={px}
+        height={px}
         aria-hidden={decorative || undefined}
-        className="relative size-full object-contain opacity-0"
+        className="relative size-full object-contain object-center"
       />
     </span>
   );
