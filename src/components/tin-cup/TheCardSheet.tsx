@@ -7,7 +7,8 @@ import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { claimedPlayerIdFor } from "@/lib/profile-identity";
 import {
-  CARD_DISCLAIMER,
+  CARD_HEADER,
+  CARD_SUBLINE,
   cardRecords,
   faceoffRiders,
   faceoffRoasts,
@@ -66,9 +67,10 @@ export function TheCardSheet({
 
   return (
     <section aria-labelledby="the-card-title">
-      <h2 id="the-card-title" className="t-eyebrow mb-1 px-1">
-        {CARD_DISCLAIMER}
+      <h2 id="the-card-title" className="t-title px-1 text-foreground">
+        {CARD_HEADER}
       </h2>
+      <p className="t-micro mb-1 px-1">{CARD_SUBLINE}</p>
       <div className="surface divide-y divide-border overflow-hidden">
         {markets.map((market) => {
           const people = peopleForMarket(market, face);

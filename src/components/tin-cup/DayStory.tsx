@@ -58,16 +58,16 @@ export function FormatCards() {
         const d = COURSE_DETAILS[id];
         return (
           <details key={id} className="group">
-            <summary className="press cursor-pointer list-none px-4 py-[var(--space-3)] [&::-webkit-details-marker]:hidden">
+            <summary className="press cursor-pointer list-none px-[var(--space-5)] py-[var(--space-3)] [&::-webkit-details-marker]:hidden">
               <p className="t-title text-foreground">
                 {d.dayLabel} · {d.format}
               </p>
-              <p className="t-body mt-1 text-foreground/90">{d.formatTip}</p>
-              <p className="t-micro mt-1">
+              <p className="t-body mt-[var(--space-3)] text-foreground/90">{d.formatTip}</p>
+              <p className="t-micro mt-[var(--space-3)]">
                 {d.firstTee} · {d.points} pts
               </p>
             </summary>
-            <p className="t-body px-4 pb-[var(--space-3)] text-muted-foreground">
+            <p className="t-body px-[var(--space-5)] pb-[var(--space-5)] text-muted-foreground">
               {COURSE_LABEL[id]} · {d.description}
             </p>
           </details>

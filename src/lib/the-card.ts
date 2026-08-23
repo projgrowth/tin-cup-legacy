@@ -9,7 +9,9 @@ import {
 import type { StoryMoment } from "@/lib/weekend-story";
 
 export const CARD_NOTE_MAX = 140;
-export const CARD_DISCLAIMER = "Ride the other groups.";
+export const CARD_HEADER = "Who takes Friday?";
+export const CARD_SUBLINE = "Not official. Just the group chat.";
+export const CARD_DISCLAIMER = CARD_HEADER;
 
 export function pairingFirstNames(side: string | null | undefined): string {
   if (!side?.trim()) return "TBD";
@@ -282,7 +284,7 @@ export function isYourMarket(
   );
 }
 
-/** Rides on the other groups. Your own pairing is already set. */
+/** Picks on the other groups. Your pairing is just the group you are in. */
 export function takenCount(
   predictions: MatchPrediction[],
   userId: string | undefined,

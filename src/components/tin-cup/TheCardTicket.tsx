@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
@@ -56,17 +56,23 @@ export function TheCardTicket({
   const canPick = Boolean(userId && isClaimed && !yours && !locked && openIds.length > 0);
   const [line, setLine] = useState(mine?.note ?? "");
   const [composing, setComposing] = useState(false);
+  const roastRef = useRef<HTMLInputElement>(null);
   const crowd = faceoffCrowd(social.predictions, market.matchIds);
   const busy = social.predict.isPending || social.clear.isPending;
   const labelA = pairingFirstNames(market.sideA);
   const labelB = pairingFirstNames(market.sideB);
   const claimToRide = !yours && !locked && (!userId || !isClaimed);
+  const showComposer = Boolean(canPick && mine && (composing || !mine.note));
   const roastLine = mine?.note?.trim()
     ? { note: mine.note.trim(), name: null as string | null }
     : (() => {
         const other = roasts.find((roast) => roast.userId !== userId);
         return other ? { note: other.note, name: other.name } : null;
       })();
+
+  useEffect(() => {
+    if (showComposer) roastRef.current?.focus();
+  }, [showComposer, mine?.choice]);
 
   function pick(choice: MatchPredictionChoice) {
     if (!canPick) return;
@@ -93,7 +99,7 @@ export function TheCardTicket({
       {
         onSuccess: () => {
           setComposing(false);
-          toast.success("Line’s up");
+          toast.success("Posted");
         },
         onError: (error) => toast.error(error.message),
       },
@@ -109,12 +115,12 @@ export function TheCardTicket({
           className="press block px-3 py-[var(--space-3)]"
           aria-label="Open Friday book"
         >
-          <p className="t-micro text-hunter">Yours · already set</p>
+          <p className="t-micro text-foreground/80">You&apos;re in this one.</p>
           <div className={`${TICKET_GRID} mt-1.5`}>
             <span className="flex justify-center">
               <AvatarPair people={peopleA} size="sm" />
             </span>
-            <p className="t-body min-w-0 font-semibold leading-snug text-hunter">{labelA}</p>
+            <p className="t-body min-w-0 font-semibold leading-snug text-foreground">{labelA}</p>
             <p className="t-micro text-center text-muted-foreground">vs</p>
             <span className="flex justify-center">
               <AvatarPair people={peopleB} size="sm" />
@@ -159,16 +165,17 @@ export function TheCardTicket({
           ) : null}
         </p>
       ) : null}
-      {canPick && mine && (composing || !mine.note) ? (
+      {showComposer ? (
         <div className="mt-2 flex gap-2">
           <label className="sr-only" htmlFor={`card-line-${market.id}`}>
             Talk your shit
           </label>
           <input
             id={`card-line-${market.id}`}
+            ref={roastRef}
             value={line}
             maxLength={CARD_NOTE_MAX}
-            placeholder="Talk your shit…"
+            placeholder="Talk your shit"
             onChange={(event) => {
               setLine(event.target.value);
               setComposing(true);
@@ -194,13 +201,12 @@ function SplitBar({ sideA, sideB }: { sideA: number; sideB: number }) {
   if (total <= 0) return null;
   const left = Math.round((sideA / total) * 100);
   return (
-    <div
-      className="mt-2 flex h-1 overflow-hidden rounded-full bg-border"
-      aria-hidden
-      title={`${sideA}–${sideB}`}
-    >
-      <span className="h-full bg-hunter" style={{ width: `${left}%` }} />
-      <span className="h-full flex-1 bg-stone/70" />
+    <div className="mt-2">
+      <p className="t-micro mb-1">the boys</p>
+      <div className="flex h-1 overflow-hidden rounded-full bg-border" aria-hidden>
+        <span className="h-full bg-hunter" style={{ width: `${left}%` }} />
+        <span className="h-full flex-1 bg-stone/70" />
+      </div>
     </div>
   );
 }
@@ -251,22 +257,30 @@ function SidePick({
   to?: string;
   onClick: () => void;
 }) {
-  const color = selected ? "text-hunter" : tone === "hunter" ? "text-foreground" : "text-stone";
-  const fill = selected ? "ring-1 ring-hunter" : "";
+  const color = selected
+    ? "text-primary-foreground"
+    : tone === "hunter"
+      ? "text-foreground"
+      : "text-stone";
+  const fill = selected ? "bg-hunter" : "";
   const className = `contents`;
   const inner = (
     <>
-      <span className={`flex min-h-12 items-center justify-center rounded-xl transition-colors duration-[120ms] ${fill}`}>
+      <span
+        className={`flex min-h-12 items-center justify-center rounded-xl transition-colors duration-[120ms] ${fill}`}
+      >
         <AvatarPair people={people} size="sm" />
       </span>
-      <span className={`min-w-0 rounded-xl px-1 py-1 text-left transition-colors duration-[120ms] ${fill}`}>
+      <span
+        className={`min-w-0 rounded-xl px-1 py-1 text-left transition-colors duration-[120ms] ${fill}`}
+      >
         <span className={`t-body block font-semibold leading-snug break-words ${color}`}>{label}</span>
       </span>
     </>
   );
   if (to) {
     return (
-      <Link to={to} aria-label={`Ride with ${label}`} className={className}>
+      <Link to={to} aria-label={label} className={className}>
         {inner}
       </Link>
     );
@@ -276,7 +290,7 @@ function SidePick({
       type="button"
       disabled={disabled}
       aria-pressed={selected}
-      aria-label={selected ? `Undo ${label}` : `Ride with ${label}`}
+      aria-label={selected ? label : label}
       onClick={onClick}
       className={`${className} ${disabled && !to ? "cursor-default" : "press"}`}
     >
