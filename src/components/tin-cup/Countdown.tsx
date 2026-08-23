@@ -47,7 +47,7 @@ export function Countdown({ compact = false }: { compact?: boolean }) {
       </p>
       <div className="grid grid-cols-3">
         {cells.map((cell) => (
-          <div key={cell.label} className="px-1 py-6 text-center">
+          <div key={cell.label} className="px-1 py-4 text-center">
             <p
               suppressHydrationWarning
               className="font-bold tabular-nums leading-none tracking-tight text-foreground text-[clamp(2.4rem,11vw,3.35rem)]"

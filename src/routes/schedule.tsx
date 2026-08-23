@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
-import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { FridayPairings } from "@/components/tin-cup/FridayPairings";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
@@ -135,15 +134,13 @@ function SchedulePage() {
             })}
           </div>
 
-          <PageMasthead
-            title={details.format}
-            meta={
-              <>
-                {details.dayLabel} · {COURSE_LABEL[courseId]} · {details.firstTee}
-                {` · ${selectedRound?.points ?? details.points} pts`}
-              </>
-            }
-          />
+          <header className="px-0.5">
+            <h1 className="t-title text-foreground">{details.format}</h1>
+            <p className="t-micro mt-1">
+              {details.dayLabel} · {COURSE_LABEL[courseId]} · {details.firstTee}
+              {` · ${selectedRound?.points ?? details.points} pts`}
+            </p>
+          </header>
 
           {courseId === "south" ? (
             <FridayPairings
@@ -164,8 +161,8 @@ function SchedulePage() {
         <section className="stack-tight">
           <h2 className="t-eyebrow">Dinners</h2>
           <div className="surface divide-y divide-border overflow-hidden">
-            {socialOrdered.map((row) => (
-              <details key={row.day}>
+            {socialOrdered.map((row, index) => (
+              <details key={row.day} open={index === 0 || undefined}>
                 <summary className="press flex min-h-11 cursor-pointer list-none items-center px-4 py-3 [&::-webkit-details-marker]:hidden">
                   <span className="t-body min-w-0 truncate font-medium text-foreground">
                     {row.day} · {row.title}

@@ -30,8 +30,7 @@ const CREST = {
 } as const;
 
 /**
- * Official crest — same gold PNG everywhere. Small in the header, large on Home.
- * Sits in a black well so the gold shield reads on paper and night.
+ * Official crest — same gold PNG everywhere. Header uses sm; letterhead uses lg.
  */
 export function BrandMark({
   className = "",

@@ -51,10 +51,7 @@ export function PreTournamentPanel({
           <h1 className="text-[0.95rem] font-semibold tracking-tight text-foreground">
             {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
           </h1>
-          <p className="t-micro mt-1">
-            {today.firstTee} · {today.format}
-            {` · ${today.points} pts`}
-          </p>
+          <p className="t-micro mt-1">{today.firstTee}</p>
         </header>
         {groupLine ? (
           <p className="mt-2 px-1 text-center text-sm font-semibold text-foreground">{groupLine}</p>

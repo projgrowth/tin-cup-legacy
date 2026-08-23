@@ -73,7 +73,7 @@ export function TheCardSheet({
           </h2>
           <p className="t-micro">{CARD_DISCLAIMER}</p>
         </div>
-        {progress.total > 0 ? (
+        {progress.taken > 0 ? (
           <p className="t-micro tabular-nums text-muted-foreground">
             {progress.taken}/{progress.total} lined up
           </p>
