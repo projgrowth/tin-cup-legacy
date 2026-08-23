@@ -18,6 +18,7 @@ import {
   COURSE_DETAILS,
   COURSE_ORDER,
   SNAKE_PIT,
+  cannedHoleLine,
   clampHole,
   defaultCourseId,
   getCourse,
@@ -238,7 +239,7 @@ function ScoutPage() {
                 onSatFailed={() => setPlayGpsOn(false)}
                 holeCount={course.holes.length}
                 courseLabel={COURSE_LABEL[courseId]}
-                note={planEditor.filled ? planEditor.summary : null}
+                note={planEditor.filled ? planEditor.summary : cannedHoleLine(courseId, current.h)}
               />
             </Suspense>
           </div>
@@ -273,7 +274,7 @@ function ScoutPage() {
             className={`${mapChip} absolute right-3 z-40 ${playGpsOn ? "chip-on" : ""}`}
             style={{ top: "max(0.75rem, env(safe-area-inset-top))" }}
           >
-            Satellite
+            Aerial
           </button>
 
           {!wideTheater ? (

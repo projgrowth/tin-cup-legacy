@@ -7,7 +7,7 @@ import { HolePlanFields } from "@/components/tin-cup/scout/HolePlanFields";
 import { useHolePlanEditor } from "@/hooks/useHolePlanEditor";
 import { useAuth } from "@/hooks/useAuth";
 import { useHoleNotes } from "@/hooks/useJournal";
-import { SNAKE_PIT, type CourseId } from "@/lib/courses";
+import { cannedHoleLine, SNAKE_PIT, type CourseId } from "@/lib/courses";
 import { getGuestNote } from "@/lib/guest-notes";
 
 /** Parent-owned editor for map tools + sheet (single autosave). */
@@ -71,6 +71,9 @@ export function PlanSheet({
   const stripRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLAnchorElement>(null);
   const { led, filled, summary } = editor;
+  const canned = cannedHoleLine(courseId, hole);
+  const emptyLine = pitLabel ? "Pit · Club, miss, line" : canned || "Club · miss · line";
+
 
   const expanded = open && !forceCollapsed;
 
@@ -111,9 +114,7 @@ export function PlanSheet({
         {overlay
           ? filled
             ? summary
-            : pitLabel
-              ? "Pit · Club, miss, line"
-              : "Club · miss · line"
+            : emptyLine
           : `H${hole}${pitLabel ? ` · ${pitLabel}` : ""}`}
       </span>
       {overlay ? null : (

@@ -111,7 +111,7 @@ function ProfilePage() {
     <Shell>
       {!user ? (
         <p className="t-micro mb-4 text-muted-foreground">
-          Sign in once for your player card and private course notes.
+          Sign in, then claim your roster name — 16 men on the field.
         </p>
       ) : claimedPlayer ? (
         <PageMasthead
@@ -173,7 +173,7 @@ function ProfilePage() {
             blurb={
               search.claim
                 ? "Sign in to confirm the roster spot from your claim link."
-                : "Claim your name. Password works if the email link is rate-limited."
+                : "Password works if the email link is rate-limited."
             }
           />
           <div className="surface overflow-hidden">

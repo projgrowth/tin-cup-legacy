@@ -119,3 +119,15 @@ export function groupLine(playerName: string, asYou = false): string | null {
 export function yourGroupLine(playerName: string): string | null {
   return groupLine(playerName, true);
 }
+
+/** Roster subtitle: Friday partner vs them. */
+export function fridayPartnerLine(playerName: string): string | null {
+  const group = day1GroupForPlayer(playerName);
+  if (!group) return null;
+  const them = group.opponents
+    .split(/[/,&+]|\band\b/i)
+    .map((part) => firstName(part.trim()))
+    .filter(Boolean)
+    .join(" · ");
+  return `${firstName(group.partner)} · vs ${them}`;
+}

@@ -10,7 +10,7 @@ import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
 import { tallyStandings } from "@/lib/scoring";
-import { FIELD_SIDES } from "@/lib/day1-pairings";
+import { FIELD_SIDES, fridayPartnerLine } from "@/lib/day1-pairings";
 
 type RosterSearch = { side?: "strong-mental" | "grass-roots" };
 
@@ -114,13 +114,11 @@ function RostersPage() {
 
         <div className="stack-tight">
           {FIELD_SIDES.filter((side) => side.slug === pickedSide).map((side) => {
-            const liveTeam = teams.find((team) => team.slug === side.slug);
             return (
               <section key={side.slug} className="surface overflow-hidden">
-                <p className="t-micro px-4 pb-1 pt-3">
-                  Capt. {liveTeam?.captain_name ?? side.captain}
-                  {myTeam?.slug === side.slug ? " · Your side" : ""}
-                </p>
+                {myTeam?.slug === side.slug ? (
+                  <p className="t-micro px-4 pb-1 pt-3">Your side</p>
+                ) : null}
                 <ul className="divide-y divide-border">
                   {side.players.map((name) => {
                     const player = playersByName.get(name.trim().toLowerCase());
@@ -129,6 +127,7 @@ function RostersPage() {
                     const social = player
                       ? publicProfiles.data?.find((candidate) => candidate.player_id === player.id)
                       : undefined;
+                    const friday = fridayPartnerLine(name);
                     const body = (
                       <span className="flex min-w-0 flex-1 items-center gap-3">
                         <Avatar
@@ -147,6 +146,9 @@ function RostersPage() {
                               <span className="t-micro shrink-0 text-muted-foreground">You</span>
                             ) : null}
                           </span>
+                          {friday ? (
+                            <span className="t-micro mt-0.5 block">Friday {friday}</span>
+                          ) : null}
                           {social?.status_text ? (
                             <span className="t-micro mt-0.5 block truncate">{social.status_text}</span>
                           ) : null}

@@ -72,7 +72,7 @@
   --space-4: 1rem;
   --space-5: 1.5rem;
   --space-6: 1.75rem;
-  --header-height: 3.6rem;
+  --header-height: 3.25rem;
   --nav-height: 4.25rem;
   --text-display: clamp(1.65rem, 6vw, 2.15rem);
   --text-hero: clamp(2rem, 8vw, 2.75rem);
@@ -456,6 +456,16 @@
   gap: var(--space-6);
 }
 
+html {
+  scroll-padding-top: calc(var(--header-height) + env(safe-area-inset-top));
+  overscroll-behavior: contain;
+}
+
+body {
+  overscroll-behavior: contain;
+}
+
+
 @utility stack-tight {
   display: flex;
   flex-direction: column;
@@ -763,22 +773,23 @@
 }
 .gallery-photo {
   position: relative;
-  aspect-ratio: 1;
   overflow: hidden;
   border: 0;
   border-radius: var(--radius-card);
   background: var(--card);
 }
+.gallery-photo img,
+.gallery-photo .skeleton {
+  aspect-ratio: 1;
+  width: 100%;
+}
 .gallery-caption {
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 2.5rem 0.75rem 0.75rem;
-  background: linear-gradient(transparent, oklch(0.05 0.01 160 / 88%));
+  padding: 0.55rem 0.15rem 0;
+  background: transparent;
 }
 .recap-hero {
   background: var(--card);

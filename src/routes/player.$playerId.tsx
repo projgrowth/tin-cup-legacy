@@ -10,7 +10,7 @@ import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
-import { groupLine } from "@/lib/day1-pairings";
+import { day1GroupForPlayer, fridayPartnerLine, groupLine } from "@/lib/day1-pairings";
 import { cardLine, fridayCardMarkets, pickOnMarket } from "@/lib/the-card";
 import { formatRecord, pairingIncludes, playerRecord, roundStatus } from "@/lib/scoring";
 
@@ -143,7 +143,7 @@ function PlayerPage() {
             team.name.replace("Team ", ""),
             player.is_captain ? "Captain" : null,
             matchLine,
-            shorthand || "No results yet",
+            shorthand,
           ]
             .filter(Boolean)
             .join(" · ")}
@@ -247,17 +247,25 @@ function PlayerPage() {
             );
           })}
           {mine.length === 0 && (
-            <li className="t-micro px-4 py-3">Pairings post once the captains set the lineups.</li>
+            <li className="px-4 py-3">
+              {day1GroupForPlayer(player.name) ? (
+                <>
+                  <p className="t-body font-medium text-foreground">Friday · South</p>
+                  <p className="t-micro mt-0.5">
+                    {fridayPartnerLine(player.name) ?? groupLine(player.name, isYou)}
+                  </p>
+                </>
+              ) : (
+                <p className="t-micro">Pairings post once the captains set the lineups.</p>
+              )}
+            </li>
           )}
         </ol>
       </section>
 
+      {claims.length > 0 ? (
       <section className="mt-6">
         <h2 className="t-eyebrow">Side cash</h2>
-        {claims.length === 0 ? (
-          <p className="t-micro mt-3">No CTP or long drive claims yet.</p>
-        ) : (
-          <>
             <ul className="surface mt-2 divide-y divide-border overflow-hidden">
               {claims.map((claim) => (
                 <li key={claim.id} className="flex items-baseline justify-between gap-3 px-4 py-3">
@@ -275,9 +283,8 @@ function PlayerPage() {
               ))}
             </ul>
             <p className="t-micro mt-2 text-copper">{formatPayout(cash)} won on the side board</p>
-          </>
-        )}
       </section>
+      ) : null}
     </Shell>
   );
 }

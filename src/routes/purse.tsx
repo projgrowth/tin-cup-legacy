@@ -48,7 +48,7 @@ function PursePage() {
 
   return (
     <Shell variant="content">
-      <div className="stack-page pb-10">
+      <div className="stack-page">
         <PageMasthead
           title="Purse"
           meta={

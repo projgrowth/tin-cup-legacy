@@ -54,6 +54,11 @@ const REACTIONS: Array<{ kind: ReactionKind; label: string; icon: typeof Flame }
   { kind: "trophy", label: "Trophy", icon: Trophy },
 ];
 
+function isJunkBody(body?: string | null) {
+  const text = (body ?? "").trim();
+  return !text || text.toLowerCase() === "test";
+}
+
 function fieldReplyKey(postId: string) {
   return `clubhouse-post:${postId}`;
 }
@@ -170,8 +175,9 @@ export function SocialClubhouseFeed({
   const showClubhouse = filter === "all" || filter === "clubhouse";
   const photoMoments = moments.filter((moment) => moment.kind === "photo");
   const restMoments = moments.filter((moment) => moment.kind !== "photo");
+  const visiblePosts = story.clubhousePosts.filter((post) => !isJunkBody(post.body));
   const emptyFeed =
-    story.clubhousePosts.length === 0 && photoMoments.length === 0 && restMoments.length === 0;
+    visiblePosts.length === 0 && photoMoments.length === 0 && restMoments.length === 0;
   const mediaPaths = moments
     .map((moment) => moment.mediaPath)
     .filter((path): path is string => Boolean(path));
@@ -463,17 +469,19 @@ export function SocialClubhouseFeed({
       )}
 
       <div className={compact ? "space-y-2" : "space-y-3"}>
-        {showClubhouse && story.clubhouseEnabled && (
+        {showClubhouse && story.clubhouseEnabled && canParticipate ? (
           <ClubhouseEngagement
             userId={user?.id}
             playerId={profile?.player_id}
             players={players}
             canModerate={canModerate}
           />
-        )}
+        ) : null}
         <div className="surface divide-y divide-border overflow-hidden empty:hidden">
           {showClubhouse &&
-            story.clubhousePosts.map((post) => {
+            story.clubhousePosts
+            .filter((post) => !isJunkBody(post.body))
+            .map((post) => {
               const reactionKey = `clubhouse-post:${post.id}`;
               const reactions = story.reactions.filter((row) => row.moment_key === reactionKey);
               const reported = story.reports.some(
@@ -632,6 +640,7 @@ export function SocialClubhouseFeed({
                     </p>
                   )}
                   <ReactionBar
+                    visible={canParticipate}
                     momentKey={reactionKey}
                     reactions={reactions}
                     userId={user?.id}
@@ -740,7 +749,7 @@ export function SocialClubhouseFeed({
                           <p className="t-micro">
                             {formatActivityTime(new Date(moment.at).toISOString())}
                           </p>
-                          {moment.detail ? (
+                          {moment.detail && !isJunkBody(moment.detail) ? (
                             <p className="mt-1 text-[0.98rem] leading-7 text-foreground/95">
                               {moment.detail}
                             </p>
@@ -763,6 +772,7 @@ export function SocialClubhouseFeed({
                   </header>
                   <div className="mt-3">
                     <ReactionBar
+                      visible={canParticipate}
                       momentKey={moment.key}
                       reactions={reactions}
                       userId={user?.id}
@@ -880,7 +890,7 @@ export function SocialClubhouseFeed({
                     <p className="t-micro">
                       {formatActivityTime(new Date(moment.at).toISOString())}
                     </p>
-                    {moment.detail ? (
+                    {moment.detail && !isJunkBody(moment.detail) ? (
                       <p className="mt-1 text-[0.98rem] leading-7 text-foreground/95">
                         {moment.detail}
                       </p>
@@ -888,6 +898,7 @@ export function SocialClubhouseFeed({
                   </div>
                 </header>
                 <ReactionBar
+                  visible={canParticipate}
                   momentKey={moment.key}
                   reactions={reactions}
                   userId={user?.id}
@@ -952,11 +963,9 @@ export function SocialClubhouseFeed({
       {emptyFeed && (
         <p className="t-micro px-1 py-2 text-muted-foreground">Nothing on the field yet</p>
       )}
-      {matchSocial.unavailable && (
-        <p className="t-micro text-muted-foreground">
-          Match participation is temporarily read-only.
-        </p>
-      )}
+      {canParticipate && matchSocial.unavailable ? (
+        <p className="t-micro text-muted-foreground">Field tools are temporarily read-only.</p>
+      ) : null}
     </section>
   );
 }
@@ -1000,6 +1009,7 @@ function CommentThread({
   onReport: (commentId: string) => void;
   trailing?: ReactNode;
 }) {
+  if (!canParticipate) return trailing ? <div className="mt-2">{trailing}</div> : null;
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2">
@@ -1135,12 +1145,15 @@ function ReactionBar({
   reactions,
   userId,
   onToggle,
+  visible = true,
 }: {
   momentKey: string;
   reactions: Array<{ kind: string; user_id: string }>;
   userId?: string;
   onToggle: (kind: ReactionKind) => void;
+  visible?: boolean;
 }) {
+  if (!visible) return null;
   return (
     <div className="mt-2 flex gap-1">
       {REACTIONS.map(({ kind, label, icon: Icon }) => {

@@ -330,11 +330,7 @@ export function ClubhouseEngagement({
           })}
         </section>
       )}
-      {engagement.unavailable && (
-        <p role="status" className="t-micro">
-          Engagement tools are temporarily read-only.
-        </p>
-      )}
+
     </div>
   );
 }

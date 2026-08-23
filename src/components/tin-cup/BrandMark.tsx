@@ -20,6 +20,7 @@ export function MedalMark({
 }
 
 const CREST = {
+  xs: { box: "size-8", px: 32, round: "rounded-[0.55rem]" },
   sm: { box: "size-10", px: 40, round: "rounded-[0.7rem]" },
   md: { box: "size-14", px: 56, round: "rounded-[0.9rem]" },
   lg: {

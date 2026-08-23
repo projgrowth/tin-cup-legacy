@@ -52,8 +52,8 @@ function YardCol({
       ? "text-white"
       : tone === "sky"
         ? "text-sky-100"
-        : "text-white/80";
-  const size = hero ? "text-[1.65rem] sm:text-[1.85rem]" : "text-[1.15rem] sm:text-[1.35rem]";
+        : "text-white";
+  const size = hero ? "text-[1.85rem] sm:text-[2.05rem]" : "text-[1.35rem] sm:text-[1.5rem]";
   return (
     <div className="min-w-[2.75rem] text-center">
       <p
@@ -62,7 +62,7 @@ function YardCol({
             ? "text-white/70"
             : tone === "sky"
               ? "text-sky-300/80"
-              : "text-white/45"
+              : "text-white/75"
         }`}
       >
         {label}

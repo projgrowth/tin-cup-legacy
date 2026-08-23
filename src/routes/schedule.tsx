@@ -113,7 +113,7 @@ function SchedulePage() {
 
   return (
     <Shell variant="content">
-      <div className="stack-page pb-4">
+      <div className="stack-page">
         <section className="stack-tight">
           <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Day">
             {COURSE_ORDER.map((id) => {
@@ -151,7 +151,26 @@ function SchedulePage() {
               rounds={data?.rounds ?? []}
             />
           ) : (
-            <p className="t-body px-1 text-foreground/80">Pairings when captains post</p>
+            <div className="surface overflow-hidden">
+              <div className="px-4 py-3">
+                <p className="t-body font-medium text-foreground">{details.format}</p>
+                <p className="t-micro mt-1">
+                  {COURSE_LABEL[courseId]} · {details.firstTee}
+                  {` · ${selectedRound?.points ?? details.points} pts`}
+                </p>
+              </div>
+              {WEEKEND_SOCIAL.filter((row) => row.day.startsWith(details.dayLabel)).map((row) => (
+                <div key={row.day} className="border-t border-border px-4 py-3">
+                  <p className="t-body font-medium text-foreground">
+                    {row.day} · {row.title}
+                  </p>
+                  <p className="t-micro mt-1 text-muted-foreground">{row.detail}</p>
+                </div>
+              ))}
+              <p className="t-micro border-t border-border px-4 py-3 text-muted-foreground">
+                Pairings when captains post
+              </p>
+            </div>
           )}
 
         </section>

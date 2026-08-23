@@ -237,6 +237,13 @@ export function defaultCourseId(now: number = Date.now()): CourseId {
   return "south";
 }
 
+/** Dock line when Club-miss-line is empty. Data only -- no invented yards. */
+export function cannedHoleLine(courseId: CourseId, hole: number): string | null {
+  if (courseId === "south" && hole === 7) return "left edge of right bunker";
+  const name = getCourse(courseId).holes.find((row) => row.h === hole)?.name?.trim();
+  return name || null;
+}
+
 export function clampHole(hole: unknown, max = 18): number {
   const n = typeof hole === "number" ? hole : Number(hole);
   if (!Number.isFinite(n)) return 1;

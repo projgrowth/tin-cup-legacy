@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { AlertTriangle, CloudOff } from "lucide-react";
 
 import { BottomNav } from "./BottomNav";
@@ -39,6 +39,8 @@ export function Shell({
   const conflicts = useWriteConflicts();
   const [online, setOnline] = useState(true);
   const [preview, setPreview] = useState(() => isPreviewMode());
+  const [compact, setCompact] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const staleBoard = tournamentError && Boolean(tournament);
   const playerId = claimedPlayerIdFor(user?.id, profile?.player_id);
   const claimed = tournament?.players.find((p) => p.id === playerId);
@@ -48,6 +50,18 @@ export function Shell({
   const standings = tallyStandings(tournament?.matches ?? []);
   const cupLive = standings.played > 0 || getEventPhase() === "live";
   const fmtPts = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
+
+  useEffect(() => {
+    const onScroll = () => setCompact(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (variant === "theater") return;
+    window.scrollTo(0, 0);
+  }, [pathname, variant]);
 
   useEffect(() => {
     setPreview(isPreviewMode());
@@ -71,7 +85,7 @@ export function Shell({
         : "max-w-4xl";
   if (theater) {
     return (
-      <div className="theater relative min-h-svh bg-black">
+      <div className="theater relative min-h-svh overflow-hidden bg-black" style={{ overscrollBehavior: "contain" }}>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-hunter focus:px-3 focus:py-2 focus:text-primary-foreground"
@@ -86,11 +100,7 @@ export function Shell({
   }
   return (
     <div
-      className={`min-h-screen ${
-        immersive
-          ? "pb-[calc(var(--nav-height)+var(--space-4)+env(safe-area-inset-bottom))] md:pb-10"
-          : "pb-[calc(var(--nav-height)+var(--space-6)+env(safe-area-inset-bottom))] lg:pb-24"
-      }`}
+      className="min-h-screen overscroll-contain pb-[calc(var(--nav-height)+env(safe-area-inset-bottom)+1rem)]"
     >
       <a
         href="#main-content"
@@ -103,10 +113,12 @@ export function Shell({
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
         <div
-          className={`mx-auto grid w-full ${width} min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 sm:px-5`}
+          className={`mx-auto grid w-full ${width} grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-5 ${
+            compact ? "min-h-12 py-1.5" : "min-h-14 py-2"
+          }`}
         >
-          <Link to="/" className="flex min-w-0 items-center gap-3">
-            <BrandMark />
+          <Link to="/" className="flex min-w-0 items-center gap-2.5">
+            <BrandMark size={compact ? "xs" : "sm"} />
             {cupLive ? (
               <span className="min-w-0">
                 <span className="flex items-center gap-2">
@@ -127,7 +139,9 @@ export function Shell({
                 <span className="block truncate text-[0.98rem] font-semibold leading-none tracking-tight text-foreground">
                   Tin Cup
                 </span>
-                <span className="t-micro mt-1 block truncate leading-none">Invitational</span>
+                <span className={`t-micro mt-1 block truncate leading-none ${compact ? "hidden" : ""}`}>
+                  Invitational
+                </span>
               </span>
             )}
           </Link>
@@ -186,7 +200,7 @@ export function Shell({
         syncing={isFetching && !tournamentError}
         syncedAt={tournament?.syncedAt}
       />
-      <main id="main-content" className={`mx-auto w-full ${width} px-4 pt-3 sm:px-5 sm:pt-4`}>
+      <main id="main-content" className={`mx-auto w-full ${width} px-4 pt-2 sm:px-5 sm:pt-3`}>
         {children}
       </main>
       <BottomNav live={cupLive} />

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DAY1_PAIRINGS, day1GroupForPlayer, groupLine, yourGroupLine } from "@/lib/day1-pairings";
+import { DAY1_PAIRINGS, day1GroupForPlayer, fridayPartnerLine, groupLine, yourGroupLine } from "@/lib/day1-pairings";
 
 describe("day1 pairings", () => {
   it("has four locked matches", () => {
@@ -22,5 +22,7 @@ describe("day1 pairings", () => {
     expect(groupLine("Zack Smith")).toBe("Zack · Chris vs Charles · Blake");
     expect(yourGroupLine("Josef Yehia")).toBe("You · Dan vs Kevin · Max");
     expect(yourGroupLine("Nobody")).toBeNull();
+    expect(fridayPartnerLine("Zack Smith")).toBe("Chris · vs Charles · Blake");
+    expect(fridayPartnerLine("Nobody")).toBeNull();
   });
 });
