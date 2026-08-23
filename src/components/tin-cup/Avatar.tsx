@@ -5,6 +5,7 @@ const SIZE = {
   md: "size-9 text-[0.65rem]",
   lg: "size-12 text-sm",
   xl: "size-[5.5rem] text-xl",
+  poster: "size-[8.75rem] text-2xl",
 } as const;
 
 /** Circular face or team-color monogram fallback. Faces never overlap. */
@@ -19,7 +20,7 @@ export function Avatar({
   name: string;
   teamSlug?: TeamSlug | null;
   src?: string | null;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "poster";
   className?: string;
   title?: string;
 }) {

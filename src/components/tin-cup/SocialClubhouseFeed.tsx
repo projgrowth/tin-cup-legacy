@@ -473,7 +473,7 @@ export function SocialClubhouseFeed({
         </div>
       )}
 
-      <div className={compact ? "space-y-2" : "space-y-4"}>
+      <div className={homePeek ? "stack" : compact ? "space-y-2" : "space-y-4"}>
         {!homePeek && showClubhouse && story.clubhouseEnabled && canParticipate ? (
           <ClubhouseEngagement
             userId={user?.id}
@@ -482,19 +482,24 @@ export function SocialClubhouseFeed({
             canModerate={canModerate}
           />
         ) : null}
-                {photoMoments.map((moment) => {
+                {photoMoments.map((moment, index) => {
           const reactions = story.reactions.filter((row) => row.moment_key === moment.key);
           const comments = story.comments.filter((comment) => comment.moment_key === moment.key);
           const open = openComments[moment.key];
           const mediaUrl = moment.mediaPath ? mediaUrls[moment.mediaPath] : null;
+          const featured = homePeek && index === 0;
           return (
-            <article key={moment.key} id={`post-${moment.key}`} className="feed-photo overflow-hidden">
+            <article
+              key={moment.key}
+              id={`post-${moment.key}`}
+              className={`feed-photo overflow-hidden ${featured ? "feed-photo-cover" : homePeek && index > 0 ? "feed-photo-tile" : ""}`}
+            >
               {mediaUrl ? (
-                <div className="flex justify-center bg-secondary">
+                <div className={`flex justify-center bg-secondary ${featured ? "min-h-[16rem]" : ""}`}>
                   <img
                     src={mediaUrl}
                     alt={moment.detail || moment.playerName || "Field photo"}
-                    className="h-auto max-h-[32rem] w-auto max-w-full object-contain"
+                    className={featured ? "h-auto max-h-[28rem] w-full object-cover" : "h-auto max-h-[32rem] w-auto max-w-full object-contain"}
                   />
                 </div>
               ) : moment.mediaPath ? (

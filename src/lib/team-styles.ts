@@ -36,7 +36,7 @@ export function avatarRingClass(slug?: TeamSlug | null): string {
 }
 
 /** Monogram surface classes by team. */
-export function monogramClass(slug?: TeamSlug | null, size: "sm" | "md" | "lg" | "xl" = "md"): string {
+export function monogramClass(slug?: TeamSlug | null, size: "sm" | "md" | "lg" | "xl" | "poster" = "md"): string {
   const dim =
     size === "sm"
       ? "size-7 text-[0.6rem]"
@@ -44,7 +44,9 @@ export function monogramClass(slug?: TeamSlug | null, size: "sm" | "md" | "lg" |
         ? "size-12 text-sm"
         : size === "xl"
           ? "size-[5.5rem] text-xl"
-          : "size-9 text-[0.65rem]";
+          : size === "poster"
+            ? "size-[8.75rem] text-2xl"
+            : "size-9 text-[0.65rem]";
   if (slug === "grass-roots") {
     return `${dim} rounded-full border border-stone/35 bg-stone/15 font-semibold tracking-wide text-stone`;
   }

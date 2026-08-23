@@ -124,30 +124,22 @@ function PlayerPage() {
         Teams
       </Link>
 
-      <article className="surface px-4 py-[var(--space-5)]">
-        <div className="flex items-center gap-4">
-          <Link
-            to={isYou ? "/profile" : "/photos"}
-            className="press shrink-0 rounded-full"
-            aria-label={isYou ? "Your face — open account" : `${firstName} in the vault`}
-          >
-            <Avatar name={player.name} teamSlug={team.slug} src={face?.url} size="xl" />
-          </Link>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="t-title text-foreground">{firstName}</h1>
-              {isYou ? <span className="t-micro">You</span> : null}
-            </div>
-            <p className="mt-1.5">
-              <span className="player-flair">{teamChip}</span>
-              {player.is_captain ? <span className="player-flair ml-1">Captain</span> : null}
-            </p>
-            {fridayLine ? <p className="t-micro mt-2">{fridayLine}</p> : null}
-            {shorthand && record.played > 0 ? (
-              <p className="t-micro mt-0.5">{shorthand}</p>
-            ) : null}
-          </div>
-        </div>
+      <article className="surface flex flex-col items-center px-[var(--space-4)] py-[var(--space-6)] text-center">
+        <Link
+          to={isYou ? "/profile" : "/photos"}
+          className="press shrink-0 rounded-full"
+          aria-label={isYou ? "Your face — open account" : `${firstName} in the vault`}
+        >
+          <Avatar name={player.name} teamSlug={team.slug} src={face?.url} size="poster" />
+        </Link>
+        <h1 className="t-hero mt-[var(--space-5)] text-foreground">{firstName}</h1>
+        {isYou ? <p className="t-micro mt-1">You</p> : null}
+        <p className="mt-[var(--space-3)]">
+          <span className="player-flair">{teamChip}</span>
+          {player.is_captain ? <span className="player-flair ml-1">Captain</span> : null}
+        </p>
+        {fridayLine ? <p className="t-micro mt-[var(--space-3)]">{fridayLine}</p> : null}
+        {shorthand && record.played > 0 ? <p className="t-micro mt-1">{shorthand}</p> : null}
       </article>
 
       {hasPairing ? (

@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import { FridayFoursome } from "@/components/tin-cup/FridayFoursome";
+import { FridayPairings } from "@/components/tin-cup/FridayPairings";
 import { LockerWall } from "@/components/tin-cup/LockerWall";
 import { FieldChatLink, InstallHint } from "@/components/tin-cup/WhatsAppLinks";
 import { useBanterVotes } from "@/hooks/useBanterVotes";
@@ -42,49 +43,54 @@ export function PreTournamentPanel({
   const today = COURSE_DETAILS[nextCourseId];
   const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
   const { votes, prompts } = useBanterVotes();
+  const avatars = usePlayerAvatars(players, teams);
 
   return (
     <section aria-label="This weekend" className="stack">
-      <div>
-        <Countdown />
-        <p className="t-micro mt-0.5 px-1 text-center">
-          {today.dayLabel} · {COURSE_LABEL[nextCourseId]} · {today.firstTee}
-        </p>
+      <div className="stack">
+        <div>
+          <Countdown />
+          <p className="t-micro mt-[var(--space-3)] text-center">
+            {today.dayLabel} · {COURSE_LABEL[nextCourseId]} · {today.firstTee}
+          </p>
+        </div>
+        {claimedName ? (
+          <FridayFoursome
+            claimedName={claimedName}
+            players={players}
+            teams={teams}
+            votes={votes}
+            prompts={prompts}
+          />
+        ) : (
+          <FridayPairings
+            getFace={(name) => avatars.data?.getByName(name)}
+            claimedName={claimedName}
+          />
+        )}
       </div>
 
-      {claimedName ? (
-        <FridayFoursome
-          claimedName={claimedName}
-          players={players}
-          teams={teams}
-          votes={votes}
-          prompts={prompts}
-        />
-      ) : null}
-
-      {claimedName ? (
-        <div className="surface divide-y divide-border overflow-hidden">
-          {tonight ? (
-            <Link
-              to="/schedule"
-              search={{}}
-              className="press flex h-11 items-center justify-between px-3"
-            >
-              <span className="t-body font-medium text-foreground">Tonight · {tonight.title}</span>
-              <span className="t-micro">Weekend</span>
-            </Link>
-          ) : (
-            <Link
-              to="/scout"
-              search={{ course: "south", hole: 1, map: true }}
-              className="press flex h-11 items-center justify-between px-3"
-            >
-              <span className="t-body font-medium text-foreground">Friday book</span>
-              <span className="t-micro">South 1</span>
-            </Link>
-          )}
-        </div>
-      ) : null}
+      <div className="surface overflow-hidden">
+        {tonight ? (
+          <Link
+            to="/schedule"
+            search={{}}
+            className="press flex min-h-11 items-center justify-between px-[var(--space-4)]"
+          >
+            <span className="t-body font-medium text-foreground">Tonight · {tonight.title}</span>
+            <span className="t-micro">Weekend</span>
+          </Link>
+        ) : (
+          <Link
+            to="/scout"
+            search={{ course: "south", hole: 1, map: true }}
+            className="press flex min-h-11 items-center justify-between px-[var(--space-4)]"
+          >
+            <span className="t-body font-medium text-foreground">Friday book</span>
+            <span className="t-micro">South 1</span>
+          </Link>
+        )}
+      </div>
 
       <LockerWall players={players} teams={teams} />
     </section>
@@ -103,9 +109,6 @@ export function HomeWeekendDoors({
   players?: Player[];
   teams?: Team[];
 }) {
-  const nextCourseId = defaultCourseId() as CourseId;
-  const today = COURSE_DETAILS[nextCourseId];
-  const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
   const avatars = usePlayerAvatars(players, teams);
   const face = (name: string) => avatars.data?.getByName(name);
   const guest = !claimedName;
@@ -120,16 +123,6 @@ export function HomeWeekendDoors({
           >
             <span className="t-body font-medium text-foreground">Add your face</span>
             <span className="t-micro">Account</span>
-          </Link>
-        ) : null}
-        {guest && tonight ? (
-          <Link
-            to="/schedule"
-            search={{}}
-            className="press flex h-11 items-center justify-between px-3"
-          >
-            <span className="t-body font-medium text-foreground">Tonight · {tonight.title}</span>
-            <span className="t-micro">Weekend</span>
           </Link>
         ) : null}
         {guest ? <InstallHint embedded /> : null}

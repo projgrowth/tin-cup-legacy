@@ -28,7 +28,7 @@ export function FridayFoursome({
   if (!seats) return null;
 
   return (
-    <div className="grid grid-cols-2 gap-[var(--space-5)]">
+    <div className="grid grid-cols-2 items-stretch gap-[var(--space-5)]">
       {seats.map((seat) => {
         const player = players.find(
           (row) => row.name.trim().toLowerCase() === seat.name.toLowerCase(),
@@ -39,21 +39,16 @@ export function FridayFoursome({
         const team = seat.teamSlug === "strong-mental" ? "Strong Mental" : "Grass Roots";
         const inner = (
           <>
-            <Avatar
-              name={seat.name}
-              teamSlug={seat.teamSlug}
-              src={face?.url}
-              size="xl"
-            />
-            <p className="t-title mt-[var(--space-3)] text-foreground">
-              {seat.you ? "You" : first}
-            </p>
-            <p className="t-micro mt-[var(--space-3)]">{team}</p>
-            {chips[0] ? <p className="t-micro mt-[var(--space-3)] text-hunter">{chips[0]}</p> : null}
+            <Avatar name={seat.name} teamSlug={seat.teamSlug} src={face?.url} size="xl" />
+            <p className="t-title mt-[var(--space-3)] text-foreground">{seat.you ? "You" : first}</p>
+            <p className="t-micro mt-1">{team}</p>
+            <div className="mt-auto pt-[var(--space-3)] min-h-[1.5rem]">
+              {chips[0] ? <span className="player-flair text-hunter">{chips[0]}</span> : null}
+            </div>
           </>
         );
         const chrome =
-          "surface flex h-full min-h-[12.5rem] flex-col items-center p-[var(--space-4)] text-center";
+          "surface flex h-full min-h-[13.5rem] flex-col items-center p-[var(--space-4)] text-center";
         if (!player) {
           return (
             <article key={seat.name} className={chrome}>

@@ -56,7 +56,7 @@ export function FridayPairings({
           return (
             <li
               key={p.matchIndex}
-              className={`surface flex h-full min-h-[11rem] flex-col p-[var(--space-4)] ${
+              className={`surface flex h-full min-h-[12rem] flex-col p-[var(--space-4)] ${
                 yours ? "outline outline-1 outline-hunter" : ""
               }`}
             >

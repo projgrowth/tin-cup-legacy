@@ -109,8 +109,8 @@ export function PlanSheet({
       aria-expanded={expanded}
       aria-disabled={forceCollapsed || undefined}
     >
-      {overlay ? <span aria-hidden className="mb-2 h-1 w-8 rounded-full bg-white/30" /> : null}
-      <span className="text-sm font-semibold tracking-tight text-white">
+      {overlay ? <span aria-hidden className="mb-2 h-0.5 w-7 rounded-full bg-white/25" /> : null}
+      <span className="t-body font-semibold tracking-tight text-white">
         {overlay
           ? filled
             ? summary
@@ -149,9 +149,9 @@ export function PlanSheet({
             onClick={() => onSelectHole(h.h)}
             aria-label={`Open hole ${h.h} map`}
             aria-current={active ? "true" : undefined}
-            className={`press relative size-11 shrink-0 rounded-full text-sm font-bold tabular-nums transition-colors ${
+            className={`press relative flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${
               active
-                ? "bg-white/20 text-white ring-1 ring-white/40"
+                ? "bg-hunter text-primary-foreground"
                 : snake
                   ? "bg-white/5 text-copper"
                   : planned
@@ -169,9 +169,7 @@ export function PlanSheet({
             {contests.length > 0 && !active ? (
               <span
                 aria-hidden
-                className={`absolute right-0.5 top-0.5 size-1.5 rounded-full ${
-                  contests.includes("ld") ? "bg-amber-200" : "bg-white"
-                }`}
+                className="absolute right-0.5 top-0.5 size-1.5 rounded-full bg-white"
               />
             ) : null}
           </Link>
@@ -184,8 +182,8 @@ export function PlanSheet({
     <div
       className={`relative overflow-hidden transition-opacity ${
         overlay
-          ? `rounded-t-[1.15rem] border-t border-white/10 backdrop-blur-md ${
-              expanded ? "bg-black/78" : "bg-black/40"
+          ? `rounded-t-[var(--radius-card)] border-t border-white/12 ${
+              expanded ? "bg-black" : "bg-black/72"
             }`
           : "glass-panel"
       }`}

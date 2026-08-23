@@ -58,13 +58,11 @@ export function FormatCards() {
         const d = COURSE_DETAILS[id];
         return (
           <details key={id} className="surface group">
-            <summary className="press min-h-[7.5rem] cursor-pointer list-none p-[var(--space-4)] [&::-webkit-details-marker]:hidden">
-              <p className="t-title text-foreground">
-                {d.dayLabel} · {d.format}
-              </p>
+            <summary className="press flex min-h-[9.25rem] cursor-pointer list-none flex-col justify-between p-[var(--space-4)] [&::-webkit-details-marker]:hidden">
+              <p className="t-title text-foreground">{d.format}</p>
               <p className="t-body mt-[var(--space-3)]">{d.formatTip}</p>
               <p className="t-micro mt-[var(--space-3)]">
-                {d.firstTee} · {d.points} pts
+                {d.dayLabel} · {d.firstTee} · {d.points} pts
               </p>
             </summary>
             <p className="t-body px-[var(--space-4)] pb-[var(--space-4)] text-muted-foreground">
@@ -93,11 +91,11 @@ export function WeekendDayStories({
   );
 }
 
-export function MoneySplit() {
+export function MoneySplit({ bare = false }: { bare?: boolean }) {
   return (
-    <div className="surface divide-y divide-border overflow-hidden">
+    <div className={bare ? "divide-y divide-border" : "surface divide-y divide-border overflow-hidden"}>
       {FEE_BREAKDOWN.map((row) => (
-        <article key={row.label} className="p-[var(--space-4)]">
+        <article key={row.label} className={bare ? "py-[var(--space-4)] first:pt-0" : "p-[var(--space-4)]"}>
           <p className="t-micro">{row.label}</p>
           <p className="t-title mt-1 tabular-nums text-foreground">{row.value}</p>
           <p className="t-micro mt-1.5">{row.note}</p>

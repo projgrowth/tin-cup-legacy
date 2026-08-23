@@ -22,7 +22,7 @@ function NineRule({
   yards: number;
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 px-3 py-1.5 sm:px-4 sm:py-2">
+    <div className="flex items-baseline justify-between gap-3 px-0 py-2">
       <p className="t-eyebrow">{label}</p>
       <p className="t-micro tabular-nums">
         Par {par}
@@ -33,21 +33,21 @@ function NineRule({
   );
 }
 
-function HoleRow({
+function HoleOrb({
   line,
   courseId,
   contests,
   onStage,
 }: {
   line: PlanLine;
-  holeMeta: Hole;
+  holeMeta?: Hole;
   courseId: CourseId;
   contests: Array<"ctp" | "ld">;
   onStage?: boolean;
 }) {
   const snake = courseId === "copperhead" && SNAKE_PIT.includes(line.hole);
   const planned = hasPlanContent(line.draft);
-  const holeMark = `flex size-[3.25rem] shrink-0 items-center justify-center rounded-full text-xl font-bold tabular-nums ${
+  const mark = `flex size-11 items-center justify-center rounded-full text-sm font-bold tabular-nums ${
     onStage
       ? "bg-hunter text-primary-foreground"
       : snake
@@ -55,43 +55,25 @@ function HoleRow({
         : contests.length
           ? "ring-1 ring-hunter text-hunter"
           : planned
-            ? "ring-1 ring-hunter/40 text-hunter"
-            : "ring-1 ring-foreground/30 bg-card text-foreground"
+            ? "ring-1 ring-hunter/45 text-hunter"
+            : "ring-1 ring-foreground/20 text-foreground"
   }`;
+  const word = contests.includes("ctp") ? "CTP" : contests.includes("ld") ? "LD" : snake ? "Pit" : formatScorecardYards(line.yards);
+  const peek = planned ? formatPlanPeek(line.draft) : null;
 
   return (
-    <div className="border-t border-border">
-      <Link
-        to="/scout"
-        search={{ course: courseId, hole: line.hole, map: true }}
-        replace
-        aria-label={`Open hole ${line.hole} map`}
-        aria-current={onStage ? "true" : undefined}
-        className="press flex items-center gap-3 px-3 py-2 sm:px-4 sm:py-3"
-      >
-        <span className={holeMark}>{line.hole}</span>
-        <span className="min-w-0 flex-1">
-          <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="t-body font-semibold tabular-nums text-foreground">
-              {formatScorecardYards(line.yards)}
-            </span>
-            <span className="t-micro tabular-nums text-muted-foreground">Par {line.par}</span>
-            {contests.includes("ctp") ? (
-              <span className="t-micro font-semibold text-hunter">CTP</span>
-            ) : null}
-            {contests.includes("ld") ? (
-              <span className="t-micro font-semibold text-hunter">LD</span>
-            ) : null}
-            {snake ? <span className="t-micro font-semibold text-copper">Pit</span> : null}
-          </span>
-          {planned && formatPlanPeek(line.draft) ? (
-            <span className="mt-0.5 block truncate text-sm text-foreground/85">
-              {formatPlanPeek(line.draft)}
-            </span>
-          ) : null}
-        </span>
-      </Link>
-    </div>
+    <Link
+      to="/scout"
+      search={{ course: courseId, hole: line.hole, map: true }}
+      replace
+      aria-label={`Open hole ${line.hole} map`}
+      aria-current={onStage ? "true" : undefined}
+      className="press flex min-h-11 flex-col items-center px-1 py-2 text-center"
+    >
+      <span className={mark}>{line.hole}</span>
+      <span className="t-micro mt-1.5 tabular-nums">{word}</span>
+      {peek ? <span className="t-micro mt-0.5 line-clamp-1 w-full">{peek}</span> : null}
+    </Link>
   );
 }
 
@@ -145,7 +127,7 @@ export function RoundPlanBoard({
   };
 
   const renderHole = (line: PlanLine) => (
-    <HoleRow
+    <HoleOrb
       key={line.hole}
       line={line}
       holeMeta={holeByN.get(line.hole) ?? holes[0]!}
@@ -156,23 +138,23 @@ export function RoundPlanBoard({
   );
 
   const frontBlock = (
-    <div>
+    <div className="px-[var(--space-4)] pb-[var(--space-4)]">
       <NineRule label={details.frontNine} par={split.out.par} yards={split.out.yards} />
-      {frontLines.map(renderHole)}
+      <div className="grid grid-cols-3 gap-x-1 gap-y-1">{frontLines.map(renderHole)}</div>
     </div>
   );
   const backBlock = (
-    <div>
+    <div className="px-[var(--space-4)] pb-[var(--space-4)]">
       <NineRule
         label={details.backNine}
         par={backStats.par || split.inn.par}
         yards={backStats.yards || split.inn.yards}
       />
-      {backLines.map(renderHole)}
+      <div className="grid grid-cols-3 gap-x-1 gap-y-1">{backLines.map(renderHole)}</div>
       {pitLines.length > 0 ? (
         <>
           <NineRule label="Snake Pit" par={pitStats.par} yards={pitStats.yards} />
-          {pitLines.map(renderHole)}
+          <div className="grid grid-cols-3 gap-x-1 gap-y-1">{pitLines.map(renderHole)}</div>
         </>
       ) : null}
     </div>
@@ -181,20 +163,16 @@ export function RoundPlanBoard({
   return (
     <div className={hero ? "stack-tight pb-[calc(var(--nav-height)+0.75rem)]" : "stack-tight"}>
       {hero ? (
-        <PageMasthead
-          title={COURSE_LABEL[courseId]}
-          meta={
-            <>
-              Par {coursePar(courseId)} · {details.blackTotal.toLocaleString()} yds
-              <span className="mt-1 block">
-                {details.dayLabel} · {details.firstTee} · {details.format}
-              </span>
-              {pairingLine ? (
-                <span className="mt-1 block text-foreground">{pairingLine}</span>
-              ) : null}
-            </>
-          }
-        />
+        <header className="px-0.5">
+          <h1 className="t-hero text-foreground">{COURSE_LABEL[courseId]}</h1>
+          <p className="t-micro mt-[var(--space-3)]">
+            Par {coursePar(courseId)} · {details.blackTotal.toLocaleString()} yds
+          </p>
+          <p className="t-micro mt-1">
+            {details.dayLabel} · {details.firstTee} · {details.format}
+          </p>
+          {pairingLine ? <p className="t-body mt-[var(--space-3)]">{pairingLine}</p> : null}
+        </header>
       ) : (
         <header className="px-0.5">
           <h1 className="t-title text-foreground">{COURSE_LABEL[courseId]}</h1>

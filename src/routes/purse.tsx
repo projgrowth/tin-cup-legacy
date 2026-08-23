@@ -1,12 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { useTournament } from "@/hooks/useTournament";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { sideCash, sideCashByPlayer, settlement, formatPayout } from "@/lib/purse";
 import { MoneySplit } from "@/components/tin-cup/DayStory";
-import { Link } from "@tanstack/react-router";
 import {
   BUY_IN,
   EXPECTED_PLAYER_COUNT,
@@ -49,27 +47,24 @@ function PursePage() {
   return (
     <Shell variant="content">
       <div className="stack-page">
-        <PageMasthead
-          title="Purse"
-          meta={
-            <>
-              Venmo {TOURNAMENT_BANK}
-              <span className="mt-1 block">
-                Team win ${cup.winnerPayout} · side cash ${cash.pool}
-                {hasTbdPayouts ? " · holes TBD" : ""}
-              </span>
-            </>
-          }
-        >
+        <section className="surface p-[var(--space-4)]">
+          <h1 className="t-hero text-foreground">${BUY_IN}</h1>
+          <p className="t-micro mt-[var(--space-3)]">
+            Venmo {TOURNAMENT_BANK} · team win ${cup.winnerPayout} · side ${cash.pool}
+            {hasTbdPayouts ? " · holes TBD" : ""}
+          </p>
+          <div className="mt-[var(--space-5)]">
+            <MoneySplit bare />
+          </div>
           <a
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className="press btn-quiet t-body mt-4 flex min-h-11 w-full justify-center"
+            className="press btn-quiet t-body mt-[var(--space-5)] flex min-h-11 w-full justify-center"
           >
             Pay ${BUY_IN}
           </a>
-        </PageMasthead>
+        </section>
 
         {isError && !data && (
           <ErrorState
@@ -80,12 +75,7 @@ function PursePage() {
           />
         )}
 
-        <section className="stack-tight">
-          <h2 className="t-eyebrow">Where the $150 goes</h2>
-          <MoneySplit />
-        </section>
-
-        {bets.length > 0 && (
+        {claimed.length > 0 && (
           <section>
             <div className="mb-3 flex items-baseline justify-between gap-3">
               <h2 className="t-eyebrow">Side pots</h2>
@@ -94,7 +84,7 @@ function PursePage() {
               </span>
             </div>
             <ul className="surface divide-y divide-border overflow-hidden">
-              {bets
+              {claimed
                 .filter((bet) => bet.hole != null)
                 .map((bet) => (
                   <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
@@ -125,26 +115,6 @@ function PursePage() {
                   </li>
                 ))}
             </ul>
-            {bets.some((bet) => bet.hole == null) ? (
-              <details className="mt-2">
-                <summary className="press t-micro flex min-h-11 cursor-pointer list-none items-center text-muted-foreground [&::-webkit-details-marker]:hidden">
-                  Saturday and Sunday holes Friday night
-                </summary>
-                <ul className="surface mt-1 divide-y divide-border overflow-hidden">
-                  {bets
-                    .filter((bet) => bet.hole == null)
-                    .map((bet) => (
-                      <li
-                        key={bet.id}
-                        className="flex items-center justify-between gap-3 px-4 py-3"
-                      >
-                        <span className="t-body min-w-0 truncate">{bet.label}</span>
-                        <span className="t-numeral shrink-0">{formatPayout(bet.amount)}</span>
-                      </li>
-                    ))}
-                </ul>
-              </details>
-            ) : null}
           </section>
         )}
 
@@ -164,24 +134,7 @@ function PursePage() {
           </section>
         )}
 
-        <section className="stack-tight">
-          <p className="t-body px-1 text-muted-foreground">
-            Six closest-to-the-pin and two long drives pay $100. Friday: CTP 3 and 18, long drive 13
-            in the fairway. Saturday and Sunday holes TBD. Captains do not pick them.
-          </p>
-          <p className="t-micro px-1 text-muted-foreground">
-            Official scoring stays captain-controlled.
-          </p>
-          <div className="surface overflow-hidden">
-            <Link
-              to="/schedule"
-              className="press flex min-h-12 items-center justify-between px-4 py-3"
-            >
-              <span className="t-body font-medium text-foreground">Weekend formats</span>
-              <span className="t-micro">Weekend</span>
-            </Link>
-          </div>
-        </section>
+        <p className="t-micro px-1">Official scoring stays captain-controlled.</p>
       </div>
     </Shell>
   );

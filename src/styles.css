@@ -742,6 +742,9 @@ body {
 .feed-photo img {
   object-fit: contain;
 }
+.feed-photo-cover img {
+  object-fit: cover;
+}
 .feed-moments {
   background: transparent;
 }

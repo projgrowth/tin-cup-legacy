@@ -115,11 +115,11 @@ function RostersPage() {
         <div className="stack-tight">
           {FIELD_SIDES.filter((side) => side.slug === pickedSide).map((side) => {
             return (
-              <section key={side.slug} className="surface overflow-hidden">
+              <section key={side.slug}>
                 {myTeam?.slug === side.slug ? (
-                  <p className="t-micro px-4 pb-1 pt-3">Your side</p>
+                  <p className="t-micro px-1 pb-2">Your side</p>
                 ) : null}
-                <ul className="divide-y divide-border">
+                <ul className="grid grid-cols-1 gap-[var(--space-5)] min-[420px]:grid-cols-2">
                   {side.players.map((name) => {
                     const player = playersByName.get(name.trim().toLowerCase());
                     const isYou = Boolean(player && myPlayerId === player.id);
@@ -129,49 +129,41 @@ function RostersPage() {
                       : undefined;
                     const friday = fridayPartnerLine(name);
                     const body = (
-                      <span className="flex min-w-0 flex-1 items-center gap-3">
+                      <span className="flex min-w-0 flex-1 flex-col items-center text-center">
                         <Avatar
                           name={name}
                           teamSlug={side.slug}
                           src={player ? avatars.data?.byPlayerId.get(player.id)?.url : undefined}
-                          size="md"
+                          size="xl"
                         />
-                        <span className="min-w-0 flex-1">
-                          <span className="t-body flex items-center gap-2 truncate font-medium text-foreground">
-                            <span className="truncate">{name}</span>
-                            {isCaptain ? (
-                              <span className="t-micro text-muted-foreground">C</span>
-                            ) : null}
-                            {isYou ? (
-                              <span className="t-micro shrink-0 text-muted-foreground">You</span>
-                            ) : null}
-                          </span>
-                          {friday ? (
-                            <span className="t-micro mt-0.5 block">Friday {friday}</span>
-                          ) : null}
-                          {social?.status_text ? (
-                            <span className="t-micro mt-0.5 block truncate">{social.status_text}</span>
-                          ) : null}
+                        <span className="t-title mt-[var(--space-3)] truncate text-foreground">
+                          {name.split(" ")[0]}
+                          {isCaptain ? " · C" : ""}
+                          {isYou ? " · You" : ""}
                         </span>
+                        {friday ? <span className="t-micro mt-1">Friday {friday}</span> : null}
+                        {social?.status_text ? (
+                          <span className="t-micro mt-1 line-clamp-2">{social.status_text}</span>
+                        ) : null}
                       </span>
                     );
                     return (
-                      <li key={name} className={isYou ? "bg-secondary/40" : ""}>
-                        <div className="flex items-center pr-1">
-                          {player ? (
-                            <Link
-                              to="/player/$playerId"
-                              params={{ playerId: player.id }}
-                              className="press flex min-h-14 min-w-0 flex-1 items-center gap-3 px-4 py-3.5"
-                            >
-                              {body}
-                            </Link>
-                          ) : (
-                            <div className="flex min-h-14 min-w-0 flex-1 items-center px-4 py-3.5">
-                              {body}
-                            </div>
-                          )}
-                        </div>
+                      <li key={name}>
+                        {player ? (
+                          <Link
+                            to="/player/$playerId"
+                            params={{ playerId: player.id }}
+                            className={`press surface flex min-h-[12.5rem] flex-col items-center p-[var(--space-4)] ${
+                              isYou ? "outline outline-1 outline-hunter" : ""
+                            }`}
+                          >
+                            {body}
+                          </Link>
+                        ) : (
+                          <div className="surface flex min-h-[12.5rem] flex-col items-center p-[var(--space-4)]">
+                            {body}
+                          </div>
+                        )}
                       </li>
                     );
                   })}

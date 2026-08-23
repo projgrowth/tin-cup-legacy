@@ -42,7 +42,7 @@ export function LockerWall({
   const profiles = usePublicProfiles();
   const [draft, setDraft] = useState("");
   const [tagId, setTagId] = useState<string | null>(null);
-  const [openPrompt, setOpenPrompt] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
   const [question, setQuestion] = useState("");
   const roster = fridayRosterNames()
     .map((name) => players.find((player) => player.name.trim().toLowerCase() === name.toLowerCase()))
@@ -51,6 +51,7 @@ export function LockerWall({
   const latestRoast = [...story.clubhousePosts]
     .filter((post) => post.body.trim() && !post.pinned_at)
     .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0];
+  const prompt = prompts[page] ?? prompts[0];
 
   function userIdForPlayer(playerId: string) {
     return profiles.data?.find((row) => row.player_id === playerId)?.id;
@@ -92,154 +93,196 @@ export function LockerWall({
     try {
       await createPrompt(body);
       setQuestion("");
+      setPage(prompts.length);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not save that");
     }
   }
 
   return (
-    <section aria-labelledby="wall-title">
-      <h2 id="wall-title" className="t-title px-1 text-foreground">
-        {BANTER_HEADER}
-      </h2>
-      <p className="t-micro mb-1 px-1">{BANTER_SUBLINE}</p>
-      <div className="surface divide-y divide-border overflow-hidden">
-        <div className="px-[var(--space-5)] py-[var(--space-5)]">
-          {canTalk ? (
-            <>
-              <label className="sr-only" htmlFor="wall-roast">
-                Talk your shit
-              </label>
-              <textarea
-                id="wall-roast"
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                maxLength={500}
-                rows={2}
-                placeholder="Talk your shit"
-                className="control w-full resize-none text-base"
-              />
-              <div className="mt-[var(--space-3)] flex flex-wrap items-center gap-2">
-                {roster.slice(0, 16).map((player) => (
-                  <button
-                    key={player.id}
-                    type="button"
-                    onClick={() => setTagId((cur) => (cur === player.id ? null : player.id))}
-                    aria-pressed={tagId === player.id}
-                    className={`press ${tagId === player.id ? "ring-2 ring-hunter rounded-full" : ""}`}
-                    aria-label={`Tag ${firstName(player.name)}`}
-                  >
-                    <Avatar
-                      name={player.name}
-                      teamSlug={teams.find((team) => team.id === player.team_id)?.slug}
-                      src={avatars.data?.byPlayerId.get(player.id)?.url}
-                      size="sm"
-                    />
-                  </button>
-                ))}
-              </div>
-              <button
-                type="button"
-                disabled={!draft.trim() || story.addComment.isPending}
-                onClick={postRoast}
-                className="press btn-primary mt-[var(--space-3)] min-h-11 px-4 text-sm font-semibold"
-              >
-                Post
-              </button>
-            </>
-          ) : (
-            <Link to="/profile" className="press block">
-              <p className="t-body text-muted-foreground">Talk your shit</p>
-            </Link>
-          )}
-          {latestRoast ? (
-            <p className="t-body mt-[var(--space-5)] italic text-foreground/90">
-              “{latestRoast.body.trim()}”
+    <section aria-labelledby="wall-title" className="stack">
+      <div>
+        <h2 id="wall-title" className="t-title text-foreground">
+          {BANTER_HEADER}
+        </h2>
+        <p className="t-micro mt-[var(--space-3)]">{BANTER_SUBLINE}</p>
+      </div>
+
+      <div className="surface p-[var(--space-4)]">
+        {canTalk ? (
+          <>
+            <label className="sr-only" htmlFor="wall-roast">
+              Talk your shit
+            </label>
+            <textarea
+              id="wall-roast"
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              maxLength={500}
+              rows={3}
+              placeholder="Talk your shit"
+              className="control w-full resize-none text-base"
+            />
+            <div className="mt-[var(--space-4)] flex flex-wrap items-center gap-2">
+              {roster.slice(0, 16).map((player) => (
+                <button
+                  key={player.id}
+                  type="button"
+                  onClick={() => setTagId((cur) => (cur === player.id ? null : player.id))}
+                  aria-pressed={tagId === player.id}
+                  className={`press ${tagId === player.id ? "ring-2 ring-hunter rounded-full" : ""}`}
+                  aria-label={`Tag ${firstName(player.name)}`}
+                >
+                  <Avatar
+                    name={player.name}
+                    teamSlug={teams.find((team) => team.id === player.team_id)?.slug}
+                    src={avatars.data?.byPlayerId.get(player.id)?.url}
+                    size="sm"
+                  />
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              disabled={!draft.trim() || story.addComment.isPending}
+              onClick={postRoast}
+              className="press btn-primary mt-[var(--space-4)] min-h-11 px-4 text-sm font-semibold"
+            >
+              Post
+            </button>
+          </>
+        ) : (
+          <Link to="/profile" className="press block min-h-11">
+            <p className="t-body text-muted-foreground">Talk your shit</p>
+          </Link>
+        )}
+        {latestRoast ? (
+          <p className="t-body mt-[var(--space-5)] italic text-foreground">
+            “{latestRoast.body.trim()}”
+          </p>
+        ) : null}
+      </div>
+
+      <div className="surface overflow-hidden">
+        <div className="flex items-end justify-between gap-3 px-[var(--space-4)] pt-[var(--space-4)]">
+          <p className="t-title text-foreground">Most likely to…</p>
+          {prompts.length > 1 ? (
+            <p className="t-micro tabular-nums">
+              {Math.min(page, prompts.length - 1) + 1}/{prompts.length}
             </p>
           ) : null}
         </div>
 
-        <div className="px-[var(--space-5)] py-[var(--space-5)]">
-          <p className="t-micro mb-[var(--space-3)]">Most likely</p>
-          <ul className="space-y-[var(--space-3)]">
-            {prompts.map((prompt) => {
+        {prompt ? (
+          <div className="px-[var(--space-4)] py-[var(--space-5)]">
+            <p className="t-body text-foreground">{prompt.prompt}</p>
+            {(() => {
               const winner = winnerForPrompt(votes, prompt.id);
               const winnerPlayer = winner
                 ? players.find((player) => player.id === winner.playerId)
                 : null;
               const mine = mineOnPrompt(votes, prompt.id, user?.id);
-              const open = openPrompt === prompt.id;
               return (
-                <li key={prompt.id}>
-                  <button
-                    type="button"
-                    onClick={() => setOpenPrompt((cur) => (cur === prompt.id ? null : prompt.id))}
-                    className="press w-full text-left"
-                  >
-                    <p className="t-body font-medium text-foreground">{prompt.prompt}</p>
-                    {winnerPlayer ? (
-                      <span className="mt-1 flex items-center gap-2">
-                        <Avatar
-                          name={winnerPlayer.name}
-                          teamSlug={teams.find((team) => team.id === winnerPlayer.team_id)?.slug}
-                          src={avatars.data?.byPlayerId.get(winnerPlayer.id)?.url}
-                          size="sm"
-                        />
-                        <span className="t-micro text-foreground/80">
-                          {firstName(winnerPlayer.name)} · {prompt.chip}
-                        </span>
-                      </span>
-                    ) : null}
-                  </button>
-                  {open ? (
-                    <div className="mt-[var(--space-3)] grid grid-cols-4 gap-2">
-                      {roster.map((player) => {
-                        const selected = mine?.playerId === player.id;
-                        const face = (
-                          <>
-                            <Avatar
-                              name={player.name}
-                              teamSlug={teams.find((team) => team.id === player.team_id)?.slug}
-                              src={avatars.data?.byPlayerId.get(player.id)?.url}
-                              size="md"
-                              className={`size-[44px] text-[0.65rem] ${selected ? "ring-2 ring-hunter" : ""}`}
-                            />
-                            <span className={`t-micro mt-1 block ${selected ? "text-hunter" : ""}`}>
-                              {firstName(player.name)}
-                            </span>
-                          </>
-                        );
-                        if (!canTalk) {
-                          return (
-                            <Link
-                              key={player.id}
-                              to="/profile"
-                              className="press flex flex-col items-center text-center"
-                            >
-                              {face}
-                            </Link>
-                          );
-                        }
-                        return (
-                          <button
-                            key={player.id}
-                            type="button"
-                            aria-pressed={selected}
-                            onClick={() => void pick(prompt.id, player.id)}
-                            className="press flex flex-col items-center text-center"
-                          >
-                            {face}
-                          </button>
-                        );
-                      })}
+                <>
+                  {winnerPlayer ? (
+                    <div className="mt-[var(--space-4)] flex items-center gap-3">
+                      <Avatar
+                        name={winnerPlayer.name}
+                        teamSlug={teams.find((team) => team.id === winnerPlayer.team_id)?.slug}
+                        src={avatars.data?.byPlayerId.get(winnerPlayer.id)?.url}
+                        size="lg"
+                      />
+                      <div>
+                        <p className="t-title text-foreground">{firstName(winnerPlayer.name)}</p>
+                        <p className="t-micro mt-1 text-hunter">{prompt.chip}</p>
+                      </div>
                     </div>
                   ) : null}
-                </li>
+                  <div className="mt-[var(--space-5)] grid grid-cols-4 gap-[var(--space-4)]">
+                    {roster.map((player) => {
+                      const selected = mine?.playerId === player.id;
+                      const face = (
+                        <>
+                          <Avatar
+                            name={player.name}
+                            teamSlug={teams.find((team) => team.id === player.team_id)?.slug}
+                            src={avatars.data?.byPlayerId.get(player.id)?.url}
+                            size="lg"
+                            className={`size-[3.25rem] text-[0.7rem] ${selected ? "ring-2 ring-hunter" : ""}`}
+                          />
+                          <span className={`t-micro mt-1.5 block ${selected ? "text-hunter" : ""}`}>
+                            {firstName(player.name)}
+                          </span>
+                        </>
+                      );
+                      if (!canTalk) {
+                        return (
+                          <Link
+                            key={player.id}
+                            to="/profile"
+                            className="press flex min-h-11 flex-col items-center text-center"
+                          >
+                            {face}
+                          </Link>
+                        );
+                      }
+                      return (
+                        <button
+                          key={player.id}
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() => void pick(prompt.id, player.id)}
+                          className="press flex min-h-11 flex-col items-center text-center"
+                        >
+                          {face}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
               );
-            })}
-          </ul>
+            })()}
+            {prompts.length > 1 ? (
+              <div className="mt-[var(--space-5)] flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  disabled={page <= 0}
+                  onClick={() => setPage((n) => Math.max(0, n - 1))}
+                  className="press btn-quiet min-h-11 px-4 text-sm"
+                >
+                  Prev
+                </button>
+                <div className="flex gap-1.5">
+                  {prompts.map((item, index) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      aria-label={`Dare ${index + 1}`}
+                      onClick={() => setPage(index)}
+                      className={`size-2 rounded-full ${
+                        index === page ? "bg-hunter" : "bg-foreground/15"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  disabled={page >= prompts.length - 1}
+                  onClick={() => setPage((n) => Math.min(prompts.length - 1, n + 1))}
+                  className="press btn-quiet min-h-11 px-4 text-sm"
+                >
+                  Next
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <p className="t-micro px-[var(--space-4)] py-[var(--space-5)]">No dares yet.</p>
+        )}
+
+        <div className="border-t border-border px-[var(--space-4)] py-[var(--space-4)]">
           {canTalk ? (
-            <div className="mt-[var(--space-5)]">
+            <>
               <label className="sr-only" htmlFor="wall-most-likely">
                 Most likely to…
               </label>
@@ -259,9 +302,9 @@ export function LockerWall({
               >
                 Post
               </button>
-            </div>
+            </>
           ) : (
-            <Link to="/profile" className="press mt-[var(--space-5)] block">
+            <Link to="/profile" className="press flex min-h-11 items-center">
               <p className="t-body text-muted-foreground">Most likely to…</p>
             </Link>
           )}

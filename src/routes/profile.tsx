@@ -110,8 +110,8 @@ function ProfilePage() {
   return (
     <Shell>
       {!user ? (
-        <p className="t-micro mb-4 text-muted-foreground">
-          Sign in, then claim your roster name — 16 men on the field.
+        <p className="t-body mb-[var(--space-5)]">
+          Sign in, then claim your name.
         </p>
       ) : claimedPlayer ? (
         <PageMasthead
@@ -444,8 +444,8 @@ function MyHubCard({
   const src = localUrl || face?.url || null;
 
   return (
-    <section className={`surface p-4 ${teamRailClass(teamSlug)}`}>
-      <div className="flex items-start gap-3">
+    <section className={`surface p-[var(--space-4)] ${teamRailClass(teamSlug)}`}>
+      <div className="flex flex-col items-center text-center">
         <button
           type="button"
           onClick={() => setShowPicker((v) => !v)}
@@ -453,7 +453,7 @@ function MyHubCard({
           className="press relative shrink-0"
           aria-label="Upload profile photo"
         >
-          <Avatar name={player.name} teamSlug={teamSlug} src={src} size="lg" />
+          <Avatar name={player.name} teamSlug={teamSlug} src={src} size="poster" />
           <span className="absolute -bottom-0.5 -right-0.5 flex size-6 items-center justify-center rounded-full border border-border bg-background text-muted-foreground">
             {uploading ? (
               <Loader2 className="size-3 animate-spin" />
@@ -462,24 +462,24 @@ function MyHubCard({
             )}
           </span>
         </button>
-        <div className="min-w-0 flex-1">
-          <p className="t-micro text-muted-foreground">{teamName}</p>
-          <h2 className="t-title mt-0.5 text-foreground">{player.name}</h2>
-          {player.is_captain && <span className="t-micro text-muted-foreground">Captain</span>}
+        <div className="min-w-0 w-full">
+          <p className="t-micro mt-[var(--space-3)]">{teamName}</p>
+          <h2 className="t-title mt-1 text-foreground">{player.name.split(" ")[0]}</h2>
+          {player.is_captain && <span className="t-micro">Captain</span>}
           <button
             type="button"
             onClick={() => setShowPicker((v) => !v)}
             disabled={uploading}
-            className="press t-micro mt-1 text-muted-foreground underline-offset-2 hover:underline"
+            className="press t-micro mt-[var(--space-3)] text-muted-foreground underline-offset-2 hover:underline"
           >
             {src ? "Change photo" : "Add photo"}
           </button>
           {d1 && (
-            <p className="t-micro mt-2 text-muted-foreground">
-              Day 1 · w/ {d1.partner.split(" ")[0]} · vs {d1.opponents}
+            <p className="t-micro mt-[var(--space-3)]">
+              Friday · w/ {d1.partner.split(" ")[0]} · vs {d1.opponents}
             </p>
           )}
-          <p className="t-micro mt-1 text-muted-foreground">
+          <p className="t-micro mt-1">
             {shorthand ? `${shorthand} · ${record.points} pts` : "No results yet"}
             {cash > 0 ? ` · ${formatPayout(cash)} side` : ""}
           </p>
