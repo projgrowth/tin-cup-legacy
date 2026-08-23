@@ -63,6 +63,7 @@
 }
 
 :root {
+  color-scheme: light;
   --radius: 0.625rem;
   --radius-card: 0.75rem;
   --space-1: 0.25rem;
@@ -804,12 +805,49 @@
   }
 }
 
-/* Curated appearance presets keep the same layer deltas. */
+/*
+ * Night is still stationery — charcoal hunter paper, cream ink.
+ * Not glass, not gold type, not a club lighting look.
+ */
+html[data-theme="night"],
 html[data-appearance="night"] {
-  --background: oklch(0.09 0.01 250);
-  --card: oklch(0.16 0.012 245);
-  --secondary: oklch(0.13 0.012 245);
-  --muted: oklch(0.14 0.01 245);
+  color-scheme: dark;
+  --hunter: oklch(0.74 0.09 155);
+  --stone: oklch(0.76 0.055 75);
+  --background: oklch(0.17 0.02 155);
+  --foreground: oklch(0.96 0.012 95);
+  --card: oklch(0.21 0.022 155);
+  --card-foreground: oklch(0.96 0.012 95);
+  --popover: oklch(0.21 0.022 155);
+  --popover-foreground: oklch(0.96 0.012 95);
+  --primary: var(--hunter);
+  --primary-foreground: oklch(0.16 0.02 155);
+  --secondary: oklch(0.25 0.02 155);
+  --secondary-foreground: oklch(0.96 0.012 95);
+  --muted: oklch(0.23 0.018 155);
+  --muted-foreground: oklch(0.78 0.02 150);
+  --accent: var(--stone);
+  --accent-foreground: oklch(0.16 0.02 155);
+  --border: oklch(0.96 0.012 95 / 10%);
+  --border-strong: oklch(0.96 0.012 95 / 20%);
+  --input: oklch(0.96 0.012 95 / 16%);
+  --ring: oklch(0.74 0.09 155 / 50%);
+  --gold: var(--hunter);
+  --gold-light: var(--hunter);
+  --copper: oklch(0.7 0.14 35);
+  --glass: oklch(0.17 0.02 155 / 90%);
+  --status-live: oklch(0.74 0.12 155);
+  --track: oklch(0.96 0.012 95 / 10%);
+  --scrim: oklch(0.08 0.02 155 / 60%);
+  --shadow-card: 0 1px 0 oklch(1 0 0 / 5%), 0 18px 40px -28px oklch(0 0 0 / 55%);
+  --sidebar: oklch(0.21 0.022 155);
+  --sidebar-foreground: oklch(0.96 0.012 95);
+  --sidebar-primary: var(--hunter);
+  --sidebar-primary-foreground: oklch(0.16 0.02 155);
+  --sidebar-accent: oklch(0.25 0.02 155);
+  --sidebar-accent-foreground: oklch(0.96 0.012 95);
+  --sidebar-border: oklch(0.96 0.012 95 / 12%);
+  --sidebar-ring: oklch(0.74 0.09 155 / 50%);
 }
 html[data-appearance="team"] {
   --background: oklch(0.1 0.024 158);

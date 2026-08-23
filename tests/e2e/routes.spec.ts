@@ -114,6 +114,10 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(page.getByText("Zack Smith", { exact: true })).toBeVisible();
   await expect(page.getByText("Kevin Maher", { exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Grass Roots" }).click();
+  await expect(page.getByRole("tab", { name: "Grass Roots" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
   await expect(page.getByText("Charles Grass", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Team Strong Mental" })).toHaveCount(0);
   await expect(page.getByText("Loading…")).toHaveCount(0);
@@ -202,6 +206,8 @@ test("profile guest sees sign-in instead of a stuck claim screen", async ({ page
   await page.goto("/profile");
   await expect(page.getByRole("heading", { name: "Account" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Paper" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Night" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Claim your name" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Couldn't load your account" })).toHaveCount(0);
 });

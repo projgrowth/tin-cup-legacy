@@ -11,6 +11,7 @@ import { PhotoPicker } from "@/components/tin-cup/PhotoPicker";
 import { NotificationSettings } from "@/components/tin-cup/NotificationSettings";
 import { DeviceReadiness } from "@/components/tin-cup/DeviceReadiness";
 import { LoadingForm, PageHeading, Shell } from "@/components/tin-cup/Shell";
+import { ThemeToggle } from "@/components/tin-cup/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
@@ -181,6 +182,9 @@ function ProfilePage() {
                 : "Claim your name. Password works if the email link is rate-limited."
             }
           />
+          <div className="surface overflow-hidden">
+            <ThemeToggle />
+          </div>
         </div>
       ) : identity.kind === "loading" ? (
         <LoadingForm fields={3} />
@@ -287,6 +291,7 @@ function ProfilePage() {
               More
             </summary>
             <div className="divide-y divide-border border-t border-border">
+              <ThemeToggle />
               {claimedPlayer ? (
                 <details>
                   <summary className="press flex min-h-12 cursor-pointer list-none items-center px-4 py-3 t-body text-foreground [&::-webkit-details-marker]:hidden">

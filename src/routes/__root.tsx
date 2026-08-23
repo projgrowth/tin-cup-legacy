@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { registerServiceWorker } from "@/lib/register-sw";
+import { THEME_BOOT } from "@/lib/theme";
 import { installClientErrorReporting } from "@/lib/client-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -81,51 +82,51 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ? "The 4th Annual Tin Cup Invitational at Innisbrook Golf Resort, August 28–30, 2026. Pairings, course plans, purse and the Snake Pit."
       : "The 4th Annual Tin Cup Invitational at Innisbrook Golf Resort, August 28–30, 2026. Live 26-point scoreboard, side cash, rosters and the Snake Pit guide.";
     return {
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title },
-      {
-        name: "description",
-        content: description,
-      },
-      { name: "theme-color", content: "#f6f3ee" },
-      { property: "og:title", content: title },
-      {
-        property: "og:description",
-        content: description,
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: title },
-      {
-        name: "twitter:description",
-        content: description,
-      },
-      {
-        property: "og:image",
-        content: "/tin-cup-logo.png",
-      },
-      {
-        name: "twitter:image",
-        content: "/tin-cup-logo.png",
-      },
-    ],
-    links: [
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap",
-      },
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-      { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "icon", type: "image/png", href: "/favicon.png" },
-      { rel: "apple-touch-icon", href: "/app-icon-512.png" },
-    ],
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { title },
+        {
+          name: "description",
+          content: description,
+        },
+        { name: "theme-color", content: "#f6f3ee" },
+        { property: "og:title", content: title },
+        {
+          property: "og:description",
+          content: description,
+        },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        {
+          name: "twitter:description",
+          content: description,
+        },
+        {
+          property: "og:image",
+          content: "/tin-cup-logo.png",
+        },
+        {
+          name: "twitter:image",
+          content: "/tin-cup-logo.png",
+        },
+      ],
+      links: [
+        { rel: "preconnect", href: "https://fonts.googleapis.com" },
+        { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap",
+        },
+        {
+          rel: "stylesheet",
+          href: appCss,
+        },
+        { rel: "manifest", href: "/manifest.webmanifest" },
+        { rel: "icon", type: "image/png", href: "/favicon.png" },
+        { rel: "apple-touch-icon", href: "/app-icon-512.png" },
+      ],
     };
   },
   beforeLoad: ({ context }) => {
@@ -139,11 +140,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
         <HeadContent />
       </head>
-      <body className="font-sans antialiased">
+      <body className="bg-background font-sans text-foreground antialiased">
         {children}
         <Scripts />
       </body>
