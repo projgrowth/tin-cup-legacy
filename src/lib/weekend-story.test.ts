@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildStoryMoments } from "./weekend-story";
+import { buildStoryMoments, isHangoutMoment } from "./weekend-story";
 
 describe("weekend story", () => {
   it("normalizes only published tournament moments with stable revision keys", () => {
@@ -52,5 +52,24 @@ describe("weekend story", () => {
     const shot = moments.find((row) => row.key === "activity:photo-1");
     expect(face).toMatchObject({ kind: "roster", mediaPath: null, shareable: false });
     expect(shot).toMatchObject({ kind: "photo", mediaPath: "photos/south.jpg" });
+  });
+
+  it("keeps roster activity out of the Field hangout kinds", () => {
+    const moments = buildStoryMoments({
+      matches: [],
+      sideBets: [],
+      trophies: [],
+      activity: [
+        {
+          id: "claim-1",
+          kind: "claim",
+          at: "2026-08-22T12:00:00Z",
+          title: "Dan joined the field",
+        },
+      ],
+    });
+    expect(moments[0]?.kind).toBe("roster");
+    expect(isHangoutMoment(moments[0]!)).toBe(false);
+    expect(isHangoutMoment({ kind: "photo" })).toBe(true);
   });
 });

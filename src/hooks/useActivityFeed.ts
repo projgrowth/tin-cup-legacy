@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { graphqlRequest } from "@/integrations/supabase/graphql";
+import { graphqlRequest, subscribeGraphql } from "@/integrations/supabase/graphql";
 import type { Player, Team } from "@/hooks/useTournament";
 import { getRuntimeMode, isPreviewMode } from "@/lib/runtime-mode";
 import { readPreviewPhotos } from "@/lib/preview-media";
@@ -224,11 +225,17 @@ async function loadActivity(players: Player[], teams: Team[]): Promise<ActivityI
 }
 
 export function useActivityFeed(players: Player[], teams: Team[]) {
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    return subscribeGraphql(`subscription ActivityPhotos { photos { id created_at } }`, () => {
+      void queryClient.invalidateQueries({ queryKey: ["activity-feed"] });
+    });
+  }, [queryClient]);
   return useQuery({
     queryKey: ["activity-feed", players.map((p) => p.id).join(",")],
     queryFn: () => loadActivity(players, teams),
     enabled: getRuntimeMode() !== "production" || players.length > 0,
     retry: 1,
-    staleTime: 45_000,
+    staleTime: 15_000,
   });
 }

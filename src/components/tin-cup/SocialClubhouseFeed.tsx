@@ -42,6 +42,7 @@ import { savePreviewPhoto } from "@/lib/preview-media";
 import { isPreviewMode } from "@/lib/runtime-mode";
 import {
   buildStoryMoments,
+  isHangoutMoment,
   type ReactionKind,
   type StoryComment,
   type StoryMoment,
@@ -144,15 +145,14 @@ export function SocialClubhouseFeed({
       ...predictions,
     ]
       .sort((a, b) => b.at - a.at)
-      .filter((moment) =>
-        filter === "all"
-          ? true
-          : filter === "photos"
-            ? moment.kind === "photo"
-            : filter === "scores"
-              ? ["match", "prediction", "side-bet", "trophy", "lead-change"].includes(moment.kind)
-              : false,
-      );
+      .filter((moment) => {
+        if (!isHangoutMoment(moment)) return false;
+        if (filter === "all") return true;
+        if (filter === "photos") return moment.kind === "photo";
+        if (filter === "scores")
+          return ["match", "prediction", "side-bet", "trophy", "lead-change"].includes(moment.kind);
+        return false;
+      });
   }, [
     activity.data,
     filter,
@@ -749,14 +749,32 @@ export function SocialClubhouseFeed({
                       size="md"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="t-micro flex items-center gap-1.5 text-muted-foreground">
-                        <MomentIcon kind={moment.kind} /> {moment.kind.replace("-", " ")}
-                      </p>
-                      <h3 className="t-title mt-1 text-foreground">{moment.title}</h3>
-                      {moment.detail && (
-                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                          {moment.detail}
-                        </p>
+                      {moment.kind === "photo" ? (
+                        <>
+                          <h3 className="text-base font-semibold text-foreground">
+                            {moment.playerName || "Player"}
+                          </h3>
+                          <p className="t-micro">
+                            {formatActivityTime(new Date(moment.at).toISOString())}
+                          </p>
+                          {moment.detail ? (
+                            <p className="mt-1 text-[0.98rem] leading-7 text-foreground/95">
+                              {moment.detail}
+                            </p>
+                          ) : null}
+                        </>
+                      ) : (
+                        <>
+                          <p className="t-micro flex items-center gap-1.5 text-muted-foreground">
+                            <MomentIcon kind={moment.kind} /> {moment.kind.replace("-", " ")}
+                          </p>
+                          <h3 className="t-title mt-1 text-foreground">{moment.title}</h3>
+                          {moment.detail ? (
+                            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                              {moment.detail}
+                            </p>
+                          ) : null}
+                        </>
                       )}
                     </div>
                   </header>

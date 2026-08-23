@@ -90,3 +90,8 @@ export function buildStoryMoments(input: {
     });
   return moments.sort((a, b) => b.at - a.at || a.key.localeCompare(b.key));
 }
+
+/** Face claims stay off Field — they are not hangout posts. */
+export function isHangoutMoment(moment: Pick<StoryMoment, "kind">) {
+  return moment.kind !== "roster";
+}
