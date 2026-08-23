@@ -30,7 +30,7 @@ export function HomeSecondaryModules({
     },
     plan: {
       label: "Plan",
-      hint: `${context.planProgress.planned}/18 holes`,
+      hint: context.planProgress.planned > 0 ? context.planProgress.planned + "/18 holes" : "Course book",
       to: "/scout",
     },
     photos: {

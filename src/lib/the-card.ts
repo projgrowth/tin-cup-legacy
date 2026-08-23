@@ -316,6 +316,7 @@ export function buildCardMoments(input: {
     const pairing = `${pick.userId}:${match.round_id}:${pairingKey(match.side_a, match.side_b)}`;
     if (seenPairing.has(pairing)) continue;
     seenPairing.add(pairing);
+    if (!pick.note?.trim()) continue;
     const author = input.authorName(pick.userId);
     const line = cardLine({
       author,

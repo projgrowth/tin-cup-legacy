@@ -167,6 +167,7 @@ function PlayerPage() {
         Share card
       </ShareMomentButton>
 
+      {record.played > 0 ? (
       <div className="mt-6 grid grid-cols-3 gap-3">
         {[
           { label: "Won", value: record.won },
@@ -179,6 +180,7 @@ function PlayerPage() {
           </div>
         ))}
       </div>
+      ) : null}
 
       {(record.points > 0 || claims.length > 0 || player.is_captain) && (
         <section className="mt-6" aria-labelledby="player-achievements">

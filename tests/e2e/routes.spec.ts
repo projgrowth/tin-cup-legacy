@@ -38,7 +38,7 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByText(/12:19 PM/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Weekend", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Plan", exact: true }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: /Pay \$150/ }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /Pay / })).toHaveCount(0);
   await expect(page.getByText("Sign in to join the Clubhouse")).toHaveCount(0);
   await expect(page.getByText("Today at Tin Cup")).toHaveCount(0);
   expect((await logoRequest).ok()).toBe(true);
@@ -58,7 +58,7 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Add your face" })).toHaveCount(0);
   await expect(page.getByText("Add to Home Screen", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Got it" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Sign in to post" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Sign in to post" })).toHaveCount(0);
   await expect(page.getByText("August 28–30, 2026", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Skip intro")).toHaveCount(0);
   await expect(page.getByText("Just looking")).toHaveCount(0);
@@ -141,7 +141,7 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expectNoHorizontalOverflow(page);
 
   await page.goto("/purse");
-  const payment = page.getByRole("link", { name: /Pay \$150/ }).first();
+  const payment = page.getByRole("link", { name: /Pay / }).first();
   await expect(payment).toHaveAttribute("href", /https:\/\/venmo\.com\/Kmaher.*amount=150/);
   await expect(page.getByText("$800").first()).toBeVisible();
   await expect(page.getByText("Team match stake")).toBeVisible();

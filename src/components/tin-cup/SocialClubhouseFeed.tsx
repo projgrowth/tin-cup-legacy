@@ -310,15 +310,7 @@ export function SocialClubhouseFeed({
         )}
       </div>
 
-      {!user ? (
-        <Link
-          to="/profile"
-          className="press surface flex min-h-12 items-center justify-between px-4 py-3"
-        >
-          <span className="t-body font-medium text-foreground">Sign in to post</span>
-          <span className="t-micro">Account</span>
-        </Link>
-      ) : !canParticipate ? (
+      {!user ? null : !canParticipate ? (
         <Link
           to="/profile"
           className="press surface flex min-h-12 items-center justify-between px-4 py-3"

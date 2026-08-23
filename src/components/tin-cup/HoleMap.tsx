@@ -409,7 +409,7 @@ export function HoleMap({
         if (st.yardsFromTee === 0 || st.yardsToGreen < 1) return null;
         if (st.yardsFromTee % 50 !== 0) return null;
         // Skip labels too close to green end clutter
-        if (st.yardsToGreen < 35) return null;
+        if (st.yardsToGreen < 80) return null;
         const dist = (st.yardsFromTee / hole.yards) * lineLen;
         const { nx, ny } = lineTangentAt(rawLine, dist);
         const tick = tickScale * 1.1;

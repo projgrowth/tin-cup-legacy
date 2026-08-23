@@ -316,7 +316,7 @@ function Index() {
                   matches={data?.matches ?? []}
                   players={data?.players ?? []}
                   teams={data?.teams ?? []}
-                  canUpload={Boolean(user)}
+                  canUpload={Boolean(claimedPlayer)}
                   signedIn={Boolean(user)}
                   claimedName={claimedPlayer?.name ?? null}
                   needsClaim={needsClaim}
@@ -368,7 +368,7 @@ function Index() {
                     })
                   }
                   canModerate={canScore || isAdmin}
-                  canUpload={Boolean(user)}
+                  canUpload={Boolean(claimedPlayer)}
                   compact={experience.preferences.compactFeed}
                 />
               </div>

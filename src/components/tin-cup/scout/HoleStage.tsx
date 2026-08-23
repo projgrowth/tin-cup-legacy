@@ -123,9 +123,9 @@ export function HoleStage({
 
       {liveStack ? (
         <div
-          className="pointer-events-none absolute left-3 z-20"
+          className="pointer-events-none absolute left-3 z-40 drop-shadow-[0_2px_14px_oklch(0_0_0/80%)]"
           style={{
-            bottom: "max(10.5rem, calc(env(safe-area-inset-bottom) + 9.75rem))",
+            bottom: "max(12.75rem, calc(env(safe-area-inset-bottom) + 12rem))",
           }}
         >
           <DistanceStack

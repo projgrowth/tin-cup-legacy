@@ -51,7 +51,7 @@ function CaptainPage() {
         <PageHeading
           eyebrow="Scorekeeping"
           title="Captain Access"
-          meta="Zack & Charles post results · Kevin is admin only"
+          meta="Captains and admins can post results"
         />
         {rolesError && (
           <div role="alert" className="surface mb-4 flex items-center justify-between gap-3 p-4">
@@ -76,8 +76,8 @@ function CaptainPage() {
             </div>
             <p className="t-body text-muted-foreground">
               {canScore
-                ? "You can set pairings, post match results, and log contest winners from Live."
-                : "This account does not have scorekeeping access yet. Kevin grants captain after you sign in once."}
+                ? "Your role can set pairings, post match results, and log contest winners from Live."
+                : "This account cannot post official scores. Captains and admins can; Kevin grants captain after you sign in once."}
             </p>
 
             {canScore ? (

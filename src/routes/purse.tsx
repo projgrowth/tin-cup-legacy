@@ -2,8 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
-import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { sideCash, sideCashByPlayer, settlement, formatPayout } from "@/lib/purse";
@@ -38,10 +36,7 @@ export const Route = createFileRoute("/purse")({
 });
 
 function PursePage() {
-  const { user } = useAuth();
-  const { profile } = useProfile();
   const { data, isError, refetch, isFetching } = useTournament();
-  const claimedPlayer = Boolean(user && profile?.player_id);
   const bets = data?.sideBets ?? [];
   const players = data?.players ?? [];
   const claimed = bets.filter((b) => b.player_name);
@@ -70,9 +65,7 @@ function PursePage() {
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className={`press t-body mt-4 flex min-h-11 w-full justify-center ${
-              claimedPlayer ? "btn-quiet" : "btn-primary"
-            }`}
+            className="press btn-quiet t-body mt-4 flex min-h-11 w-full justify-center"
           >
             Pay ${BUY_IN}
           </a>
@@ -97,7 +90,7 @@ function PursePage() {
             <div className="mb-3 flex items-baseline justify-between gap-3">
               <h2 className="t-eyebrow">Side pots</h2>
               <span className="t-micro text-muted-foreground">
-                {claimed.length}/{bets.length}
+                {claimed.length > 0 ? claimed.length + "/" + bets.length : ""}
               </span>
             </div>
             <ul className="surface divide-y divide-border overflow-hidden">

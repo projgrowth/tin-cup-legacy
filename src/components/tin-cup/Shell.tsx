@@ -97,7 +97,7 @@ export function Shell({
         Skip to content
       </a>
       <header
-        className={`sticky top-0 z-30 ${immersive ? "bg-background/90" : "bg-background"}`}
+        className={`sticky top-0 z-30 ${immersive ? "bg-background" : "bg-background"}`}
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
         <div
@@ -257,7 +257,7 @@ function GlobalSyncStatus({
     return (
       <div
         aria-live="polite"
-        className={`${banner} border-border bg-secondary/95 text-muted-foreground backdrop-blur-md`}
+        className={`${banner} border-border bg-secondary text-muted-foreground`}
       >
         <CloudOff className="size-4 shrink-0" />
         <span className="t-micro-strong flex-1">
@@ -271,7 +271,7 @@ function GlobalSyncStatus({
     return (
       <div
         aria-live="polite"
-        className={`${banner} border-border bg-secondary/95 backdrop-blur-md`}
+        className={`${banner} border-border bg-secondary`}
       >
         <CloudOff className="size-4 shrink-0 text-muted-foreground" />
         <span className="t-micro-strong flex-1 text-foreground">
@@ -282,7 +282,7 @@ function GlobalSyncStatus({
   }
   if (stale) {
     return (
-      <div role="status" className={`${banner} border-border bg-secondary/90 backdrop-blur-md`}>
+      <div role="status" className={`${banner} border-border bg-secondary`}>
         <AlertTriangle className="size-4 shrink-0 text-muted-foreground" />
         <span className="t-micro-strong flex-1 text-muted-foreground">
           Showing cached board{when ? ` · last synced ${when}` : ""}. Pull to refresh when online.

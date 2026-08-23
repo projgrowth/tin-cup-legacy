@@ -9,11 +9,9 @@ import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/
 
 import { yourGroupLine } from "@/lib/day1-pairings";
 import {
-  BUY_IN,
   VENMO_IS_PLACEHOLDER,
   WEEKEND_SOCIAL,
   WHATSAPP_GROUP_CONFIGURED,
-  venmoUrl,
 } from "@/lib/tin-cup";
 import type { WeekendContext } from "@/lib/weekend-context";
 
@@ -84,15 +82,6 @@ export function HomeWeekendDoors({
   return (
     <div className="stack-tight">
       <div className="surface divide-y divide-border overflow-hidden empty:hidden">
-        <a
-          href={venmoUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="press flex min-h-12 items-center justify-between px-4 py-3"
-        >
-          <span className="t-body font-medium text-foreground">Pay ${BUY_IN}</span>
-          <span className="t-micro">{claimedName ? "Venmo" : "Due"}</span>
-        </a>
         {signedIn && claimedName && !face(claimedName)?.url ? (
           <Link
             to="/profile"
