@@ -50,7 +50,7 @@ export function Countdown({ compact = false }: { compact?: boolean }) {
           <div key={cell.label} className="px-1 py-4 text-center">
             <p
               suppressHydrationWarning
-              className="font-bold tabular-nums leading-none tracking-tight text-foreground text-[clamp(2.4rem,11vw,3.35rem)]"
+              className="t-hero text-foreground"
             >
               {String(cell.n).padStart(2, "0")}
             </p>

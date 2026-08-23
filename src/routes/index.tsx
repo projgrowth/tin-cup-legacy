@@ -386,7 +386,9 @@ function Index() {
                       kind: "score",
                       eyebrow: mode === "live" ? "Live Cup score" : "The fourth annual",
                       title: "Tin Cup Invitational",
-                      primary: `${standings.strongMental} – ${standings.grassRoots}`,
+                      primary: (data?.matches ?? []).some((m) => m.result && m.result !== "pending")
+                        ? `${standings.strongMental} – ${standings.grassRoots}`
+                        : "—",
                       secondary: "Strong Mental · Grass Roots",
                       canonicalUrl,
                     }}

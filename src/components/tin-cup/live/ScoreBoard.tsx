@@ -221,3 +221,41 @@ export function ScoreBar({ matches, teams }: { matches: Match[]; teams: Team[] }
     </section>
   );
 }
+
+
+/** Compact cup board — real totals only. Em-dash until a match.result exists. */
+export function CupDigest({
+  matches,
+  quiet = false,
+}: {
+  matches: Match[];
+  quiet?: boolean;
+}) {
+  const decided = matches.some((match) => match.result && match.result !== "pending");
+  const standings = tallyStandings(matches);
+  const line = decided ? `${standings.strongMental}–${standings.grassRoots}` : "—";
+  if (quiet) {
+    return (
+      <p className="t-micro px-1 text-center text-muted-foreground">
+        Strong Mental {decided ? <span className="font-semibold text-hunter">{line}</span> : line}{" "}
+        Grass Roots
+        <span className="mx-1">·</span>
+        {EVENT.totalPoints} pts · {EVENT.pointsToWin} to win
+      </p>
+    );
+  }
+  return (
+    <section className="surface-raised px-4 py-3" aria-label="Cup board">
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="t-micro text-hunter">Strong Mental</p>
+        <p className={`t-title tabular-nums ${decided ? "text-hunter" : "text-muted-foreground"}`}>
+          {line}
+        </p>
+        <p className="t-micro text-stone">Grass Roots</p>
+      </div>
+      <p className="t-micro mt-1.5 text-center">
+        {EVENT.totalPoints} pts · {EVENT.pointsToWin} to win
+      </p>
+    </section>
+  );
+}

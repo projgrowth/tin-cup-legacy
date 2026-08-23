@@ -9,7 +9,7 @@ import { contestHoleLabel } from "@/lib/tin-cup";
 import { COURSE_LABEL, courseIdFromRound, defaultCourseId } from "@/lib/courses";
 import { BetClaim } from "./MatchControls";
 import { MyMatchCard } from "./MyMatchCard";
-import { LiveHero, RoundStrip, StatusLine } from "./ScoreBoard";
+import { CupDigest, LiveHero, RoundStrip, StatusLine } from "./ScoreBoard";
 import { RoundBlock } from "./RoundBlock";
 
 export function LivePanel({
@@ -70,6 +70,7 @@ export function LivePanel({
   const hero = (
     <>
       <LiveHero rounds={rounds} matches={matches} teams={teams} />
+      {claimedName && !decided ? <CupDigest matches={matches} quiet /> : null}
       {decided && variant !== "hero" && <RoundStrip rounds={rounds} matches={matches} />}
       {claimedName && (
         <MyMatchCard

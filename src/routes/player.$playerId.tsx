@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Avatar } from "@/components/tin-cup/Avatar";
-import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
 import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
@@ -125,6 +124,10 @@ function PlayerPage() {
   const claims = (data?.sideBets ?? []).filter((b) => b.player_name === player.name);
   const cash = claims.reduce((sum, c) => sum + Number(c.amount), 0);
   const matchLine = groupLine(player.name, isYou);
+  const firstName = player.name.trim().split(/\s+/)[0] ?? player.name;
+  const teamChip = team.name.replace("Team ", "");
+  const hasPairing = Boolean(day1GroupForPlayer(player.name) || mine.length > 0);
+  const fridayLine = fridayPartnerLine(player.name) ?? matchLine;
 
   return (
     <Shell>
@@ -135,30 +138,42 @@ function PlayerPage() {
         Teams
       </Link>
 
-      <div className="flex items-start gap-3">
-        <Avatar name={player.name} teamSlug={team.slug} src={face?.url} size="lg" />
-        <PageMasthead
-          title={player.name}
-          meta={[
-            team.name.replace("Team ", ""),
-            player.is_captain ? "Captain" : null,
-            matchLine,
-            shorthand,
-          ]
-            .filter(Boolean)
-            .join(" · ")}
-        />
-      </div>
+      <article className="surface-raised px-4 py-5">
+        <div className="flex items-center gap-4">
+          <Link
+            to={isYou ? "/profile" : "/photos"}
+            className="press shrink-0 rounded-full"
+            aria-label={isYou ? "Your face — open account" : `${firstName} in the vault`}
+          >
+            <Avatar name={player.name} teamSlug={team.slug} src={face?.url} size="xl" />
+          </Link>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="t-title text-foreground">{firstName}</h1>
+              {isYou ? <span className="t-micro">You</span> : null}
+            </div>
+            <p className="mt-1.5">
+              <span className="player-flair">{teamChip}</span>
+              {player.is_captain ? <span className="player-flair ml-1">Captain</span> : null}
+            </p>
+            {fridayLine ? <p className="t-micro mt-2">{fridayLine}</p> : null}
+            {shorthand && record.played > 0 ? (
+              <p className="t-micro mt-0.5">{shorthand}</p>
+            ) : null}
+          </div>
+        </div>
+      </article>
 
+      {hasPairing ? (
       <ShareMomentButton
         className="mt-3 w-full"
         payload={{
           kind: "player",
           eyebrow: team.name,
           title: player.name,
-          primary: `${record.points} pts`,
+          primary: record.played > 0 ? `${record.points} pts` : fridayLine ?? teamChip,
           secondary: shorthand
-            ? `${shorthand} record · ${formatPayout(cash)} side cash${socialProfile?.flair ? ` · ${socialProfile.flair.replace("vibes", "vibes captain")}` : ""}`
+            ? `${shorthand} record${cash > 0 ? ` · ${formatPayout(cash)} side cash` : ""}${socialProfile?.flair ? ` · ${socialProfile.flair.replace("vibes", "vibes captain")}` : ""}`
             : "Tin Cup Invitational 2026",
           canonicalUrl:
             typeof window === "undefined" ? "https://www.tincupinv.com/" : window.location.href,
@@ -166,6 +181,7 @@ function PlayerPage() {
       >
         Share card
       </ShareMomentButton>
+      ) : null}
 
       {record.played > 0 ? (
       <div className="mt-6 grid grid-cols-3 gap-3">
@@ -202,11 +218,11 @@ function PlayerPage() {
       {faceoffLines.length > 0 ? (
         <section className="mt-6">
           <h2 className="t-eyebrow">Faceoff</h2>
-          <ul className="surface mt-2 divide-y divide-border overflow-hidden">
+          <ul className="mt-2 flex flex-wrap gap-2">
             {faceoffLines.map((row) => (
-              <li key={row.id} className="px-4 py-3">
-                <p className="t-body font-medium text-foreground">{row.title}</p>
-                {row.detail ? <p className="t-micro mt-0.5 italic">{row.detail}</p> : null}
+              <li key={row.id} className="player-flair max-w-full">
+                {row.title}
+                {row.detail ? <span className="ml-1 font-medium italic">{row.detail}</span> : null}
               </li>
             ))}
           </ul>

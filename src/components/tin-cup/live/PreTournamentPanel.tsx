@@ -6,6 +6,7 @@ import { FieldChatLink, InstallHint } from "@/components/tin-cup/WhatsAppLinks";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { Countdown } from "@/components/tin-cup/Countdown";
+import { CupDigest } from "@/components/tin-cup/live/ScoreBoard";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
 
 import { day1GroupForPlayer, yourGroupLine } from "@/lib/day1-pairings";
@@ -50,11 +51,12 @@ export function PreTournamentPanel({
       <div>
         <Countdown />
         <header className="px-1 text-center">
-          <h1 className="text-[0.95rem] font-semibold tracking-tight text-foreground">
+          <h1 className="t-title text-foreground">
             {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
           </h1>
           <p className="t-micro mt-1">{today.firstTee}</p>
         </header>
+        {claimedName ? <div className="mt-3"><CupDigest matches={matches} quiet /></div> : null}
         {groupLine ? (
           <div className="mt-2 space-y-1 px-1 text-center">
             <p className="text-sm font-semibold text-foreground">{groupLine}</p>

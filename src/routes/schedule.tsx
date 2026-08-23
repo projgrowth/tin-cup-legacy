@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { FormatCards } from "@/components/tin-cup/DayStory";
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
+import { CupDigest } from "@/components/tin-cup/live/ScoreBoard";
 import { FridayPairings } from "@/components/tin-cup/FridayPairings";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
@@ -114,6 +116,8 @@ function SchedulePage() {
   return (
     <Shell variant="content">
       <div className="stack-page">
+        <CupDigest matches={data?.matches ?? []} />
+
         <section className="stack-tight">
           <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Day">
             {COURSE_ORDER.map((id) => {
@@ -176,6 +180,11 @@ function SchedulePage() {
         </section>
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
+
+        <section className="stack-tight">
+          <h2 className="t-eyebrow">Formats</h2>
+          <FormatCards />
+        </section>
 
         <section className="stack-tight">
           <h2 className="t-eyebrow">Dinners</h2>

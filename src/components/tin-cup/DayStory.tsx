@@ -18,10 +18,10 @@ export function DayStory({
   children?: ReactNode;
 }) {
   return (
-    <article className="surface px-4 py-3.5">
-      {kicker ? <p className="t-micro text-muted-foreground">{kicker}</p> : null}
+    <article className="hairline pt-3 first:border-t-0 first:pt-0">
+      {kicker ? <p className="t-micro">{kicker}</p> : null}
       <h3 className={`t-body font-semibold text-foreground ${kicker ? "mt-1" : ""}`}>{title}</h3>
-      {meta ? <p className="t-micro mt-1 font-medium text-foreground/80">{meta}</p> : null}
+      {meta ? <p className="t-micro mt-1">{meta}</p> : null}
       {body ? <p className="t-body mt-2 text-muted-foreground">{body}</p> : null}
       {children}
     </article>
@@ -50,6 +50,31 @@ export function CourseDayStory({
   );
 }
 
+/** Three short format cards — one sentence, tee, points; expand for full copy. */
+export function FormatCards() {
+  return (
+    <div className="surface-raised divide-y divide-border overflow-hidden">
+      {COURSE_ORDER.map((id) => {
+        const d = COURSE_DETAILS[id];
+        return (
+          <details key={id} className="group">
+            <summary className="press cursor-pointer list-none px-4 py-3.5 [&::-webkit-details-marker]:hidden">
+              <p className="t-body font-semibold text-foreground">
+                {d.dayLabel} · {d.format}
+              </p>
+              <p className="t-micro mt-1">{d.formatTip}</p>
+              <p className="t-micro mt-1">
+                {d.firstTee} · {d.points} pts · {COURSE_LABEL[id]}
+              </p>
+            </summary>
+            <p className="t-body px-4 pb-3.5 text-muted-foreground">{d.description}</p>
+          </details>
+        );
+      })}
+    </div>
+  );
+}
+
 export function WeekendDayStories({
   skip,
   actionFor,
@@ -68,12 +93,12 @@ export function WeekendDayStories({
 
 export function MoneySplit() {
   return (
-    <div className="grid grid-cols-2 gap-2.5">
+    <div className="surface-raised divide-y divide-border overflow-hidden">
       {FEE_BREAKDOWN.map((row) => (
-        <article key={row.label} className="surface px-4 py-3.5">
-          <p className="t-micro text-muted-foreground">{row.label}</p>
+        <article key={row.label} className="px-4 py-3.5">
+          <p className="t-micro">{row.label}</p>
           <p className="t-title mt-1 tabular-nums text-foreground">{row.value}</p>
-          <p className="t-micro mt-1.5 text-muted-foreground">{row.note}</p>
+          <p className="t-micro mt-1.5">{row.note}</p>
         </article>
       ))}
     </div>

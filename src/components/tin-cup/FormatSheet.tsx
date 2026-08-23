@@ -7,7 +7,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { MoneySplit, WeekendDayStories } from "@/components/tin-cup/DayStory";
+import { FormatCards, MoneySplit } from "@/components/tin-cup/DayStory";
 import { EVENT } from "@/lib/tin-cup";
 
 /** Non-invasive format / money explainer — chip opens bottom sheet. */
@@ -24,7 +24,7 @@ export function FormatSheet({ triggerClassName = "" }: { triggerClassName?: stri
       <DrawerContent className="border-border bg-card">
         <DrawerHeader className="pb-2 text-left">
           <DrawerTitle className="t-title text-foreground">Weekend formats</DrawerTitle>
-          <p className="t-micro text-muted-foreground">
+          <p className="t-micro">
             {EVENT.totalPoints} pts · {EVENT.pointsToWin} wins the Cup
           </p>
         </DrawerHeader>
@@ -52,9 +52,9 @@ export function FormatSheet({ triggerClassName = "" }: { triggerClassName?: stri
         <div className="max-h-[50svh] space-y-2.5 overflow-y-auto px-4 py-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
           {tab === "days" && (
             <>
-              <WeekendDayStories />
-              <p className="t-micro text-muted-foreground">
-                Halves are 0.5. Tie: captains each pick a scramble partner, one hole until decided.
+              <FormatCards />
+              <p className="t-micro">
+                Playoff · If 13–13: captains each pick a scramble partner · one hole until decided.
               </p>
             </>
           )}

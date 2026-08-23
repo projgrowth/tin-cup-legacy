@@ -46,13 +46,13 @@ export function FridayPairings({
             <span className="t-micro w-4 shrink-0 pt-1.5 tabular-nums">{p.matchIndex}</span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <AvatarPair people={peopleA} size="sm" />
+                <AvatarPair people={peopleA} size="md" />
                 <p className="t-body min-w-0 font-semibold leading-snug">
                   <SideNames names={p.playersA} tone="hunter" playerIdByName={playerIdByName} />
                 </p>
               </div>
               <div className="mt-1.5 flex items-center gap-2">
-                <AvatarPair people={peopleB} size="sm" />
+                <AvatarPair people={peopleB} size="md" />
                 <p className="t-body min-w-0 font-semibold leading-snug">
                   <SideNames names={p.playersB} tone="stone" playerIdByName={playerIdByName} />
                 </p>

@@ -728,6 +728,21 @@ body {
   }
 }
 
+.feed-photo {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+.feed-photo img {
+  object-fit: contain;
+}
+.feed-moments {
+  background: transparent;
+}
+.feed-moments article {
+  padding-block: 0.15rem;
+}
 .feed-card {
   border-bottom: 1px solid var(--border);
   background: transparent;

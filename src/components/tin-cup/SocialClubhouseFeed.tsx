@@ -320,7 +320,7 @@ export function SocialClubhouseFeed({
       </div>
 
       {user && claimed && canParticipate ? (
-        <div className="feed-composer surface p-2.5 sm:p-3">
+        <div className="feed-composer surface-raised p-2.5 sm:p-3">
           <div className="flex gap-3">
             <Avatar
               name={profile?.display_name || "You"}
@@ -468,7 +468,7 @@ export function SocialClubhouseFeed({
         </div>
       )}
 
-      <div className={compact ? "space-y-2" : "space-y-3"}>
+      <div className={compact ? "space-y-2" : "space-y-4"}>
         {showClubhouse && story.clubhouseEnabled && canParticipate ? (
           <ClubhouseEngagement
             userId={user?.id}
@@ -477,7 +477,109 @@ export function SocialClubhouseFeed({
             canModerate={canModerate}
           />
         ) : null}
-        <div className="surface divide-y divide-border overflow-hidden empty:hidden">
+                {photoMoments.map((moment) => {
+          const reactions = story.reactions.filter((row) => row.moment_key === moment.key);
+          const comments = story.comments.filter((comment) => comment.moment_key === moment.key);
+          const open = openComments[moment.key];
+          const mediaUrl = moment.mediaPath ? mediaUrls[moment.mediaPath] : null;
+          return (
+            <article key={moment.key} id={`post-${moment.key}`} className="feed-photo overflow-hidden">
+              {mediaUrl ? (
+                <div className="flex justify-center bg-secondary">
+                  <img
+                    src={mediaUrl}
+                    alt={moment.detail || moment.playerName || "Field photo"}
+                    className="h-auto max-h-[32rem] w-auto max-w-full object-contain"
+                  />
+                </div>
+              ) : moment.mediaPath ? (
+                <div className="skeleton h-48 w-full" />
+              ) : null}
+              <div className="px-4 py-3.5">
+                <header className="flex items-start gap-3">
+                  <Avatar
+                    name={moment.playerName || "Tin Cup"}
+                    teamSlug={moment.teamSlug}
+                    src={authorAvatar(moment.authorId, moment.playerId, moment.playerName)}
+                    size="md"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base font-semibold text-foreground">
+                      {moment.playerName || "Player"}
+                    </h3>
+                    <p className="t-micro">
+                      {formatActivityTime(new Date(moment.at).toISOString())}
+                    </p>
+                    {moment.detail && !isJunkBody(moment.detail) ? (
+                      <p className="mt-1 text-[0.98rem] leading-7 text-foreground/95">
+                        {moment.detail}
+                      </p>
+                    ) : null}
+                  </div>
+                </header>
+                <ReactionBar
+                  visible={canParticipate}
+                  momentKey={moment.key}
+                  reactions={reactions}
+                  userId={user?.id}
+                  onToggle={(kind) => react(moment.key, kind)}
+                />
+                <CommentThread
+                  momentKey={moment.key}
+                  label={moment.playerName || "photo"}
+                  comments={comments}
+                  open={Boolean(open)}
+                  onToggle={() =>
+                    setOpenComments((current) => ({ ...current, [moment.key]: !open }))
+                  }
+                  canParticipate={canParticipate}
+                  canModerate={canModerate}
+                  userId={user?.id}
+                  authorName={authorName}
+                  editing={editing}
+                  setEditing={setEditing}
+                  draft={commentDrafts[moment.key] ?? ""}
+                  setDraft={(body) =>
+                    setCommentDrafts((current) => ({ ...current, [moment.key]: body }))
+                  }
+                  onPost={(body) =>
+                    story.addComment.mutate(
+                      { momentKey: moment.key, body },
+                      {
+                        onSuccess: () =>
+                          setCommentDrafts((current) => ({ ...current, [moment.key]: "" })),
+                        onError: (error) => toast.error(error.message),
+                      },
+                    )
+                  }
+                  onEdit={(id, body) =>
+                    story.editComment.mutate(
+                      { id, body },
+                      {
+                        onSuccess: () => setEditing(null),
+                        onError: (error) => toast.error(error.message),
+                      },
+                    )
+                  }
+                  onRemove={(id, moderate) =>
+                    story.removeComment.mutate(
+                      { id, moderate },
+                      { onError: (error) => toast.error(error.message) },
+                    )
+                  }
+                  onReport={(commentId) =>
+                    story.reportPost.mutate(
+                      { commentId },
+                      { onError: (error) => toast.error(error.message) },
+                    )
+                  }
+                />
+              </div>
+            </article>
+          );
+        })}
+
+        <div className="feed-moments divide-y divide-border overflow-hidden empty:hidden">
           {showClubhouse &&
             story.clubhousePosts
             .filter((post) => !isJunkBody(post.body))
@@ -491,7 +593,7 @@ export function SocialClubhouseFeed({
                 <article
                   key={post.id}
                   id={`post-${post.id}`}
-                  className={`px-4 py-3.5 ${post.pinned_at ? "announcement-card" : ""}`}
+                  className={`px-4 py-2.5 ${post.pinned_at ? "announcement-card" : ""}`}
                 >
                   <header className="flex items-start gap-3">
                     <Avatar
@@ -760,7 +862,7 @@ export function SocialClubhouseFeed({
                           <p className="t-micro flex items-center gap-1.5 text-muted-foreground">
                             <MomentIcon kind={moment.kind} /> {moment.kind.replace("-", " ")}
                           </p>
-                          <h3 className="t-title mt-1 text-foreground">{moment.title}</h3>
+                          <h3 className="t-body mt-1 font-medium text-foreground">{moment.title}</h3>
                           {moment.detail ? (
                             <p className="mt-1 text-sm leading-6 text-muted-foreground">
                               {moment.detail}
@@ -857,107 +959,6 @@ export function SocialClubhouseFeed({
             );
           })}
         </div>
-        {photoMoments.map((moment) => {
-          const reactions = story.reactions.filter((row) => row.moment_key === moment.key);
-          const comments = story.comments.filter((comment) => comment.moment_key === moment.key);
-          const open = openComments[moment.key];
-          const mediaUrl = moment.mediaPath ? mediaUrls[moment.mediaPath] : null;
-          return (
-            <article key={moment.key} id={`post-${moment.key}`} className="surface overflow-hidden">
-              {mediaUrl ? (
-                <div className="flex justify-center bg-secondary">
-                  <img
-                    src={mediaUrl}
-                    alt={moment.detail || moment.playerName || "Field photo"}
-                    className="h-auto max-h-[32rem] w-auto max-w-full object-contain"
-                  />
-                </div>
-              ) : moment.mediaPath ? (
-                <div className="skeleton h-48 w-full" />
-              ) : null}
-              <div className="px-4 py-3.5">
-                <header className="flex items-start gap-3">
-                  <Avatar
-                    name={moment.playerName || "Tin Cup"}
-                    teamSlug={moment.teamSlug}
-                    src={authorAvatar(moment.authorId, moment.playerId, moment.playerName)}
-                    size="md"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-base font-semibold text-foreground">
-                      {moment.playerName || "Player"}
-                    </h3>
-                    <p className="t-micro">
-                      {formatActivityTime(new Date(moment.at).toISOString())}
-                    </p>
-                    {moment.detail && !isJunkBody(moment.detail) ? (
-                      <p className="mt-1 text-[0.98rem] leading-7 text-foreground/95">
-                        {moment.detail}
-                      </p>
-                    ) : null}
-                  </div>
-                </header>
-                <ReactionBar
-                  visible={canParticipate}
-                  momentKey={moment.key}
-                  reactions={reactions}
-                  userId={user?.id}
-                  onToggle={(kind) => react(moment.key, kind)}
-                />
-                <CommentThread
-                  momentKey={moment.key}
-                  label={moment.playerName || "photo"}
-                  comments={comments}
-                  open={Boolean(open)}
-                  onToggle={() =>
-                    setOpenComments((current) => ({ ...current, [moment.key]: !open }))
-                  }
-                  canParticipate={canParticipate}
-                  canModerate={canModerate}
-                  userId={user?.id}
-                  authorName={authorName}
-                  editing={editing}
-                  setEditing={setEditing}
-                  draft={commentDrafts[moment.key] ?? ""}
-                  setDraft={(body) =>
-                    setCommentDrafts((current) => ({ ...current, [moment.key]: body }))
-                  }
-                  onPost={(body) =>
-                    story.addComment.mutate(
-                      { momentKey: moment.key, body },
-                      {
-                        onSuccess: () =>
-                          setCommentDrafts((current) => ({ ...current, [moment.key]: "" })),
-                        onError: (error) => toast.error(error.message),
-                      },
-                    )
-                  }
-                  onEdit={(id, body) =>
-                    story.editComment.mutate(
-                      { id, body },
-                      {
-                        onSuccess: () => setEditing(null),
-                        onError: (error) => toast.error(error.message),
-                      },
-                    )
-                  }
-                  onRemove={(id, moderate) =>
-                    story.removeComment.mutate(
-                      { id, moderate },
-                      { onError: (error) => toast.error(error.message) },
-                    )
-                  }
-                  onReport={(commentId) =>
-                    story.reportPost.mutate(
-                      { commentId },
-                      { onError: (error) => toast.error(error.message) },
-                    )
-                  }
-                />
-              </div>
-            </article>
-          );
-        })}
       </div>
 
       {emptyFeed && (
