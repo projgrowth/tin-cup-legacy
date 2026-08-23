@@ -19,7 +19,7 @@ import { useTournament } from "@/hooks/useTournament";
 import { signOut, supabase } from "@/integrations/supabase/client";
 import { signedVaultUrl, uploadVaultImage } from "@/integrations/supabase/storage";
 import { type CourseId } from "@/lib/courses";
-import { day1GroupForPlayer } from "@/lib/day1-pairings";
+import { day1GroupForPlayer, yourGroupLine } from "@/lib/day1-pairings";
 import { clearGuestNotes, countGuestNotes, listGuestNotes } from "@/lib/guest-notes";
 import { formatPayout } from "@/lib/purse";
 import { formatRecord, playerRecord } from "@/lib/scoring";
@@ -121,10 +121,7 @@ function ProfilePage() {
           title={claimedPlayer.name.split(" ")[0] ?? claimedPlayer.name}
           meta={[
             claimedTeam?.name.replace("Team ", "") ?? "Field",
-            (() => {
-              const group = day1GroupForPlayer(claimedPlayer.name);
-              return group ? `w/ ${group.partner.split(" ")[0]} · vs ${group.opponents}` : null;
-            })(),
+            yourGroupLine(claimedPlayer.name),
           ]
             .filter(Boolean)
             .join(" · ")}

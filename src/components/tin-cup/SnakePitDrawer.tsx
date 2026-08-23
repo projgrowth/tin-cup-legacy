@@ -13,7 +13,7 @@ export function SnakePitDrawer({ triggerClassName = "" }: { triggerClassName?: s
       <DrawerTrigger className={`press min-h-11 ${triggerClassName || "btn-quiet t-micro"}`}>
         Snake Pit
       </DrawerTrigger>
-      <DrawerContent className="border-border bg-card/95 backdrop-blur-xl">
+      <DrawerContent className="border-border bg-card">
         <DrawerHeader>
           <DrawerTitle className="t-display text-foreground">The Snake Pit</DrawerTitle>
           <p className="t-micro">

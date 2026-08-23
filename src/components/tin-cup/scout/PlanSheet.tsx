@@ -102,25 +102,29 @@ export function PlanSheet({
       className={`press flex w-full flex-col items-center px-4 text-center ${
         overlay && !expanded ? "pb-3 pt-2" : "py-3"
       }`}
+      aria-label={overlay ? `Hole ${hole} plan` : undefined}
       aria-expanded={expanded}
       aria-disabled={forceCollapsed || undefined}
     >
       {overlay ? <span aria-hidden className="mb-2 h-1 w-8 rounded-full bg-white/30" /> : null}
       <span className="text-sm font-semibold tracking-tight text-white">
-        H{hole}
-        {pitLabel ? <span className="text-copper"> · {pitLabel}</span> : null}
+        {overlay
+          ? filled
+            ? summary
+            : pitLabel
+              ? "Pit · Club, miss, line"
+              : "Club · miss · line"
+          : `H${hole}${pitLabel ? ` · ${pitLabel}` : ""}`}
       </span>
-      <span className="mt-1 flex max-w-full items-center justify-center gap-2">
-        {!overlay && <StatusLED state={led} />}
-        <span className="truncate text-sm text-white/55">
-          {filled ? summary : " "}
-        </span>
-        {!overlay && (
+      {overlay ? null : (
+        <span className="mt-1 flex max-w-full items-center justify-center gap-2">
+          <StatusLED state={led} />
+          <span className="truncate text-sm text-white/55">{filled ? summary : " "}</span>
           <ChevronUp
             className={`size-4 shrink-0 text-white/45 transition-transform ${expanded ? "" : "rotate-180"}`}
           />
-        )}
-      </span>
+        </span>
+      )}
     </button>
   );
 

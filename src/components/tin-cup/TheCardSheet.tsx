@@ -1,4 +1,3 @@
-import { MedalMark } from "@/components/tin-cup/BrandMark";
 import { TheCardTicket, type CardFace } from "@/components/tin-cup/TheCardTicket";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
@@ -65,14 +64,11 @@ export function TheCardSheet({
   return (
     <section aria-labelledby="the-card-title">
       <div className="mb-1.5 flex items-end justify-between gap-3 px-1">
-        <div className="flex items-center gap-2">
-          <MedalMark size="xs" />
-          <div>
-            <h2 id="the-card-title" className="t-eyebrow">
-              Faceoff
-            </h2>
-            <p className="t-micro">{CARD_DISCLAIMER}</p>
-          </div>
+        <div>
+          <h2 id="the-card-title" className="t-eyebrow">
+            Faceoff
+          </h2>
+          <p className="t-micro">{CARD_DISCLAIMER}</p>
         </div>
         {progress.total > 0 ? (
           <p className="t-micro tabular-nums text-muted-foreground">

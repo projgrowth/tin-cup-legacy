@@ -154,14 +154,7 @@ function SchedulePage() {
               rounds={data?.rounds ?? []}
             />
           ) : (
-            <div className="surface px-4 py-3.5">
-              <p className="t-body font-semibold text-foreground">{COURSE_LABEL[courseId]}</p>
-              <p className="t-micro mt-1">{details.character}</p>
-              <p className="t-micro mt-1">
-                {details.firstTee} · {details.points} pts
-              </p>
-              <p className="t-micro mt-2">Pairings when captains post</p>
-            </div>
+            <p className="t-body px-1 text-foreground/80">Pairings when captains post</p>
           )}
 
         </section>
@@ -173,11 +166,10 @@ function SchedulePage() {
           <div className="surface divide-y divide-border overflow-hidden">
             {socialOrdered.map((row) => (
               <details key={row.day}>
-                <summary className="press flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+                <summary className="press flex min-h-11 cursor-pointer list-none items-center px-4 py-3 [&::-webkit-details-marker]:hidden">
                   <span className="t-body min-w-0 truncate font-medium text-foreground">
                     {row.day} · {row.title}
                   </span>
-                  <span className="t-micro shrink-0">More</span>
                 </summary>
                 <p className="t-micro px-4 pb-3 text-muted-foreground">{row.detail}</p>
               </details>

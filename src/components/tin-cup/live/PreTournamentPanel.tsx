@@ -45,7 +45,7 @@ export function PreTournamentPanel({
   const groupLine = claimedName ? yourGroupLine(claimedName) : null;
 
   return (
-    <section aria-label="This weekend" className="stack-page">
+    <section aria-label="This weekend" className="stack-tight">
       <div className="stack-tight">
         <PageMasthead
           title={

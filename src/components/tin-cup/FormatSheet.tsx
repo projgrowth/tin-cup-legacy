@@ -21,7 +21,7 @@ export function FormatSheet({ triggerClassName = "" }: { triggerClassName?: stri
       >
         How formats work
       </DrawerTrigger>
-      <DrawerContent className="border-border bg-card/95 backdrop-blur-xl">
+      <DrawerContent className="border-border bg-card">
         <DrawerHeader className="pb-2 text-left">
           <DrawerTitle className="t-title text-foreground">Weekend formats</DrawerTitle>
           <p className="t-micro text-muted-foreground">

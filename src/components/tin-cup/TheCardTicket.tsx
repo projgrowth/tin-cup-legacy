@@ -90,12 +90,14 @@ export function TheCardTicket({
 
   return (
     <article className={`px-4 py-3 ${yours ? "bg-hunter/5" : ""}`}>
-      <p className="t-micro text-muted-foreground">
-        Faceoff {market.index}
-        {yours ? <span className="text-hunter"> · You</span> : null}
-        {locked ? " · Locked" : null}
-      </p>
-      <div className="mt-1.5">
+      {yours || locked ? (
+        <p className="t-micro text-muted-foreground">
+          {yours ? <span className="text-hunter">You</span> : null}
+          {yours && locked ? " · " : null}
+          {locked ? "Locked" : null}
+        </p>
+      ) : null}
+      <div className={yours || locked ? "mt-1.5" : undefined}>
         <SideRow
           people={peopleA}
           label={labelA}
