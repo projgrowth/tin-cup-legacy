@@ -9,47 +9,64 @@ import {
 } from "./banter";
 
 describe("banter", () => {
-  it("ships five canned prompts", () => {
-    expect(BANTER_PROMPTS).toHaveLength(5);
+  it("ships six canned prompts", () => {
+    expect(BANTER_PROMPTS).toHaveLength(6);
+    expect(BANTER_PROMPTS.map((row) => row.id)).toEqual([
+      "three-putt",
+      "sandbag",
+      "breakfast",
+      "parking",
+      "nassau",
+      "gimme",
+    ]);
     expect(BANTER_PROMPTS.map((row) => row.prompt)).toEqual([
       "Most likely to three-putt the first hole",
-      "Most likely to lose one in the pond",
-      "Most likely to blame the putter",
-      "Most likely to ask for a gimme on 18",
-      "Most likely to buy the first round",
+      "Most likely to sandbag the first tee and then stripe one",
+      "Most likely to take a breakfast ball and still find the trees",
+      "Most likely to text on the way from the parking lot",
+      "Most likely to lose a Nassau and blame the putter",
+      "Most likely to ask for a gimme from 8 feet",
+    ]);
+    expect(BANTER_PROMPTS.map((row) => row.chip)).toEqual([
+      "3-putt 1",
+      "sandbag",
+      "breakfast ball",
+      "still in the lot",
+      "Nassau victim",
+      "that's good right?",
     ]);
   });
 
   it("picks the player with the most votes", () => {
     const votes = [
-      { promptId: "pond", voterId: "u1", playerId: "dan", updatedAt: "2026-08-22T12:00:00Z" },
-      { promptId: "pond", voterId: "u2", playerId: "dan", updatedAt: "2026-08-22T12:01:00Z" },
-      { promptId: "pond", voterId: "u3", playerId: "zack", updatedAt: "2026-08-22T12:02:00Z" },
+      { promptId: "sandbag", voterId: "u1", playerId: "dan", updatedAt: "2026-08-22T12:00:00Z" },
+      { promptId: "sandbag", voterId: "u2", playerId: "dan", updatedAt: "2026-08-22T12:01:00Z" },
+      { promptId: "sandbag", voterId: "u3", playerId: "zack", updatedAt: "2026-08-22T12:02:00Z" },
     ];
-    expect(winnerForPrompt(votes, "pond")).toEqual({ playerId: "dan", count: 2 });
+    expect(winnerForPrompt(votes, "sandbag")).toEqual({ playerId: "dan", count: 2 });
   });
 
   it("lets a voter change their tap", () => {
     const first = upsertVote([], {
-      promptId: "putter",
+      promptId: "nassau",
       voterId: "u1",
       playerId: "dan",
       updatedAt: "2026-08-22T12:00:00Z",
     });
     const next = upsertVote(first, {
-      promptId: "putter",
+      promptId: "nassau",
       voterId: "u1",
       playerId: "zack",
       updatedAt: "2026-08-22T12:01:00Z",
     });
-    expect(mineOnPrompt(next, "putter", "u1")?.playerId).toBe("zack");
-    expect(winnerForPrompt(next, "putter")?.playerId).toBe("zack");
+    expect(mineOnPrompt(next, "nassau", "u1")?.playerId).toBe("zack");
+    expect(winnerForPrompt(next, "nassau")?.playerId).toBe("zack");
   });
 
   it("prints a chip without poll numbers", () => {
     const votes = [
       { promptId: "three-putt", voterId: "u1", playerId: "p1", updatedAt: "2026-08-22T12:00:00Z" },
     ];
-    expect(chipForPlayer(votes, "p1", "Dan")).toEqual(["Dan · most likely to three-putt"]);
+    expect(chipForPlayer(votes, "p1", "Dan")).toEqual(["Dan · 3-putt 1"]);
   });
 });

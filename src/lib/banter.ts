@@ -12,27 +12,32 @@ export const BANTER_PROMPTS: BanterPrompt[] = [
   {
     id: "three-putt",
     prompt: "Most likely to three-putt the first hole",
-    chip: "most likely to three-putt",
+    chip: "3-putt 1",
   },
   {
-    id: "pond",
-    prompt: "Most likely to lose one in the pond",
-    chip: "most likely to lose one in the pond",
+    id: "sandbag",
+    prompt: "Most likely to sandbag the first tee and then stripe one",
+    chip: "sandbag",
   },
   {
-    id: "putter",
-    prompt: "Most likely to blame the putter",
-    chip: "most likely to blame the putter",
+    id: "breakfast",
+    prompt: "Most likely to take a breakfast ball and still find the trees",
+    chip: "breakfast ball",
+  },
+  {
+    id: "parking",
+    prompt: "Most likely to text on the way from the parking lot",
+    chip: "still in the lot",
+  },
+  {
+    id: "nassau",
+    prompt: "Most likely to lose a Nassau and blame the putter",
+    chip: "Nassau victim",
   },
   {
     id: "gimme",
-    prompt: "Most likely to ask for a gimme on 18",
-    chip: "most likely to ask for a gimme",
-  },
-  {
-    id: "round",
-    prompt: "Most likely to buy the first round",
-    chip: "most likely to buy the first round",
+    prompt: "Most likely to ask for a gimme from 8 feet",
+    chip: "that's good right?",
   },
 ];
 
