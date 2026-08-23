@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 
 import { MatchCard } from "@/components/tin-cup/MatchCard";
+import { MatchLiveCard } from "@/components/tin-cup/MatchLiveCard";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { day1GroupForPlayer } from "@/lib/day1-pairings";
@@ -142,6 +143,7 @@ export function MyMatchCard({
   }));
 
   return (
+    <div>
     <MatchCard
       size="feature"
       index={dayLine}
@@ -176,5 +178,16 @@ export function MyMatchCard({
         </div>
       }
     />
+    <MatchLiveCard
+      claimedName={claimedName}
+      players={players}
+      match={featured.kind === "match" ? featured.match : null}
+      day1Index={featured.kind === "day1" ? featured.matchIndex : undefined}
+      sideA={sideA}
+      sideB={sideB}
+      formatLabel={formatChip}
+      canScore={canScore}
+    />
+    </div>
   );
 }

@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
+import { MatchLiveCard } from "@/components/tin-cup/MatchLiveCard";
 import { TheCardSheet } from "@/components/tin-cup/TheCardSheet";
 import { FieldChatLink, InstallHint } from "@/components/tin-cup/WhatsAppLinks";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
@@ -7,7 +8,8 @@ import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { Countdown } from "@/components/tin-cup/Countdown";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
 
-import { yourGroupLine } from "@/lib/day1-pairings";
+import { day1GroupForPlayer, yourGroupLine } from "@/lib/day1-pairings";
+import { useAuth } from "@/hooks/useAuth";
 import {
   VENMO_IS_PLACEHOLDER,
   WEEKEND_SOCIAL,
@@ -37,7 +39,9 @@ export function PreTournamentPanel({
   needsClaim?: boolean;
   context?: WeekendContext;
 }) {
+  const { canScore } = useAuth();
   const nextCourseId = defaultCourseId() as CourseId;
+  const d1 = claimedName ? day1GroupForPlayer(claimedName) : null;
   const today = COURSE_DETAILS[nextCourseId];
   const groupLine = claimedName ? yourGroupLine(claimedName) : null;
 
@@ -65,6 +69,18 @@ export function PreTournamentPanel({
         ) : null}
       </div>
 
+      {d1 ? (
+        <MatchLiveCard
+          claimedName={claimedName}
+          players={players}
+          match={matches.find((row) => playerSides(row, d1.pairing.sideA, d1.pairing.sideB)) ?? null}
+          day1Index={d1.pairing.matchIndex}
+          sideA={d1.pairing.sideA}
+          sideB={d1.pairing.sideB}
+          formatLabel="Scramble · Alt shot"
+          canScore={canScore}
+        />
+      ) : null}
       <TheCardSheet matches={matches} rounds={rounds} players={players} teams={teams} />
     </section>
   );
@@ -117,4 +133,12 @@ export function HomeWeekendDoors({
       {WHATSAPP_GROUP_CONFIGURED && <FieldChatLink className="!min-h-11 w-full" />}
     </div>
   );
+}
+
+function playerSides(
+  match: Match,
+  sideA: string,
+  sideB: string,
+): boolean {
+  return (match.side_a ?? "") === sideA && (match.side_b ?? "") === sideB;
 }

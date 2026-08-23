@@ -20,6 +20,7 @@ import {
 import { clinchSummary, roundStatus, roundTally, tallyStandings } from "@/lib/scoring";
 import { formatPayout } from "@/lib/purse";
 import { contestHoleLabel } from "@/lib/tin-cup";
+import { assertMutationAllowed } from "@/lib/runtime-mode";
 import { enqueueWrite, expectedVersionAfterWrite } from "@/lib/write-queue";
 
 type Props = {
@@ -108,6 +109,12 @@ export function ScoreModal({
   async function saveResult(result: string) {
     const target = matches.find((m) => m.id === matchId);
     if (!target) return;
+    try {
+      assertMutationAllowed("Official score");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Preview is read-only");
+      return;
+    }
     const previous = target.result;
     setSaving(true);
     const status = await enqueueWrite(
