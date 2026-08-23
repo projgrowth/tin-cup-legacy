@@ -14,8 +14,10 @@ import {
   BANTER_HEADER,
   BANTER_SUBLINE,
   CUSTOM_PROMPT_MAX,
+  activeWallPrompt,
   crowdSays,
   mineOnPrompt,
+  pollFaces,
   resultForPrompt,
 } from "@/lib/banter";
 import { fridayRosterNames } from "@/lib/day1-pairings";
@@ -43,7 +45,6 @@ export function LockerWall({
   const profiles = usePublicProfiles();
   const [draft, setDraft] = useState("");
   const [tagId, setTagId] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
   const [question, setQuestion] = useState("");
   const roster = fridayRosterNames()
     .map((name) => players.find((player) => player.name.trim().toLowerCase() === name.toLowerCase()))
@@ -52,7 +53,8 @@ export function LockerWall({
   const latestRoast = [...story.clubhousePosts]
     .filter((post) => post.body.trim() && !post.pinned_at)
     .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0];
-  const prompt = prompts[page] ?? prompts[0];
+  const prompt = activeWallPrompt(prompts);
+  const faces = prompt ? pollFaces(roster, votes, prompt.id, tagId ? [tagId] : []) : [];
 
   function userIdForPlayer(playerId: string) {
     return profiles.data?.find((row) => row.player_id === playerId)?.id;
@@ -94,7 +96,6 @@ export function LockerWall({
     try {
       await createPrompt(body);
       setQuestion("");
-      setPage(prompts.length);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not save that");
     }
@@ -165,14 +166,7 @@ export function LockerWall({
       </div>
 
       <div>
-        <div className="flex items-end justify-between gap-3">
-          <p className="t-title text-foreground">Most likely to…</p>
-          {prompts.length > 1 ? (
-            <p className="t-micro tabular-nums">
-              {Math.min(page, prompts.length - 1) + 1}/{prompts.length}
-            </p>
-          ) : null}
-        </div>
+        <p className="t-title text-foreground">Most likely to…</p>
 
         {prompt ? (
           <div className="py-[var(--space-5)]">
@@ -190,8 +184,8 @@ export function LockerWall({
                       {crowdSays(firstName(winnerPlayer.name), prompt, result.percent)}
                     </p>
                   ) : null}
-                  <div className="mt-[var(--space-5)] grid grid-cols-4 gap-[var(--space-4)]">
-                    {roster.map((player) => {
+                  <div className="mt-[var(--space-5)] grid grid-cols-2 gap-3">
+                    {faces.map((player) => {
                       const selected = mine?.playerId === player.id;
                       const face = (
                         <>
@@ -234,39 +228,6 @@ export function LockerWall({
                 </>
               );
             })()}
-            {prompts.length > 1 ? (
-              <div className="mt-[var(--space-5)] flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  disabled={page <= 0}
-                  onClick={() => setPage((n) => Math.max(0, n - 1))}
-                  className="press btn-quiet min-h-11 px-4 text-sm"
-                >
-                  Prev
-                </button>
-                <div className="flex gap-1.5">
-                  {prompts.map((item, index) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      aria-label={`Dare ${index + 1}`}
-                      onClick={() => setPage(index)}
-                      className={`size-2 rounded-full ${
-                        index === page ? "bg-hunter" : "bg-foreground/15"
-                      }`}
-                    />
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  disabled={page >= prompts.length - 1}
-                  onClick={() => setPage((n) => Math.min(prompts.length - 1, n + 1))}
-                  className="press btn-quiet min-h-11 px-4 text-sm"
-                >
-                  Next
-                </button>
-              </div>
-            ) : null}
           </div>
         ) : (
           <p className="t-micro py-[var(--space-5)]">No dares yet.</p>

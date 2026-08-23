@@ -12,8 +12,10 @@ import {
   BANTER_HEADER,
   BANTER_SUBLINE,
   CUSTOM_PROMPT_MAX,
+  activeWallPrompt,
   crowdSays,
   mineOnPrompt,
+  pollFaces,
   resultForPrompt,
 } from "@/lib/banter";
 import { fridayRosterNames } from "@/lib/day1-pairings";
@@ -38,20 +40,22 @@ export function MostLikelySheet({
   const canVote = Boolean(user && claimed);
   const { votes, vote, createPrompt, prompts } = useBanterVotes();
   const avatars = usePlayerAvatars(players, teams);
-  const [index, setIndex] = useState(0);
   const [question, setQuestion] = useState("");
-  const prompt = prompts[Math.min(index, Math.max(prompts.length - 1, 0))]!;
+  const prompt = activeWallPrompt(prompts);
   const roster = fridayRosterNames()
     .map((name) => players.find((player) => player.name.trim().toLowerCase() === name.toLowerCase()))
     .filter((player): player is Player => Boolean(player));
-  const result = resultForPrompt(votes, prompt.id);
+  const faces = prompt ? pollFaces(roster, votes, prompt.id) : [];
+  if (!prompt) return null;
+  const promptId = prompt.id;
+  const result = resultForPrompt(votes, promptId);
   const winnerPlayer = result ? players.find((player) => player.id === result.playerId) : null;
-  const mine = mineOnPrompt(votes, prompt.id, user?.id);
+  const mine = mineOnPrompt(votes, promptId, user?.id);
 
   async function pick(playerId: string) {
     if (!canVote) return;
     try {
-      await vote(prompt.id, playerId);
+      await vote(promptId, playerId);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not save that");
     }
@@ -84,8 +88,8 @@ export function MostLikelySheet({
         ) : (
           <p className="t-micro mt-[var(--space-3)] text-muted-foreground">Tap a face. No odds. Just the room.</p>
         )}
-        <div className="mt-[var(--space-5)] grid grid-cols-4 gap-3">
-          {roster.map((player) => {
+        <div className="mt-[var(--space-5)] grid grid-cols-2 gap-3">
+          {faces.map((player) => {
             const selected = mine?.playerId === player.id;
             const face = (
               <>
@@ -126,18 +130,6 @@ export function MostLikelySheet({
               </button>
             );
           })}
-        </div>
-        <div className="mt-[var(--space-5)] flex items-center justify-center gap-2">
-          {prompts.map((row, i) => (
-            <button
-              key={row.id}
-              type="button"
-              aria-label={row.prompt}
-              aria-current={i === index}
-              onClick={() => setIndex(i)}
-              className={`size-2 rounded-full ${i === index ? "bg-hunter" : "bg-border"}`}
-            />
-          ))}
         </div>
         {canVote ? (
           <div className="mt-[var(--space-5)]">

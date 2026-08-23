@@ -24,19 +24,20 @@ export function FridayPairings({
   playerIdByName,
   matches: _matches = [],
   rounds: _rounds = [],
+  hideIntro = false,
 }: {
   getFace?: (name: string) => Face | undefined;
   claimedName?: string | null;
   playerIdByName?: (name: string) => string | undefined;
   matches?: Match[];
   rounds?: Round[];
+  hideIntro?: boolean;
 }) {
   return (
     <div className="stack">
-      <div>
-        <p className="t-body text-foreground">{FRIDAY_HOW}</p>
-        <p className="t-micro mt-[var(--space-3)]">{FRIDAY_FORMAT_LINE}</p>
-      </div>
+      {hideIntro ? null : (
+        <p className="t-micro">{FRIDAY_HOW} · {FRIDAY_FORMAT_LINE}</p>
+      )}
       <ol className="grid grid-cols-1 gap-[var(--space-5)] min-[420px]:grid-cols-2">
         {DAY1_PAIRINGS.map((p) => {
           const peopleA = p.playersA.map((name) => ({

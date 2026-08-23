@@ -51,18 +51,15 @@ function PursePage() {
           <div className="mt-[var(--space-5)]">
             <MoneySplit bare />
           </div>
-          <p className="t-micro mt-[var(--space-5)]">
-            Venmo {TOURNAMENT_BANK}
-            {hasTbdPayouts ? " · holes TBD" : ""}
-          </p>
           <a
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className="press t-micro mt-[var(--space-3)] inline-flex min-h-11 items-center text-muted-foreground"
+            className="press btn-primary mt-[var(--space-5)] flex min-h-11 w-full items-center justify-center"
           >
-            Pay ${BUY_IN} on Venmo
+            Pay ${BUY_IN} · Venmo {TOURNAMENT_BANK}
           </a>
+          {hasTbdPayouts ? <p className="t-micro mt-[var(--space-3)]">Contest holes TBD</p> : null}
         </section>
 
         {isError && !data && (

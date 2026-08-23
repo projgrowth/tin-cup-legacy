@@ -1,9 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { FormatCards } from "@/components/tin-cup/DayStory";
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
-import { CupDigest } from "@/components/tin-cup/live/ScoreBoard";
-import { FridayPairings } from "@/components/tin-cup/FridayPairings";
+import { FridayPairings, FRIDAY_HOW } from "@/components/tin-cup/FridayPairings";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
@@ -90,22 +88,6 @@ function SchedulePage() {
   const autoCourseId = todayRound ? (courseIdFromRound(todayRound) ?? todayCourse) : todayCourse;
   const courseId = search.course ?? autoCourseId;
   const details = COURSE_DETAILS[courseId];
-  const selectedRound =
-    rounds.find((round) => round.slug === details.roundSlug) ??
-    rounds.find((round) => courseIdFromRound(round) === courseId) ??
-    null;
-
-  const socialOrdered = useMemo(() => {
-    const dayLabel = details.dayLabel;
-    const list = [...WEEKEND_SOCIAL];
-    list.sort((a, b) => {
-      const aToday = a.day.startsWith(dayLabel) ? 0 : 1;
-      const bToday = b.day.startsWith(dayLabel) ? 0 : 1;
-      return aToday - bToday;
-    });
-    return list;
-  }, [details.dayLabel]);
-
   const claimedPlayer = profile?.player_id
     ? (data?.players ?? []).find((player) => player.id === profile.player_id)
     : undefined;
@@ -116,8 +98,6 @@ function SchedulePage() {
   return (
     <Shell variant="content">
       <div className="stack-page">
-        <CupDigest matches={data?.matches ?? []} />
-
         <section className="stack-tight">
           <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Day">
             {COURSE_ORDER.map((id) => {
@@ -142,12 +122,16 @@ function SchedulePage() {
             <h1 className="t-title text-foreground">{details.format}</h1>
             <p className="t-micro mt-1">
               {details.dayLabel} · {COURSE_LABEL[courseId]} · {details.firstTee}
-              {` · ${selectedRound?.points ?? details.points} pts`}
             </p>
           </header>
 
           {courseId === "south" ? (
+            <p className="t-micro">{FRIDAY_HOW}</p>
+          ) : null}
+
+          {courseId === "south" ? (
             <FridayPairings
+              hideIntro
               getFace={(name) => avatars.data?.getByName(name)}
               claimedName={claimedPlayer?.name ?? null}
               playerIdByName={playerIdByName}
@@ -155,69 +139,40 @@ function SchedulePage() {
               rounds={data?.rounds ?? []}
             />
           ) : (
-            <div className="surface overflow-hidden">
-              <div className="px-4 py-3">
-                <p className="t-body font-medium text-foreground">{details.format}</p>
-                <p className="t-micro mt-1">
-                  {COURSE_LABEL[courseId]} · {details.firstTee}
-                  {` · ${selectedRound?.points ?? details.points} pts`}
-                </p>
-              </div>
-              {WEEKEND_SOCIAL.filter((row) => row.day.startsWith(details.dayLabel)).map((row) => (
-                <div key={row.day} className="border-t border-border px-4 py-3">
-                  <p className="t-body font-medium text-foreground">
-                    {row.day} · {row.title}
-                  </p>
-                  <p className="t-micro mt-1 text-muted-foreground">{row.detail}</p>
-                </div>
-              ))}
-              <p className="t-micro border-t border-border px-4 py-3 text-muted-foreground">
-                Pairings when captains post
-              </p>
-            </div>
+            <p className="t-micro">Pairings when captains post</p>
           )}
+
+          {WEEKEND_SOCIAL.filter((row) => row.day.startsWith(details.dayLabel)).slice(0, 1).map((row) => (
+            <p key={row.day} className="t-body text-foreground">
+              Tonight · {row.title}
+            </p>
+          ))}
 
         </section>
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
-        <section className="stack-tight">
-          <h2 className="t-eyebrow">Formats</h2>
-          <FormatCards />
-        </section>
-
-        <section className="stack-tight">
-          <h2 className="t-eyebrow">Dinners</h2>
-          <div className="grid gap-[var(--space-5)]">
-            {socialOrdered.map((row, index) => (
-              <details key={row.day} className="surface" open={index === 0 || undefined}>
-                <summary className="press flex min-h-11 cursor-pointer list-none items-center p-[var(--space-4)] [&::-webkit-details-marker]:hidden">
-                  <span className="t-body min-w-0 text-foreground">
-                    {row.day} · {row.title}
-                  </span>
-                </summary>
-                <p className="t-micro px-[var(--space-4)] pb-[var(--space-4)]">{row.detail}</p>
-              </details>
-            ))}
+        <details className="group">
+          <summary className="press t-micro cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+            How formats · Snake Pit · Calendar
+          </summary>
+          <div className="mt-[var(--space-3)] stack-tight">
+            <FormatSheet triggerClassName="t-micro" />
+            <SnakePitDrawer triggerClassName="t-micro" />
+            {rounds.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  downloadWeekendIcs(rounds);
+                  void trackProductEvent("calendar_downloaded", { kind: "weekend" });
+                }}
+                className="press t-micro min-h-11 text-left"
+              >
+                Add weekend to calendar
+              </button>
+            )}
           </div>
-        </section>
-
-        <div className="surface divide-y divide-border overflow-hidden">
-          <FormatSheet triggerClassName="flex w-full items-center px-4 py-3 t-body font-medium text-foreground" />
-          <SnakePitDrawer triggerClassName="flex w-full items-center px-4 py-3 t-body font-medium text-foreground" />
-          {rounds.length > 0 && (
-            <button
-              type="button"
-              onClick={() => {
-                downloadWeekendIcs(rounds);
-                void trackProductEvent("calendar_downloaded", { kind: "weekend" });
-              }}
-              className="press flex min-h-11 w-full items-center px-4 py-3 t-body font-medium text-foreground"
-            >
-              Add weekend to calendar
-            </button>
-          )}
-        </div>
+        </details>
         <p className="t-micro px-1 text-muted-foreground">
           Playoff · If 13–13: captains each pick a scramble partner · one hole until decided.
         </p>

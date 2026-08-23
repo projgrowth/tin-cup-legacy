@@ -36,7 +36,19 @@ export function avatarRingClass(slug?: TeamSlug | null): string {
 }
 
 /** Monogram surface classes by team. */
-export function monogramClass(slug?: TeamSlug | null, size: "sm" | "md" | "lg" | "xl" | "poster" = "md"): string {
+export function monogramClass(
+  slug?: TeamSlug | null,
+  size: "sm" | "md" | "lg" | "xl" | "poster" | "tile" = "md",
+): string {
+  if (size === "tile") {
+    if (slug === "grass-roots") {
+      return "flex size-full items-center justify-center bg-stone/20 text-[clamp(2rem,8vw,3.25rem)] font-semibold tracking-wide text-stone";
+    }
+    if (slug === "strong-mental") {
+      return "flex size-full items-center justify-center bg-hunter/15 text-[clamp(2rem,8vw,3.25rem)] font-semibold tracking-wide text-hunter";
+    }
+    return "flex size-full items-center justify-center bg-secondary text-[clamp(2rem,8vw,3.25rem)] font-semibold tracking-wide text-muted-foreground";
+  }
   const dim =
     size === "sm"
       ? "size-7 text-[0.6rem]"

@@ -173,3 +173,39 @@ export function promptFromList(prompts: BanterPrompt[], id: string): BanterPromp
 export function upsertPrompt(prompts: BanterPrompt[], next: BanterPrompt): BanterPrompt[] {
   return [...prompts.filter((row) => row.id !== next.id), next];
 }
+
+
+/** Four faces for one most-likely: vote leaders, then a sensible subset. */
+export function pollFaces<T extends { id: string }>(
+  roster: T[],
+  votes: BanterVote[],
+  promptId: string,
+  preferIds: string[] = [],
+  limit = 4,
+): T[] {
+  const byId = new Map(roster.map((player) => [player.id, player]));
+  const counts = new Map<string, number>();
+  for (const vote of votesForPrompt(votes, promptId)) {
+    counts.set(vote.playerId, (counts.get(vote.playerId) ?? 0) + 1);
+  }
+  const picked: T[] = [];
+  const take = (id: string | undefined) => {
+    if (!id) return;
+    const player = byId.get(id);
+    if (player && !picked.some((row) => row.id === id)) picked.push(player);
+  };
+  [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([id]) => take(id));
+  preferIds.forEach((id) => take(id));
+  roster.forEach((player, index) => {
+    if (index % 4 === 0) take(player.id);
+  });
+  roster.forEach((player) => take(player.id));
+  return picked.slice(0, limit);
+}
+
+/** Latest custom question, else the first canned prompt. */
+export function activeWallPrompt(prompts: BanterPrompt[]): BanterPrompt | undefined {
+  return [...prompts].reverse().find((row) => row.custom) ?? prompts[0];
+}

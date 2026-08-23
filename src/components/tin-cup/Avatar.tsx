@@ -6,6 +6,7 @@ const SIZE = {
   lg: "size-12 text-sm",
   xl: "size-[5.5rem] text-xl",
   poster: "size-[8.75rem] text-2xl",
+  tile: "size-full text-[clamp(2rem,8vw,3.25rem)]",
 } as const;
 
 /** Circular face or team-color monogram fallback. Faces never overlap. */
@@ -20,16 +21,18 @@ export function Avatar({
   name: string;
   teamSlug?: TeamSlug | null;
   src?: string | null;
-  size?: "sm" | "md" | "lg" | "xl" | "poster";
+  size?: "sm" | "md" | "lg" | "xl" | "poster" | "tile";
   className?: string;
   title?: string;
 }) {
   const dim = SIZE[size];
   if (src) {
+    const frame =
+      size === "tile"
+        ? `block size-full overflow-hidden bg-secondary ${className}`.trim()
+        : `inline-flex shrink-0 overflow-hidden rounded-full border bg-secondary ${avatarRingClass(teamSlug)} ${dim} ${className}`.trim();
     return (
-      <span
-        className={`inline-flex shrink-0 overflow-hidden rounded-full border bg-secondary ${avatarRingClass(teamSlug)} ${dim} ${className}`.trim()}
-      >
+      <span className={frame}>
         <img
           src={src}
           alt={title ?? name}

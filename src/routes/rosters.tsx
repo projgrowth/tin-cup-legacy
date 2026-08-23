@@ -6,7 +6,6 @@ import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
-import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
 import { tallyStandings } from "@/lib/scoring";
@@ -47,7 +46,6 @@ function RostersPage() {
   const teams = data?.teams ?? [];
   const players = data?.players ?? [];
   const avatars = usePlayerAvatars(players, teams);
-  const publicProfiles = usePublicProfiles();
 
   const { data: myPlayerId } = useQuery({
     queryKey: ["my-player", user?.id],
@@ -119,32 +117,31 @@ function RostersPage() {
                 {myTeam?.slug === side.slug ? (
                   <p className="t-micro px-1 pb-2">Your side</p>
                 ) : null}
-                <ul className="grid grid-cols-1 gap-[var(--space-5)] min-[420px]:grid-cols-2">
+                <ul className="grid grid-cols-2 gap-2">
                   {side.players.map((name) => {
                     const player = playersByName.get(name.trim().toLowerCase());
                     const isYou = Boolean(player && myPlayerId === player.id);
                     const isCaptain = name === side.captain || Boolean(player?.is_captain);
-                    const social = player
-                      ? publicProfiles.data?.find((candidate) => candidate.player_id === player.id)
-                      : undefined;
                     const friday = fridayPartnerLine(name);
                     const body = (
-                      <span className="flex min-w-0 flex-1 flex-col items-center text-center">
+                      <span className="relative block aspect-[4/5] overflow-hidden bg-secondary">
                         <Avatar
                           name={name}
                           teamSlug={side.slug}
                           src={player ? avatars.data?.byPlayerId.get(player.id)?.url : undefined}
-                          size="xl"
+                          size="tile"
+                          className="absolute inset-0"
                         />
-                        <span className="t-title mt-[var(--space-3)] truncate text-foreground">
-                          {name.split(" ")[0]}
-                          {isCaptain ? " · C" : ""}
-                          {isYou ? " · You" : ""}
+                        <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-2 pb-2 pt-10">
+                          <span className="t-title block truncate text-white">
+                            {name.split(" ")[0]}
+                            {isCaptain ? " · C" : ""}
+                            {isYou ? " · You" : ""}
+                          </span>
+                          {friday ? (
+                            <span className="t-micro mt-0.5 block text-white/70">Friday {friday}</span>
+                          ) : null}
                         </span>
-                        {friday ? <span className="t-micro mt-1">Friday {friday}</span> : null}
-                        {social?.status_text ? (
-                          <span className="t-micro mt-1 line-clamp-2">{social.status_text}</span>
-                        ) : null}
                       </span>
                     );
                     return (
@@ -153,16 +150,12 @@ function RostersPage() {
                           <Link
                             to="/player/$playerId"
                             params={{ playerId: player.id }}
-                            className={`press surface flex min-h-[12.5rem] flex-col items-center p-[var(--space-4)] ${
-                              isYou ? "outline outline-1 outline-hunter" : ""
-                            }`}
+                            className={`press block ${isYou ? "outline outline-1 outline-hunter" : ""}`}
                           >
                             {body}
                           </Link>
                         ) : (
-                          <div className="surface flex min-h-[12.5rem] flex-col items-center p-[var(--space-4)]">
-                            {body}
-                          </div>
+                          <div>{body}</div>
                         )}
                       </li>
                     );
