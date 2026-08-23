@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Avatar } from "@/components/tin-cup/Avatar";
 import type { Player, Team } from "@/hooks/useTournament";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
-import { chipForPlayer, type BanterVote } from "@/lib/banter";
+import { chipForPlayer, type BanterPrompt, type BanterVote } from "@/lib/banter";
 import { fridayFoursome } from "@/lib/day1-pairings";
 
 function firstName(name: string) {
@@ -15,11 +15,13 @@ export function FridayFoursome({
   players,
   teams,
   votes = [],
+  prompts,
 }: {
   claimedName: string;
   players: Player[];
   teams: Team[];
   votes?: BanterVote[];
+  prompts?: BanterPrompt[];
 }) {
   const seats = fridayFoursome(claimedName);
   const avatars = usePlayerAvatars(players, teams);
@@ -33,7 +35,7 @@ export function FridayFoursome({
         );
         const face = avatars.data?.getByName(seat.name);
         const first = firstName(seat.name);
-        const chips = player ? chipForPlayer(votes, player.id, first) : [];
+        const chips = player ? chipForPlayer(votes, player.id, first, prompts) : [];
         const team = seat.teamSlug === "strong-mental" ? "Strong Mental" : "Grass Roots";
         const inner = (
           <>

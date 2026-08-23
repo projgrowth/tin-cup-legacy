@@ -12,8 +12,8 @@ import { useWeekendStory } from "@/hooks/useWeekendStory";
 import type { Player, Team } from "@/hooks/useTournament";
 import {
   BANTER_HEADER,
-  BANTER_PROMPTS,
   BANTER_SUBLINE,
+  CUSTOM_PROMPT_MAX,
   mineOnPrompt,
   winnerForPrompt,
 } from "@/lib/banter";
@@ -36,13 +36,14 @@ export function LockerWall({
   const { profile } = useProfile();
   const claimed = Boolean(claimedPlayerIdFor(user?.id, profile?.player_id));
   const canTalk = Boolean(user && claimed);
-  const { votes, vote } = useBanterVotes();
+  const { votes, vote, createPrompt, prompts } = useBanterVotes();
   const story = useWeekendStory(user?.id);
   const avatars = usePlayerAvatars(players, teams);
   const profiles = usePublicProfiles();
   const [draft, setDraft] = useState("");
   const [tagId, setTagId] = useState<string | null>(null);
   const [openPrompt, setOpenPrompt] = useState<string | null>(null);
+  const [question, setQuestion] = useState("");
   const roster = fridayRosterNames()
     .map((name) => players.find((player) => player.name.trim().toLowerCase() === name.toLowerCase()))
     .filter((player): player is Player => Boolean(player));
@@ -80,6 +81,17 @@ export function LockerWall({
     if (!canTalk) return;
     try {
       await vote(promptId, playerId);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save that");
+    }
+  }
+
+  async function postQuestion() {
+    const body = question.trim();
+    if (!body || !canTalk) return;
+    try {
+      await createPrompt(body);
+      setQuestion("");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not save that");
     }
@@ -150,7 +162,7 @@ export function LockerWall({
         <div className="px-[var(--space-5)] py-[var(--space-5)]">
           <p className="t-micro mb-[var(--space-3)]">Most likely</p>
           <ul className="space-y-[var(--space-3)]">
-            {BANTER_PROMPTS.map((prompt) => {
+            {prompts.map((prompt) => {
               const winner = winnerForPrompt(votes, prompt.id);
               const winnerPlayer = winner
                 ? players.find((player) => player.id === winner.playerId)
@@ -190,7 +202,7 @@ export function LockerWall({
                               teamSlug={teams.find((team) => team.id === player.team_id)?.slug}
                               src={avatars.data?.byPlayerId.get(player.id)?.url}
                               size="md"
-                              className={selected ? "ring-2 ring-hunter" : ""}
+                              className={`size-[44px] text-[0.65rem] ${selected ? "ring-2 ring-hunter" : ""}`}
                             />
                             <span className={`t-micro mt-1 block ${selected ? "text-hunter" : ""}`}>
                               {firstName(player.name)}
@@ -226,6 +238,33 @@ export function LockerWall({
               );
             })}
           </ul>
+          {canTalk ? (
+            <div className="mt-[var(--space-5)]">
+              <label className="sr-only" htmlFor="wall-most-likely">
+                Most likely to…
+              </label>
+              <input
+                id="wall-most-likely"
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                maxLength={CUSTOM_PROMPT_MAX}
+                placeholder="Most likely to…"
+                className="control w-full text-base"
+              />
+              <button
+                type="button"
+                disabled={!question.trim()}
+                onClick={() => void postQuestion()}
+                className="press btn-primary mt-[var(--space-3)] min-h-11 px-4 text-sm font-semibold"
+              >
+                Post
+              </button>
+            </div>
+          ) : (
+            <Link to="/profile" className="press mt-[var(--space-5)] block">
+              <p className="t-body text-muted-foreground">Most likely to…</p>
+            </Link>
+          )}
         </div>
       </div>
     </section>

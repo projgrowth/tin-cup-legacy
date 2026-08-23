@@ -41,7 +41,7 @@ export function PreTournamentPanel({
   const nextCourseId = defaultCourseId() as CourseId;
   const today = COURSE_DETAILS[nextCourseId];
   const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
-  const { votes } = useBanterVotes();
+  const { votes, prompts } = useBanterVotes();
 
   return (
     <section aria-label="This weekend" className="stack">
@@ -58,6 +58,7 @@ export function PreTournamentPanel({
           players={players}
           teams={teams}
           votes={votes}
+          prompts={prompts}
         />
       ) : null}
 

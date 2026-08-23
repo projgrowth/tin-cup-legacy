@@ -72,9 +72,9 @@ function PlayerPage() {
   const face = avatars.data?.byPlayerId.get(playerId);
   const publicProfiles = usePublicProfiles();
   const socialProfile = publicProfiles.data?.find((candidate) => candidate.player_id === playerId);
-  const { votes } = useBanterVotes();
+  const { votes, prompts } = useBanterVotes();
   const banterChips = player
-    ? chipForPlayer(votes, player.id, player.name.trim().split(/\s+/)[0] ?? player.name)
+    ? chipForPlayer(votes, player.id, player.name.trim().split(/\s+/)[0] ?? player.name, prompts)
     : [];
 
   if (isPending && !data) {

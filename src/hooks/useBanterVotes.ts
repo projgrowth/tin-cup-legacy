@@ -1,36 +1,68 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
-import { type BanterVote, upsertVote } from "@/lib/banter";
+import {
+  type BanterPrompt,
+  type BanterVote,
+  chipFromBody,
+  mergeWallPrompts,
+  normalizeCustomBody,
+  upsertPrompt,
+  upsertVote,
+} from "@/lib/banter";
 import { assertMutationAllowed, isPreviewMode } from "@/lib/runtime-mode";
 import { supabase } from "@/integrations/supabase/client";
 
-const STORAGE_KEY = "tin-cup-banter-votes-v1";
+const VOTE_STORAGE = "tin-cup-banter-votes-v1";
+const PROMPT_STORAGE = "tin-cup-banter-prompts-v1";
 const CHANGE_EVENT = "tin-cup-banter-votes-changed";
 
-type Row = {
+type VoteRow = {
   prompt_id: string;
   voter_id: string;
   player_id: string;
   updated_at: string;
 };
 
-function readLocal(): BanterVote[] {
+type PromptRow = {
+  id: string;
+  body: string;
+  chip: string;
+  author_id: string;
+  created_at: string;
+};
+
+function readLocalVotes(): BanterVote[] {
   if (typeof window === "undefined") return [];
   try {
-    return JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "[]") as BanterVote[];
+    return JSON.parse(window.localStorage.getItem(VOTE_STORAGE) ?? "[]") as BanterVote[];
   } catch {
     return [];
   }
 }
 
-function writeLocal(votes: BanterVote[]) {
+function writeLocalVotes(votes: BanterVote[]) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(votes));
+  window.localStorage.setItem(VOTE_STORAGE, JSON.stringify(votes));
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
-function fromRow(row: Row): BanterVote {
+function readLocalPrompts(): BanterPrompt[] {
+  if (typeof window === "undefined") return [];
+  try {
+    return JSON.parse(window.localStorage.getItem(PROMPT_STORAGE) ?? "[]") as BanterPrompt[];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalPrompts(prompts: BanterPrompt[]) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(PROMPT_STORAGE, JSON.stringify(prompts));
+  window.dispatchEvent(new Event(CHANGE_EVENT));
+}
+
+function fromVoteRow(row: VoteRow): BanterVote {
   return {
     promptId: row.prompt_id,
     voterId: row.voter_id,
@@ -39,29 +71,67 @@ function fromRow(row: Row): BanterVote {
   };
 }
 
+function fromPromptRow(row: PromptRow): BanterPrompt {
+  return {
+    id: row.id,
+    prompt: row.body,
+    chip: row.chip,
+    authorId: row.author_id,
+    createdAt: row.created_at,
+    custom: true,
+  };
+}
+
+function newId() {
+  return crypto.randomUUID();
+}
+
 export function useBanterVotes() {
   const { user } = useAuth();
   const [votes, setVotes] = useState<BanterVote[]>([]);
+  const [customPrompts, setCustomPrompts] = useState<BanterPrompt[]>([]);
   const [remoteReady, setRemoteReady] = useState(false);
 
   const refresh = useCallback(async () => {
-    const local = readLocal();
+    const localVotes = readLocalVotes();
+    const localPrompts = readLocalPrompts();
+    let nextVotes = localVotes;
+    let nextPrompts = localPrompts;
+    let ready = false;
     try {
       const { data, error } = await supabase
         .from("banter_votes" as never)
         .select("prompt_id,voter_id,player_id,updated_at");
       if (error) throw error;
-      setRemoteReady(true);
-      const remote = ((data ?? []) as Row[]).map(fromRow);
+      ready = true;
+      const remote = ((data ?? []) as VoteRow[]).map(fromVoteRow);
       const merged = new Map<string, BanterVote>();
-      for (const vote of [...local, ...remote]) {
+      for (const vote of [...localVotes, ...remote]) {
         merged.set(`${vote.promptId}:${vote.voterId}`, vote);
       }
-      setVotes([...merged.values()]);
+      nextVotes = [...merged.values()];
     } catch {
-      setRemoteReady(false);
-      setVotes(local);
+      nextVotes = localVotes;
     }
+    try {
+      const { data, error } = await supabase
+        .from("banter_prompts" as never)
+        .select("id,body,chip,author_id,created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      ready = true;
+      const remote = ((data ?? []) as PromptRow[]).map(fromPromptRow);
+      const merged = new Map<string, BanterPrompt>();
+      for (const row of [...localPrompts, ...remote]) {
+        merged.set(row.id, row);
+      }
+      nextPrompts = [...merged.values()];
+    } catch {
+      nextPrompts = localPrompts;
+    }
+    setRemoteReady(ready);
+    setVotes(nextVotes);
+    setCustomPrompts(nextPrompts);
   }, []);
 
   useEffect(() => {
@@ -69,23 +139,35 @@ export function useBanterVotes() {
     const onLocal = () => void refresh();
     window.addEventListener(CHANGE_EVENT, onLocal);
     window.addEventListener("storage", onLocal);
-    let channel: ReturnType<typeof supabase.channel> | null = null;
+    const channels: ReturnType<typeof supabase.channel>[] = [];
     try {
-      channel = supabase
-        .channel("banter-votes")
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "banter_votes" },
-          () => void refresh(),
-        )
-        .subscribe();
+      channels.push(
+        supabase
+          .channel("banter-votes")
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "banter_votes" },
+            () => void refresh(),
+          )
+          .subscribe(),
+      );
+      channels.push(
+        supabase
+          .channel("banter-prompts")
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "banter_prompts" },
+            () => void refresh(),
+          )
+          .subscribe(),
+      );
     } catch {
-      channel = null;
+      /* preview / missing realtime */
     }
     return () => {
       window.removeEventListener(CHANGE_EVENT, onLocal);
       window.removeEventListener("storage", onLocal);
-      if (channel) void supabase.removeChannel(channel);
+      for (const channel of channels) void supabase.removeChannel(channel);
     };
   }, [refresh]);
 
@@ -98,8 +180,8 @@ export function useBanterVotes() {
         playerId,
         updatedAt: new Date().toISOString(),
       };
-      const local = upsertVote(readLocal(), next);
-      writeLocal(local);
+      const local = upsertVote(readLocalVotes(), next);
+      writeLocalVotes(local);
       setVotes((prev) => upsertVote(prev, next));
       if (isPreviewMode()) return { source: "local" as const };
       assertMutationAllowed("Banter");
@@ -119,8 +201,48 @@ export function useBanterVotes() {
     [user],
   );
 
+  const createPrompt = useCallback(
+    async (raw: string) => {
+      if (!user) throw new Error("Claim a seat first.");
+      const body = normalizeCustomBody(raw);
+      if (!body) throw new Error("Write a most likely first.");
+      const next: BanterPrompt = {
+        id: newId(),
+        prompt: body,
+        chip: chipFromBody(body),
+        authorId: user.id,
+        createdAt: new Date().toISOString(),
+        custom: true,
+      };
+      writeLocalPrompts(upsertPrompt(readLocalPrompts(), next));
+      setCustomPrompts((prev) => upsertPrompt(prev, next));
+      if (isPreviewMode()) return { source: "local" as const, prompt: next };
+      assertMutationAllowed("Banter");
+      const { data, error } = await supabase
+        .from("banter_prompts" as never)
+        .insert({
+          id: next.id,
+          body: next.prompt,
+          chip: next.chip,
+          author_id: next.authorId,
+          created_at: next.createdAt,
+        } as never)
+        .select("id,body,chip,author_id,created_at")
+        .single();
+      if (error) return { source: "local" as const, prompt: next, error: error.message };
+      const saved = fromPromptRow(data as PromptRow);
+      writeLocalPrompts(upsertPrompt(readLocalPrompts(), saved));
+      setCustomPrompts((prev) => upsertPrompt(prev, saved));
+      setRemoteReady(true);
+      return { source: "remote" as const, prompt: saved };
+    },
+    [user],
+  );
+
+  const prompts = useMemo(() => mergeWallPrompts(customPrompts), [customPrompts]);
+
   return useMemo(
-    () => ({ votes, vote, remoteReady, refresh, userId: user?.id }),
-    [votes, vote, remoteReady, refresh, user?.id],
+    () => ({ votes, vote, createPrompt, prompts, customPrompts, remoteReady, refresh, userId: user?.id }),
+    [votes, vote, createPrompt, prompts, customPrompts, remoteReady, refresh, user?.id],
   );
 }

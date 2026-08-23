@@ -1,10 +1,15 @@
 export const BANTER_HEADER = "The wall";
 export const BANTER_SUBLINE = "Not official. Just the group chat.";
 
+export const CUSTOM_PROMPT_MAX = 80;
+
 export type BanterPrompt = {
   id: string;
   prompt: string;
   chip: string;
+  authorId?: string;
+  createdAt?: string;
+  custom?: boolean;
 };
 
 /** Canned only — do not invent more at runtime. */
@@ -87,9 +92,10 @@ export function chipForPlayer(
   votes: BanterVote[],
   playerId: string,
   firstName: string,
+  prompts: BanterPrompt[] = BANTER_PROMPTS,
 ): string[] {
   const chips: string[] = [];
-  for (const prompt of BANTER_PROMPTS) {
+  for (const prompt of prompts) {
     const win = winnerForPrompt(votes, prompt.id);
     if (win?.playerId === playerId) chips.push(`${firstName} · ${prompt.chip}`);
   }
@@ -113,4 +119,31 @@ export function upsertVote(
     ...votes.filter((vote) => !(vote.promptId === next.promptId && vote.voterId === next.voterId)),
     next,
   ];
+}
+
+export function chipFromBody(body: string): string {
+  const t = body.trim().replace(/\s+/g, " ");
+  if (!t) return "the room";
+  return t.length <= 22 ? t : `${t.slice(0, 21)}…`;
+}
+
+export function normalizeCustomBody(body: string): string {
+  return body.trim().replace(/\s+/g, " ").slice(0, CUSTOM_PROMPT_MAX);
+}
+
+export function mergeWallPrompts(custom: BanterPrompt[]): BanterPrompt[] {
+  const extras = [...custom].sort((a, b) => {
+    const at = Date.parse(b.createdAt ?? "") || 0;
+    const bt = Date.parse(a.createdAt ?? "") || 0;
+    return at - bt;
+  });
+  return [...BANTER_PROMPTS, ...extras];
+}
+
+export function promptFromList(prompts: BanterPrompt[], id: string): BanterPrompt | undefined {
+  return prompts.find((row) => row.id === id);
+}
+
+export function upsertPrompt(prompts: BanterPrompt[], next: BanterPrompt): BanterPrompt[] {
+  return [...prompts.filter((row) => row.id !== next.id), next];
 }

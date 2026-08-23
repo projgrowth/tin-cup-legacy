@@ -10,8 +10,8 @@ import { useProfile } from "@/hooks/useJournal";
 import type { Player, Team } from "@/hooks/useTournament";
 import {
   BANTER_HEADER,
-  BANTER_PROMPTS,
   BANTER_SUBLINE,
+  CUSTOM_PROMPT_MAX,
   mineOnPrompt,
   winnerForPrompt,
 } from "@/lib/banter";
@@ -35,10 +35,11 @@ export function MostLikelySheet({
   const { profile } = useProfile();
   const claimed = Boolean(claimedPlayerIdFor(user?.id, profile?.player_id));
   const canVote = Boolean(user && claimed);
-  const { votes, vote } = useBanterVotes();
+  const { votes, vote, createPrompt, prompts } = useBanterVotes();
   const avatars = usePlayerAvatars(players, teams);
   const [index, setIndex] = useState(0);
-  const prompt = BANTER_PROMPTS[index]!;
+  const [question, setQuestion] = useState("");
+  const prompt = prompts[Math.min(index, Math.max(prompts.length - 1, 0))]!;
   const roster = fridayRosterNames()
     .map((name) => players.find((player) => player.name.trim().toLowerCase() === name.toLowerCase()))
     .filter((player): player is Player => Boolean(player));
@@ -55,6 +56,17 @@ export function MostLikelySheet({
     }
   }
 
+  async function postQuestion() {
+    const body = question.trim();
+    if (!body || !canVote) return;
+    try {
+      await createPrompt(body);
+      setQuestion("");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save that");
+    }
+  }
+
   return (
     <section aria-labelledby="banter-title">
       <h2 id="banter-title" className="t-title px-1 text-foreground">
@@ -62,7 +74,7 @@ export function MostLikelySheet({
       </h2>
       <p className="t-micro mb-1 px-1">{BANTER_SUBLINE}</p>
       <div className="surface px-[var(--space-5)] py-[var(--space-5)]">
-        <p className="t-micro uppercase tracking-wide text-muted-foreground">Dare</p>
+        <p className="t-micro uppercase tracking-wide text-muted-foreground">Most likely</p>
         <p className="t-title mt-1 text-foreground">{prompt.prompt}</p>
         {winnerPlayer ? (
           <div className="mt-[var(--space-3)] inline-flex items-center gap-2 rounded-full border border-hunter/40 bg-hunter/10 px-2 py-1">
@@ -124,7 +136,7 @@ export function MostLikelySheet({
           })}
         </div>
         <div className="mt-[var(--space-5)] flex items-center justify-center gap-2">
-          {BANTER_PROMPTS.map((row, i) => (
+          {prompts.map((row, i) => (
             <button
               key={row.id}
               type="button"
@@ -135,6 +147,33 @@ export function MostLikelySheet({
             />
           ))}
         </div>
+        {canVote ? (
+          <div className="mt-[var(--space-5)]">
+            <label className="sr-only" htmlFor="sheet-most-likely">
+              Most likely to…
+            </label>
+            <input
+              id="sheet-most-likely"
+              value={question}
+              onChange={(event) => setQuestion(event.target.value)}
+              maxLength={CUSTOM_PROMPT_MAX}
+              placeholder="Most likely to…"
+              className="control w-full text-base"
+            />
+            <button
+              type="button"
+              disabled={!question.trim()}
+              onClick={() => void postQuestion()}
+              className="press btn-primary mt-[var(--space-3)] min-h-11 px-4 text-sm font-semibold"
+            >
+              Post
+            </button>
+          </div>
+        ) : (
+          <Link to="/profile" className="press mt-[var(--space-5)] block">
+            <p className="t-body text-muted-foreground">Most likely to…</p>
+          </Link>
+        )}
       </div>
     </section>
   );
