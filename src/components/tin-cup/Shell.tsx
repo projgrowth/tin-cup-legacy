@@ -69,7 +69,7 @@ export function Shell({
         : "max-w-4xl";
   if (theater) {
     return (
-      <div className="relative min-h-svh bg-black">
+      <div className="theater relative min-h-svh bg-black">
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-hunter focus:px-3 focus:py-2 focus:text-primary-foreground"
@@ -96,11 +96,7 @@ export function Shell({
       >
         Skip to content
       </a>
-      <header
-        className={`sticky top-0 z-30 ${
-          immersive ? "bg-background/90" : "bg-background"
-        }`}
-      >
+      <header className={`sticky top-0 z-30 ${immersive ? "bg-background/90" : "bg-background"}`}>
         <div
           className={`mx-auto grid w-full ${width} min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 sm:px-5`}
         >
@@ -125,7 +121,11 @@ export function Shell({
           <Link
             to="/profile"
             aria-label={
-              user ? (claimed || profile?.player_id ? "Your hub" : "Claim your roster name") : "Sign in"
+              user
+                ? claimed || profile?.player_id
+                  ? "Your hub"
+                  : "Claim your roster name"
+                : "Sign in"
             }
             className="press relative flex shrink-0 items-center gap-2"
           >
@@ -140,7 +140,9 @@ export function Shell({
                       : "border-border text-muted-foreground"
                   }`}
                 >
-                  {user ? playerInitials(user.email?.split("@")[0] || "P") : (
+                  {user ? (
+                    playerInitials(user.email?.split("@")[0] || "P")
+                  ) : (
                     <User className="size-4" strokeWidth={1.7} aria-hidden />
                   )}
                 </span>
@@ -184,10 +186,7 @@ export function Shell({
         syncing={isFetching && !tournamentError}
         syncedAt={tournament?.syncedAt}
       />
-      <main
-        id="main-content"
-        className={`mx-auto w-full ${width} px-4 pt-3 sm:px-5 sm:pt-4`}
-      >
+      <main id="main-content" className={`mx-auto w-full ${width} px-4 pt-3 sm:px-5 sm:pt-4`}>
         {children}
       </main>
       <BottomNav live={cupLive} />

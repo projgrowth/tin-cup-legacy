@@ -15,11 +15,6 @@ import { isPreviewMode, PREVIEW_STORAGE_PREFIX, socialFeatureEnabled } from "@/l
 
 const PREVIEW_IDENTITY_KEY = `${PREVIEW_STORAGE_PREFIX}:identity`;
 
-const appearance: Array<{ value: AppearancePreset; label: string; detail: string }> = [
-  { value: "heritage", label: "Heritage", detail: "Warm gold · editorial" },
-  { value: "night", label: "Night", detail: "Deep contrast · minimal" },
-  { value: "team", label: "Team", detail: "Your side · more energy" },
-];
 const flair: Array<{ value: PlayerFlair; label: string }> = [
   { value: "competitor", label: "Competitor" },
   { value: "vibes", label: "Vibes captain" },
@@ -35,7 +30,7 @@ const moduleLabel: Record<HomeModuleKey, string> = {
 
 export function ExperienceCustomizer({
   userId,
-  teamSlug,
+  teamSlug: _teamSlug,
 }: {
   userId: string;
   teamSlug?: string | null;
@@ -77,16 +72,6 @@ export function ExperienceCustomizer({
     setCompactFeed(experience.preferences.compactFeed);
     setLayoutMode(experience.preferences.layoutMode);
   }, [experience.preferences]);
-
-  useEffect(() => {
-    if (!previewing) return;
-    document.documentElement.dataset.appearance = preset;
-    if (teamSlug) document.documentElement.dataset.team = teamSlug;
-    return () => {
-      document.documentElement.dataset.appearance = experience.preferences.appearance;
-      if (teamSlug) document.documentElement.dataset.team = teamSlug;
-    };
-  }, [experience.preferences.appearance, preset, previewing, teamSlug]);
 
   if (!socialFeatureEnabled("customization")) return null;
 
@@ -192,29 +177,6 @@ export function ExperienceCustomizer({
               ))}
             </select>
           </label>
-        </div>
-
-        <div>
-          <p className="t-micro text-foreground/75">Appearance</p>
-          <div className="mt-2 grid grid-cols-3 gap-2">
-            {appearance.map((item) => (
-              <button
-                key={item.value}
-                type="button"
-                aria-pressed={preset === item.value}
-                onClick={() => {
-                  setPreset(item.value);
-                  setPreviewing(true);
-                }}
-                className={`press min-h-20 rounded-2xl border p-3 text-left ${
-                  preset === item.value ? "border-hunter/45 bg-hunter/10" : "border-border bg-secondary"
-                }`}
-              >
-                <span className="block text-sm font-bold text-foreground">{item.label}</span>
-                <span className="t-micro mt-1 block leading-tight">{item.detail}</span>
-              </button>
-            ))}
-          </div>
         </div>
 
         <div>

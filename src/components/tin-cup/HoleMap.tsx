@@ -516,7 +516,7 @@ export function HoleMap({
   );
 
   const ctrlBtn =
-    "press flex size-11 items-center justify-center rounded-full border border-white/10 bg-black/55 text-foreground shadow-lg backdrop-blur-md disabled:opacity-35";
+    "press flex size-11 items-center justify-center rounded-full border border-white/10 bg-black/55 text-white shadow-lg backdrop-blur-md disabled:opacity-35";
 
   const mapControls = (
     <div className="absolute bottom-3 right-3 z-10 flex gap-1.5">

@@ -46,21 +46,23 @@ export function PreTournamentPanel({
   const face = (name: string) => avatars.data?.getByName(name);
 
   return (
-    <section aria-label="This weekend" className="stack-tight">
-      <PageMasthead
-        title={
-          <>
-            {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
-          </>
-        }
-        meta={
-          <>
-            {today.firstTee} · {today.format}
-            {` · ${today.points} pts`}
-          </>
-        }
-      />
-      <Countdown />
+    <section aria-label="This weekend" className="stack-page">
+      <div className="stack-tight">
+        <PageMasthead
+          title={
+            <>
+              {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
+            </>
+          }
+          meta={
+            <>
+              {today.firstTee} · {today.format}
+              {` · ${today.points} pts`}
+            </>
+          }
+        />
+        <Countdown />
+      </div>
 
       <TheCardSheet matches={matches} rounds={rounds} players={players} teams={teams} />
 
@@ -69,13 +71,9 @@ export function PreTournamentPanel({
           href={venmoUrl}
           target="_blank"
           rel="noreferrer"
-          className={`press flex min-h-12 items-center justify-between px-4 py-3 ${
-            claimedName ? "" : "bg-hunter/10"
-          }`}
+          className="press flex min-h-12 items-center justify-between px-4 py-3"
         >
-          <span className={`t-body font-medium ${claimedName ? "text-foreground" : "text-hunter"}`}>
-            Pay ${BUY_IN}
-          </span>
+          <span className="t-body font-medium text-foreground">Pay ${BUY_IN}</span>
           <span className="t-micro">{claimedName ? "Venmo" : "Due"}</span>
         </a>
         {signedIn && claimedName && !face(claimedName)?.url ? (

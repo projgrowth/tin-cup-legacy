@@ -166,7 +166,10 @@ export function SocialClubhouseFeed({
     trophies,
   ]);
   const showClubhouse = filter === "all" || filter === "clubhouse";
-  const emptyFeed = story.clubhousePosts.length === 0 && moments.length === 0;
+  const photoMoments = moments.filter((moment) => moment.kind === "photo");
+  const restMoments = moments.filter((moment) => moment.kind !== "photo");
+  const emptyFeed =
+    story.clubhousePosts.length === 0 && photoMoments.length === 0 && restMoments.length === 0;
   const mediaPaths = moments
     .map((moment) => moment.mediaPath)
     .filter((path): path is string => Boolean(path));
@@ -719,7 +722,7 @@ export function SocialClubhouseFeed({
               );
             })}
 
-          {moments.map((moment) => {
+          {restMoments.map((moment) => {
             const reactions = story.reactions.filter((row) => row.moment_key === moment.key);
             const comments = story.comments.filter((comment) => comment.moment_key === moment.key);
             const open = openComments[moment.key];
@@ -864,6 +867,106 @@ export function SocialClubhouseFeed({
             );
           })}
         </div>
+        {photoMoments.map((moment) => {
+          const reactions = story.reactions.filter((row) => row.moment_key === moment.key);
+          const comments = story.comments.filter((comment) => comment.moment_key === moment.key);
+          const open = openComments[moment.key];
+          const mediaUrl = moment.mediaPath ? mediaUrls[moment.mediaPath] : null;
+          return (
+            <article key={moment.key} id={`post-${moment.key}`} className="surface overflow-hidden">
+              {mediaUrl ? (
+                <div className="flex justify-center bg-secondary">
+                  <img
+                    src={mediaUrl}
+                    alt={moment.detail || moment.playerName || "Field photo"}
+                    className="h-auto max-h-[32rem] w-auto max-w-full object-contain"
+                  />
+                </div>
+              ) : moment.mediaPath ? (
+                <div className="skeleton h-48 w-full" />
+              ) : null}
+              <div className="px-4 py-3.5">
+                <header className="flex items-start gap-3">
+                  <Avatar
+                    name={moment.playerName || "Tin Cup"}
+                    teamSlug={moment.teamSlug}
+                    src={authorAvatar(moment.authorId, moment.playerId, moment.playerName)}
+                    size="md"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base font-semibold text-foreground">
+                      {moment.playerName || "Player"}
+                    </h3>
+                    <p className="t-micro">
+                      {formatActivityTime(new Date(moment.at).toISOString())}
+                    </p>
+                    {moment.detail ? (
+                      <p className="mt-1 text-[0.98rem] leading-7 text-foreground/95">
+                        {moment.detail}
+                      </p>
+                    ) : null}
+                  </div>
+                </header>
+                <ReactionBar
+                  momentKey={moment.key}
+                  reactions={reactions}
+                  userId={user?.id}
+                  onToggle={(kind) => react(moment.key, kind)}
+                />
+                <CommentThread
+                  momentKey={moment.key}
+                  label={moment.playerName || "photo"}
+                  comments={comments}
+                  open={Boolean(open)}
+                  onToggle={() =>
+                    setOpenComments((current) => ({ ...current, [moment.key]: !open }))
+                  }
+                  canParticipate={canParticipate}
+                  canModerate={canModerate}
+                  userId={user?.id}
+                  authorName={authorName}
+                  editing={editing}
+                  setEditing={setEditing}
+                  draft={commentDrafts[moment.key] ?? ""}
+                  setDraft={(body) =>
+                    setCommentDrafts((current) => ({ ...current, [moment.key]: body }))
+                  }
+                  onPost={(body) =>
+                    story.addComment.mutate(
+                      { momentKey: moment.key, body },
+                      {
+                        onSuccess: () =>
+                          setCommentDrafts((current) => ({ ...current, [moment.key]: "" })),
+                        onError: (error) => toast.error(error.message),
+                      },
+                    )
+                  }
+                  onEdit={(id, body) =>
+                    story.editComment.mutate(
+                      { id, body },
+                      {
+                        onSuccess: () => setEditing(null),
+                        onError: (error) => toast.error(error.message),
+                      },
+                    )
+                  }
+                  onRemove={(id, moderate) =>
+                    story.removeComment.mutate(
+                      { id, moderate },
+                      { onError: (error) => toast.error(error.message) },
+                    )
+                  }
+                  onReport={(commentId) =>
+                    story.reportPost.mutate(
+                      { commentId },
+                      { onError: (error) => toast.error(error.message) },
+                    )
+                  }
+                />
+              </div>
+            </article>
+          );
+        })}
       </div>
 
       {emptyFeed && (
@@ -1074,8 +1177,8 @@ function ReactionBar({
             aria-label={`${label}, ${count}`}
             aria-pressed={mine}
             onClick={() => onToggle(kind)}
-            className={`press inline-flex min-h-11 items-center gap-1 px-1.5 t-micro ${
-              mine ? "text-hunter" : "text-muted-foreground"
+            className={`press inline-flex min-h-11 items-center gap-1 rounded-full px-2.5 t-micro ${
+              mine ? "chip-on" : "text-muted-foreground"
             }`}
           >
             <Icon className="size-3.5" /> {count || ""}

@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -54,13 +53,6 @@ export function useExperiencePreferences(userId?: string) {
     retry: false,
   });
   const preferences = query.data ?? DEFAULT_EXPERIENCE_PREFERENCES;
-
-  useEffect(() => {
-    document.documentElement.dataset.appearance = preferences.appearance;
-    return () => {
-      delete document.documentElement.dataset.appearance;
-    };
-  }, [preferences.appearance]);
 
   const save = useMutation({
     mutationFn: async (next: ExperiencePreferences) => {
