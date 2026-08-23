@@ -8,6 +8,7 @@ import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { Countdown } from "@/components/tin-cup/Countdown";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
 
+import { yourGroupLine } from "@/lib/day1-pairings";
 import {
   BUY_IN,
   VENMO_IS_PLACEHOLDER,
@@ -44,6 +45,7 @@ export function PreTournamentPanel({
   const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
   const avatars = usePlayerAvatars(players, teams);
   const face = (name: string) => avatars.data?.getByName(name);
+  const groupLine = claimedName ? yourGroupLine(claimedName) : null;
 
   return (
     <section aria-label="This weekend" className="stack-page">
@@ -62,6 +64,9 @@ export function PreTournamentPanel({
           }
         />
         <Countdown />
+        {groupLine ? (
+          <p className="px-1 text-sm font-semibold text-foreground">{groupLine}</p>
+        ) : null}
       </div>
 
       <TheCardSheet matches={matches} rounds={rounds} players={players} teams={teams} />

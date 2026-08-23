@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { HolePlanFields } from "@/components/tin-cup/scout/HolePlanFields";
-import { StatusLED } from "@/components/tin-cup/scout/DistanceStack";
 import type { useHolePlanEditor } from "@/hooks/useHolePlanEditor";
 import {
   COURSE_DETAILS,
@@ -14,7 +13,7 @@ import {
   type CourseId,
   type Hole,
 } from "@/lib/courses";
-import { countPlanned, hasPlanContent, nineSplit, type PlanLine } from "@/lib/round-sheet";
+import { hasPlanContent, nineSplit, type PlanLine } from "@/lib/round-sheet";
 
 function planSummary(draft: PlanLine["draft"]): string {
   if (!hasPlanContent(draft)) return "";
@@ -78,78 +77,65 @@ function HoleRow({
     return () => window.clearTimeout(id);
   }, [selected]);
 
+  const holeMark = `flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${
+    selected
+      ? "bg-hunter text-primary-foreground"
+      : snake
+        ? "ring-1 ring-copper text-copper"
+        : contests.length
+          ? "bg-hunter/15 text-hunter"
+          : planned
+            ? "ring-1 ring-hunter/40 text-hunter"
+            : "ring-1 ring-foreground/30 bg-card text-foreground"
+  }`;
+
   return (
     <div ref={rowRef} className={`border-t border-border ${selected ? "bg-hunter/[0.04]" : ""}`}>
-      <div className="flex items-stretch">
-        <button
-          type="button"
-          onClick={onSelect}
-          aria-expanded={selected}
-          aria-label={`Hole ${line.hole}, par ${line.par}, ${line.yards} yards${planned ? `, ${planSummary(line.draft)}` : ""}`}
-          className="press flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left"
-        >
-          <span
-            className={`flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${
-              selected
-                ? "bg-hunter text-primary-foreground"
-                : snake
-                  ? "ring-1 ring-copper text-copper"
-                  : contests.length
-                    ? "bg-hunter/15 text-hunter"
-                    : planned
-                      ? "ring-1 ring-hunter/40 text-hunter"
-                      : "ring-1 ring-foreground/30 bg-card text-foreground"
-            }`}
-          >
-            {line.hole}
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-              <span className="text-sm font-bold tabular-nums text-foreground">Par {line.par}</span>
-              <span className="t-micro tabular-nums">{formatScorecardYards(line.yards)}</span>
-              {holeMeta.name ? (
-                <span className="t-micro truncate text-muted-foreground">{holeMeta.name}</span>
-              ) : null}
-              {snake ? <span className="t-micro font-semibold text-copper">Pit</span> : null}
-              {contests.map((c) => (
-                <span
-                  key={c}
-                  className="rounded-full bg-hunter/15 px-1.5 py-0.5 text-[0.65rem] font-semibold text-hunter"
-                >
-                  {c === "ld" ? "LD" : "CTP"}
-                </span>
-              ))}
-            </span>
-            {planned ? (
-              <span className="mt-0.5 block truncate text-sm text-foreground/85">
-                {selected && editor.filled
-                  ? editor.summary || planSummary(line.draft)
-                  : planSummary(line.draft)}
-              </span>
-            ) : null}
-          </span>
-        </button>
+      <div className="flex items-center gap-3 px-4 py-3">
         <Link
           to="/scout"
           search={{ course: courseId, hole: line.hole, map: true }}
           replace
           aria-label={`Open hole ${line.hole} map`}
-          className="press t-micro self-stretch px-3 font-semibold text-hunter"
+          className={`press ${holeMark}`}
         >
-          Map
+          {line.hole}
         </Link>
+        <button
+          type="button"
+          onClick={onSelect}
+          aria-expanded={selected}
+          aria-label={`Hole ${line.hole} notes, par ${line.par}, ${line.yards} yards${planned ? `, ${planSummary(line.draft)}` : ""}`}
+          className="press min-w-0 flex-1 text-left"
+        >
+          <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span className="text-sm font-bold tabular-nums text-foreground">Par {line.par}</span>
+            <span className="t-micro tabular-nums">{formatScorecardYards(line.yards)}</span>
+            {holeMeta.name ? (
+              <span className="t-micro truncate text-muted-foreground">{holeMeta.name}</span>
+            ) : null}
+            {snake ? <span className="t-micro font-semibold text-copper">Pit</span> : null}
+            {contests.map((c) => (
+              <span
+                key={c}
+                className="rounded-full bg-hunter/15 px-1.5 py-0.5 text-[0.65rem] font-semibold text-hunter"
+              >
+                {c === "ld" ? "LD" : "CTP"}
+              </span>
+            ))}
+          </span>
+          {planned ? (
+            <span className="mt-0.5 block truncate text-sm text-foreground/85">
+              {selected && editor.filled
+                ? editor.summary || planSummary(line.draft)
+                : planSummary(line.draft)}
+            </span>
+          ) : null}
+        </button>
       </div>
 
       {selected && (
-        <div className="space-y-3 px-4 pb-4">
-          <div className="flex items-center justify-between">
-            {holeMeta.name || snake ? (
-              <p className="t-micro">{holeMeta.name ?? "Snake Pit"}</p>
-            ) : (
-              <span />
-            )}
-            <StatusLED state={editor.led} />
-          </div>
+        <div className="px-4 pb-4">
           <HolePlanFields par={line.par} mode={mode} loading={loading} editor={editor} />
         </div>
       )}
@@ -163,7 +149,7 @@ function HoleRow({
  */
 export function RoundPlanBoard({
   courseId,
-  hole,
+  hole: _hole,
   holes,
   lines,
   mode,
@@ -199,10 +185,9 @@ export function RoundPlanBoard({
   hero?: boolean;
 }) {
   const details = COURSE_DETAILS[courseId];
-  const planned = countPlanned(lines);
   const split = nineSplit(lines);
   const holeByN = new Map(holes.map((h) => [h.h, h]));
-  const [openHole, setOpenHole] = useState<number | null>(hole);
+  const [openHole, setOpenHole] = useState<number | null>(null);
   const frontLines = split.front;
   const pit = courseId === "copperhead";
   const backLines = pit ? split.back.filter((line) => line.hole < 16) : split.back;
@@ -224,7 +209,6 @@ export function RoundPlanBoard({
           meta={
             <>
               {details.dayLabel} · {details.firstTee} · {details.format}
-              {` · ${planned}/18 planned`}
               {pairingLine ? (
                 <span className="mt-1 block text-foreground">{pairingLine}</span>
               ) : null}
@@ -243,15 +227,6 @@ export function RoundPlanBoard({
       <p className="t-body px-1 text-foreground/80">{details.formatTip}</p>
 
       <section className="surface overflow-hidden" aria-label="18-hole game plan">
-        <div className="flex items-center gap-3 border-b border-border px-4 py-2">
-          <div className="h-1.5 min-w-0 flex-1 rounded-full bg-[var(--track)]">
-            <div
-              className="h-1.5 rounded-full bg-hunter"
-              style={{ width: `${Math.min(100, (planned / 18) * 100)}%` }}
-            />
-          </div>
-          <p className="t-micro shrink-0 tabular-nums">{planned}/18</p>
-        </div>
         <NineRule label={details.frontNine} par={split.out.par} yards={split.out.yards} />
         {frontLines.map((line) => (
           <HoleRow

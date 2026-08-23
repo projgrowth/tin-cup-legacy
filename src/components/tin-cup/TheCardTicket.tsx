@@ -42,7 +42,7 @@ export function TheCardTicket({
   const mine = pickOnMarket(social.predictions, userId, market.matchIds);
   const openIds = pendingMatchIds(market, matches);
   const locked = market.locked || (market.matchIds.length > 0 && openIds.length === 0);
-  const canPick = Boolean(userId && claimed && !locked && openIds.length > 0);
+  const canPick = Boolean(userId && claimed && !yours && !locked && openIds.length > 0);
   const [line, setLine] = useState(mine?.note ?? "");
   const [composing, setComposing] = useState(false);
   const crowd = faceoffCrowd(social.predictions, market.matchIds);
@@ -112,7 +112,9 @@ export function TheCardTicket({
           onClick={() => pick("side-b")}
         />
       </div>
-      {canPick && mine && (composing || !mine.note) ? (
+      {yours ? (
+        <p className="t-micro mt-1.5 text-hunter">You're in it.</p>
+      ) : canPick && mine && (composing || !mine.note) ? (
         <div className="mt-2 flex gap-2">
           <label className="sr-only" htmlFor={`card-line-${market.id}`}>
             Talk your shit

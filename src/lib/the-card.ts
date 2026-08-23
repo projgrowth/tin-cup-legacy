@@ -1,5 +1,6 @@
 import type { Match, Round } from "@/hooks/useTournament";
 import { DAY1_PAIRINGS } from "@/lib/day1-pairings";
+import { pairingIncludesLoose } from "@/lib/scoring";
 import {
   predictionLocked,
   type MatchPrediction,
@@ -8,7 +9,7 @@ import {
 import type { StoryMoment } from "@/lib/weekend-story";
 
 export const CARD_NOTE_MAX = 140;
-export const CARD_DISCLAIMER = "Tap a side. Tap again to back out.";
+export const CARD_DISCLAIMER = "Ride the other groups. Yours is already set.";
 
 export function pairingFirstNames(side: string | null | undefined): string {
   if (!side?.trim()) return "TBD";
@@ -255,15 +256,31 @@ export function cardLine(input: {
   return { title, detail: parts.length ? parts.join(" · ") : undefined };
 }
 
+export function isYourMarket(
+  market: CardMarket,
+  claimedName: string | null | undefined,
+): boolean {
+  if (!claimedName?.trim()) return false;
+  return (
+    pairingIncludesLoose(market.sideA, claimedName) ||
+    pairingIncludesLoose(market.sideB, claimedName)
+  );
+}
+
+/** Rides on the other groups. Your own pairing is already set. */
 export function takenCount(
   predictions: MatchPrediction[],
   userId: string | undefined,
   markets: CardMarket[],
+  claimedName?: string | null,
 ): { taken: number; total: number } {
-  const taken = markets.filter((market) =>
+  const rideable = claimedName
+    ? markets.filter((market) => !isYourMarket(market, claimedName))
+    : markets;
+  const taken = rideable.filter((market) =>
     pickOnMarket(predictions, userId, market.matchIds),
   ).length;
-  return { taken, total: markets.length };
+  return { taken, total: rideable.length };
 }
 
 export function buildCardMoments(input: {

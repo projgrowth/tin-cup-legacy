@@ -50,7 +50,7 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Field" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Updates" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Faceoff" })).toBeVisible();
-  await expect(page.getByText("Tap a side. Tap again to back out.")).toBeVisible();
+  await expect(page.getByText("Ride the other groups. Yours is already set.")).toBeVisible();
   await expect(page.getByText("Side A", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Take", exact: true })).toHaveCount(0);
   await expect(page.getByRole("link", { name: /Sign in to pick a side/ })).toHaveCount(0);

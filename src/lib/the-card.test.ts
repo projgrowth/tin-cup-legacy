@@ -14,6 +14,7 @@ import {
   pairingFirstNames,
   pendingMatchIds,
   peopleForMarket,
+  isYourMarket,
   pickOnMarket,
   takeLabel,
   takenCount,
@@ -262,6 +263,9 @@ describe("the card", () => {
     ];
     const markets = fridayCardMarkets(matches, [friday]);
     expect(takenCount(predictions, "u1", markets)).toEqual({ taken: 2, total: 4 });
+    expect(isYourMarket(markets[0]!, "Zack Smith")).toBe(true);
+    expect(isYourMarket(markets[1]!, "Zack Smith")).toBe(false);
+    expect(takenCount(predictions, "u1", markets, "Zack Smith")).toEqual({ taken: 1, total: 3 });
     expect(pickOnMarket(predictions, "u1", ["s1"])?.choice).toBe("side-a");
     expect(cardRecords(predictions, matches)[0]).toMatchObject({
       userId: "u1",

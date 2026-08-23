@@ -66,6 +66,10 @@ export const DAY1_META = {
   note: "Saturday & Sunday pairings announced the night before each round.",
 } as const;
 
+function firstName(name: string): string {
+  return name.trim().split(/\s+/)[0] ?? name;
+}
+
 /** Find which Day 1 group a player is in (for rosters). */
 export function day1GroupForPlayer(playerName: string): {
   side: "a" | "b";
@@ -97,4 +101,16 @@ export function day1GroupForPlayer(playerName: string): {
     }
   }
   return null;
+}
+
+/** Claimed Home line: You · partner vs them. */
+export function yourGroupLine(playerName: string): string | null {
+  const group = day1GroupForPlayer(playerName);
+  if (!group) return null;
+  const them = group.opponents
+    .split(/[/,&+]|\band\b/i)
+    .map((part) => firstName(part.trim()))
+    .filter(Boolean)
+    .join(" · ");
+  return `You · ${firstName(group.partner)} vs ${them}`;
 }

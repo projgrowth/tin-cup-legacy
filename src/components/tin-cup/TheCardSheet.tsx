@@ -6,12 +6,12 @@ import { useMatchSocial } from "@/hooks/useMatchSocial";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
-import { pairingIncludesLoose } from "@/lib/scoring";
 import {
   CARD_DISCLAIMER,
   cardRecords,
   faceoffRiders,
   fridayCardMarkets,
+  isYourMarket,
   peopleForMarket,
   takenCount,
 } from "@/lib/the-card";
@@ -38,7 +38,7 @@ export function TheCardSheet({
   const claimedName = claimed
     ? (players.find((player) => player.id === profile?.player_id)?.name ?? null)
     : null;
-  const progress = takenCount(social.predictions, user?.id, markets);
+  const progress = takenCount(social.predictions, user?.id, markets, claimedName);
   const graded = matches.some((match) => match.result !== "pending");
   const records = graded ? cardRecords(social.predictions, matches).slice(0, 4) : [];
   const nameOf = (userId: string) => {
@@ -95,11 +95,7 @@ export function TheCardSheet({
               peopleB={people.peopleB}
               crowdA={riders.sideA.map(faceForUser)}
               crowdB={riders.sideB.map(faceForUser)}
-              yours={Boolean(
-                claimedName &&
-                  (pairingIncludesLoose(market.sideA, claimedName) ||
-                    pairingIncludesLoose(market.sideB, claimedName)),
-              )}
+              yours={isYourMarket(market, claimedName)}
             />
           );
         })}

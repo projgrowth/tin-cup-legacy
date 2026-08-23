@@ -39,7 +39,7 @@ type ScoutSearch = {
   hole?: number;
   /** 18-hole yardage book. Plan tab default. */
   card?: boolean;
-  /** Full-bleed hole theater. Opened from the Map control on each hole. */
+  /** Full-bleed hole theater. Opened from the hole number on the book. */
   map?: boolean;
 };
 
