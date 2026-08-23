@@ -64,18 +64,20 @@ export function PreTournamentPanel({
 
       <TheCardSheet matches={matches} rounds={rounds} players={players} teams={teams} />
 
-      <a
-        href={venmoUrl}
-        target="_blank"
-        rel="noreferrer"
-        className={`press t-body flex min-h-11 w-full justify-center ${
-          claimedName ? "btn-quiet" : "btn-primary"
-        }`}
-      >
-        Pay ${BUY_IN}
-      </a>
-
       <div className="surface divide-y divide-border overflow-hidden empty:hidden">
+        <a
+          href={venmoUrl}
+          target="_blank"
+          rel="noreferrer"
+          className={`press flex min-h-12 items-center justify-between px-4 py-3 ${
+            claimedName ? "" : "bg-hunter/10"
+          }`}
+        >
+          <span className={`t-body font-medium ${claimedName ? "text-foreground" : "text-hunter"}`}>
+            Pay ${BUY_IN}
+          </span>
+          <span className="t-micro">{claimedName ? "Venmo" : "Due"}</span>
+        </a>
         {signedIn && claimedName && !face(claimedName)?.url ? (
           <Link
             to="/profile"
@@ -100,9 +102,7 @@ export function PreTournamentPanel({
       {VENMO_IS_PLACEHOLDER && (
         <p className="t-micro px-1 text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>
       )}
-      {WHATSAPP_GROUP_CONFIGURED && (
-        <FieldChatLink className="!min-h-11 w-full" />
-      )}
+      {WHATSAPP_GROUP_CONFIGURED && <FieldChatLink className="!min-h-11 w-full" />}
     </section>
   );
 }

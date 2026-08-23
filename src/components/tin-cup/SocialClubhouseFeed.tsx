@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -40,13 +40,22 @@ import { buildCardMoments } from "@/lib/the-card";
 import { trackProductEvent } from "@/lib/product-analytics";
 import { savePreviewPhoto } from "@/lib/preview-media";
 import { isPreviewMode } from "@/lib/runtime-mode";
-import { buildStoryMoments, type ReactionKind, type StoryMoment } from "@/lib/weekend-story";
+import {
+  buildStoryMoments,
+  type ReactionKind,
+  type StoryComment,
+  type StoryMoment,
+} from "@/lib/weekend-story";
 
 const REACTIONS: Array<{ kind: ReactionKind; label: string; icon: typeof Flame }> = [
   { kind: "applause", label: "Applause", icon: PartyPopper },
   { kind: "fire", label: "Fire", icon: Flame },
   { kind: "trophy", label: "Trophy", icon: Trophy },
 ];
+
+function fieldReplyKey(postId: string) {
+  return `clubhouse-post:${postId}`;
+}
 
 function MomentIcon({ kind }: { kind: StoryMoment["kind"] }) {
   if (kind === "photo") return <Camera className="size-4" />;
@@ -94,7 +103,6 @@ export function SocialClubhouseFeed({
   const [editing, setEditing] = useState<{ id: string; body: string } | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const [announcementHours, setAnnouncementHours] = useState("24");
-  const [showPhoto, setShowPhoto] = useState(false);
   const canParticipate = Boolean(
     user && profile?.player_id && story.enabled && story.clubhouseEnabled,
   );
@@ -215,6 +223,14 @@ export function SocialClubhouseFeed({
   }
 
   async function uploadPhoto(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("That file isn’t an image");
+      return;
+    }
+    if (file.size > 12 * 1024 * 1024) {
+      toast.error("Keep photos under 12MB");
+      return;
+    }
     setUploading(true);
     try {
       const caption = draft.trim() || null;
@@ -229,29 +245,20 @@ export function SocialClubhouseFeed({
         });
         await queryClient.invalidateQueries({ queryKey: ["activity-feed"] });
         setDraft("");
-        setShowPhoto(false);
         void trackProductEvent("clubhouse_post", { kind: "photo" });
         toast.success("Photo added to this protected preview");
         return;
       }
       const storagePath = await uploadVaultImage(file, "photos");
       await graphqlRequest(
-        `mutation AddPhoto($object: photos_insert_input!) {
-        insert_photos_one(object: $object) { id }
-      }`,
-        {
-          object: {
-            storage_path: storagePath,
-            caption,
-            alt_text: caption,
-            course_id: null,
-            round_id: null,
-            event_tag: null,
-          },
-        },
+        `mutation AddPhoto($fileId: String!, $caption: String) {
+          insert_photos_one(object: {storage_path: $fileId, caption: $caption}) { id }
+        }`,
+        { fileId: storagePath, caption },
       );
       setDraft("");
-      setShowPhoto(false);
+      await queryClient.invalidateQueries({ queryKey: ["activity-feed"] });
+      await queryClient.invalidateQueries({ queryKey: ["story-comments"] });
       void trackProductEvent("clubhouse_post", { kind: "photo" });
       toast.success("Photo added");
     } catch (error) {
@@ -334,40 +341,28 @@ export function SocialClubhouseFeed({
                 }
                 className="control w-full resize-none border-0 bg-transparent px-0 text-base shadow-none focus:ring-0"
               />
-              <div className="mt-1 flex items-center gap-3">
+              <div className="mt-2 flex flex-wrap items-center gap-2">
                 {canUpload ? (
-                  <button
-                    type="button"
-                    aria-expanded={showPhoto}
-                    aria-label="Add a photo"
-                    onClick={() => setShowPhoto((open) => !open)}
-                    className="press t-micro min-h-11 px-1 font-semibold"
-                  >
-                    Photo
-                  </button>
+                  <PhotoPicker
+                    onFile={(file) => void uploadPhoto(file)}
+                    disabled={uploading}
+                    size="compact"
+                    cameraLabel="Camera"
+                    libraryLabel="Library"
+                    className="min-w-0 flex-1"
+                  />
                 ) : null}
                 <button
                   type="button"
                   disabled={!canParticipate || !draft.trim() || story.addComment.isPending}
                   onClick={submitPost}
-                  className={`press ml-auto min-h-11 px-1 text-sm font-semibold ${
-                    draft.trim() ? "text-hunter" : "text-muted-foreground"
+                  className={`press min-h-11 px-4 text-sm font-semibold ${
+                    draft.trim() ? "btn-primary" : "btn-quiet"
                   }`}
                 >
-                  Post
+                  {uploading ? "Adding…" : "Post"}
                 </button>
               </div>
-              {showPhoto && canUpload ? (
-                <div className="mt-2 border-t border-border pt-2">
-                  <PhotoPicker
-                    onFile={(file) => void uploadPhoto(file)}
-                    disabled={uploading}
-                    size="compact"
-                    cameraLabel="Photo"
-                    libraryLabel="Library"
-                  />
-                </div>
-              ) : null}
             </div>
           </div>
         </div>
@@ -650,6 +645,67 @@ export function SocialClubhouseFeed({
                       story.toggleReaction.mutate({ momentKey: reactionKey, kind })
                     }
                   />
+                  <CommentThread
+                    momentKey={fieldReplyKey(post.id)}
+                    label={`post by ${authorName(post.author_id)}`}
+                    comments={story.comments.filter(
+                      (row) => row.moment_key === fieldReplyKey(post.id),
+                    )}
+                    open={Boolean(openComments[fieldReplyKey(post.id)])}
+                    onToggle={() =>
+                      setOpenComments((current) => ({
+                        ...current,
+                        [fieldReplyKey(post.id)]: !current[fieldReplyKey(post.id)],
+                      }))
+                    }
+                    canParticipate={canParticipate}
+                    canModerate={canModerate}
+                    userId={user?.id}
+                    authorName={authorName}
+                    editing={editing}
+                    setEditing={setEditing}
+                    draft={commentDrafts[fieldReplyKey(post.id)] ?? ""}
+                    setDraft={(body) =>
+                      setCommentDrafts((current) => ({
+                        ...current,
+                        [fieldReplyKey(post.id)]: body,
+                      }))
+                    }
+                    onPost={(body) =>
+                      story.addComment.mutate(
+                        { momentKey: fieldReplyKey(post.id), body },
+                        {
+                          onSuccess: () =>
+                            setCommentDrafts((current) => ({
+                              ...current,
+                              [fieldReplyKey(post.id)]: "",
+                            })),
+                          onError: (error) => toast.error(error.message),
+                        },
+                      )
+                    }
+                    onEdit={(id, body) =>
+                      story.editComment.mutate(
+                        { id, body },
+                        {
+                          onSuccess: () => setEditing(null),
+                          onError: (error) => toast.error(error.message),
+                        },
+                      )
+                    }
+                    onRemove={(id, moderate) =>
+                      story.removeComment.mutate(
+                        { id, moderate },
+                        { onError: (error) => toast.error(error.message) },
+                      )
+                    }
+                    onReport={(commentId) =>
+                      story.reportPost.mutate(
+                        { commentId },
+                        { onError: (error) => toast.error(error.message) },
+                      )
+                    }
+                  />
                 </article>
               );
             })}
@@ -668,10 +724,10 @@ export function SocialClubhouseFeed({
                   <img
                     src={mediaUrl}
                     alt={moment.detail || moment.title}
-                    className="h-44 w-full bg-secondary object-cover object-center"
+                    className="h-64 w-full bg-secondary object-cover object-center"
                   />
                 ) : moment.kind === "photo" && moment.mediaPath ? (
-                  <div className="skeleton h-44 w-full" />
+                  <div className="skeleton h-64 w-full" />
                 ) : null}
                 <div className="px-4 py-3.5">
                   <header className="flex items-start gap-3">
@@ -693,7 +749,7 @@ export function SocialClubhouseFeed({
                       )}
                     </div>
                   </header>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <div className="mt-3">
                     <ReactionBar
                       momentKey={moment.key}
                       reactions={reactions}
@@ -703,181 +759,80 @@ export function SocialClubhouseFeed({
                         story.toggleReaction.mutate({ momentKey: moment.key, kind })
                       }
                     />
-                    <button
-                      type="button"
-                      aria-label={`Comments on ${moment.title}, ${comments.length}`}
-                      aria-expanded={Boolean(open)}
-                      onClick={() =>
+                    <CommentThread
+                      momentKey={moment.key}
+                      label={moment.title}
+                      comments={comments}
+                      open={Boolean(open)}
+                      onToggle={() =>
                         setOpenComments((current) => ({ ...current, [moment.key]: !open }))
                       }
-                      className="press t-micro inline-flex min-h-11 items-center gap-1 px-1"
-                    >
-                      <MessageCircle className="size-3.5" /> {comments.length || "Reply"}
-                    </button>
-                    {moment.shareable && (
-                      <ShareMomentButton
-                        className="!min-h-11 !border-0 !bg-transparent !px-1"
-                        payload={{
-                          kind:
-                            moment.kind === "match"
-                              ? "match"
-                              : moment.kind === "side-bet"
-                                ? "side-bet"
-                                : moment.kind === "trophy"
-                                  ? "trophy"
-                                  : "score",
-                          eyebrow: moment.kind.replace("-", " "),
-                          title: moment.title,
-                          primary: moment.detail || "Tin Cup 2026",
-                          canonicalUrl,
-                        }}
-                      >
-                        Share
-                      </ShareMomentButton>
-                    )}
-                  </div>
-                  {open && (
-                    <div className="mt-3 space-y-2 border-t border-border pt-3">
-                      {comments.map((comment) => (
-                        <div
-                          key={comment.id}
-                          id={`comment-${comment.id}`}
-                          className="rounded-xl bg-secondary/45 px-3 py-2.5"
-                        >
-                          <p className="text-xs font-semibold text-foreground">
-                            {authorName(comment.author_id)}
-                          </p>
-                          {editing?.id === comment.id ? (
-                            <form
-                              className="mt-2 space-y-2"
-                              onSubmit={(event) => {
-                                event.preventDefault();
-                                story.editComment.mutate(
-                                  { id: comment.id, body: editing.body },
-                                  {
-                                    onSuccess: () => setEditing(null),
-                                    onError: (error) => toast.error(error.message),
-                                  },
-                                );
-                              }}
-                            >
-                              <textarea
-                                autoFocus
-                                aria-label="Edit comment"
-                                value={editing.body}
-                                onChange={(event) =>
-                                  setEditing({ id: comment.id, body: event.target.value })
-                                }
-                                maxLength={500}
-                                rows={2}
-                                className="control w-full resize-none text-base"
-                              />
-                              <div className="flex gap-3">
-                                <button
-                                  type="submit"
-                                  className="press t-micro min-h-11 px-1 font-semibold text-hunter"
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setEditing(null)}
-                                  className="press t-micro min-h-11 px-1"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </form>
-                          ) : (
-                            <p className="mt-0.5 text-sm text-foreground/90">{comment.body}</p>
-                          )}
-                          <div className="mt-1 flex flex-wrap items-center gap-3">
-                            {comment.updated_at !== comment.created_at && (
-                              <span className="t-micro">Edited</span>
-                            )}
-                            {comment.author_id === user?.id && editing?.id !== comment.id && (
-                              <button
-                                type="button"
-                                onClick={() => setEditing({ id: comment.id, body: comment.body })}
-                                className="press t-micro min-h-11"
-                              >
-                                Edit
-                              </button>
-                            )}
-                            {(comment.author_id === user?.id || canModerate) && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  story.removeComment.mutate(
-                                    { id: comment.id, moderate: comment.author_id !== user?.id },
-                                    { onError: (error) => toast.error(error.message) },
-                                  )
-                                }
-                                className="press t-micro min-h-11 text-copper"
-                              >
-                                {comment.author_id === user?.id ? "Delete" : "Hide"}
-                              </button>
-                            )}
-                            {canParticipate && comment.author_id !== user?.id && !canModerate && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  story.reportPost.mutate(
-                                    { commentId: comment.id },
-                                    { onError: (error) => toast.error(error.message) },
-                                  )
-                                }
-                                className="press t-micro min-h-11 text-copper"
-                              >
-                                Report
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                      {canParticipate && (
-                        <form
-                          className="flex gap-2"
-                          onSubmit={(event) => {
-                            event.preventDefault();
-                            const body = commentDrafts[moment.key]?.trim();
-                            if (!body) return;
-                            story.addComment.mutate(
-                              {
-                                momentKey: moment.key,
-                                body,
-                              },
-                              {
-                                onSuccess: () => {
-                                  setCommentDrafts((current) => ({ ...current, [moment.key]: "" }));
-                                },
-                              },
-                            );
-                          }}
-                        >
-                          <input
-                            aria-label={`Comment on ${moment.title}`}
-                            value={commentDrafts[moment.key] ?? ""}
-                            onChange={(event) =>
-                              setCommentDrafts((current) => ({
-                                ...current,
-                                [moment.key]: event.target.value,
-                              }))
-                            }
-                            maxLength={500}
-                            placeholder="Add a comment"
-                            className="control min-h-11 min-w-0 flex-1 text-base"
-                          />
-                          <button
-                            type="submit"
-                            className="press t-micro min-h-11 px-1 font-semibold text-hunter"
+                      canParticipate={canParticipate}
+                      canModerate={canModerate}
+                      userId={user?.id}
+                      authorName={authorName}
+                      editing={editing}
+                      setEditing={setEditing}
+                      draft={commentDrafts[moment.key] ?? ""}
+                      setDraft={(body) =>
+                        setCommentDrafts((current) => ({ ...current, [moment.key]: body }))
+                      }
+                      onPost={(body) =>
+                        story.addComment.mutate(
+                          { momentKey: moment.key, body },
+                          {
+                            onSuccess: () =>
+                              setCommentDrafts((current) => ({ ...current, [moment.key]: "" })),
+                            onError: (error) => toast.error(error.message),
+                          },
+                        )
+                      }
+                      onEdit={(id, body) =>
+                        story.editComment.mutate(
+                          { id, body },
+                          {
+                            onSuccess: () => setEditing(null),
+                            onError: (error) => toast.error(error.message),
+                          },
+                        )
+                      }
+                      onRemove={(id, moderate) =>
+                        story.removeComment.mutate(
+                          { id, moderate },
+                          { onError: (error) => toast.error(error.message) },
+                        )
+                      }
+                      onReport={(commentId) =>
+                        story.reportPost.mutate(
+                          { commentId },
+                          { onError: (error) => toast.error(error.message) },
+                        )
+                      }
+                      trailing={
+                        moment.shareable ? (
+                          <ShareMomentButton
+                            className="!min-h-11 !border-0 !bg-transparent !px-1"
+                            payload={{
+                              kind:
+                                moment.kind === "match"
+                                  ? "match"
+                                  : moment.kind === "side-bet"
+                                    ? "side-bet"
+                                    : moment.kind === "trophy"
+                                      ? "trophy"
+                                      : "score",
+                              eyebrow: moment.kind.replace("-", " "),
+                              title: moment.title,
+                              primary: moment.detail || "Tin Cup 2026",
+                              canonicalUrl,
+                            }}
                           >
-                            Post
-                          </button>
-                        </form>
-                      )}
-                    </div>
-                  )}
+                            Share
+                          </ShareMomentButton>
+                        ) : null
+                      }
+                    />
+                  </div>
                 </div>
               </article>
             );
@@ -898,6 +853,175 @@ export function SocialClubhouseFeed({
         </p>
       )}
     </section>
+  );
+}
+
+function CommentThread({
+  momentKey: _momentKey,
+  label,
+  comments,
+  open,
+  onToggle,
+  canParticipate,
+  canModerate,
+  userId,
+  authorName,
+  editing,
+  setEditing,
+  draft,
+  setDraft,
+  onPost,
+  onEdit,
+  onRemove,
+  onReport,
+  trailing = null,
+}: {
+  momentKey: string;
+  label: string;
+  comments: StoryComment[];
+  open: boolean;
+  onToggle: () => void;
+  canParticipate: boolean;
+  canModerate: boolean;
+  userId?: string;
+  authorName: (id: string) => string;
+  editing: { id: string; body: string } | null;
+  setEditing: (value: { id: string; body: string } | null) => void;
+  draft: string;
+  setDraft: (body: string) => void;
+  onPost: (body: string) => void;
+  onEdit: (id: string, body: string) => void;
+  onRemove: (id: string, moderate: boolean) => void;
+  onReport: (commentId: string) => void;
+  trailing?: ReactNode;
+}) {
+  return (
+    <div>
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          aria-label={`Comments on ${label}, ${comments.length}`}
+          aria-expanded={open}
+          onClick={onToggle}
+          className="press t-micro inline-flex min-h-11 items-center gap-1 px-1 font-semibold"
+        >
+          <MessageCircle className="size-3.5" /> {comments.length || "Reply"}
+        </button>
+        {trailing}
+      </div>
+      {open ? (
+        <div className="mt-3 space-y-2 border-t border-border pt-3">
+          {comments.map((comment) => (
+            <div
+              key={comment.id}
+              id={`comment-${comment.id}`}
+              className="rounded-xl bg-secondary/45 px-3 py-2.5"
+            >
+              <p className="text-xs font-semibold text-foreground">
+                {authorName(comment.author_id)}
+              </p>
+              {editing?.id === comment.id ? (
+                <form
+                  className="mt-2 space-y-2"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    onEdit(comment.id, editing.body);
+                  }}
+                >
+                  <textarea
+                    autoFocus
+                    aria-label="Edit comment"
+                    value={editing.body}
+                    onChange={(event) => setEditing({ id: comment.id, body: event.target.value })}
+                    maxLength={500}
+                    rows={2}
+                    className="control w-full resize-none text-base"
+                  />
+                  <div className="flex gap-3">
+                    <button
+                      type="submit"
+                      className="press t-micro min-h-11 px-1 font-semibold text-hunter"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditing(null)}
+                      className="press t-micro min-h-11 px-1"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <p className="mt-0.5 text-sm text-foreground/90">{comment.body}</p>
+              )}
+              <div className="mt-1 flex flex-wrap items-center gap-3">
+                {comment.updated_at !== comment.created_at ? (
+                  <span className="t-micro">Edited</span>
+                ) : null}
+                {comment.author_id === userId && editing?.id !== comment.id ? (
+                  <button
+                    type="button"
+                    onClick={() => setEditing({ id: comment.id, body: comment.body })}
+                    className="press t-micro min-h-11"
+                  >
+                    Edit
+                  </button>
+                ) : null}
+                {comment.author_id === userId || canModerate ? (
+                  <button
+                    type="button"
+                    onClick={() => onRemove(comment.id, comment.author_id !== userId)}
+                    className="press t-micro min-h-11 text-copper"
+                  >
+                    {comment.author_id === userId ? "Delete" : "Hide"}
+                  </button>
+                ) : null}
+                {canParticipate && comment.author_id !== userId && !canModerate ? (
+                  <button
+                    type="button"
+                    onClick={() => onReport(comment.id)}
+                    className="press t-micro min-h-11 text-copper"
+                  >
+                    Report
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ))}
+          {canParticipate ? (
+            <form
+              className="flex gap-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const body = draft.trim();
+                if (!body) return;
+                onPost(body);
+              }}
+            >
+              <input
+                aria-label={`Comment on ${label}`}
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                maxLength={500}
+                placeholder="Write a reply"
+                className="control min-h-11 min-w-0 flex-1 text-base"
+              />
+              <button
+                type="submit"
+                disabled={!draft.trim()}
+                className={`press min-h-11 px-3 text-sm font-semibold ${
+                  draft.trim() ? "btn-primary" : "btn-quiet"
+                }`}
+              >
+                Post
+              </button>
+            </form>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
   );
 }
 

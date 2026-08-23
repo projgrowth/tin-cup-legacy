@@ -70,11 +70,11 @@
   --space-3: 0.75rem;
   --space-4: 1rem;
   --space-5: 1.5rem;
-  --space-6: 1.25rem;
+  --space-6: 1.75rem;
   --header-height: 2.85rem;
   --nav-height: 4.25rem;
-  --text-display: clamp(1.5rem, 5.4vw, 1.95rem);
-  --text-hero: clamp(1.75rem, 7vw, 2.35rem);
+  --text-display: clamp(1.65rem, 6vw, 2.15rem);
+  --text-hero: clamp(2rem, 8vw, 2.75rem);
   --text-title: 1.125rem;
   --text-body: 0.9375rem;
   --text-caption: 0.75rem;
@@ -374,7 +374,7 @@
   font-size: var(--text-body);
   line-height: 1.5;
   font-weight: var(--font-weight-regular);
-  color: oklch(from var(--foreground) l c h / 82%);
+  color: var(--foreground);
 }
 
 @utility t-micro {
@@ -452,7 +452,7 @@
 @utility stack-page {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-6);
 }
 
 @utility stack-tight {
@@ -686,7 +686,7 @@
     "board"
     "feed"
     "secondary";
-  gap: var(--space-5);
+  gap: var(--space-6);
 }
 .home-action {
   grid-area: action;

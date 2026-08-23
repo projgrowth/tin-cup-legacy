@@ -68,8 +68,7 @@ export async function graphqlRequest<
   }
 
   if (operation === "MyRosterSpot" || operation === "MyProfile") {
-    const full =
-      "id,display_name,player_id,avatar_path,status_text,flair,created_at,updated_at";
+    const full = "id,display_name,player_id,avatar_path,status_text,flair,created_at,updated_at";
     const legacy = "id,display_name,player_id,avatar_path,created_at,updated_at";
     const first = await supabase.from("profiles").select(full).eq("id", v.id).maybeSingle();
     if (!first.error) {
@@ -78,9 +77,7 @@ export async function graphqlRequest<
     if (!isMissingColumnError(first.error)) fail(first.error);
     const fallback = await supabase.from("profiles").select(legacy).eq("id", v.id).maybeSingle();
     if (fallback.error) fail(fallback.error);
-    const row = fallback.data
-      ? { ...fallback.data, status_text: null, flair: null }
-      : null;
+    const row = fallback.data ? { ...fallback.data, status_text: null, flair: null } : null;
     return { profiles_by_pk: dataOrPlayerId(operation, row) } as TData;
   }
 
@@ -191,9 +188,15 @@ export async function graphqlRequest<
     assertMutationAllowed("Photo upload");
     const id = await userId();
     if (!id) throw new Error("Sign in again");
+    const storage_path = String(v.fileId || v.object?.storage_path || "").trim();
+    if (!storage_path) throw new Error("Photo did not finish uploading. Try again.");
+    const caption =
+      typeof (v.caption ?? v.object?.caption) === "string"
+        ? String(v.caption ?? v.object?.caption).trim() || null
+        : null;
     const { data, error } = await supabase
       .from("photos")
-      .insert({ storage_path: v.fileId, caption: v.caption, uploaded_by: id })
+      .insert({ storage_path, caption, uploaded_by: id })
       .select("id")
       .single();
     if (error) fail(error);
@@ -259,10 +262,7 @@ export function subscribeGraphql(
   };
 }
 
-function dataOrPlayerId(
-  operation: string,
-  row: { player_id?: string | null } | null,
-) {
+function dataOrPlayerId(operation: string, row: { player_id?: string | null } | null) {
   if (operation === "MyRosterSpot") return row ? { player_id: row.player_id ?? null } : null;
   return row;
 }
