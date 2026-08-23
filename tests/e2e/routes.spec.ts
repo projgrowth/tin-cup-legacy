@@ -58,7 +58,7 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Add your face" })).toHaveCount(0);
   await expect(page.getByText("Add to Home Screen", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Got it" })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Sign in to post and pick sides/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Sign in to post" })).toBeVisible();
   await expect(page.getByText("August 28–30, 2026", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Skip intro")).toHaveCount(0);
   await expect(page.getByText("Just looking")).toHaveCount(0);

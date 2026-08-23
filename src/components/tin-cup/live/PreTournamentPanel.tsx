@@ -44,10 +44,10 @@ export function PreTournamentPanel({
   const groupLine = claimedName ? yourGroupLine(claimedName) : null;
 
   return (
-    <section aria-label="This weekend" className="stack-tight">
-      <div className="stack-tight">
-        <header className="px-1 pt-2 text-center">
-          <h1 className="t-title text-foreground">
+    <section aria-label="This weekend" className="space-y-5">
+      <div>
+        <header className="px-1 pt-1 text-center">
+          <h1 className="text-[0.95rem] font-semibold tracking-tight text-foreground">
             {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
           </h1>
           <p className="t-micro mt-1">

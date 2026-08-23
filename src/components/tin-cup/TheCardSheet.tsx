@@ -32,13 +32,16 @@ export function TheCardSheet({
   const social = useMatchSocial(user?.id, profile?.player_id);
   const profiles = usePublicProfiles();
   const avatars = usePlayerAvatars(players, teams);
-  const markets = fridayCardMarkets(matches, rounds);
   const face = (name: string) => avatars.data?.getByName(name);
   const claimed = Boolean(profile?.player_id);
   const claimedName = claimed
     ? (players.find((player) => player.id === profile?.player_id)?.name ?? null)
     : null;
-  const progress = takenCount(social.predictions, user?.id, markets, claimedName);
+  const allMarkets = fridayCardMarkets(matches, rounds);
+  const markets = claimedName
+    ? allMarkets.filter((market) => !isYourMarket(market, claimedName))
+    : allMarkets;
+  const progress = takenCount(social.predictions, user?.id, markets);
   const graded = matches.some((match) => match.result !== "pending");
   const records = graded ? cardRecords(social.predictions, matches).slice(0, 4) : [];
   const nameOf = (userId: string) => {
@@ -98,7 +101,7 @@ export function TheCardSheet({
               crowdA={riders.sideA.map(faceForUser)}
               crowdB={riders.sideB.map(faceForUser)}
               roasts={roasts}
-              yours={isYourMarket(market, claimedName)}
+              yours={false}
             />
           );
         })}
