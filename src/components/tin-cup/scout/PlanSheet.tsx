@@ -132,7 +132,9 @@ export function PlanSheet({
   const strip = (
     <div
       ref={stripRef}
-      className="no-scrollbar flex gap-1.5 overflow-x-auto scroll-smooth border-b border-white/10 px-3 py-2.5"
+      className={`no-scrollbar flex gap-1.5 overflow-x-auto scroll-smooth px-3 py-2.5 ${
+        overlay ? "border-t border-white/10" : "border-b border-white/10"
+      }`}
     >
       {holes.map((h) => {
         const active = h.h === hole;
@@ -189,7 +191,7 @@ export function PlanSheet({
       }`}
     >
       {overlay ? handle : strip}
-      {overlay ? strip : handle}
+      {overlay ? null : handle}
       {expanded && (
         <div className="border-t border-white/8 px-4 pb-4 pt-3">
           {overlay ? (
@@ -201,6 +203,7 @@ export function PlanSheet({
           )}
         </div>
       )}
+      {overlay ? strip : null}
     </div>
   );
 }

@@ -222,12 +222,12 @@ function ScoutPage() {
 
   const orb =
     "press flex size-11 items-center justify-center rounded-full border border-white/15 bg-black/45 text-white shadow-[var(--shadow-card)] backdrop-blur-md";
-  const mapChip = "press chip min-h-11 border-white/15 bg-black/45 text-white backdrop-blur-md";
+  const mapChip = "press min-h-11 px-3 text-[0.7rem] font-semibold tracking-wide text-white/70";
 
   if (showMap) {
     return (
       <Shell variant="theater">
-        <div className="relative h-svh w-full overflow-hidden bg-black">
+        <div className="relative h-svh w-full overflow-hidden bg-black [transform:none]">
           <div className={`absolute inset-0 ${wideTheater ? "lg:right-96" : ""}`}>
             <Suspense
               fallback={
@@ -282,7 +282,7 @@ function ScoutPage() {
                 void import("@/components/tin-cup/SatelliteHoleMap");
               }
             }}
-            className={`${mapChip} absolute right-3 z-40 ${playGpsOn ? "chip-on" : ""}`}
+            className={`${mapChip} absolute right-3 z-40 ${playGpsOn ? "text-white" : "text-white/55"}`}
             style={{ top: "max(0.75rem, env(safe-area-inset-top))" }}
           >
             Aerial

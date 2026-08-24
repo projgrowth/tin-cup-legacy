@@ -8,7 +8,7 @@ import {
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import type { GeoHole } from "@/lib/geo-courses";
-import { greenTarget, holePlayBearing, theaterOverlayCollection } from "@/lib/geo-courses";
+import { greenTarget, theaterOverlayCollection } from "@/lib/geo-courses";
 import type { LngLat } from "@/lib/geo";
 
 /** Esri World Imagery — attribution required. */
@@ -107,7 +107,7 @@ export const SatelliteHoleMap = forwardRef<SatelliteHoleMapHandle, Props>(functi
       center: geo.green,
       zoom: 16,
       pitch: 0,
-      bearing: holePlayBearing(geo),
+      bearing: 0,
       attributionControl: {
         compact: true,
       },
@@ -272,16 +272,15 @@ function flyToHole(map: MapLibreMap, geo: GeoHole, animate: boolean) {
     if (lat < s) s = lat;
     if (lat > n) n = lat;
   }
-  const bearing = holePlayBearing(geo);
   map.fitBounds(
     [
       [w, s],
       [e, n],
     ],
     {
-      padding: 24,
+      padding: { top: 72, bottom: 140, left: 36, right: 36 },
       maxZoom: 18.4,
-      bearing,
+      bearing: 0,
       pitch: 0,
       duration: animate ? 420 : 0,
       essential: true,
@@ -292,11 +291,10 @@ function flyToHole(map: MapLibreMap, geo: GeoHole, animate: boolean) {
 /** Tight approach view on the putting surface / pin. */
 function flyToGreen(map: MapLibreMap, geo: GeoHole, animate: boolean) {
   const center = greenTarget(geo);
-  const bearing = holePlayBearing(geo);
   map.easeTo({
     center,
     zoom: 18.35,
-    bearing,
+    bearing: 0,
     pitch: 0,
     duration: animate ? 520 : 0,
     essential: true,

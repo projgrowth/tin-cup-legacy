@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { getHole } from "@/lib/courses";
+import { COURSE_ORDER, getCourse, getHole } from "@/lib/courses";
 import {
   lineStations,
+  orientedHole,
   paddedViewBox,
   polylineLength,
+  portraitYardageFrame,
+  PORTRAIT_MIN_ASPECT,
   smoothOpenPolyline,
   smoothPolygon,
 } from "@/lib/hole-geometry";
@@ -20,7 +23,6 @@ describe("hole-geometry", () => {
     expect(stations[0].yardsFromTee).toBe(0);
     expect(stations[stations.length - 1].yardsFromTee).toBe(335);
     expect(stations[stations.length - 1].yardsToGreen).toBe(0);
-    // Mid station roughly half
     const mid = stations.find((s) => s.yardsFromTee === 150);
     expect(mid).toBeTruthy();
   });
@@ -69,5 +71,20 @@ describe("hole-geometry", () => {
     expect(vb.width).toBeGreaterThan(0);
     expect(vb.height).toBeGreaterThan(0);
     expect(vb.viewBox.split(" ").length).toBe(4);
+  });
+
+  it("orients every hole tee-at-bottom green-at-top in SVG space", () => {
+    for (const id of COURSE_ORDER) {
+      for (const hole of getCourse(id).holes) {
+        const o = orientedHole(hole);
+        const tee = o.line[0];
+        const green = o.line[o.line.length - 1];
+        expect(tee && green).toBeTruthy();
+        if (!tee || !green) continue;
+        expect(tee[1]).toBeGreaterThan(green[1]);
+        const frame = portraitYardageFrame(hole);
+        expect(frame.height / frame.width).toBeGreaterThanOrEqual(PORTRAIT_MIN_ASPECT - 0.001);
+      }
+    }
   });
 });

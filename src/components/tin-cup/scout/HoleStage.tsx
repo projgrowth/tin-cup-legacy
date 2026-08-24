@@ -92,7 +92,7 @@ export function HoleStage({
   const showSat = mapMode === "sat" && Boolean(geo);
 
   return (
-    <section className="absolute inset-0 overflow-hidden bg-black">
+    <section className="absolute inset-0 overflow-hidden bg-black [orientation:portrait]">
       <p className="sr-only" aria-live="polite">
         Hole {hole.h} of {holeCount}, par {hole.par}, {liveYards} yards
         {courseLabel ? ` · ${courseLabel}` : ""}
@@ -113,19 +113,14 @@ export function HoleStage({
             {hole.name}
           </p>
         ) : null}
-        <p className="sr-only">Black {hole.yards}</p>
-        {note ? (
-          <p className="mt-2 max-w-[16rem] text-[0.78rem] font-semibold leading-snug text-white/85">
-            {note}
-          </p>
-        ) : null}
+        <p className="sr-only">Black {hole.yards}{note ? ` · ${note}` : ""}</p>
       </div>
 
       {liveStack ? (
         <div
-          className="pointer-events-none absolute left-3 z-40 drop-shadow-[0_2px_14px_oklch(0_0_0/80%)]"
+          className="pointer-events-none absolute right-3 z-40 drop-shadow-[0_2px_14px_oklch(0_0_0/80%)]"
           style={{
-            bottom: "max(12.75rem, calc(env(safe-area-inset-bottom) + 12rem))",
+            top: "max(4.5rem, calc(env(safe-area-inset-top) + 3.2rem))",
           }}
         >
           <DistanceStack

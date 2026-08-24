@@ -29,7 +29,7 @@ export function DistanceStack({
       ) : (
         <div className="flex items-end gap-3">
           <YardCol label="F" value={front} tone="muted" live={live} />
-          <YardCol label="C" value={center} tone={live ? "sky" : "gold"} live={live} hero caption={caption} />
+          <YardCol label="C" value={center} tone={live ? "sky" : "muted"} live={live} hero caption={caption} />
           <YardCol label="B" value={back} tone="muted" live={live} />
         </div>
       )}
