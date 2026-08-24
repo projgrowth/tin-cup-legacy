@@ -96,19 +96,13 @@ export function InstallHint({ embedded = false }: { embedded?: boolean }) {
 
   return (
     <div
-      className={`flex min-h-11 items-center justify-between gap-3 ${
-        embedded ? "px-0 py-1" : "surface px-4 py-3"
+      className={`flex min-h-11 items-center justify-between gap-3 px-4 py-3 ${
+        embedded ? "" : "surface"
       }`}
     >
       <p className="min-w-0">
-        {embedded ? (
-          <span className="t-micro">Add to Home Screen · iPhone Share</span>
-        ) : (
-          <>
-            <span className="t-body block font-medium text-foreground">Add to Home Screen</span>
-            <span className="t-micro block">iPhone: Share → Add to Home Screen</span>
-          </>
-        )}
+        <span className="t-body block font-medium text-foreground">Add to Home Screen</span>
+        <span className="t-micro block">iPhone: Share → Add to Home Screen</span>
       </p>
       <button
         type="button"

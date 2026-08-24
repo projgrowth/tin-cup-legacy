@@ -1,15 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
 import { WeekendRecap } from "@/components/tin-cup/WeekendRecap";
+import { SocialClubhouseFeed } from "@/components/tin-cup/SocialClubhouseFeed";
+import { HomeSecondaryModules } from "@/components/tin-cup/HomeDashboard";
 import { ScoreModal } from "@/components/tin-cup/ScoreModal";
 import { Shell, SkeletonBlock } from "@/components/tin-cup/Shell";
 import { DisplayBoard } from "@/components/tin-cup/live/DisplayBoard";
-import { PreTournamentPanel } from "@/components/tin-cup/panels";
+import { LivePanel, PreTournamentPanel } from "@/components/tin-cup/panels";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
 import { usePlanningProgress } from "@/hooks/usePlanningProgress";
+import { useActivityFeed } from "@/hooks/useActivityFeed";
+import { useExperiencePreferences } from "@/hooks/useExperiencePreferences";
 import { getEventPhase, phaseMode } from "@/lib/event-phase";
 import { type BoardMode } from "@/lib/tin-cup";
 import { tallyStandings } from "@/lib/scoring";
@@ -17,7 +22,7 @@ import { tallyStandings } from "@/lib/scoring";
 import { hasAuthCallbackParams, parseAuthCallbackParams } from "@/lib/auth-recovery";
 import { claimedPlayerIdFor, resolveIdentity } from "@/lib/profile-identity";
 import { buildWeekendContext } from "@/lib/weekend-context";
-import { type FeedFilter } from "@/lib/social-platform";
+import { smartHomeModules, type FeedFilter } from "@/lib/social-platform";
 
 const MODES: Array<{ key: BoardMode; label: string }> = [
   { key: "pre", label: "Weekend" },
@@ -176,6 +181,7 @@ function Index() {
     realtimeStatus,
   } = useTournament();
   const { profile, loading: profileLoading, error: profileError } = useProfile();
+  const experience = useExperiencePreferences(user?.id);
   const planning = usePlanningProgress();
   const stale = isError && Boolean(data);
   const playerId = claimedPlayerIdFor(user?.id, profile?.player_id);
@@ -192,6 +198,8 @@ function Index() {
   });
   const needsClaim = Boolean(user) && identity.kind === "claim" && !playerId;
   const standings = tallyStandings(data?.matches ?? []);
+  const canonicalUrl =
+    typeof window === "undefined" ? "https://www.tincupinv.com/" : window.location.href;
   const weekendContext = buildWeekendContext({
     phase: mode,
     signedIn: Boolean(user),
@@ -206,6 +214,11 @@ function Index() {
     failedWrites,
     conflicts,
   });
+  const activity = useActivityFeed(data?.players ?? [], data?.teams ?? []);
+  const photoCount = (activity.data ?? []).filter(
+    (item) => item.kind === "photo" || item.kind === "avatar",
+  ).length;
+
   useEffect(() => {
     if (!claimedPlayer) return;
     const team = (data?.teams ?? []).find((candidate) => candidate.id === claimedPlayer.team_id);
@@ -280,31 +293,106 @@ function Index() {
             ) : null}
           </div>
         ) : (
-          <div className="stack">
-            {isPending && !data ? (
-              <BoardSkeleton />
-            ) : isError && !data ? (
-              <BoardError onRetry={() => void refetch()} busy={isFetching} />
-            ) : (
-              <PreTournamentPanel
-                rounds={data?.rounds ?? []}
-                matches={data?.matches ?? []}
-                players={data?.players ?? []}
-                teams={data?.teams ?? []}
-                canUpload={Boolean(claimedPlayer)}
-                signedIn={Boolean(user)}
-                claimedName={claimedPlayer?.name ?? null}
-                needsClaim={needsClaim}
-                context={weekendContext}
-                liveLine={
-                  mode === "live"
-                    ? standings.played > 0
-                      ? `${standings.strongMental}–${standings.grassRoots} · 13.5 to win`
-                      : "Live · scores post when captains mark"
-                    : null
-                }
-              />
+          <div className={mode === "pre" ? "stack" : "home-dashboard mt-1"}>
+            {mode === "pre" && (
+              <div className="home-action">
+                <PreTournamentPanel
+                  rounds={data?.rounds ?? []}
+                  matches={data?.matches ?? []}
+                  players={data?.players ?? []}
+                  teams={data?.teams ?? []}
+                  canUpload={Boolean(claimedPlayer)}
+                  signedIn={Boolean(user)}
+                  claimedName={claimedPlayer?.name ?? null}
+                  needsClaim={needsClaim}
+                  context={weekendContext}
+                />
+              </div>
             )}
+            {mode === "live" && (
+              <div className="home-board min-w-0">
+                {isPending && !data ? (
+                  <BoardSkeleton />
+                ) : isError && !data ? (
+                  <BoardError onRetry={() => void refetch()} busy={isFetching} />
+                ) : (
+                  <LivePanel
+                    variant="hero"
+                    rounds={data?.rounds ?? []}
+                    matches={data?.matches ?? []}
+                    teams={data?.teams ?? []}
+                    players={data?.players ?? []}
+                    sideBets={data?.sideBets ?? []}
+                    syncedAt={data?.syncedAt}
+                    pendingWrites={pendingWrites}
+                    failedWrites={failedWrites}
+                    onRetryFailed={() => void retryFailedWrites()}
+                    stale={stale || realtimeStatus === "stale"}
+                    canScore={canScore}
+                    claimedName={claimedPlayer?.name ?? null}
+                    flashedMatchIds={flashedMatchIds}
+                  />
+                )}
+              </div>
+            )}
+            <>
+              {mode !== "pre" ? (
+                <div className="home-feed min-w-0">
+                  <SocialClubhouseFeed
+                    matches={data?.matches ?? []}
+                    sideBets={data?.sideBets ?? []}
+                    trophies={data?.trophies ?? []}
+                    players={data?.players ?? []}
+                    teams={data?.teams ?? []}
+                    rounds={data?.rounds ?? []}
+                    filter={search.feed ?? "all"}
+                    onFilter={(feed) =>
+                      void navigate({
+                        to: "/",
+                        search: { ...search, feed: feed === "all" ? undefined : feed },
+                        replace: true,
+                      })
+                    }
+                    canModerate={canScore || isAdmin}
+                    canUpload={Boolean(claimedPlayer)}
+                    compact={experience.preferences.compactFeed}
+                    homePeek
+                  />
+                </div>
+              ) : null}
+              {mode !== "pre" && (
+                <aside className="home-secondary min-w-0 space-y-5 lg:sticky lg:top-28 lg:self-start">
+                  {mode === "live" && isError && !data && (
+                    <BoardError onRetry={() => void refetch()} busy={isFetching} />
+                  )}
+                  <HomeSecondaryModules
+                    order={smartHomeModules(
+                      mode,
+                      experience.preferences.homeModules,
+                      experience.preferences.layoutMode,
+                    )}
+                    context={weekendContext}
+                    sideBets={data?.sideBets ?? []}
+                    photoCount={photoCount}
+                  />
+                  <ShareMomentButton
+                    className="w-full"
+                    payload={{
+                      kind: "score",
+                      eyebrow: mode === "live" ? "Live Cup score" : "The fourth annual",
+                      title: "Tin Cup Invitational",
+                      primary: (data?.matches ?? []).some((m) => m.result && m.result !== "pending")
+                        ? `${standings.strongMental} – ${standings.grassRoots}`
+                        : "—",
+                      secondary: "Strong Mental · Grass Roots",
+                      canonicalUrl,
+                    }}
+                  >
+                    Share board
+                  </ShareMomentButton>
+                </aside>
+              )}
+            </>
           </div>
         )}
 
