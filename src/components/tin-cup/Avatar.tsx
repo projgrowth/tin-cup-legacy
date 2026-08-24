@@ -11,12 +11,12 @@ const SIZE = {
 
 function bleedTone(teamSlug?: TeamSlug | null) {
   if (teamSlug === "grass-roots") {
-    return "bg-stone/20 font-semibold tracking-wide text-stone";
+    return "mono-tile mono-tile-stone font-semibold tracking-wide text-stone bg-stone/25";
   }
   if (teamSlug === "strong-mental") {
-    return "bg-hunter/15 font-semibold tracking-wide text-hunter";
+    return "mono-tile mono-tile-hunter font-semibold tracking-wide text-hunter bg-hunter/25";
   }
-  return "bg-secondary font-semibold tracking-wide text-muted-foreground";
+  return "mono-tile mono-tile-plain font-semibold tracking-wide text-foreground bg-secondary";
 }
 
 /** Circular face, or a full-bleed square that matches a headshot crop. */

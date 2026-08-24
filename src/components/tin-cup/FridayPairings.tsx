@@ -41,28 +41,43 @@ function resolvedSrc(
   return raw?.trim() ? raw : null;
 }
 
+function resolvedTeam(
+  name: string,
+  avatars?: AvatarIndex,
+  playerIdByName?: (name: string) => string | undefined,
+) {
+  const id = playerIdByName?.(name);
+  if (id) {
+    const fromId = avatars?.byPlayerId.get(id)?.teamSlug;
+    if (fromId) return fromId;
+  }
+  return avatars?.getByName(name)?.teamSlug ?? null;
+}
+
 function FaceCell({
   name,
   src,
   href,
   label,
   you,
+  teamSlug,
 }: {
   name: string;
   src?: string | null;
   href?: string;
   label: string;
   you?: boolean;
+  teamSlug?: string | null;
 }) {
   const inner = (
     <>
       <span className="relative block aspect-square w-full overflow-hidden bg-secondary">
         <span className="absolute inset-0">
-          <Avatar name={name} src={src} size="tile" crop="bleed" />
+          <Avatar name={name} src={src} teamSlug={teamSlug} size="tile" crop="bleed" />
         </span>
       </span>
       <span
-        className={`mt-1 block truncate text-center t-micro ${you ? "font-semibold text-hunter" : "text-foreground"}`}
+        className={`lockup-name mt-1 block truncate text-center t-micro ${you ? "font-semibold text-hunter" : ""}`}
       >
         {label}
       </span>
@@ -84,12 +99,14 @@ function SideLockup({
   avatars,
   playerIdByName,
   claimedName,
+  sideSlug,
 }: {
   names: string[];
   getFace?: (name: string) => Face | undefined;
   avatars?: AvatarIndex;
   playerIdByName?: (name: string) => string | undefined;
   claimedName?: string | null;
+  sideSlug?: string | null;
 }) {
   return (
     <div className="grid grid-cols-2 gap-px">
@@ -103,6 +120,7 @@ function SideLockup({
             href={playerIdByName?.(name)}
             label={you ? "You" : firstName(name)}
             you={you}
+            teamSlug={resolvedTeam(name, avatars, playerIdByName) ?? sideSlug}
           />
         );
       })}
@@ -131,8 +149,11 @@ export function MatchLockup({
   yours?: boolean;
 }) {
   const onA = Boolean(claimedName && group.playersA.some((name) => sameName(name, claimedName)));
-  const leftNames = yours && claimedName && !onA ? group.playersB : group.playersA;
-  const rightNames = yours && claimedName && !onA ? group.playersA : group.playersB;
+  const swapped = Boolean(yours && claimedName && !onA);
+  const leftNames = swapped ? group.playersB : group.playersA;
+  const rightNames = swapped ? group.playersA : group.playersB;
+  const leftSlug = swapped ? "grass-roots" : "strong-mental";
+  const rightSlug = swapped ? "strong-mental" : "grass-roots";
   const names = [...group.playersA, ...group.playersB].map(firstName).join(" · ");
 
   return (
@@ -145,7 +166,7 @@ export function MatchLockup({
       <div
         className={
           size === "hero"
-            ? "grid grid-cols-[1fr_auto_1fr] items-start gap-2"
+            ? "grid grid-cols-[1fr_auto_1fr] items-start gap-3 sm:gap-4"
             : "grid grid-cols-[1fr_auto_1fr] items-start gap-1"
         }
       >
@@ -155,8 +176,9 @@ export function MatchLockup({
           avatars={avatars}
           playerIdByName={playerIdByName}
           claimedName={claimedName}
+          sideSlug={leftSlug}
         />
-        <span className="t-micro self-center px-0.5 font-medium text-muted-foreground" aria-hidden>
+        <span className="lockup-vs t-micro self-center px-0.5 font-medium" aria-hidden>
           vs
         </span>
         <SideLockup
@@ -165,6 +187,7 @@ export function MatchLockup({
           avatars={avatars}
           playerIdByName={playerIdByName}
           claimedName={claimedName}
+          sideSlug={rightSlug}
         />
       </div>
     </article>
@@ -194,7 +217,13 @@ export function PairingSpread({
   const hero = variant === "home" && yours;
 
   return (
-    <div className="stack">
+    <div
+      className={
+        hero
+          ? "hangout mx-auto w-full max-w-[48rem] space-y-[var(--space-5)] md:grid md:max-w-none md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] md:items-start md:gap-x-[var(--space-6)] md:gap-y-[var(--space-5)] md:space-y-0"
+          : "hangout mx-auto w-full max-w-[48rem] stack md:max-w-none"
+      }
+    >
       {hero ? (
         <MatchLockup
           group={yours}

@@ -64,7 +64,7 @@ async function loadAvatarIndex(
         avatar_path: string | null;
       }>;
     }>(`query AvatarMap {
-      profiles(where: { player_id: { _is_null: false } }) {
+      profiles {
         id player_id display_name avatar_path
       }
     }`);
@@ -78,7 +78,11 @@ async function loadAvatarIndex(
   const paths: Array<{ playerId: string; path: string }> = [];
 
   for (const p of players) {
-    const profile = profiles.find((pr) => pr.player_id === p.id);
+    const profile =
+      profiles.find((pr) => pr.player_id === p.id) ??
+      profiles.find(
+        (pr) => pr.display_name && normalizeName(pr.display_name) === normalizeName(p.name),
+      );
     const entry: AvatarEntry = {
       playerId: p.id,
       name: p.name,
@@ -106,7 +110,9 @@ async function loadAvatarIndex(
   for (const entry of byPlayerId.values()) {
     byName.set(normalizeName(entry.name), entry);
     const first = entry.name.split(/\s+/)[0];
-    if (first) byName.set(normalizeName(first), entry);
+    if (first && !byName.has(normalizeName(first))) {
+      byName.set(normalizeName(first), entry);
+    }
   }
 
   const getByName = (name: string) => {
