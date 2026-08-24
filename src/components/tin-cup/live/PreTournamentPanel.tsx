@@ -46,6 +46,7 @@ export function PreTournamentPanel({
         claimedName={claimedName}
         playerIdByName={playerIdByName}
         hideIntro
+        variant="home"
       />
       <Countdown caption={`${today.dayLabel} · ${COURSE_LABEL[nextCourseId]}`} />
       <LockerWall players={players} teams={teams} />

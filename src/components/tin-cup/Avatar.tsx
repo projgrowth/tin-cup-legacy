@@ -9,12 +9,23 @@ const SIZE = {
   tile: "size-full text-[clamp(2rem,8vw,3.25rem)]",
 } as const;
 
-/** Circular face or team-color monogram fallback. Faces never overlap. */
+function bleedTone(teamSlug?: TeamSlug | null) {
+  if (teamSlug === "grass-roots") {
+    return "bg-stone/20 font-semibold tracking-wide text-stone";
+  }
+  if (teamSlug === "strong-mental") {
+    return "bg-hunter/15 font-semibold tracking-wide text-hunter";
+  }
+  return "bg-secondary font-semibold tracking-wide text-muted-foreground";
+}
+
+/** Circular face, or a full-bleed square that matches a headshot crop. */
 export function Avatar({
   name,
   teamSlug,
   src,
   size = "md",
+  crop = "circle",
   className = "",
   title,
 }: {
@@ -22,15 +33,16 @@ export function Avatar({
   teamSlug?: TeamSlug | null;
   src?: string | null;
   size?: "sm" | "md" | "lg" | "xl" | "poster" | "tile";
+  crop?: "circle" | "bleed";
   className?: string;
   title?: string;
 }) {
+  const bleed = crop === "bleed" || size === "tile";
   const dim = SIZE[size];
   if (src) {
-    const frame =
-      size === "tile"
-        ? `block size-full overflow-hidden bg-secondary ${className}`.trim()
-        : `inline-flex shrink-0 overflow-hidden rounded-full border bg-secondary ${avatarRingClass(teamSlug)} ${dim} ${className}`.trim();
+    const frame = bleed
+      ? `block size-full overflow-hidden bg-secondary ${className}`.trim()
+      : `inline-flex shrink-0 overflow-hidden rounded-full border bg-secondary ${avatarRingClass(teamSlug)} ${dim} ${className}`.trim();
     return (
       <span className={frame}>
         <img
@@ -39,6 +51,17 @@ export function Avatar({
           title={title ?? name}
           className="size-full object-cover object-center"
         />
+      </span>
+    );
+  }
+  if (bleed) {
+    return (
+      <span
+        title={title ?? name}
+        aria-hidden={!title}
+        className={`flex size-full items-center justify-center ${bleedTone(teamSlug)} ${size === "tile" && !className.includes("text-") ? SIZE.tile.split(" ").slice(1).join(" ") : ""} ${className}`.trim()}
+      >
+        {playerInitials(name)}
       </span>
     );
   }
