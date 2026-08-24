@@ -41,12 +41,6 @@ export function monogramClass(
   size: "sm" | "md" | "lg" | "xl" | "poster" | "tile" = "md",
 ): string {
   if (size === "tile") {
-    if (slug === "grass-roots") {
-      return "mono-tile mono-tile-stone flex size-full items-center justify-center bg-stone/25 text-[clamp(2rem,8vw,3.25rem)] font-semibold tracking-wide text-stone";
-    }
-    if (slug === "strong-mental") {
-      return "mono-tile mono-tile-hunter flex size-full items-center justify-center bg-hunter/25 text-[clamp(2rem,8vw,3.25rem)] font-semibold tracking-wide text-hunter";
-    }
     return "mono-tile mono-tile-plain flex size-full items-center justify-center bg-secondary text-[clamp(2rem,8vw,3.25rem)] font-semibold tracking-wide text-foreground";
   }
   const dim =

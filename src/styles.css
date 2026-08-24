@@ -503,9 +503,9 @@ body {
 }
 
 @utility chip-on {
-  border-color: var(--hunter);
-  background: transparent;
-  color: var(--hunter);
+  border-color: var(--border-strong);
+  background: oklch(from var(--foreground) l c h / 6%);
+  color: var(--foreground);
 }
 
 @utility chip-sm {
@@ -582,6 +582,7 @@ body {
   }
 }
 
+/* Alias of btn-primary — do not use in product UI; Tailwind/legacy only. */
 @utility btn-gold {
   display: inline-flex;
   align-items: center;
@@ -623,6 +624,7 @@ body {
 }
 
 /* Team accent rails */
+/* Alias of rail-a / hunter verb. Do not use in product UI. */
 @utility rail-gold {
   border-left: 2px solid oklch(from var(--hunter) l c h / 55%);
 }
@@ -646,6 +648,7 @@ body {
   border-radius: var(--radius-card);
 }
 
+/* Alias of text-hunter. Do not use gold classes in product UI. */
 @utility gold-text {
   color: var(--hunter);
 }
@@ -869,50 +872,50 @@ body {
  */
 html[data-theme="night"] {
   color-scheme: dark;
-  --hunter: oklch(0.74 0.09 155);
-  --stone: oklch(0.76 0.055 75);
-  --background: oklch(0.17 0.02 155);
-  --foreground: oklch(0.96 0.012 95);
-  --card: oklch(0.21 0.022 155);
-  --card-foreground: oklch(0.96 0.012 95);
-  --popover: oklch(0.21 0.022 155);
-  --popover-foreground: oklch(0.96 0.012 95);
+  --hunter: oklch(0.74 0.04 155);
+  --stone: oklch(0.74 0.03 75);
+  --background: oklch(0.17 0.008 155);
+  --foreground: oklch(0.96 0.008 95);
+  --card: oklch(0.21 0.008 155);
+  --card-foreground: oklch(0.96 0.008 95);
+  --popover: oklch(0.21 0.008 155);
+  --popover-foreground: oklch(0.96 0.008 95);
   --primary: var(--hunter);
-  --primary-foreground: oklch(0.16 0.02 155);
-  --secondary: oklch(0.25 0.02 155);
-  --secondary-foreground: oklch(0.96 0.012 95);
-  --muted: oklch(0.23 0.018 155);
-  --muted-foreground: oklch(0.90 0.014 95);
+  --primary-foreground: oklch(0.16 0.012 155);
+  --secondary: oklch(0.25 0.008 155);
+  --secondary-foreground: oklch(0.96 0.008 95);
+  --muted: oklch(0.23 0.008 155);
+  --muted-foreground: oklch(0.72 0.012 210);
   --accent: var(--stone);
-  --accent-foreground: oklch(0.16 0.02 155);
-  --border: oklch(0.96 0.012 95 / 10%);
-  --border-strong: oklch(0.96 0.012 95 / 20%);
-  --input: oklch(0.96 0.012 95 / 16%);
-  --ring: oklch(0.74 0.09 155 / 50%);
+  --accent-foreground: oklch(0.16 0.012 155);
+  --border: oklch(0.96 0.008 95 / 10%);
+  --border-strong: oklch(0.96 0.008 95 / 20%);
+  --input: oklch(0.96 0.008 95 / 16%);
+  --ring: oklch(0.74 0.04 155 / 50%);
   --gold: var(--hunter);
   --gold-light: var(--hunter);
   --copper: oklch(0.7 0.14 35);
-  --glass: oklch(0.17 0.02 155 / 90%);
-  --status-live: oklch(0.74 0.12 155);
-  --track: oklch(0.96 0.012 95 / 10%);
-  --scrim: oklch(0.08 0.02 155 / 60%);
+  --glass: oklch(0.17 0.008 155 / 90%);
+  --status-live: oklch(0.74 0.08 155);
+  --track: oklch(0.96 0.008 95 / 10%);
+  --scrim: oklch(0.08 0.012 155 / 60%);
   --shadow-card: 0 1px 0 oklch(1 0 0 / 5%), 0 18px 40px -28px oklch(0 0 0 / 55%);
-  --sidebar: oklch(0.21 0.022 155);
-  --sidebar-foreground: oklch(0.96 0.012 95);
+  --sidebar: oklch(0.21 0.008 155);
+  --sidebar-foreground: oklch(0.96 0.008 95);
   --sidebar-primary: var(--hunter);
-  --sidebar-primary-foreground: oklch(0.16 0.02 155);
-  --sidebar-accent: oklch(0.25 0.02 155);
-  --sidebar-accent-foreground: oklch(0.96 0.012 95);
-  --sidebar-border: oklch(0.96 0.012 95 / 12%);
-  --sidebar-ring: oklch(0.74 0.09 155 / 50%);
+  --sidebar-primary-foreground: oklch(0.16 0.012 155);
+  --sidebar-accent: oklch(0.25 0.008 155);
+  --sidebar-accent-foreground: oklch(0.96 0.008 95);
+  --sidebar-border: oklch(0.96 0.008 95 / 12%);
+  --sidebar-ring: oklch(0.74 0.04 155 / 50%);
 }
 
 /* Lockup tiles share one quiet Night paper fill — no hunter/taupe split. */
 html[data-theme="night"] .mono-tile-hunter,
 html[data-theme="night"] .mono-tile-stone,
 html[data-theme="night"] .mono-tile-plain {
-  background-color: oklch(0.29 0.018 155);
-  color: oklch(0.93 0.01 95);
+  background-color: oklch(0.29 0.008 155);
+  color: oklch(0.93 0.008 95);
 }
 .lockup-name {
   color: var(--foreground);
@@ -929,14 +932,11 @@ html[data-theme="night"] .lockup-vs {
   opacity: 0.45;
 }
 
-/* MatchLockup + Home most-likely photos: paper faces, not color yearbook. */
+/* Lockup and field photos stay color. Paper is for monograms only. */
 .lockup-photo img,
-.wall-faces img {
-  filter: grayscale(0.45) saturate(0.35) contrast(0.95);
-}
-
+.wall-faces img,
 .home-field-photo img {
-  filter: saturate(0.82) contrast(0.94);
+  filter: none;
 }
 
 /* Hole theater — turf black in Paper and Night. Do not inherit cream/charcoal. */

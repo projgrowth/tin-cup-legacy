@@ -9,13 +9,7 @@ const SIZE = {
   tile: "size-full text-[clamp(2rem,8vw,3.25rem)]",
 } as const;
 
-function bleedTone(teamSlug?: TeamSlug | null) {
-  if (teamSlug === "grass-roots") {
-    return "mono-tile mono-tile-stone font-semibold tracking-wide text-stone bg-stone/25";
-  }
-  if (teamSlug === "strong-mental") {
-    return "mono-tile mono-tile-hunter font-semibold tracking-wide text-hunter bg-hunter/25";
-  }
+function bleedTone(_teamSlug?: TeamSlug | null) {
   return "mono-tile mono-tile-plain font-semibold tracking-wide text-foreground bg-secondary";
 }
 
