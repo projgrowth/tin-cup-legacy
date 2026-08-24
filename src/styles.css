@@ -907,35 +907,30 @@ html[data-theme="night"] {
   --sidebar-ring: oklch(0.74 0.09 155 / 50%);
 }
 
-/* Pairing lockup tiles: readable fill on Night paper, not gold chrome. */
-html[data-theme="night"] .mono-tile-hunter {
-  background-color: oklch(0.32 0.08 155);
-  color: oklch(0.90 0.06 155);
-}
-html[data-theme="night"] .mono-tile-stone {
-  background-color: oklch(0.34 0.055 75);
-  color: oklch(0.92 0.03 85);
-}
+/* Lockup tiles share one quiet Night paper fill — no hunter/taupe split. */
+html[data-theme="night"] .mono-tile-hunter,
+html[data-theme="night"] .mono-tile-stone,
 html[data-theme="night"] .mono-tile-plain {
-  background-color: oklch(0.29 0.025 155);
-  color: oklch(0.95 0.012 95);
+  background-color: oklch(0.29 0.018 155);
+  color: oklch(0.93 0.01 95);
 }
 .lockup-name {
   color: var(--foreground);
 }
-.lockup-name.text-hunter {
-  color: var(--hunter);
-}
 html[data-theme="night"] .lockup-name {
-  color: oklch(0.96 0.012 95);
+  color: var(--foreground);
 }
 .lockup-vs {
   color: var(--foreground);
-  opacity: 0.72;
+  opacity: 0.45;
 }
 html[data-theme="night"] .lockup-vs {
-  color: oklch(0.92 0.012 95);
-  opacity: 0.88;
+  color: var(--muted-foreground);
+  opacity: 0.45;
+}
+
+.home-field-photo img {
+  filter: saturate(0.82) contrast(0.94);
 }
 
 /* Hole theater — turf black in Paper and Night. Do not inherit cream/charcoal. */

@@ -41,43 +41,28 @@ function resolvedSrc(
   return raw?.trim() ? raw : null;
 }
 
-function resolvedTeam(
-  name: string,
-  avatars?: AvatarIndex,
-  playerIdByName?: (name: string) => string | undefined,
-) {
-  const id = playerIdByName?.(name);
-  if (id) {
-    const fromId = avatars?.byPlayerId.get(id)?.teamSlug;
-    if (fromId) return fromId;
-  }
-  return avatars?.getByName(name)?.teamSlug ?? null;
-}
-
 function FaceCell({
   name,
   src,
   href,
   label,
   you,
-  teamSlug,
 }: {
   name: string;
   src?: string | null;
   href?: string;
   label: string;
   you?: boolean;
-  teamSlug?: string | null;
 }) {
   const inner = (
     <>
       <span className="relative block aspect-square w-full overflow-hidden bg-secondary">
         <span className="absolute inset-0">
-          <Avatar name={name} src={src} teamSlug={teamSlug} size="tile" crop="bleed" />
+          <Avatar name={name} src={src} size="tile" crop="bleed" />
         </span>
       </span>
       <span
-        className={`lockup-name mt-1 block truncate text-center t-micro ${you ? "font-semibold text-hunter" : ""}`}
+        className={`lockup-name mt-1 block truncate text-center t-micro ${you ? "font-semibold" : ""}`}
       >
         {label}
       </span>
@@ -99,14 +84,12 @@ function SideLockup({
   avatars,
   playerIdByName,
   claimedName,
-  sideSlug,
 }: {
   names: string[];
   getFace?: (name: string) => Face | undefined;
   avatars?: AvatarIndex;
   playerIdByName?: (name: string) => string | undefined;
   claimedName?: string | null;
-  sideSlug?: string | null;
 }) {
   return (
     <div className="grid grid-cols-2 gap-px">
@@ -120,7 +103,6 @@ function SideLockup({
             href={playerIdByName?.(name)}
             label={you ? "You" : firstName(name)}
             you={you}
-            teamSlug={resolvedTeam(name, avatars, playerIdByName) ?? sideSlug}
           />
         );
       })}
@@ -152,14 +134,12 @@ export function MatchLockup({
   const swapped = Boolean(yours && claimedName && !onA);
   const leftNames = swapped ? group.playersB : group.playersA;
   const rightNames = swapped ? group.playersA : group.playersB;
-  const leftSlug = swapped ? "grass-roots" : "strong-mental";
-  const rightSlug = swapped ? "strong-mental" : "grass-roots";
   const names = [...group.playersA, ...group.playersB].map(firstName).join(" · ");
 
   return (
     <article aria-label={caption ?? names} className="min-w-0">
       {caption ? (
-        <p className={`t-micro mb-[var(--space-3)] ${yours ? "text-hunter" : "text-foreground"}`}>
+        <p className="t-micro mb-[var(--space-3)] text-muted-foreground">
           {caption}
         </p>
       ) : null}
@@ -176,7 +156,6 @@ export function MatchLockup({
           avatars={avatars}
           playerIdByName={playerIdByName}
           claimedName={claimedName}
-          sideSlug={leftSlug}
         />
         <span className="lockup-vs t-micro self-center px-0.5 font-medium" aria-hidden>
           vs
@@ -187,7 +166,6 @@ export function MatchLockup({
           avatars={avatars}
           playerIdByName={playerIdByName}
           claimedName={claimedName}
-          sideSlug={rightSlug}
         />
       </div>
     </article>

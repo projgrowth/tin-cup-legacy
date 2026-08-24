@@ -150,9 +150,9 @@ export function LockerWall({
                             name={player.name}
                             src={src}
                             size="sm"
-                            className={selected ? "ring-2 ring-hunter" : ""}
+                            className={selected ? "ring-2 ring-foreground/30" : ""}
                           />
-                          <span className={`t-micro mt-1 block truncate ${selected ? "text-hunter" : ""}`}>
+                          <span className={`t-micro mt-1 block truncate ${selected ? "font-semibold" : ""}`}>
                             {firstName(player.name)}
                           </span>
                         </>

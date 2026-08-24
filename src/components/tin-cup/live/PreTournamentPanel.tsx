@@ -89,7 +89,7 @@ function HomeFieldPhoto({ players, teams }: { players: Player[]; teams: Team[] }
   if (!photo) return null;
 
   return (
-    <figure className="feed-photo feed-photo-cover -mx-4 w-[calc(100%+2rem)] overflow-hidden sm:-mx-5 sm:w-[calc(100%+2.5rem)]">
+    <figure className="feed-photo feed-photo-cover home-field-photo -mx-4 w-[calc(100%+2rem)] overflow-hidden sm:-mx-5 sm:w-[calc(100%+2.5rem)]">
       {url ? (
         <img
           src={url}
