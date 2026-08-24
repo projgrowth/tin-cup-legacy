@@ -127,12 +127,14 @@ function SchedulePage() {
 
           {isFriday ? (
             <>
-              <p className="t-micro">
-                {details.format} · {details.firstTee}
-              </p>
+              <header className="px-0.5">
+                <h1 className="t-title text-foreground">{details.format}</h1>
+                <p className="t-micro mt-1">
+                  {details.dayLabel} · {COURSE_LABEL[courseId]} · {details.firstTee}
+                </p>
+              </header>
               <FridayPairings
                 hideIntro
-                variant="strips"
                 avatars={avatars.data}
                 getFace={(name) => {
                   const id = playerIdByName(name);
@@ -147,9 +149,9 @@ function SchedulePage() {
             </>
           ) : (
             <header className="px-0.5">
-              <h1 className="t-title text-foreground">{COURSE_LABEL[courseId]}</h1>
+              <h1 className="t-title text-foreground">{details.format}</h1>
               <p className="t-micro mt-2">
-                {details.dayLabel} · {details.firstTee} · {details.points} pts
+                {COURSE_LABEL[courseId]} · {details.firstTee} · {details.points} pts
               </p>
               <p className="t-micro mt-[var(--space-5)]">Pairings when captains post</p>
             </header>

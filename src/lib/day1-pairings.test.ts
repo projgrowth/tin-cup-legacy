@@ -7,7 +7,6 @@ import {
   fridayPartnerLine,
   groupLine,
   yourGroupLine,
-  foursomeSentence,
 } from "@/lib/day1-pairings";
 
 describe("day1 pairings", () => {
@@ -43,17 +42,5 @@ describe("day1 pairings", () => {
       "Max Furth",
     ]);
     expect(seats?.[0]?.you).toBe(true);
-  });
-
-  it("speaks the Home sentence with and", () => {
-    expect(foursomeSentence(["Zack Smith", "Chris Maher"], ["Charles Grass", "Blake Weeks"], "Zack Smith")).toBe(
-      "You and Chris vs Charles and Blake",
-    );
-    expect(foursomeSentence(["Kevin Maher", "Max Furth"], ["Dan Rodriguez", "Josef Yehia"], "Dan Rodriguez")).toBe(
-      "You and Josef vs Kevin and Max",
-    );
-    expect(foursomeSentence(["Zack Smith", "Chris Maher"], ["Charles Grass", "Blake Weeks"])).toBe(
-      "Zack and Chris vs Charles and Blake",
-    );
   });
 });

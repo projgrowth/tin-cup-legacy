@@ -120,24 +120,6 @@ export function yourGroupLine(playerName: string): string | null {
   return groupLine(playerName, true);
 }
 
-/** Spoken Home sentence: You and Kevin vs Mike and Tom. */
-export function foursomeSentence(
-  playersA: string[],
-  playersB: string[],
-  claimedName?: string | null,
-): string {
-  const n = claimedName?.trim().toLowerCase() ?? "";
-  const onA = Boolean(n && playersA.some((name) => name.trim().toLowerCase() === n));
-  const onB = Boolean(n && playersB.some((name) => name.trim().toLowerCase() === n));
-  const left = onB ? playersB : playersA;
-  const right = onB ? playersA : playersB;
-  const you = onA || onB;
-  const lead = you ? left.find((name) => name.trim().toLowerCase() === n) ?? left[0]! : left[0]!;
-  const partner = left.find((name) => name !== lead) ?? left[1]!;
-  const leftLead = you ? "You" : firstName(lead);
-  return `${leftLead} and ${firstName(partner)} vs ${firstName(right[0]!)} and ${firstName(right[1]!)}`;
-}
-
 /** Roster subtitle: Friday partner vs them. */
 export function fridayPartnerLine(playerName: string): string | null {
   const group = day1GroupForPlayer(playerName);
