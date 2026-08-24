@@ -41,10 +41,7 @@ export function PreTournamentPanel({
 
   return (
     <section aria-label="This weekend" className="stack">
-      <header>
-        <h1 className="t-title text-foreground">Friday</h1>
-        <Countdown caption={`${COURSE_LABEL[nextCourseId]} · ${today.firstTee}`} />
-      </header>
+      <Countdown caption={`Friday · ${today.dayLabel} first tee · ${COURSE_LABEL[nextCourseId]}`} />
       <FridayPairings
         avatars={avatars.data}
         getFace={(name) => {
@@ -92,7 +89,7 @@ function HomeFieldPhoto({ players, teams }: { players: Player[]; teams: Team[] }
   if (!photo) return null;
 
   return (
-    <figure className="home-field-photo -mx-4 w-[calc(100%+2rem)] overflow-hidden sm:-mx-5 sm:w-[calc(100%+2.5rem)]">
+    <figure className="feed-photo feed-photo-cover home-field-photo -mx-4 w-[calc(100%+2rem)] overflow-hidden sm:-mx-5 sm:w-[calc(100%+2.5rem)]">
       {url ? (
         <img
           src={url}

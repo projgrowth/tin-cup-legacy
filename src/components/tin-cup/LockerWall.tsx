@@ -3,13 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { Avatar } from "@/components/tin-cup/Avatar";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
 import { useAuth } from "@/hooks/useAuth";
 import { useBanterVotes } from "@/hooks/useBanterVotes";
 import { faceUrl, usePlayerAvatars } from "@/hooks/usePlayerAvatars";
@@ -93,13 +86,7 @@ export function LockerWall({
   }
 
   return (
-    <Drawer>
-      <DrawerTrigger className="press t-micro text-left">Most likely to…</DrawerTrigger>
-      <DrawerContent className="border-border bg-card">
-        <DrawerHeader className="pb-2 text-left">
-          <DrawerTitle className="t-title text-foreground">The wall</DrawerTitle>
-        </DrawerHeader>
-        <section aria-label="The wall" className="stack px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+    <section aria-label="The wall" className="stack">
       <div>
         {latestRoast ? (
           <p className="t-body italic text-foreground">“{latestRoast.body.trim()}”</p>
@@ -230,7 +217,5 @@ export function LockerWall({
         </div>
       </div>
     </section>
-      </DrawerContent>
-    </Drawer>
   );
 }

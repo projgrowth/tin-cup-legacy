@@ -56,7 +56,7 @@ function FaceCell({
 }) {
   const inner = (
     <>
-      <span className="lockup-photo relative block aspect-square w-full overflow-hidden bg-secondary">
+      <span className="relative block aspect-square w-full overflow-hidden bg-secondary">
         <span className="absolute inset-0">
           <Avatar name={name} src={src} size="tile" crop="bleed" />
         </span>
@@ -172,13 +172,7 @@ export function MatchLockup({
   );
 }
 
-function pairingLine(group: PairingGroup) {
-  const a = group.playersA.map(firstName).join(" · ");
-  const b = group.playersB.map(firstName).join(" · ");
-  return `${a} vs ${b}`;
-}
-
-/** Home: one lockup + three text lines. Weekend: even 2×2 of lockups. */
+/** Four groups as lockups. Home raises the claimed match; Weekend and guests stay an even 2×2. */
 export function PairingSpread({
   groups,
   getFace,
@@ -197,39 +191,31 @@ export function PairingSpread({
   const yours = claimedName
     ? groups.find((p) => [...p.playersA, ...p.playersB].some((name) => sameName(name, claimedName)))
     : undefined;
-  const featured = yours ?? groups[0];
-  const rest = featured ? groups.filter((p) => p.matchIndex !== featured.matchIndex) : groups;
+  const rest = yours ? groups.filter((p) => p.matchIndex !== yours.matchIndex) : groups;
+  const hero = variant === "home" && yours;
 
-  if (variant === "home" && featured) {
-    return (
-      <div className="hangout mx-auto w-full max-w-[48rem] stack">
+  return (
+    <div
+      className={
+        hero
+          ? "hangout mx-auto w-full max-w-[48rem] space-y-[var(--space-5)] md:grid md:max-w-none md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] md:items-start md:gap-x-[var(--space-6)] md:gap-y-[var(--space-5)] md:space-y-0"
+          : "hangout mx-auto w-full max-w-[48rem] stack md:max-w-none"
+      }
+    >
+      {hero ? (
         <MatchLockup
-          group={featured}
+          group={yours}
           getFace={getFace}
           avatars={avatars}
           claimedName={claimedName}
           playerIdByName={playerIdByName}
           size="hero"
-          yours={Boolean(yours)}
+          yours
           caption={claimedName ? yourGroupLine(claimedName) : null}
         />
-        {rest.length ? (
-          <ul className="stack">
-            {rest.map((p) => (
-              <li key={p.matchIndex} className="t-micro">
-                {pairingLine(p)}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
-    );
-  }
-
-  return (
-    <div className="hangout mx-auto w-full max-w-[48rem] stack md:max-w-none">
+      ) : null}
       <ol className="grid grid-cols-2 gap-x-[var(--space-3)] gap-y-[var(--space-5)]">
-        {groups.map((p) => (
+        {(hero ? rest : groups).map((p) => (
           <li key={p.matchIndex} className="min-w-0">
             <MatchLockup
               group={p}
