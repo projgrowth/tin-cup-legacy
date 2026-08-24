@@ -745,6 +745,31 @@ body {
 .feed-photo-cover img {
   object-fit: cover;
 }
+.feed-poster {
+  position: relative;
+  background: #111;
+  border: 0;
+  border-radius: var(--radius-card);
+}
+.feed-poster-img {
+  display: block;
+  width: 100%;
+  min-height: 14rem;
+  max-height: 22rem;
+  object-fit: cover;
+}
+.feed-poster-hero .feed-poster-img {
+  min-height: 18rem;
+  max-height: 28rem;
+}
+.feed-poster-caption {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  padding: 2.75rem 1rem 0.9rem;
+  background: linear-gradient(180deg, transparent, oklch(0 0 0 / 78%));
+  pointer-events: none;
+}
 .feed-moments {
   background: transparent;
 }
@@ -857,7 +882,7 @@ html[data-theme="night"] {
   --secondary: oklch(0.25 0.02 155);
   --secondary-foreground: oklch(0.96 0.012 95);
   --muted: oklch(0.23 0.018 155);
-  --muted-foreground: oklch(0.84 0.016 155);
+  --muted-foreground: oklch(0.90 0.014 95);
   --accent: var(--stone);
   --accent-foreground: oklch(0.16 0.02 155);
   --border: oklch(0.96 0.012 95 / 10%);

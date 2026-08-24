@@ -18,8 +18,11 @@ function homeIsActive(pathname: string) {
 export function BottomNav({ live = false }: { live?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <nav data-bottom-nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-[env(safe-area-inset-bottom)]">
-      <div className="mx-auto flex w-full max-w-4xl items-stretch px-4 sm:px-5">
+    <nav
+      data-bottom-nav
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-[env(safe-area-inset-bottom)]"
+    >
+      <div className="mx-auto flex w-full max-w-4xl items-stretch px-2 sm:px-4">
         {items.map(({ to, label, icon: Icon, exact }) => {
           const isHome = label === "Home";
           const homeOn = isHome && homeIsActive(pathname);
@@ -28,7 +31,7 @@ export function BottomNav({ live = false }: { live?: boolean }) {
               key={to}
               to={to}
               activeOptions={{ exact }}
-              className={`group press t-micro relative flex min-h-11 flex-1 flex-col items-center justify-center gap-1 px-1 py-1.5 font-semibold ${
+              className={`group press t-micro relative flex min-h-[44px] flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1 no-underline ${
                 isHome
                   ? homeOn
                     ? "text-hunter"
@@ -37,16 +40,17 @@ export function BottomNav({ live = false }: { live?: boolean }) {
               }`}
               data-status={isHome ? (homeOn ? "active" : "inactive") : undefined}
             >
-              <span
-                className={`relative flex size-8 items-center justify-center rounded-full ${
-                  isHome
-                    ? homeOn
-                      ? "bg-hunter/10"
-                      : ""
-                    : "group-data-[status=active]:bg-hunter/10"
-                }`}
-              >
-                <Icon className="size-4" strokeWidth={1.7} />
+              <span className="relative flex size-6 items-center justify-center">
+                <Icon
+                  className={`size-[1.15rem] group-data-[status=active]:stroke-[2.25] ${
+                    isHome
+                      ? homeOn
+                        ? "fill-hunter/15"
+                        : ""
+                      : "group-data-[status=active]:fill-hunter/15"
+                  }`}
+                  strokeWidth={isHome && homeOn ? 2.25 : 1.55}
+                />
                 {isHome && live ? (
                   <span
                     className="absolute -right-1 -top-0.5 size-1.5 rounded-full bg-[var(--status-live)]"
@@ -54,7 +58,17 @@ export function BottomNav({ live = false }: { live?: boolean }) {
                   />
                 ) : null}
               </span>
-              <span>{label}</span>
+              <span
+                className={`leading-none ${
+                  isHome
+                    ? homeOn
+                      ? "font-semibold"
+                      : "font-medium"
+                    : "font-medium group-data-[status=active]:font-semibold"
+                }`}
+              >
+                {label}
+              </span>
             </Link>
           );
         })}

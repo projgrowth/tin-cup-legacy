@@ -482,24 +482,54 @@ export function SocialClubhouseFeed({
             canModerate={canModerate}
           />
         ) : null}
-                {photoMoments.map((moment, index) => {
+        {photoMoments.map((moment, index) => {
           const reactions = story.reactions.filter((row) => row.moment_key === moment.key);
           const comments = story.comments.filter((comment) => comment.moment_key === moment.key);
           const open = openComments[moment.key];
           const mediaUrl = moment.mediaPath ? mediaUrls[moment.mediaPath] : null;
           const featured = homePeek && index === 0;
+          const when = formatActivityTime(new Date(moment.at).toISOString());
+          const who = moment.playerName || "Player";
+          if (homePeek) {
+            return (
+              <article
+                key={moment.key}
+                id={`post-${moment.key}`}
+                className={`feed-poster overflow-hidden ${featured ? "feed-poster-hero" : ""}`}
+              >
+                {mediaUrl ? (
+                  <img
+                    src={mediaUrl}
+                    alt={moment.detail || who}
+                    className="feed-poster-img"
+                  />
+                ) : moment.mediaPath ? (
+                  <div className="skeleton h-56 w-full" />
+                ) : null}
+                <div className="feed-poster-caption">
+                  <p className="truncate text-[0.95rem] font-semibold leading-none text-white">{who}</p>
+                  <p className="mt-1 text-[0.72rem] font-medium leading-none text-white/80">{when}</p>
+                  {moment.detail && !isJunkBody(moment.detail) ? (
+                    <p className="mt-2 line-clamp-2 text-[0.82rem] leading-snug text-white/90">
+                      {moment.detail}
+                    </p>
+                  ) : null}
+                </div>
+              </article>
+            );
+          }
           return (
             <article
               key={moment.key}
               id={`post-${moment.key}`}
-              className={`feed-photo overflow-hidden ${featured ? "feed-photo-cover" : homePeek && index > 0 ? "feed-photo-tile" : ""}`}
+              className="feed-photo overflow-hidden"
             >
               {mediaUrl ? (
-                <div className={`flex justify-center bg-secondary ${featured ? "min-h-[16rem]" : ""}`}>
+                <div className="flex justify-center bg-secondary">
                   <img
                     src={mediaUrl}
                     alt={moment.detail || moment.playerName || "Field photo"}
-                    className={featured ? "h-auto max-h-[28rem] w-full object-cover" : "h-auto max-h-[32rem] w-auto max-w-full object-contain"}
+                    className="h-auto max-h-[32rem] w-auto max-w-full object-contain"
                   />
                 </div>
               ) : moment.mediaPath ? (
@@ -517,9 +547,7 @@ export function SocialClubhouseFeed({
                     <h3 className="text-base font-semibold text-foreground">
                       {moment.playerName || "Player"}
                     </h3>
-                    <p className="t-micro">
-                      {formatActivityTime(new Date(moment.at).toISOString())}
-                    </p>
+                    <p className="t-micro">{when}</p>
                     {moment.detail && !isJunkBody(moment.detail) ? (
                       <p className="mt-1 text-[0.98rem] leading-7 text-foreground/95">
                         {moment.detail}

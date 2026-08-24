@@ -31,7 +31,7 @@ const CREST = {
 } as const;
 
 /**
- * Official crest — same gold PNG everywhere. Header uses sm; letterhead uses lg.
+ * Official crest PNG in a black well. Header uses xs; letterhead uses lg.
  */
 export function BrandMark({
   className = "",

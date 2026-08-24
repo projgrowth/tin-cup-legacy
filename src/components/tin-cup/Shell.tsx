@@ -124,8 +124,8 @@ export function Shell({
             compact ? "min-h-12 py-1.5" : "min-h-14 py-2"
           }`}
         >
-          <Link to="/" className="flex min-w-0 items-center gap-2.5">
-            <BrandMark size={compact ? "xs" : "sm"} />
+          <Link to="/" className="flex min-w-0 items-center gap-2.5 no-underline">
+            <BrandMark size="xs" decorative />
             {cupLive ? (
               <span className="min-w-0">
                 <span className="flex items-center gap-2">
@@ -143,7 +143,7 @@ export function Shell({
               </span>
             ) : (
               <span className="min-w-0">
-                <span className="block truncate text-[0.98rem] font-semibold leading-none tracking-tight text-foreground">
+                <span className="block truncate text-[0.92rem] font-medium leading-none tracking-tight text-foreground">
                   Tin Cup
                 </span>
                 <span className={`t-micro mt-1 block truncate leading-none ${compact ? "hidden" : ""}`}>
@@ -161,7 +161,11 @@ export function Shell({
                   : "Your account"
                 : "Sign in"
             }
-            className="press relative flex min-h-11 shrink-0 items-center justify-center gap-2"
+            className={
+              claimed || user
+                ? "press relative flex min-h-11 min-w-11 shrink-0 items-center justify-center no-underline"
+                : "press btn-quiet relative min-h-11 shrink-0 px-4 no-underline"
+            }
           >
             {claimed ? (
               <Avatar name={claimed.name} teamSlug={claimedTeam?.slug} src={face?.url} size="md" />
@@ -170,7 +174,7 @@ export function Shell({
                 {playerInitials(user.email?.split("@")[0] || "P")}
               </span>
             ) : (
-              <span className="t-body px-1 font-semibold text-foreground">Sign in</span>
+              <span className="text-sm font-semibold leading-none text-foreground">Sign in</span>
             )}
             {user && !playerId && (
               <span
