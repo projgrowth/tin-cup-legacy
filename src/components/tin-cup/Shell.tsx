@@ -143,7 +143,7 @@ export function Shell({
               </span>
             ) : (
               <span className="min-w-0">
-                <span className="block truncate text-[0.92rem] font-medium leading-none tracking-tight text-foreground">
+                <span className="t-title block truncate text-foreground">
                   Tin Cup
                 </span>
                 <span className={`t-micro mt-1 block truncate leading-none ${compact ? "hidden" : ""}`}>
@@ -179,7 +179,7 @@ export function Shell({
             {user && !playerId && (
               <span
                 aria-label="Open account"
-                className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border border-background bg-hunter"
+                className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border border-background bg-foreground"
               />
             )}
             {user && canScore && (

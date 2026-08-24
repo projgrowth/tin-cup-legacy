@@ -34,21 +34,15 @@ export function BottomNav({ live = false }: { live?: boolean }) {
               className={`group press t-micro relative flex min-h-[44px] flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1 no-underline ${
                 isHome
                   ? homeOn
-                    ? "text-hunter"
+                    ? "text-foreground"
                     : "text-muted-foreground"
-                  : "text-muted-foreground data-[status=active]:text-hunter"
+                  : "text-muted-foreground data-[status=active]:text-foreground"
               }`}
               data-status={isHome ? (homeOn ? "active" : "inactive") : undefined}
             >
               <span className="relative flex size-6 items-center justify-center">
                 <Icon
-                  className={`size-[1.15rem] group-data-[status=active]:stroke-[2.25] ${
-                    isHome
-                      ? homeOn
-                        ? "fill-hunter/15"
-                        : ""
-                      : "group-data-[status=active]:fill-hunter/15"
-                  }`}
+                  className="size-[1.15rem] group-data-[status=active]:stroke-[2.25]"
                   strokeWidth={isHome && homeOn ? 2.25 : 1.55}
                 />
                 {isHome && live ? (
