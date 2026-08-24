@@ -4,7 +4,7 @@ import { Avatar } from "@/components/tin-cup/Avatar";
 import type { AvatarIndex } from "@/hooks/usePlayerAvatars";
 import { faceUrl } from "@/hooks/usePlayerAvatars";
 import type { Match, Round } from "@/hooks/useTournament";
-import { DAY1_PAIRINGS, yourGroupLine } from "@/lib/day1-pairings";
+import { DAY1_PAIRINGS, foursomeSentence } from "@/lib/day1-pairings";
 
 type Face = { name: string; url?: string | null; src?: string | null };
 
@@ -18,6 +18,7 @@ function firstName(name: string) {
 
 export const FRIDAY_HOW = "8 v 8. Four groups. You and a partner vs two of them.";
 export const FRIDAY_FORMAT_LINE = "Scramble then alt shot · 8 pts";
+export const FRIDAY_TEE_CAPTION = "Friday · South · 7:30a";
 
 export type PairingGroup = {
   matchIndex: number;
@@ -25,7 +26,7 @@ export type PairingGroup = {
   playersB: string[];
 };
 
-export type PairingVariant = "home" | "grid";
+export type PairingVariant = "home" | "strips";
 
 function resolvedSrc(
   name: string,
@@ -41,93 +42,52 @@ function resolvedSrc(
   return raw?.trim() ? raw : null;
 }
 
-function FaceCell({
+function orderedSides(group: PairingGroup, claimedName?: string | null, yours = false) {
+  const onA = Boolean(claimedName && group.playersA.some((name) => sameName(name, claimedName)));
+  const swapped = Boolean(yours && claimedName && !onA);
+  const left = swapped ? group.playersB : group.playersA;
+  const right = swapped ? group.playersA : group.playersB;
+  if (claimedName && yours) {
+    const you = left.find((name) => sameName(name, claimedName)) ?? left[0]!;
+    const partner = left.find((name) => name !== you) ?? left[1]!;
+    return { left: [you, partner], right };
+  }
+  return { left, right };
+}
+
+function BleedFace({
   name,
   src,
   href,
-  label,
-  you,
-  compact = false,
 }: {
   name: string;
   src?: string | null;
   href?: string;
-  label: string;
-  you?: boolean;
-  compact?: boolean;
 }) {
   const inner = (
-    <>
-      <span
-        className={`lockup-photo relative block aspect-square overflow-hidden bg-secondary ${
-          compact ? "mx-auto w-full max-w-[3.35rem]" : "w-full"
-        }`}
-      >
-        <span className="absolute inset-0">
-          <Avatar name={name} src={src} size="tile" crop="bleed" />
-        </span>
+    <span className="lockup-photo relative block aspect-square overflow-hidden bg-secondary">
+      <span className="absolute inset-0">
+        <Avatar name={name} src={src} size="tile" crop="bleed" />
       </span>
-      <span
-        className={`lockup-name mt-1 block truncate text-center t-micro ${you ? "font-semibold" : ""}`}
-      >
-        {label}
-      </span>
-    </>
+    </span>
   );
   if (href) {
     return (
-      <Link to="/player/$playerId" params={{ playerId: href }} className="press min-w-0">
+      <Link to="/player/$playerId" params={{ playerId: href }} className="press min-w-0" aria-label={name}>
         {inner}
       </Link>
     );
   }
-  return <span className="min-w-0">{inner}</span>;
+  return <span className="min-w-0" aria-label={name}>{inner}</span>;
 }
 
-function SideLockup({
-  names,
-  getFace,
-  avatars,
-  playerIdByName,
-  claimedName,
-  compact = false,
-}: {
-  names: string[];
-  getFace?: (name: string) => Face | undefined;
-  avatars?: AvatarIndex;
-  playerIdByName?: (name: string) => string | undefined;
-  claimedName?: string | null;
-  compact?: boolean;
-}) {
-  return (
-    <div className={`grid grid-cols-2 ${compact ? "gap-1.5" : "gap-px"}`}>
-      {names.map((name) => {
-        const you = Boolean(claimedName && sameName(name, claimedName));
-        return (
-          <FaceCell
-            key={name}
-            name={name}
-            src={resolvedSrc(name, getFace, avatars, playerIdByName)}
-            href={playerIdByName?.(name)}
-            label={you ? "You" : firstName(name)}
-            you={you}
-            compact={compact}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
-/** One foursome as a single match lockup: four faces, vs in the gutter, names under photos. */
-export function MatchLockup({
+/** Home-only: one 2×2 bleed quad. No names on photos. No vs in the gutter. */
+export function PosterQuad({
   group,
   getFace,
   avatars,
   claimedName = null,
   playerIdByName,
-  size = "compact",
-  caption = null,
   yours = false,
 }: {
   group: PairingGroup;
@@ -135,68 +95,78 @@ export function MatchLockup({
   avatars?: AvatarIndex;
   claimedName?: string | null;
   playerIdByName?: (name: string) => string | undefined;
-  size?: "hero" | "compact";
-  caption?: string | null;
   yours?: boolean;
 }) {
-  const onA = Boolean(claimedName && group.playersA.some((name) => sameName(name, claimedName)));
-  const swapped = Boolean(yours && claimedName && !onA);
-  const leftNames = swapped ? group.playersB : group.playersA;
-  const rightNames = swapped ? group.playersA : group.playersB;
-  const names = [...group.playersA, ...group.playersB].map(firstName).join(" · ");
-
+  const { left, right } = orderedSides(group, claimedName, yours);
+  const cells = [left[0]!, right[0]!, left[1]!, right[1]!];
   return (
-    <article aria-label={caption ?? names} className="min-w-0">
-      {caption ? (
-        <p className="t-micro mb-[var(--space-3)] text-muted-foreground">
-          {caption}
-        </p>
-      ) : null}
-      <div
-        className={
-          size === "hero"
-            ? "grid grid-cols-[1fr_auto_1fr] items-start gap-3 sm:gap-4"
-            : "grid grid-cols-[1fr_auto_1fr] items-start gap-2"
-        }
-      >
-        <SideLockup
-          names={leftNames}
-          getFace={getFace}
-          avatars={avatars}
-          playerIdByName={playerIdByName}
-          claimedName={claimedName}
-          compact={size === "compact"}
+    <div
+      className="poster-quad -mx-4 grid w-[calc(100%+2rem)] grid-cols-2 gap-px bg-background sm:-mx-5 sm:w-[calc(100%+2.5rem)]"
+      aria-hidden
+    >
+      {cells.map((name, index) => (
+        <BleedFace
+          key={`${name}-${index}`}
+          name={name}
+          src={resolvedSrc(name, getFace, avatars, playerIdByName)}
+          href={playerIdByName?.(name)}
         />
-        <span className="lockup-vs t-micro self-center px-0.5 font-medium" aria-hidden>
-          vs
-        </span>
-        <SideLockup
-          names={rightNames}
-          getFace={getFace}
-          avatars={avatars}
-          playerIdByName={playerIdByName}
-          claimedName={claimedName}
-          compact={size === "compact"}
-        />
+      ))}
+    </div>
+  );
+}
+
+/** Weekend: four small faces in a row, A A | B B, names once beside. */
+export function PairingStrip({
+  group,
+  getFace,
+  avatars,
+  claimedName = null,
+  playerIdByName,
+}: {
+  group: PairingGroup;
+  getFace?: (name: string) => Face | undefined;
+  avatars?: AvatarIndex;
+  claimedName?: string | null;
+  playerIdByName?: (name: string) => string | undefined;
+}) {
+  const yours = Boolean(
+    claimedName && [...group.playersA, ...group.playersB].some((name) => sameName(name, claimedName)),
+  );
+  const { left, right } = orderedSides(group, claimedName, yours);
+  const line = foursomeSentence(group.playersA, group.playersB, claimedName && yours ? claimedName : null);
+  const faces = [...left, ...right];
+  return (
+    <article className="flex min-w-0 items-center gap-3" aria-label={line}>
+      <div className="grid w-[9.5rem] shrink-0 grid-cols-4 gap-px bg-background">
+        {faces.map((name, index) => (
+          <span
+            key={`${name}-${index}`}
+            className={`lockup-photo relative block aspect-square overflow-hidden bg-secondary ${index === 1 ? "border-r border-border" : ""}`}
+          >
+            <span className="absolute inset-0">
+              <Avatar
+                name={name}
+                src={resolvedSrc(name, getFace, avatars, playerIdByName)}
+                size="tile"
+                crop="bleed"
+              />
+            </span>
+          </span>
+        ))}
       </div>
+      <p className="t-micro min-w-0 flex-1">{line}</p>
     </article>
   );
 }
 
-function pairingLine(group: PairingGroup) {
-  const a = group.playersA.map(firstName).join(" · ");
-  const b = group.playersB.map(firstName).join(" · ");
-  return `${a} vs ${b}`;
-}
-
-/** Home: one lockup + three text lines. Weekend: even 2×2 of lockups. */
 export function PairingSpread({
   groups,
   getFace,
   avatars,
   claimedName = null,
   playerIdByName,
-  variant = "grid",
+  variant = "strips",
 }: {
   groups: PairingGroup[];
   getFace?: (name: string) => Face | undefined;
@@ -212,23 +182,28 @@ export function PairingSpread({
   const rest = featured ? groups.filter((p) => p.matchIndex !== featured.matchIndex) : groups;
 
   if (variant === "home" && featured) {
+    const sentence = foursomeSentence(
+      featured.playersA,
+      featured.playersB,
+      yours && claimedName ? claimedName : null,
+    );
     return (
-      <div className="hangout mx-auto w-full max-w-[48rem] stack">
-        <MatchLockup
+      <div className="stack">
+        <PosterQuad
           group={featured}
           getFace={getFace}
           avatars={avatars}
           claimedName={claimedName}
           playerIdByName={playerIdByName}
-          size="hero"
           yours={Boolean(yours)}
-          caption={claimedName ? yourGroupLine(claimedName) : null}
         />
+        <p className="t-body text-foreground">{sentence}</p>
+        <p className="t-micro">{FRIDAY_TEE_CAPTION}</p>
         {rest.length ? (
           <ul className="stack">
             {rest.map((p) => (
               <li key={p.matchIndex} className="t-micro">
-                {pairingLine(p)}
+                {foursomeSentence(p.playersA, p.playersB)}
               </li>
             ))}
           </ul>
@@ -238,26 +213,23 @@ export function PairingSpread({
   }
 
   return (
-    <div className="hangout mx-auto w-full max-w-[22.5rem] stack">
-      <ol className="grid grid-cols-2 gap-x-[var(--space-5)] gap-y-[var(--space-8)]">
-        {groups.map((p) => (
-          <li key={p.matchIndex} className="min-w-0">
-            <MatchLockup
-              group={p}
-              getFace={getFace}
-              avatars={avatars}
-              claimedName={claimedName}
-              playerIdByName={playerIdByName}
-              size="compact"
-            />
-          </li>
-        ))}
-      </ol>
-    </div>
+    <ol className="stack">
+      {groups.map((p) => (
+        <li key={p.matchIndex}>
+          <PairingStrip
+            group={p}
+            getFace={getFace}
+            avatars={avatars}
+            claimedName={claimedName}
+            playerIdByName={playerIdByName}
+          />
+        </li>
+      ))}
+    </ol>
   );
 }
 
-/** Friday groups as lockups. Format copy stays off Home. */
+/** Friday groups. Format copy stays off Home. */
 export function FridayPairings({
   getFace,
   avatars,
@@ -266,7 +238,7 @@ export function FridayPairings({
   matches: _matches = [],
   rounds: _rounds = [],
   hideIntro = false,
-  variant = "grid",
+  variant = "strips",
 }: {
   getFace?: (name: string) => Face | undefined;
   avatars?: AvatarIndex;

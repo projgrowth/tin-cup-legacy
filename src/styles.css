@@ -934,6 +934,7 @@ html[data-theme="night"] .lockup-vs {
 
 /* Lockup and field photos stay color. Paper is for monograms only. */
 .lockup-photo img,
+.poster-quad img,
 .wall-faces img,
 .home-field-photo img {
   filter: none;
