@@ -145,17 +145,13 @@ export function LockerWall({
                       const selected = mine?.playerId === player.id;
                       const src = faceUrl(avatars.data, player.name, player.id);
                       const face = (
-                        <>
-                          <Avatar
-                            name={player.name}
-                            src={src}
-                            size="sm"
-                            className={selected ? "ring-2 ring-foreground/30" : ""}
-                          />
-                          <span className={`t-micro mt-1 block truncate ${selected ? "font-semibold" : ""}`}>
-                            {firstName(player.name)}
-                          </span>
-                        </>
+                        <Avatar
+                          name={player.name}
+                          src={src}
+                          size="sm"
+                          title={firstName(player.name)}
+                          className={selected ? "ring-2 ring-foreground/30" : ""}
+                        />
                       );
                       if (!canTalk) {
                         return (
@@ -208,7 +204,7 @@ export function LockerWall({
                 type="button"
                 disabled={!question.trim()}
                 onClick={() => void postQuestion()}
-                className="press btn-primary mt-[var(--space-3)] min-h-11 px-4 text-sm font-semibold"
+                className="press btn-quiet mt-[var(--space-3)] min-h-11 px-4 text-sm font-semibold"
               >
                 Post
               </button>

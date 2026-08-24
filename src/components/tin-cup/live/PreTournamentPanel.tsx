@@ -41,6 +41,7 @@ export function PreTournamentPanel({
 
   return (
     <section aria-label="This weekend" className="stack">
+      <Countdown caption={`Friday · ${today.dayLabel} first tee · ${COURSE_LABEL[nextCourseId]}`} />
       <FridayPairings
         avatars={avatars.data}
         getFace={(name) => {
@@ -53,7 +54,6 @@ export function PreTournamentPanel({
         hideIntro
         variant="home"
       />
-      <Countdown caption={`${today.dayLabel} first tee · ${COURSE_LABEL[nextCourseId]}`} />
       <LockerWall players={players} teams={teams} />
       <HomeFieldPhoto players={players} teams={teams} />
       <InstallHint embedded />
