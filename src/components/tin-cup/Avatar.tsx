@@ -33,10 +33,12 @@ export function Avatar({
 }) {
   const bleed = crop === "bleed" || size === "tile";
   const dim = SIZE[size];
+  const paperPoster = size === "poster";
   if (src) {
+    const ring = paperPoster ? "border-border" : avatarRingClass(teamSlug);
     const frame = bleed
       ? `block size-full overflow-hidden bg-secondary ${className}`.trim()
-      : `inline-flex shrink-0 overflow-hidden rounded-full border bg-secondary ${avatarRingClass(teamSlug)} ${dim} ${className}`.trim();
+      : `inline-flex shrink-0 overflow-hidden rounded-full border bg-secondary ${ring} ${dim} ${className}`.trim();
     return (
       <span className={frame}>
         <img
@@ -54,6 +56,17 @@ export function Avatar({
         title={title ?? name}
         aria-hidden={!title}
         className={`flex size-full items-center justify-center ${bleedTone(teamSlug)} ${size === "tile" && !className.includes("text-") ? SIZE.tile.split(" ").slice(1).join(" ") : ""} ${className}`.trim()}
+      >
+        {playerInitials(name)}
+      </span>
+    );
+  }
+  if (paperPoster) {
+    return (
+      <span
+        title={title ?? name}
+        aria-hidden={!title}
+        className={`inline-flex shrink-0 items-center justify-center ${SIZE.poster} rounded-full border border-border bg-secondary font-semibold tracking-wide text-foreground ${className}`}
       >
         {playerInitials(name)}
       </span>

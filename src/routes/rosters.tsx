@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { Avatar } from "@/components/tin-cup/Avatar";
-import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
@@ -80,14 +79,11 @@ function RostersPage() {
   return (
     <Shell variant="content">
       <div className="stack-page">
-        <PageMasthead
-          title="Teams"
-          meta={
-            standings.played > 0
-              ? `${standings.strongMental}–${standings.grassRoots} · 13.5 to win`
-              : `8 v 8 · 13.5 to win`
-          }
-        />
+        <p className="t-micro px-0.5 pt-3 pb-2">
+          {standings.played > 0
+            ? `${standings.strongMental}–${standings.grassRoots} · 13.5 to win`
+            : `8 v 8 · 13.5 to win`}
+        </p>
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
@@ -127,9 +123,9 @@ function RostersPage() {
                       <span className="relative block aspect-[4/5] overflow-hidden bg-secondary">
                         <Avatar
                           name={name}
-                          teamSlug={side.slug}
                           src={player ? avatars.data?.byPlayerId.get(player.id)?.url : undefined}
                           size="tile"
+                          crop="bleed"
                           className="absolute inset-0"
                         />
                         <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-2 pb-2 pt-10">
@@ -150,7 +146,7 @@ function RostersPage() {
                           <Link
                             to="/player/$playerId"
                             params={{ playerId: player.id }}
-                            className={`press block ${isYou ? "outline outline-1 outline-hunter" : ""}`}
+                            className={`press block ${isYou ? "outline outline-1 outline-foreground" : ""}`}
                           >
                             {body}
                           </Link>
