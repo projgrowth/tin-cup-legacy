@@ -47,7 +47,7 @@ function PursePage() {
     <Shell variant="content">
       <div className="stack-page">
         <section>
-          <h1 className="t-hero text-foreground">${BUY_IN}</h1>
+          <h1 className="t-numeral text-foreground">${BUY_IN}</h1>
           <div className="mt-[var(--space-5)]">
             <MoneySplit bare />
           </div>

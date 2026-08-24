@@ -61,7 +61,7 @@ function ScoreRow({
             className="press flex min-h-11 flex-col items-center justify-center px-0.5 py-1.5 text-center"
           >
             <span
-              className={`text-sm font-bold tabular-nums ${on ? "text-hunter" : snake ? "text-copper" : "text-foreground"}`}
+              className={`t-title font-semibold tabular-nums ${on ? "text-hunter" : snake ? "text-copper" : "text-foreground"}`}
             >
               {line.hole}
             </span>

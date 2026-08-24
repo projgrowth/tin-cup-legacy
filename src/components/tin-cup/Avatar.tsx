@@ -1,12 +1,12 @@
 import { avatarRingClass, monogramClass, playerInitials, type TeamSlug } from "@/lib/team-styles";
 
 const SIZE = {
-  sm: "size-7 text-[0.6rem]",
-  md: "size-9 text-[0.65rem]",
-  lg: "size-12 text-sm",
-  xl: "size-[5.5rem] text-xl",
-  poster: "size-[8.75rem] text-2xl",
-  tile: "size-full text-[clamp(2rem,8vw,3.25rem)]",
+  sm: "size-7 t-micro",
+  md: "size-9 t-micro",
+  lg: "size-12 t-title",
+  xl: "size-[5.5rem] t-title",
+  poster: "size-[8.75rem] t-title",
+  tile: "size-full t-title",
 } as const;
 
 function bleedTone(_teamSlug?: TeamSlug | null) {

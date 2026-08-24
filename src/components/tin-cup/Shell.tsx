@@ -95,7 +95,7 @@ export function Shell({
       <div className="theater relative min-h-svh overflow-hidden bg-black" data-theater="open" style={{ overscrollBehavior: "contain" }}>
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-hunter focus:px-3 focus:py-2 focus:text-primary-foreground"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-foreground focus:px-3 focus:py-2 focus:text-background"
         >
           Skip to content
         </a>
@@ -111,7 +111,7 @@ export function Shell({
     >
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-hunter focus:px-3 focus:py-2 focus:text-primary-foreground"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-foreground focus:px-3 focus:py-2 focus:text-background"
       >
         Skip to content
       </a>
@@ -133,10 +133,10 @@ export function Shell({
                     className="size-1.5 animate-pulse rounded-full bg-[var(--status-live)]"
                     aria-label="Cup live"
                   />
-                  <span className="t-numeral text-[1.05rem] tracking-tight">
-                    <span className="text-hunter">{fmtPts(standings.strongMental)}</span>
+                  <span className="t-numeral tracking-tight">
+                    <span className="text-foreground">{fmtPts(standings.strongMental)}</span>
                     <span className="mx-0.5 text-muted-foreground">–</span>
-                    <span className="text-stone">{fmtPts(standings.grassRoots)}</span>
+                    <span className="text-foreground">{fmtPts(standings.grassRoots)}</span>
                   </span>
                 </span>
                 <span className="t-micro mt-0.5 block truncate">Tin Cup</span>
@@ -185,7 +185,7 @@ export function Shell({
             {user && canScore && (
               <span
                 aria-label={isAdmin ? "Admin account" : "Captain account"}
-                className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full border border-background bg-secondary text-[8px] font-bold text-foreground"
+                className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full border border-background bg-secondary t-micro font-bold text-foreground"
               >
                 {isAdmin ? "A" : "C"}
               </span>
@@ -197,7 +197,7 @@ export function Shell({
       {preview && (
         <div
           role="status"
-          className="bg-hunter/10 px-4 py-2 text-center text-xs font-semibold text-hunter"
+          className="bg-secondary px-4 py-2 text-center t-micro font-semibold text-foreground"
         >
           Protected preview · writes are simulated and tournament data stays read-only
         </div>
@@ -255,7 +255,7 @@ function GlobalSyncStatus({
         </span>
         <Link
           to="/"
-          className="press min-h-11 shrink-0 rounded-lg border border-copper/40 px-3 py-2 t-micro text-copper"
+          className="press min-h-11 shrink-0 rounded border border-copper/40 px-3 py-2 t-micro text-copper"
         >
           Review
         </Link>
@@ -273,7 +273,7 @@ function GlobalSyncStatus({
         <button
           type="button"
           onClick={() => void retryFailed()}
-          className="press min-h-11 shrink-0 rounded-lg border border-copper/40 px-3 py-2 t-micro text-copper"
+          className="press min-h-11 shrink-0 rounded border border-copper/40 px-3 py-2 t-micro text-copper"
         >
           Retry
         </button>

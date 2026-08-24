@@ -405,7 +405,7 @@ function MyHubCard({
       >
         <Avatar name={player.name} teamSlug={teamSlug} src={src} size="poster" />
       </button>
-      <h1 className="t-hero mt-[var(--space-5)] text-foreground">
+      <h1 className="t-title mt-[var(--space-5)] text-foreground">
         {player.name.split(" ")[0]}
       </h1>
       <p className="t-micro mt-[var(--space-2)]">
