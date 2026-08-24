@@ -369,7 +369,6 @@ function ScoutPage() {
           </div>
         </div>
         <RoundPlanBoard
-          hero
           courseId={courseId}
           holes={course.holes}
           lines={planLines}

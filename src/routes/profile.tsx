@@ -207,7 +207,7 @@ function ProfilePage() {
             />
           )}
           <GuestNotesMerge />
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="stack-tight">
             <ThemeToggle quiet />
             <button
               type="button"
@@ -396,18 +396,18 @@ function MyHubCard({
 
   return (
     <section className="flex flex-col items-center px-1 py-[var(--space-4)] text-center">
+      <h1 className="t-title text-foreground">
+        {player.name.split(" ")[0]}
+      </h1>
       <button
         type="button"
         onClick={() => setShowPicker((v) => !v)}
         disabled={uploading}
-        className="press relative shrink-0"
+        className="press relative mt-[var(--space-5)] shrink-0"
         aria-label="Upload profile photo"
       >
         <Avatar name={player.name} teamSlug={teamSlug} src={src} size="poster" />
       </button>
-      <h1 className="t-title mt-[var(--space-5)] text-foreground">
-        {player.name.split(" ")[0]}
-      </h1>
       <p className="t-micro mt-[var(--space-2)]">
         {teamName.replace("Team ", "")}
         {player.is_captain ? " · Captain" : ""}

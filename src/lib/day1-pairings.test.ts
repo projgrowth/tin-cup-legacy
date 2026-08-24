@@ -5,6 +5,7 @@ import {
   day1GroupForPlayer,
   fridayFoursome,
   fridayPartnerLine,
+  foursomeSentence,
   groupLine,
   yourGroupLine,
 } from "@/lib/day1-pairings";
@@ -42,5 +43,14 @@ describe("day1 pairings", () => {
       "Max Furth",
     ]);
     expect(seats?.[0]?.you).toBe(true);
+  });
+
+  it("speaks a foursome sentence from either side", () => {
+    expect(foursomeSentence(["Zack Smith", "Chris Maher"], ["Charles Grass", "Blake Weeks"])).toBe(
+      "Zack and Chris vs Charles and Blake",
+    );
+    expect(
+      foursomeSentence(["Zack Smith", "Chris Maher"], ["Charles Grass", "Blake Weeks"], "Charles Grass"),
+    ).toBe("You and Blake vs Zack and Chris");
   });
 });

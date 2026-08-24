@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { useTournament } from "@/hooks/useTournament";
-import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { sideCash, sideCashByPlayer, formatPayout } from "@/lib/purse";
 import { MoneySplit } from "@/components/tin-cup/DayStory";
 import {
@@ -10,7 +9,6 @@ import {
   EXPECTED_PLAYER_COUNT,
   TOURNAMENT_BANK,
   SIDE_BET_PAYOUTS_CONFIRMED,
-  contestHoleLabel,
   venmoUrl,
 } from "@/lib/tin-cup";
 
@@ -73,41 +71,15 @@ function PursePage() {
 
         {claimed.length > 0 && (
           <section>
-            <div className="mb-3 flex items-baseline justify-between gap-3">
-              <h2 className="t-eyebrow">Side pots</h2>
-              <span className="t-micro text-muted-foreground">
-                {claimed.length > 0 ? claimed.length + "/" + bets.length : ""}
-              </span>
-            </div>
-            <ul className="divide-y divide-border/60">
+            <ul className="stack">
               {claimed
                 .filter((bet) => bet.hole != null)
                 .map((bet) => (
-                  <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
-                    <span className="min-w-0">
-                      <span className="flex min-w-0 items-center gap-2">
-                        <span
-                          className={`rounded-full px-1.5 py-0.5 t-micro font-semibold ${
-                            isLongDrive(bet.kind)
-                              ? "ring-1 ring-stone text-stone"
-                              : isCtp(bet.kind)
-                                ? "border border-foreground text-foreground"
-                                : "bg-secondary text-muted-foreground"
-                          }`}
-                        >
-                          {isLongDrive(bet.kind) ? "LD" : isCtp(bet.kind) ? "CTP" : bet.kind}
-                        </span>
-                        <span className="t-body min-w-0 truncate font-medium text-foreground">
-                          {bet.label}
-                        </span>
-                      </span>
-                      <span className="t-micro text-muted-foreground">
-                        {bet.player_name ?? "Open"} · {contestHoleLabel(bet.hole)}
-                      </span>
+                  <li key={bet.id} className="t-micro flex items-baseline justify-between gap-3">
+                    <span className="min-w-0 truncate">
+                      {bet.label} · {bet.player_name ?? "Open"}
                     </span>
-                    <span className="t-numeral shrink-0 text-foreground">
-                      {formatPayout(bet.amount)}
-                    </span>
+                    <span className="shrink-0 text-foreground">{formatPayout(bet.amount)}</span>
                   </li>
                 ))}
             </ul>
@@ -116,14 +88,11 @@ function PursePage() {
 
         {perPlayer.length > 0 && (
           <section>
-            <h2 className="t-eyebrow">Won so far</h2>
-            <ul className="divide-y divide-border/60">
+            <ul className="stack">
               {perPlayer.map((row) => (
-                <li key={row.name} className="flex items-center justify-between gap-3 px-4 py-3">
-                  <span className="t-body min-w-0 truncate text-foreground">{row.name}</span>
-                  <span className="t-numeral shrink-0 text-foreground">
-                    {formatPayout(row.total)}
-                  </span>
+                <li key={row.name} className="t-micro flex items-baseline justify-between gap-3">
+                  <span className="min-w-0 truncate">{row.name}</span>
+                  <span className="shrink-0 text-foreground">{formatPayout(row.total)}</span>
                 </li>
               ))}
             </ul>

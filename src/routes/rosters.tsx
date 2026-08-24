@@ -120,25 +120,23 @@ function RostersPage() {
                     const isCaptain = name === side.captain || Boolean(player?.is_captain);
                     const friday = fridayPartnerLine(name);
                     const body = (
-                      <span className="relative block aspect-[4/5] overflow-hidden bg-secondary">
-                        <Avatar
-                          name={name}
-                          src={player ? avatars.data?.byPlayerId.get(player.id)?.url : undefined}
-                          size="tile"
-                          crop="bleed"
-                          className="absolute inset-0"
-                        />
-                        <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-2 pb-2 pt-10">
-                          <span className="t-title block truncate text-white">
-                            {name.split(" ")[0]}
-                            {isCaptain ? " · C" : ""}
-                            {isYou ? " · You" : ""}
-                          </span>
-                          {friday ? (
-                            <span className="t-micro mt-0.5 block text-white/70">Friday {friday}</span>
-                          ) : null}
+                      <figure className="min-w-0">
+                        <span className="relative block aspect-[4/5] overflow-hidden bg-secondary">
+                          <Avatar
+                            name={name}
+                            src={player ? avatars.data?.byPlayerId.get(player.id)?.url : undefined}
+                            size="tile"
+                            crop="bleed"
+                            className="absolute inset-0"
+                          />
                         </span>
-                      </span>
+                        <figcaption className="t-micro mt-1 truncate">
+                          {name.split(" ")[0]}
+                          {isCaptain ? " · C" : ""}
+                          {isYou ? " · You" : ""}
+                          {friday ? ` · ${friday}` : ""}
+                        </figcaption>
+                      </figure>
                     );
                     return (
                       <li key={name}>

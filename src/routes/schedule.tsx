@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
-import { FridayPairings } from "@/components/tin-cup/FridayPairings";
+import { PairingStrip } from "@/components/tin-cup/PairingStrip";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
@@ -21,6 +21,7 @@ import {
 } from "@/lib/courses";
 import { WEEKEND_SOCIAL } from "@/lib/tin-cup";
 import { PropertyLocator } from "@/components/tin-cup/PropertyLocator";
+import { DAY1_PAIRINGS } from "@/lib/day1-pairings";
 
 function useNow() {
   const [now, setNow] = useState<number | null>(null);
@@ -126,41 +127,34 @@ function SchedulePage() {
           </div>
 
           {isFriday ? (
-            <>
-              <header className="px-0.5">
-                <h1 className="t-title text-foreground">{details.format}</h1>
-                <p className="t-micro mt-1">
-                  {details.dayLabel} · {COURSE_LABEL[courseId]} · {details.firstTee}
-                </p>
-              </header>
-              <FridayPairings
-                hideIntro
-                avatars={avatars.data}
-                getFace={(name) => {
-                  const id = playerIdByName(name);
-                  const entry = (id ? avatars.data?.byPlayerId.get(id) : undefined) ?? avatars.data?.getByName(name);
-                  return entry ? { name: entry.name, url: entry.url, src: entry.url } : undefined;
-                }}
-                claimedName={claimedPlayer?.name ?? null}
-                playerIdByName={playerIdByName}
-                matches={data?.matches ?? []}
-                rounds={data?.rounds ?? []}
-              />
-            </>
+            <ol className="stack">
+              {DAY1_PAIRINGS.map((group) => (
+                <li key={group.matchIndex}>
+                  <PairingStrip
+                    group={group}
+                    avatars={avatars.data}
+                    claimedName={claimedPlayer?.name ?? null}
+                    playerIdByName={playerIdByName}
+                  />
+                </li>
+              ))}
+            </ol>
           ) : (
             <header className="px-0.5">
-              <h1 className="t-title text-foreground">{details.format}</h1>
-              <p className="t-micro mt-2">
-                {COURSE_LABEL[courseId]} · {details.firstTee} · {details.points} pts
-              </p>
+              <h1 className="t-title text-foreground">
+                {COURSE_LABEL[courseId]} · {details.firstTee}
+              </h1>
+              <p className="t-micro mt-2">{details.format} · {details.points} pts</p>
               <p className="t-micro mt-[var(--space-5)]">Pairings when captains post</p>
             </header>
           )}
 
           {dinner ? <p className="t-micro">Tonight · {dinner.title}</p> : null}
 
-          <details className="rounded-xl border border-border px-3 py-2">
-            <summary className="press t-micro cursor-pointer select-none">On the property</summary>
+          <details>
+            <summary className="press t-micro min-h-11 cursor-pointer list-none py-2 [&::-webkit-details-marker]:hidden">
+              Property
+            </summary>
             <PropertyLocator courseId={courseId} />
           </details>
         </section>
