@@ -18,7 +18,7 @@ function homeIsActive(pathname: string) {
 export function BottomNav({ live = false }: { live?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-[env(safe-area-inset-bottom)]">
+    <nav data-bottom-nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-[env(safe-area-inset-bottom)]">
       <div className="mx-auto flex w-full max-w-4xl items-stretch px-4 sm:px-5">
         {items.map(({ to, label, icon: Icon, exact }) => {
           const isHome = label === "Home";

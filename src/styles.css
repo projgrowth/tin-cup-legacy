@@ -888,6 +888,10 @@ html[data-theme="night"] {
   background-color: #000;
 }
 
+html.theater-open [data-bottom-nav] {
+  display: none;
+}
+
 @keyframes tc-match-flash {
   0% {
     box-shadow: 0 0 0 0 oklch(0.82 0.12 85 / 0.45);

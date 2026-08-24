@@ -17,7 +17,6 @@ import {
   COURSE_DETAILS,
   COURSE_ORDER,
   SNAKE_PIT,
-  cannedHoleLine,
   clampHole,
   defaultCourseId,
   getCourse,
@@ -222,7 +221,7 @@ function ScoutPage() {
 
   const orb =
     "press flex size-11 items-center justify-center rounded-full border border-white/15 bg-black/45 text-white shadow-[var(--shadow-card)] backdrop-blur-md";
-  const mapChip = "press min-h-11 px-3 text-[0.7rem] font-semibold tracking-wide text-white/70";
+  const mapChip = "press min-h-10 px-2.5 text-[0.65rem] font-semibold tracking-wide text-white/55";
 
   if (showMap) {
     return (
@@ -250,7 +249,6 @@ function ScoutPage() {
                 onSatFailed={() => setPlayGpsOn(false)}
                 holeCount={course.holes.length}
                 courseLabel={COURSE_LABEL[courseId]}
-                note={planEditor.filled ? planEditor.summary : cannedHoleLine(courseId, current.h)}
               />
             </Suspense>
           </div>

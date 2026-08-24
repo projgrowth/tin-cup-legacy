@@ -177,6 +177,8 @@ test("plan hole map opens the 2D theater and pages holes", async ({ page }) => {
   await expect(page.locator(".hud-label").filter({ hasText: /^B$/ })).toBeVisible();
   await expect(page.getByRole("link", { name: "Back to scorecard" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Hole 1", exact: true })).toHaveCount(0);
+  await expect(page.locator("[data-bottom-nav]")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Aerial" })).toBeVisible();
   await page.getByRole("link", { name: "Next hole" }).click();
   await expect(page).toHaveURL(/hole=8/);
   await expect(page.getByRole("img", { name: /Schematic layout of hole 8/i })).toBeVisible();

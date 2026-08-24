@@ -34,7 +34,6 @@ export function HoleStage({
   onSatFailed,
   holeCount = 18,
   courseLabel,
-  note = null,
 }: {
   courseId: CourseId;
   hole: Hole;
@@ -49,7 +48,6 @@ export function HoleStage({
   onSatFailed?: () => void;
   holeCount?: number;
   courseLabel?: string;
-  note?: string | null;
 }) {
   const needGeo = true;
   const geoPack = useLazyGeoHole(courseId, hole.h, needGeo);
@@ -104,16 +102,9 @@ export function HoleStage({
         </p>
         <p className="mt-1 text-[0.72rem] font-semibold tracking-wide text-white/70">
           Par {hole.par}
-          <span className="mx-1.5 text-white/30">·</span>
-          {liveYards}
           {isSnake ? <span className="ml-1.5 text-copper">Pit</span> : null}
         </p>
-        {hole.name ? (
-          <p className="mt-1 max-w-[16rem] truncate text-[0.72rem] font-semibold text-white/55">
-            {hole.name}
-          </p>
-        ) : null}
-        <p className="sr-only">Black {hole.yards}{note ? ` · ${note}` : ""}</p>
+        <p className="sr-only">Black {hole.yards}</p>
       </div>
 
       {liveStack ? (
@@ -198,7 +189,7 @@ export function HoleStage({
         </div>
       )}
 
-      <div className="pointer-events-none absolute inset-x-0 top-[42%] z-30 flex justify-between px-2">
+      <div className="pointer-events-none absolute inset-x-0 top-[42%] z-30 flex justify-between px-1">
         <Link
           to="/scout"
           search={{ course: courseId, hole: Math.max(1, hole.h - 1), map: true }}
@@ -206,8 +197,8 @@ export function HoleStage({
           aria-label="Previous hole"
           aria-disabled={!canPrev}
           tabIndex={canPrev ? undefined : -1}
-          className={`press pointer-events-auto flex size-11 items-center justify-center rounded-full border border-white/15 bg-black/45 text-white backdrop-blur-md ${
-            canPrev ? "" : "pointer-events-none opacity-30"
+          className={`press pointer-events-auto flex size-10 items-center justify-center rounded-full text-white/35 ${
+            canPrev ? "" : "pointer-events-none opacity-0"
           }`}
         >
           <ChevronLeft className="size-5" />
@@ -219,8 +210,8 @@ export function HoleStage({
           aria-label="Next hole"
           aria-disabled={!canNext}
           tabIndex={canNext ? undefined : -1}
-          className={`press pointer-events-auto flex size-11 items-center justify-center rounded-full border border-white/15 bg-black/45 text-white backdrop-blur-md ${
-            canNext ? "" : "pointer-events-none opacity-30"
+          className={`press pointer-events-auto flex size-10 items-center justify-center rounded-full text-white/35 ${
+            canNext ? "" : "pointer-events-none opacity-0"
           }`}
         >
           <ChevronRight className="size-5" />
