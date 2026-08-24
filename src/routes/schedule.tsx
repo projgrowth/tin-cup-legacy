@@ -20,6 +20,7 @@ import {
   type CourseId,
 } from "@/lib/courses";
 import { WEEKEND_SOCIAL } from "@/lib/tin-cup";
+import { PropertyLocator } from "@/components/tin-cup/PropertyLocator";
 
 function useNow() {
   const [now, setNow] = useState<number | null>(null);
@@ -152,6 +153,11 @@ function SchedulePage() {
           )}
 
           {dinner ? <p className="t-micro">Tonight · {dinner.title}</p> : null}
+
+          <details className="rounded-xl border border-border px-3 py-2">
+            <summary className="press t-micro cursor-pointer select-none">On the property</summary>
+            <PropertyLocator courseId={courseId} />
+          </details>
         </section>
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}

@@ -1,5 +1,6 @@
 /**
- * Front · Center · Back to the green. GPS-only extra panel on theater.
+ * Front · pin · back of the GREEN (not tee colors).
+ * Center/pin yards match the Black scorecard. GPS-only extra panel on theater.
  */
 export function DistanceStack({
   front,
@@ -23,14 +24,22 @@ export function DistanceStack({
   const caption = origin === "tee" ? "from tee" : origin === "green" ? "to green" : null;
 
   return (
-    <div className="px-1">
+    <div className="px-1" role="group" aria-label="Yards to front, pin, and back of green">
       {blocked ? (
         <p className="text-sm font-semibold text-copper">GPS blocked</p>
       ) : (
         <div className="flex items-end gap-3">
-          <YardCol label="F" value={front} tone="muted" live={live} />
-          <YardCol label="C" value={center} tone={live ? "sky" : "muted"} live={live} hero caption={caption} />
-          <YardCol label="B" value={back} tone="muted" live={live} />
+          <YardCol label="F grn" value={front} tone="muted" live={live} title="Front of green" />
+          <YardCol
+            label="Pin"
+            value={center}
+            tone={live ? "sky" : "muted"}
+            live={live}
+            hero
+            caption={caption}
+            title="Pin / center of green · Black scorecard"
+          />
+          <YardCol label="B grn" value={back} tone="muted" live={live} title="Back of green" />
         </div>
       )}
     </div>
@@ -44,6 +53,7 @@ function YardCol({
   hero,
   live,
   caption,
+  title,
 }: {
   label: string;
   value: number;
@@ -51,6 +61,7 @@ function YardCol({
   hero?: boolean;
   live?: boolean;
   caption?: string | null;
+  title?: string;
 }) {
   const color =
     tone === "gold"
@@ -60,7 +71,7 @@ function YardCol({
         : "text-white";
   const size = hero ? "text-[1.85rem] sm:text-[2.05rem]" : "text-[1.35rem] sm:text-[1.5rem]";
   return (
-    <div className="min-w-[2.75rem] text-center">
+    <div className="min-w-[2.9rem] text-center" title={title}>
       <p
         className={`hud-label ${
           tone === "gold"

@@ -221,7 +221,7 @@ export function HoleStage({
   );
 }
 
-/** OSM hole frame — tee F/C/B plus satellite/GPS when those modes are on. */
+/** OSM hole frame — green front/pin/back plus satellite/GPS when those modes are on. */
 function useLazyGeoHole(courseId: CourseId, hole: number, enabled: boolean) {
   const [pack, setPack] = useState<{
     geo: GeoHole | null;
