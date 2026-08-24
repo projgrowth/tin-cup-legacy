@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { applyTheme, readTheme, writeTheme, type PaperTheme } from "@/lib/theme";
 
-export function ThemeToggle() {
+export function ThemeToggle({ quiet = false }: { quiet?: boolean }) {
   const [theme, setTheme] = useState<PaperTheme>("paper");
 
   useEffect(() => {
@@ -16,27 +16,35 @@ export function ThemeToggle() {
     writeTheme(next);
   }
 
+  const buttons = (
+    <div className="flex gap-1" role="group" aria-label="Look">
+      {(
+        [
+          ["paper", "Paper"],
+          ["night", "Night"],
+        ] as const
+      ).map(([value, label]) => (
+        <button
+          key={value}
+          type="button"
+          aria-pressed={theme === value}
+          onClick={() => choose(value)}
+          className={`press chip min-h-11 ${quiet ? "chip-sm" : ""} ${theme === value ? "chip-on" : ""}`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (quiet) {
+    return <div className="flex justify-center">{buttons}</div>;
+  }
+
   return (
     <div className="flex min-h-12 items-center justify-between gap-3 px-4 py-3">
       <p className="t-body font-medium text-foreground">Look</p>
-      <div className="flex gap-1" role="group" aria-label="Look">
-        {(
-          [
-            ["paper", "Paper"],
-            ["night", "Night"],
-          ] as const
-        ).map(([value, label]) => (
-          <button
-            key={value}
-            type="button"
-            aria-pressed={theme === value}
-            onClick={() => choose(value)}
-            className={`press chip min-h-11 ${theme === value ? "chip-on" : ""}`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      {buttons}
     </div>
   );
 }

@@ -135,6 +135,7 @@ function CaptainPage() {
       />
       <AuthCard
         redirectPath="/captain"
+        titled={false}
         blurb="Zack and Charles: sign in here, then confirm Event Ops dual-phone dry run."
       />
     </Shell>

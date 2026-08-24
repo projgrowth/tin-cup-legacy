@@ -117,14 +117,7 @@ function PlayerPage() {
 
   return (
     <Shell>
-      <Link
-        to="/rosters"
-        className="press t-micro mb-4 inline-flex min-h-11 items-center text-muted-foreground"
-      >
-        Teams
-      </Link>
-
-      <article className="surface flex flex-col items-center px-[var(--space-4)] py-[var(--space-6)] text-center">
+      <article className="flex flex-col items-center px-1 py-[var(--space-6)] text-center">
         <Link
           to={isYou ? "/profile" : "/photos"}
           className="press shrink-0 rounded-full"
@@ -134,32 +127,31 @@ function PlayerPage() {
         </Link>
         <h1 className="t-hero mt-[var(--space-5)] text-foreground">{firstName}</h1>
         {isYou ? <p className="t-micro mt-1">You</p> : null}
-        <p className="mt-[var(--space-3)]">
-          <span className="player-flair">{teamChip}</span>
-          {player.is_captain ? <span className="player-flair ml-1">Captain</span> : null}
+        <p className="t-micro mt-[var(--space-3)]">
+          {teamChip}
+          {player.is_captain ? " · Captain" : ""}
         </p>
-        {fridayLine ? <p className="t-micro mt-[var(--space-3)]">{fridayLine}</p> : null}
+        {fridayLine ? <p className="t-micro mt-[var(--space-2)]">{fridayLine}</p> : null}
         {shorthand && record.played > 0 ? <p className="t-micro mt-1">{shorthand}</p> : null}
+        {hasPairing ? (
+          <ShareMomentButton
+            className="mt-[var(--space-3)] w-auto border-0 bg-transparent px-2 t-micro font-medium text-muted-foreground"
+            payload={{
+              kind: "player",
+              eyebrow: team.name,
+              title: player.name,
+              primary: record.played > 0 ? `${record.points} pts` : fridayLine ?? teamChip,
+              secondary: shorthand
+                ? `${shorthand} record${cash > 0 ? ` · ${formatPayout(cash)} side cash` : ""}${socialProfile?.flair ? ` · ${socialProfile.flair.replace("vibes", "vibes captain")}` : ""}`
+                : "Tin Cup Invitational 2026",
+              canonicalUrl:
+                typeof window === "undefined" ? "https://www.tincupinv.com/" : window.location.href,
+            }}
+          >
+            Share card
+          </ShareMomentButton>
+        ) : null}
       </article>
-
-      {hasPairing ? (
-      <ShareMomentButton
-        className="mt-3 w-full"
-        payload={{
-          kind: "player",
-          eyebrow: team.name,
-          title: player.name,
-          primary: record.played > 0 ? `${record.points} pts` : fridayLine ?? teamChip,
-          secondary: shorthand
-            ? `${shorthand} record${cash > 0 ? ` · ${formatPayout(cash)} side cash` : ""}${socialProfile?.flair ? ` · ${socialProfile.flair.replace("vibes", "vibes captain")}` : ""}`
-            : "Tin Cup Invitational 2026",
-          canonicalUrl:
-            typeof window === "undefined" ? "https://www.tincupinv.com/" : window.location.href,
-        }}
-      >
-        Share card
-      </ShareMomentButton>
-      ) : null}
 
       {record.played > 0 ? (
       <div className="mt-6 grid grid-cols-3 gap-3">
@@ -176,13 +168,12 @@ function PlayerPage() {
       </div>
       ) : null}
 
-      {(record.points > 0 || claims.length > 0 || player.is_captain) && (
+      {(record.points > 0 || claims.length > 0) && (
         <section className="mt-6" aria-labelledby="player-achievements">
           <h2 id="player-achievements" className="t-eyebrow">
             Weekend
           </h2>
           <ul className="mt-3 flex flex-wrap gap-2">
-            {player.is_captain && <li className="player-flair">Team captain</li>}
             {record.points > 0 && (
               <li className="player-flair">On the board · {record.points} pts</li>
             )}
@@ -203,9 +194,10 @@ function PlayerPage() {
         </ul>
       ) : null}
 
+      {mine.length > 0 ? (
       <section className="mt-6">
         <h2 className="t-eyebrow">Matches</h2>
-        <ol className="surface mt-2 divide-y divide-border overflow-hidden">
+        <ol className="mt-2 space-y-3">
           {mine.map((match) => {
             const round = rounds.find((r) => r.id === match.round_id);
             const onA = pairingIncludes(match.side_a, player.name);
@@ -213,7 +205,7 @@ function PlayerPage() {
             const opponents = onA ? match.side_b : match.side_a;
             const live = round && roundStatus(round) === "live";
             return (
-              <li key={match.id} className="px-4 py-3">
+              <li key={match.id}>
                 <div className="flex items-baseline justify-between gap-3">
                   <span className="t-body min-w-0 truncate font-medium text-foreground">
                     {match.label}
@@ -236,22 +228,9 @@ function PlayerPage() {
               </li>
             );
           })}
-          {mine.length === 0 && (
-            <li className="px-4 py-3">
-              {day1GroupForPlayer(player.name) ? (
-                <>
-                  <p className="t-body font-medium text-foreground">Friday · South</p>
-                  <p className="t-micro mt-0.5">
-                    {fridayPartnerLine(player.name) ?? groupLine(player.name, isYou)}
-                  </p>
-                </>
-              ) : (
-                <p className="t-micro">Pairings post once the captains set the lineups.</p>
-              )}
-            </li>
-          )}
         </ol>
       </section>
+      ) : null}
 
       {claims.length > 0 ? (
       <section className="mt-6">

@@ -207,18 +207,21 @@ test("protected preview exposes the gallery and engagement prompt without produc
 
 test("profile guest sees sign-in instead of a stuck claim screen", async ({ page }) => {
   await page.goto("/profile");
-  await expect(page.getByRole("heading", { name: "Account" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Account" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Paper" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Night" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Claim your name" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Couldn't load your account" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Create account" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Forgot" })).toBeVisible();
 });
 
 test("guest account and primary navigation meet the interaction baseline", async ({ page }) => {
   await page.goto("/profile");
   await expectTinCupIdentity(page);
-  await expect(page.getByRole("heading", { level: 1, name: "Account" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Sign in" })).toBeVisible();
   await expect(page.getByText("Loading…")).toHaveCount(0, { timeout: 15_000 });
   await expect(page.getByLabel("Email")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByLabel("Password")).toBeVisible();

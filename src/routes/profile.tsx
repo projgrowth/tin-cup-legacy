@@ -2,14 +2,12 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Camera, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { AuthCard } from "@/components/tin-cup/AuthCard";
 import { Avatar } from "@/components/tin-cup/Avatar";
-import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { PhotoPicker } from "@/components/tin-cup/PhotoPicker";
 import { NotificationSettings } from "@/components/tin-cup/NotificationSettings";
-import { DeviceReadiness } from "@/components/tin-cup/DeviceReadiness";
 import { LoadingForm, PageHeading, Shell } from "@/components/tin-cup/Shell";
 import { ThemeToggle } from "@/components/tin-cup/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,11 +17,8 @@ import { useTournament } from "@/hooks/useTournament";
 import { signOut, supabase } from "@/integrations/supabase/client";
 import { signedVaultUrl, uploadVaultImage } from "@/integrations/supabase/storage";
 import { type CourseId } from "@/lib/courses";
-import { day1GroupForPlayer, yourGroupLine } from "@/lib/day1-pairings";
+import { day1GroupForPlayer } from "@/lib/day1-pairings";
 import { clearGuestNotes, countGuestNotes, listGuestNotes } from "@/lib/guest-notes";
-import { formatPayout } from "@/lib/purse";
-import { formatRecord, playerRecord } from "@/lib/scoring";
-import { teamRailClass } from "@/lib/team-styles";
 import { resolveIdentity } from "@/lib/profile-identity";
 import { assertMutationAllowed } from "@/lib/runtime-mode";
 import { WHATSAPP_GROUP_CONFIGURED, WHATSAPP_GROUP_URL } from "@/lib/tin-cup";
@@ -109,26 +104,12 @@ function ProfilePage() {
   }, [claimedPlayer, tournament?.teams]);
   return (
     <Shell>
-      {!user ? (
-        <p className="t-body mb-[var(--space-5)]">
-          Sign in, then claim your name.
-        </p>
-      ) : claimedPlayer ? (
-        <PageMasthead
-          title={claimedPlayer.name.split(" ")[0] ?? claimedPlayer.name}
-          meta={[
-            claimedTeam?.name.replace("Team ", "") ?? "Field",
-            yourGroupLine(claimedPlayer.name),
-          ]
-            .filter(Boolean)
-            .join(" · ")}
-        />
-      ) : (
+      {user && !claimedPlayer ? (
         <PageHeading
           eyebrow="Account"
           title={identity.kind === "claim" ? "Claim your name" : "Your account"}
         />
-      )}
+      ) : null}
       {user && rolesError && (
         <div role="alert" className="surface mb-4 flex items-center justify-between gap-3 p-4">
           <p className="t-micro">Your access level could not be refreshed.</p>
@@ -173,12 +154,10 @@ function ProfilePage() {
             blurb={
               search.claim
                 ? "Sign in to confirm the roster spot from your claim link."
-                : "Password works if the email link is rate-limited."
+                : "Then claim your name. Password works if the email link is rate-limited."
             }
           />
-          <div className="surface overflow-hidden">
-            <ThemeToggle />
-          </div>
+          <ThemeToggle quiet />
         </div>
       ) : identity.kind === "loading" ? (
         <LoadingForm fields={3} />
@@ -203,8 +182,6 @@ function ProfilePage() {
               player={claimedPlayer}
               teamSlug={claimedTeam.slug}
               teamName={claimedTeam.name}
-              matches={tournament?.matches ?? []}
-              sideBets={tournament?.sideBets ?? []}
             />
           ) : identity.kind === "hub" && identity.playerMissing ? (
             <div role="alert" className="surface space-y-3 p-4">
@@ -230,56 +207,39 @@ function ProfilePage() {
             />
           )}
           <GuestNotesMerge />
-          <div className="surface overflow-hidden">
-            <ThemeToggle />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <ThemeToggle quiet />
+            <button
+              type="button"
+              onClick={() => {
+                void signOut().catch((e) =>
+                  toast.error(e instanceof Error ? e.message : "Could not sign out"),
+                );
+              }}
+              className="press t-micro min-h-11 px-2 text-muted-foreground"
+            >
+              Sign out
+            </button>
           </div>
-          <ul className="surface divide-y divide-border overflow-hidden">
-            {claimedPlayer && (
-              <li>
-                <Link
-                  to="/player/$playerId"
-                  params={{ playerId: claimedPlayer.id }}
-                  className="press flex min-h-12 items-center px-4 py-3"
-                >
-                  <span className="t-body font-medium">Player card</span>
-                </Link>
-              </li>
-            )}
-            <li>
-              <button
-                type="button"
-                onClick={() => {
-                  void signOut().catch((e) =>
-                    toast.error(e instanceof Error ? e.message : "Could not sign out"),
-                  );
-                }}
-                className="press flex min-h-12 w-full items-center px-4 py-3 text-left t-body font-medium"
-              >
-                Sign out
-              </button>
-            </li>
-          </ul>
-          <details className="surface overflow-hidden">
-            <summary className="press flex min-h-12 cursor-pointer list-none items-center px-4 py-3 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
+          <details className="overflow-hidden">
+            <summary className="press flex min-h-11 cursor-pointer list-none items-center py-2 t-micro font-medium text-muted-foreground [&::-webkit-details-marker]:hidden">
               More
             </summary>
             <div className="divide-y divide-border border-t border-border">
               {claimedPlayer ? (
-                <details>
-                  <summary className="press flex min-h-12 cursor-pointer list-none items-center px-4 py-3 t-body text-foreground [&::-webkit-details-marker]:hidden">
-                    This phone
-                  </summary>
-                  <div className="border-t border-border px-4 py-3">
-                    <DeviceReadiness embedded />
-                  </div>
-                </details>
+                <div className="px-0 py-3">
+                  <p className="t-micro font-medium text-foreground">This phone</p>
+                  <p className="t-micro mt-0.5">
+                    Reload once if the app isn&apos;t cached. Course maps download from Plan.
+                  </p>
+                </div>
               ) : null}
               {claimedPlayer ? (
                 <details>
-                  <summary className="press flex min-h-12 cursor-pointer list-none items-center px-4 py-3 t-body text-foreground [&::-webkit-details-marker]:hidden">
+                  <summary className="press flex min-h-12 cursor-pointer list-none items-center py-3 t-body text-foreground [&::-webkit-details-marker]:hidden">
                     Alerts
                   </summary>
-                  <div className="border-t border-border px-4 py-3">
+                  <div className="border-t border-border py-3">
                     <NotificationSettings userId={user.id} embedded />
                   </div>
                 </details>
@@ -289,19 +249,19 @@ function ProfilePage() {
                   href={WHATSAPP_GROUP_URL}
                   target="_blank"
                   rel="noreferrer"
-                  className="press flex min-h-12 items-center px-4 py-3 t-body font-medium text-foreground"
+                  className="press flex min-h-12 items-center py-3 t-micro font-medium text-foreground"
                 >
                   Field chat
                 </a>
               ) : null}
-              <div className="px-4 py-3">
-                <p className="t-body font-medium text-foreground">Add to Home Screen</p>
+              <div className="py-3">
+                <p className="t-micro font-medium text-foreground">Add to Home Screen</p>
                 <p className="t-micro mt-0.5">iPhone: Share → Add to Home Screen</p>
               </div>
               {canScore ? (
                 <Link
                   to="/ops"
-                  className="press flex min-h-12 items-center px-4 py-3 t-body font-medium text-foreground"
+                  className="press flex min-h-12 items-center py-3 t-micro font-medium text-foreground"
                 >
                   Ops
                 </Link>
@@ -309,7 +269,7 @@ function ProfilePage() {
               {isAdmin ? (
                 <Link
                   to="/admin"
-                  className="press flex min-h-12 items-center px-4 py-3 t-body font-medium text-foreground"
+                  className="press flex min-h-12 items-center py-3 t-micro font-medium text-foreground"
                 >
                   Admin
                 </Link>
@@ -379,14 +339,10 @@ function MyHubCard({
   player,
   teamSlug,
   teamName,
-  matches,
-  sideBets,
 }: {
   player: { id: string; name: string; is_captain: boolean };
   teamSlug: string;
   teamName: string;
-  matches: Parameters<typeof playerRecord>[0];
-  sideBets: Array<{ player_name: string | null; amount: number | string }>;
 }) {
   const queryClient = useQueryClient();
   const { profile, save } = useProfile();
@@ -398,11 +354,6 @@ function MyHubCard({
   const [showPicker, setShowPicker] = useState(false);
 
   const d1 = day1GroupForPlayer(player.name);
-  const record = playerRecord(matches, player.name, teamSlug);
-  const shorthand = formatRecord(record);
-  const cash = sideBets
-    .filter((b) => b.player_name === player.name)
-    .reduce((sum, c) => sum + Number(c.amount), 0);
 
   async function onPick(file: File) {
     if (!file.type.startsWith("image/")) {
@@ -444,47 +395,51 @@ function MyHubCard({
   const src = localUrl || face?.url || null;
 
   return (
-    <section className={`surface p-[var(--space-4)] ${teamRailClass(teamSlug)}`}>
-      <div className="flex flex-col items-center text-center">
-        <button
-          type="button"
-          onClick={() => setShowPicker((v) => !v)}
-          disabled={uploading}
-          className="press relative shrink-0"
-          aria-label="Upload profile photo"
-        >
-          <Avatar name={player.name} teamSlug={teamSlug} src={src} size="poster" />
-          <span className="absolute -bottom-0.5 -right-0.5 flex size-6 items-center justify-center rounded-full border border-border bg-background text-muted-foreground">
-            {uploading ? (
-              <Loader2 className="size-3 animate-spin" />
-            ) : (
-              <Camera className="size-3" strokeWidth={1.8} />
-            )}
+    <section className="flex flex-col items-center px-1 py-[var(--space-4)] text-center">
+      <button
+        type="button"
+        onClick={() => setShowPicker((v) => !v)}
+        disabled={uploading}
+        className="press relative shrink-0"
+        aria-label="Upload profile photo"
+      >
+        <Avatar name={player.name} teamSlug={teamSlug} src={src} size="poster" />
+      </button>
+      <h1 className="t-hero mt-[var(--space-5)] text-foreground">
+        {player.name.split(" ")[0]}
+      </h1>
+      <p className="t-micro mt-[var(--space-2)]">
+        {teamName.replace("Team ", "")}
+        {player.is_captain ? " · Captain" : ""}
+      </p>
+      {d1 ? (
+        <p className="t-micro mt-[var(--space-2)]">
+          Friday · w/ {d1.partner.split(" ")[0]} · vs {d1.opponents}
+        </p>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => setShowPicker((v) => !v)}
+        disabled={uploading}
+        className="press t-micro mt-[var(--space-3)] min-h-11 text-muted-foreground underline-offset-2 hover:underline"
+      >
+        {uploading ? (
+          <span className="inline-flex items-center gap-1">
+            <Loader2 className="size-3 animate-spin" /> Saving
           </span>
-        </button>
-        <div className="min-w-0 w-full">
-          <p className="t-micro mt-[var(--space-3)]">{teamName}</p>
-          <h2 className="t-title mt-1 text-foreground">{player.name.split(" ")[0]}</h2>
-          {player.is_captain && <span className="t-micro">Captain</span>}
-          <button
-            type="button"
-            onClick={() => setShowPicker((v) => !v)}
-            disabled={uploading}
-            className="press t-micro mt-[var(--space-3)] text-muted-foreground underline-offset-2 hover:underline"
-          >
-            {src ? "Change photo" : "Add photo"}
-          </button>
-          {d1 && (
-            <p className="t-micro mt-[var(--space-3)]">
-              Friday · w/ {d1.partner.split(" ")[0]} · vs {d1.opponents}
-            </p>
-          )}
-          <p className="t-micro mt-1">
-            {shorthand ? `${shorthand} · ${record.points} pts` : "No results yet"}
-            {cash > 0 ? ` · ${formatPayout(cash)} side` : ""}
-          </p>
-        </div>
-      </div>
+        ) : src ? (
+          "Change photo"
+        ) : (
+          "Add photo"
+        )}
+      </button>
+      <Link
+        to="/player/$playerId"
+        params={{ playerId: player.id }}
+        className="press t-micro mt-1 min-h-11 text-muted-foreground"
+      >
+        Player card
+      </Link>
       {showPicker && (
         <div className="mt-3 border-t border-border pt-3">
           <PhotoPicker
