@@ -53,7 +53,7 @@ export function PreTournamentPanel({
         hideIntro
         variant="home"
       />
-      <Countdown caption={`${today.dayLabel} · ${COURSE_LABEL[nextCourseId]}`} />
+      <Countdown caption={`${today.dayLabel} first tee · ${COURSE_LABEL[nextCourseId]}`} />
       <LockerWall players={players} teams={teams} />
       <HomeFieldPhoto players={players} teams={teams} />
       <InstallHint embedded />

@@ -929,6 +929,12 @@ html[data-theme="night"] .lockup-vs {
   opacity: 0.45;
 }
 
+/* MatchLockup + Home most-likely photos: paper faces, not color yearbook. */
+.lockup-photo img,
+.wall-faces img {
+  filter: grayscale(0.45) saturate(0.35) contrast(0.95);
+}
+
 .home-field-photo img {
   filter: saturate(0.82) contrast(0.94);
 }

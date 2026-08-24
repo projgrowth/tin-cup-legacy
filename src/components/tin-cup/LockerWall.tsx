@@ -140,7 +140,7 @@ export function LockerWall({
                       {crowdSays(firstName(winnerPlayer.name), prompt, result.percent)}
                     </p>
                   ) : null}
-                  <div className="mt-[var(--space-3)] grid grid-cols-8 gap-x-1 gap-y-2">
+                  <div className="wall-faces mt-[var(--space-3)] grid grid-cols-8 gap-x-1 gap-y-2">
                     {faces.map((player) => {
                       const selected = mine?.playerId === player.id;
                       const src = faceUrl(avatars.data, player.name, player.id);

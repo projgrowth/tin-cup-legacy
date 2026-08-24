@@ -56,13 +56,13 @@ function FaceCell({
 }) {
   const inner = (
     <>
-      <span className="relative block aspect-square w-full overflow-hidden bg-secondary">
+      <span className="lockup-photo relative block aspect-square w-full overflow-hidden bg-secondary">
         <span className="absolute inset-0">
           <Avatar name={name} src={src} size="tile" crop="bleed" />
         </span>
       </span>
       <span
-        className={`lockup-name mt-1 block truncate text-center t-micro ${you ? "font-semibold" : ""}`}
+        className={`lockup-name mt-1 block truncate text-center t-micro text-muted-foreground ${you ? "font-semibold" : ""}`}
       >
         {label}
       </span>
@@ -137,7 +137,10 @@ export function MatchLockup({
   const names = [...group.playersA, ...group.playersB].map(firstName).join(" · ");
 
   return (
-    <article aria-label={caption ?? names} className="min-w-0">
+    <article
+      aria-label={caption ?? names}
+      className={size === "hero" ? "mx-auto min-w-0 w-full max-w-[20rem]" : "mx-auto min-w-0 w-full max-w-[9.25rem]"}
+    >
       {caption ? (
         <p className="t-micro mb-[var(--space-3)] text-muted-foreground">
           {caption}
@@ -146,7 +149,7 @@ export function MatchLockup({
       <div
         className={
           size === "hero"
-            ? "grid grid-cols-[1fr_auto_1fr] items-start gap-3 sm:gap-4"
+            ? "grid grid-cols-[1fr_auto_1fr] items-start gap-2 sm:gap-3"
             : "grid grid-cols-[1fr_auto_1fr] items-start gap-1"
         }
       >
@@ -198,8 +201,8 @@ export function PairingSpread({
     <div
       className={
         hero
-          ? "hangout mx-auto w-full max-w-[48rem] space-y-[var(--space-5)] md:grid md:max-w-none md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] md:items-start md:gap-x-[var(--space-6)] md:gap-y-[var(--space-5)] md:space-y-0"
-          : "hangout mx-auto w-full max-w-[48rem] stack md:max-w-none"
+          ? "hangout mx-auto w-full max-w-[22rem] space-y-[var(--space-8)] md:grid md:max-w-none md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:items-start md:gap-x-[var(--space-8)] md:gap-y-[var(--space-8)] md:space-y-0"
+          : "hangout mx-auto w-full max-w-[22rem] stack md:max-w-none"
       }
     >
       {hero ? (
@@ -214,7 +217,7 @@ export function PairingSpread({
           caption={claimedName ? yourGroupLine(claimedName) : null}
         />
       ) : null}
-      <ol className="grid grid-cols-2 gap-x-[var(--space-3)] gap-y-[var(--space-5)]">
+      <ol className="grid grid-cols-2 gap-x-[var(--space-6)] gap-y-[var(--space-8)] px-[var(--space-2)]">
         {(hero ? rest : groups).map((p) => (
           <li key={p.matchIndex} className="min-w-0">
             <MatchLockup
@@ -254,7 +257,9 @@ export function FridayPairings({
 }) {
   return (
     <div className="stack">
-      {hideIntro ? null : (
+      {hideIntro ? (
+        <h2 className="t-title text-foreground">Friday</h2>
+      ) : (
         <p className="t-micro">
           {FRIDAY_HOW} · {FRIDAY_FORMAT_LINE}
         </p>
