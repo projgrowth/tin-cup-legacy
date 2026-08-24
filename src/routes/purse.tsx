@@ -87,11 +87,11 @@ function PursePage() {
                     <span className="min-w-0">
                       <span className="flex min-w-0 items-center gap-2">
                         <span
-                          className={`rounded-full px-1.5 py-0.5 text-[0.65rem] font-semibold ${
+                          className={`rounded-full px-1.5 py-0.5 t-micro font-semibold ${
                             isLongDrive(bet.kind)
                               ? "ring-1 ring-stone text-stone"
                               : isCtp(bet.kind)
-                                ? "ring-1 ring-hunter text-hunter"
+                                ? "border border-foreground text-foreground"
                                 : "bg-secondary text-muted-foreground"
                           }`}
                         >

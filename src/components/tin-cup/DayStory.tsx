@@ -97,7 +97,7 @@ export function MoneySplit({ bare = false }: { bare?: boolean }) {
     <div className="space-y-[var(--space-2)]">
       {FEE_BREAKDOWN.map((row) => (
         <p key={row.label} className="flex items-baseline justify-between gap-4">
-          <span className="t-title tabular-nums text-foreground">{row.value}</span>
+          <span className="t-numeral text-foreground">{row.value}</span>
           <span className="t-micro">{bare ? row.label : [row.label, row.note].filter(Boolean).join(" · ")}</span>
         </p>
       ))}
