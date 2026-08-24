@@ -48,7 +48,7 @@ export function Shell({
   const avatars = usePlayerAvatars(tournament?.players ?? [], tournament?.teams ?? []);
   const face = claimed ? avatars.data?.byPlayerId.get(claimed.id) : undefined;
   const standings = tallyStandings(tournament?.matches ?? []);
-  const cupLive = getEventPhase() !== "before";
+  const cupLive = standings.played > 0 || getEventPhase() === "live";
   const fmtPts = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
   useEffect(() => {

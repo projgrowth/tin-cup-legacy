@@ -57,8 +57,8 @@ export function PreTournamentPanel({
         hideIntro
         variant="home"
       />
-      <HomeFieldPhoto players={players} teams={teams} />
       <LockerWall players={players} teams={teams} />
+      <HomeFieldPhoto players={players} teams={teams} />
       <InstallHint embedded />
     </section>
   );
