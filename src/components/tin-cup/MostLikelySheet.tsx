@@ -70,7 +70,7 @@ export function MostLikelySheet({
 
   return (
     <section aria-labelledby="banter-title">
-      <h2 id="banter-title" className="t-title text-foreground">
+      <h2 id="banter-title" className="t-body text-foreground">
         {prompt.prompt}
       </h2>
       {winnerPlayer && result ? (
@@ -85,12 +85,11 @@ export function MostLikelySheet({
             <>
               <Avatar
                 name={player.name}
-                teamSlug={teams.find((team) => team.id === player.team_id)?.slug}
                 src={avatars.data?.byPlayerId.get(player.id)?.url}
                 size="sm"
-                className={selected ? "ring-2 ring-hunter" : ""}
+                className={selected ? "ring-2 ring-foreground/30" : ""}
               />
-              <span className={`t-micro mt-1 block ${selected ? "text-hunter" : ""}`}>
+              <span className={`t-micro mt-1 block ${selected ? "font-semibold" : ""}`}>
                 {firstName(player.name)}
               </span>
             </>
