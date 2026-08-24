@@ -20,6 +20,13 @@ import {
 import { fridayRosterNames } from "@/lib/day1-pairings";
 import { claimedPlayerIdFor } from "@/lib/profile-identity";
 import { CLUBHOUSE_MOMENT_KEY } from "@/lib/social-platform";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
 function firstName(name: string) {
   return name.trim().split(/\s+/)[0] ?? name;
@@ -148,6 +155,7 @@ export function LockerWall({
                         <>
                           <Avatar
                             name={player.name}
+                            teamSlug={teams.find((team) => team.id === player.team_id)?.slug}
                             src={src}
                             size="sm"
                             className={selected ? "ring-2 ring-hunter" : ""}
@@ -221,5 +229,42 @@ export function LockerWall({
         </div>
       </div>
     </section>
+  );
+}
+
+/** Home: one caption that opens the wall, not a 16-face poster. */
+export function HomeWallDoor({
+  players,
+  teams,
+}: {
+  players: Player[];
+  teams: Team[];
+}) {
+  const { votes, prompts } = useBanterVotes();
+  const story = useWeekendStory();
+  const prompt = activeWallPrompt(prompts);
+  const latestRoast = [...story.clubhousePosts]
+    .filter((post) => post.body.trim() && !post.pinned_at)
+    .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0];
+  const result = prompt ? resultForPrompt(votes, prompt.id) : null;
+  const winner = result ? players.find((player) => player.id === result.playerId) : null;
+  const line = winner && prompt && result
+    ? crowdSays(firstName(winner.name), prompt, result.percent)
+    : prompt?.prompt ?? (latestRoast ? latestRoast.body.trim() : "The wall");
+
+  return (
+    <Drawer>
+      <DrawerTrigger className="press t-micro min-h-11 w-full truncate text-left">
+        {line}
+      </DrawerTrigger>
+      <DrawerContent className="border-border bg-card">
+        <DrawerHeader className="pb-1 text-left">
+          <DrawerTitle className="t-title text-foreground">The wall</DrawerTitle>
+        </DrawerHeader>
+        <div className="max-h-[70vh] overflow-y-auto px-4 pb-8">
+          <LockerWall players={players} teams={teams} />
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }

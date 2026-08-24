@@ -4,7 +4,7 @@ import { Avatar } from "@/components/tin-cup/Avatar";
 import type { AvatarIndex } from "@/hooks/usePlayerAvatars";
 import { faceUrl } from "@/hooks/usePlayerAvatars";
 import type { Match, Round } from "@/hooks/useTournament";
-import { DAY1_PAIRINGS, yourGroupLine } from "@/lib/day1-pairings";
+import { DAY1_PAIRINGS } from "@/lib/day1-pairings";
 
 type Face = { name: string; url?: string | null; src?: string | null };
 
@@ -233,7 +233,6 @@ export function PairingSpread({
           playerIdByName={playerIdByName}
           size="hero"
           yours
-          caption={claimedName ? yourGroupLine(claimedName) : null}
         />
       ) : null}
       <ol className="grid grid-cols-2 gap-x-[var(--space-3)] gap-y-[var(--space-5)]">
