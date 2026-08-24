@@ -9,7 +9,9 @@ import {
 import type { StoryMoment } from "@/lib/weekend-story";
 
 export const CARD_NOTE_MAX = 140;
-export const CARD_DISCLAIMER = "Ride the other groups. Yours is already set.";
+export const CARD_HEADER = "Who takes Friday?";
+export const CARD_SUBLINE = "Not official. Just the group chat.";
+export const CARD_DISCLAIMER = CARD_HEADER;
 
 export function pairingFirstNames(side: string | null | undefined): string {
   if (!side?.trim()) return "TBD";
@@ -282,7 +284,7 @@ export function isYourMarket(
   );
 }
 
-/** Rides on the other groups. Your own pairing is already set. */
+/** Picks on the other groups. Your pairing is just the group you are in. */
 export function takenCount(
   predictions: MatchPrediction[],
   userId: string | undefined,
@@ -316,6 +318,7 @@ export function buildCardMoments(input: {
     const pairing = `${pick.userId}:${match.round_id}:${pairingKey(match.side_a, match.side_b)}`;
     if (seenPairing.has(pairing)) continue;
     seenPairing.add(pairing);
+    if (!pick.note?.trim()) continue;
     const author = input.authorName(pick.userId);
     const line = cardLine({
       author,

@@ -18,10 +18,10 @@ export function DayStory({
   children?: ReactNode;
 }) {
   return (
-    <article className="surface px-4 py-3.5">
-      {kicker ? <p className="t-micro text-muted-foreground">{kicker}</p> : null}
+    <article className="hairline pt-3 first:border-t-0 first:pt-0">
+      {kicker ? <p className="t-micro">{kicker}</p> : null}
       <h3 className={`t-body font-semibold text-foreground ${kicker ? "mt-1" : ""}`}>{title}</h3>
-      {meta ? <p className="t-micro mt-1 font-medium text-foreground/80">{meta}</p> : null}
+      {meta ? <p className="t-micro mt-1">{meta}</p> : null}
       {body ? <p className="t-body mt-2 text-muted-foreground">{body}</p> : null}
       {children}
     </article>
@@ -50,6 +50,32 @@ export function CourseDayStory({
   );
 }
 
+/** Editorial program notes — day, format, one sentence, quiet tee·pts. */
+export function FormatCards() {
+  return (
+    <div className="grid gap-[var(--space-6)]">
+      {COURSE_ORDER.map((id) => {
+        const d = COURSE_DETAILS[id];
+        return (
+          <details key={id} className="group">
+            <summary className="press cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+              <p className="t-micro">{d.dayLabel}</p>
+              <p className="t-title mt-1 text-foreground">{d.format}</p>
+              <p className="t-body mt-[var(--space-3)] text-muted-foreground">{d.formatTip}</p>
+              <p className="t-micro mt-[var(--space-3)]">
+                {d.firstTee} · {d.points} pts
+              </p>
+            </summary>
+            <p className="t-body mt-[var(--space-3)] text-muted-foreground">
+              {COURSE_LABEL[id]}. {d.description}
+            </p>
+          </details>
+        );
+      })}
+    </div>
+  );
+}
+
 export function WeekendDayStories({
   skip,
   actionFor,
@@ -66,15 +92,14 @@ export function WeekendDayStories({
   );
 }
 
-export function MoneySplit() {
+export function MoneySplit({ bare = false }: { bare?: boolean }) {
   return (
-    <div className="grid grid-cols-2 gap-2.5">
+    <div className="space-y-[var(--space-2)]">
       {FEE_BREAKDOWN.map((row) => (
-        <article key={row.label} className="surface px-4 py-3.5">
-          <p className="t-micro text-muted-foreground">{row.label}</p>
-          <p className="t-title mt-1 tabular-nums text-foreground">{row.value}</p>
-          <p className="t-micro mt-1.5 text-muted-foreground">{row.note}</p>
-        </article>
+        <p key={row.label} className="t-micro flex items-baseline justify-between gap-4">
+          <span>{bare ? row.label : [row.label, row.note].filter(Boolean).join(" · ")}</span>
+          <span className="text-foreground">{row.value}</span>
+        </p>
       ))}
     </div>
   );

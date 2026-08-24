@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { MatchCard } from "@/components/tin-cup/MatchCard";
+import { MatchLiveCard } from "@/components/tin-cup/MatchLiveCard";
 import { MatchSocialActions } from "@/components/tin-cup/MatchSocialActions";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
@@ -144,6 +145,16 @@ export function RoundBlock({
                           </>
                         ) : undefined
                       }
+                    />
+                    <MatchLiveCard
+                      claimedName={claimedName}
+                      players={players}
+                      match={match}
+                      sideA={match.side_a ?? "TBD"}
+                      sideB={match.side_b ?? "TBD"}
+                      formatLabel={format}
+                      canScore={canScore}
+                      sessionLive={status === "live"}
                     />
                   </li>
                 );

@@ -38,7 +38,7 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByText(/12:19 PM/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Weekend", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Plan", exact: true }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: /Pay \$150/ }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /Pay / })).toHaveCount(0);
   await expect(page.getByText("Sign in to join the Clubhouse")).toHaveCount(0);
   await expect(page.getByText("Today at Tin Cup")).toHaveCount(0);
   expect((await logoRequest).ok()).toBe(true);
@@ -58,7 +58,7 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Add your face" })).toHaveCount(0);
   await expect(page.getByText("Add to Home Screen", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Got it" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Sign in to post" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Sign in to post" })).toHaveCount(0);
   await expect(page.getByText("August 28–30, 2026", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Skip intro")).toHaveCount(0);
   await expect(page.getByText("Just looking")).toHaveCount(0);
@@ -141,7 +141,7 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expectNoHorizontalOverflow(page);
 
   await page.goto("/purse");
-  const payment = page.getByRole("link", { name: /Pay \$150/ }).first();
+  const payment = page.getByRole("link", { name: /Pay / }).first();
   await expect(payment).toHaveAttribute("href", /https:\/\/venmo\.com\/Kmaher.*amount=150/);
   await expect(page.getByText("$800").first()).toBeVisible();
   await expect(page.getByText("Team match stake")).toBeVisible();
@@ -177,6 +177,8 @@ test("plan hole map opens the 2D theater and pages holes", async ({ page }) => {
   await expect(page.locator(".hud-label").filter({ hasText: /^B$/ })).toBeVisible();
   await expect(page.getByRole("link", { name: "Back to scorecard" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Hole 1", exact: true })).toHaveCount(0);
+  await expect(page.locator("[data-bottom-nav]")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Aerial" })).toBeVisible();
   await page.getByRole("link", { name: "Next hole" }).click();
   await expect(page).toHaveURL(/hole=8/);
   await expect(page.getByRole("img", { name: /Schematic layout of hole 8/i })).toBeVisible();
@@ -205,18 +207,21 @@ test("protected preview exposes the gallery and engagement prompt without produc
 
 test("profile guest sees sign-in instead of a stuck claim screen", async ({ page }) => {
   await page.goto("/profile");
-  await expect(page.getByRole("heading", { name: "Account" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Account" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Paper" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Night" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Claim your name" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Couldn't load your account" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Create account" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Forgot" })).toBeVisible();
 });
 
 test("guest account and primary navigation meet the interaction baseline", async ({ page }) => {
   await page.goto("/profile");
   await expectTinCupIdentity(page);
-  await expect(page.getByRole("heading", { level: 1, name: "Account" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Sign in" })).toBeVisible();
   await expect(page.getByText("Loading…")).toHaveCount(0, { timeout: 15_000 });
   await expect(page.getByLabel("Email")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByLabel("Password")).toBeVisible();

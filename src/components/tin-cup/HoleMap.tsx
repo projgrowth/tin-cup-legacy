@@ -14,7 +14,7 @@ import {
   FEATURE_PAINT_ORDER,
   lineStations,
   lineTangentAt,
-  paddedViewBox,
+  portraitYardageFrame,
   polygonPath,
   polylineLength,
   smoothOpenPolyline,
@@ -103,11 +103,13 @@ export function HoleMap({
   }
 
   const uid = `h${hole.h}-${Math.round(hole.w)}-${Math.round(hole.ht)}`;
-  const vb = useMemo(() => paddedViewBox(hole, 0.07), [hole]);
+  const frame = useMemo(() => portraitYardageFrame(hole, 0.07), [hole]);
+  const vb = frame;
+  const drawn = frame.oriented;
   const layers = useMemo(
     () =>
       FEATURE_PAINT_ORDER.flatMap((kind) =>
-        hole.f
+        drawn.f
           .filter((f) => f.k === kind)
           .map((f, i) => ({
             kind,
@@ -115,14 +117,14 @@ export function HoleMap({
             d: polygonPath(f.p, true, kind === "fw" || kind === "gr" ? 3 : 2),
           })),
       ),
-    [hole],
+    [drawn],
   );
 
-  const line = useMemo(() => smoothOpenPolyline(hole.line, 2), [hole.line]);
-  const rawLine = hole.line;
+  const line = useMemo(() => smoothOpenPolyline(drawn.line, 2), [drawn.line]);
+  const rawLine = drawn.line;
   const tee = rawLine[0] ?? line[0];
   const green = rawLine[rawLine.length - 1] ?? line[line.length - 1];
-  const stations = useMemo(() => lineStations(hole, 50), [hole]);
+  const stations = useMemo(() => lineStations(drawn, 50), [drawn]);
   const lineLen = useMemo(() => polylineLength(rawLine), [rawLine]);
 
   // Axial gradient endpoints from tee → green for fairway light direction
@@ -261,7 +263,7 @@ export function HoleMap({
   const mapSvg = (
     <svg
       viewBox={vb.viewBox}
-      className="block size-full bg-transparent"
+      className="block size-full bg-transparent [transform:none]"
       role="img"
       aria-label={`Schematic layout of hole ${hole.h}`}
       preserveAspectRatio="xMidYMid meet"
@@ -409,7 +411,7 @@ export function HoleMap({
         if (st.yardsFromTee === 0 || st.yardsToGreen < 1) return null;
         if (st.yardsFromTee % 50 !== 0) return null;
         // Skip labels too close to green end clutter
-        if (st.yardsToGreen < 35) return null;
+        if (st.yardsToGreen < 80) return null;
         const dist = (st.yardsFromTee / hole.yards) * lineLen;
         const { nx, ny } = lineTangentAt(rawLine, dist);
         const tick = tickScale * 1.1;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Camera,
@@ -39,6 +39,7 @@ import { buildCardMoments } from "@/lib/the-card";
 import { trackProductEvent } from "@/lib/product-analytics";
 import { savePreviewPhoto } from "@/lib/preview-media";
 import { isPreviewMode } from "@/lib/runtime-mode";
+import { claimedPlayerIdFor } from "@/lib/profile-identity";
 import {
   buildStoryMoments,
   isHangoutMoment,
@@ -52,6 +53,11 @@ const REACTIONS: Array<{ kind: ReactionKind; label: string; icon: typeof Flame }
   { kind: "fire", label: "Fire", icon: Flame },
   { kind: "trophy", label: "Trophy", icon: Trophy },
 ];
+
+function isJunkBody(body?: string | null) {
+  const text = (body ?? "").trim();
+  return !text || text.toLowerCase() === "test";
+}
 
 function fieldReplyKey(postId: string) {
   return `clubhouse-post:${postId}`;
@@ -74,6 +80,7 @@ export function SocialClubhouseFeed({
   canModerate = false,
   canUpload = false,
   compact = false,
+  homePeek = false,
 }: {
   matches: Match[];
   sideBets: SideBet[];
@@ -86,6 +93,7 @@ export function SocialClubhouseFeed({
   canModerate?: boolean;
   canUpload?: boolean;
   compact?: boolean;
+  homePeek?: boolean;
 }) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -104,8 +112,10 @@ export function SocialClubhouseFeed({
   const [editing, setEditing] = useState<{ id: string; body: string } | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const [announcementHours, setAnnouncementHours] = useState("24");
+  const playerId = claimedPlayerIdFor(user?.id, profile?.player_id);
+  const claimed = Boolean(playerId);
   const canParticipate = Boolean(
-    user && profile?.player_id && story.enabled && story.clubhouseEnabled,
+    user && claimed && story.enabled && story.clubhouseEnabled,
   );
   const playerById = useMemo(
     () => new Map(players.map((player) => [player.id, player])),
@@ -165,10 +175,14 @@ export function SocialClubhouseFeed({
     trophies,
   ]);
   const showClubhouse = filter === "all" || filter === "clubhouse";
-  const photoMoments = moments.filter((moment) => moment.kind === "photo");
-  const restMoments = moments.filter((moment) => moment.kind !== "photo");
+  const photoMomentsAll = moments.filter((moment) => moment.kind === "photo");
+  const restMomentsAll = moments.filter((moment) => moment.kind !== "photo");
+  const visiblePostsAll = story.clubhousePosts.filter((post) => !isJunkBody(post.body));
+  const photoMoments = homePeek ? photoMomentsAll.slice(0, 8) : photoMomentsAll;
+  const visiblePosts = homePeek ? visiblePostsAll.slice(0, 8) : visiblePostsAll;
+  const restMoments = homePeek ? [] : restMomentsAll;
   const emptyFeed =
-    story.clubhousePosts.length === 0 && photoMoments.length === 0 && restMoments.length === 0;
+    visiblePosts.length === 0 && photoMoments.length === 0 && restMoments.length === 0;
   const mediaPaths = moments
     .map((moment) => moment.mediaPath)
     .filter((path): path is string => Boolean(path));
@@ -304,30 +318,14 @@ export function SocialClubhouseFeed({
           Field
         </h2>
         {story.unreadCount > 0 && (
-          <span className="rounded-full bg-hunter px-2.5 py-1 text-xs font-bold text-primary-foreground">
+          <span className="t-micro">
             {story.unreadCount} new
           </span>
         )}
       </div>
 
-      {!user ? (
-        <Link
-          to="/profile"
-          className="press surface flex min-h-12 items-center justify-between px-4 py-3"
-        >
-          <span className="t-body font-medium text-foreground">Sign in to post</span>
-          <span className="t-micro">Account</span>
-        </Link>
-      ) : !canParticipate ? (
-        <Link
-          to="/profile"
-          className="press surface flex min-h-12 items-center justify-between px-4 py-3"
-        >
-          <span className="t-body font-medium text-foreground">Claim your name to post</span>
-          <span className="t-micro">Account</span>
-        </Link>
-      ) : (
-        <div className="feed-composer surface p-2.5 sm:p-3">
+      {!homePeek && user && claimed && canParticipate ? (
+        <div className="feed-composer surface-raised p-2.5 sm:p-3">
           <div className="flex gap-3">
             <Avatar
               name={profile?.display_name || "You"}
@@ -346,13 +344,7 @@ export function SocialClubhouseFeed({
                 disabled={!canParticipate}
                 maxLength={500}
                 rows={2}
-                placeholder={
-                  canParticipate
-                    ? "What’s going on…"
-                    : user
-                      ? "Claim your name to post"
-                      : "Sign in to post"
-                }
+                placeholder="What’s going on…"
                 className="control w-full resize-none border-0 bg-transparent px-0 text-base shadow-none focus:ring-0"
               />
               <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -380,9 +372,9 @@ export function SocialClubhouseFeed({
             </div>
           </div>
         </div>
-      )}
+      ) : null}
 
-      {canModerate && story.clubhouseEnabled && (
+      {!homePeek && canModerate && story.clubhouseEnabled && (
         <details className="surface-inset overflow-hidden">
           <summary className="press flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
             <span>Organizer announcement</span>
@@ -447,7 +439,7 @@ export function SocialClubhouseFeed({
         </details>
       )}
 
-      {canModerate && (!emptyFeed || filter !== "all") && (
+      {!homePeek && canModerate && (!emptyFeed || filter !== "all") && (
         <div
           className="no-scrollbar flex gap-2 overflow-x-auto pb-1"
           role="tablist"
@@ -481,18 +473,154 @@ export function SocialClubhouseFeed({
         </div>
       )}
 
-      <div className={compact ? "space-y-2" : "space-y-3"}>
-        {showClubhouse && story.clubhouseEnabled && (
+      <div className={homePeek ? "stack" : compact ? "space-y-2" : "space-y-4"}>
+        {!homePeek && showClubhouse && story.clubhouseEnabled && canParticipate ? (
           <ClubhouseEngagement
             userId={user?.id}
             playerId={profile?.player_id}
             players={players}
             canModerate={canModerate}
           />
-        )}
-        <div className="surface divide-y divide-border overflow-hidden empty:hidden">
+        ) : null}
+        {photoMoments.map((moment, index) => {
+          const reactions = story.reactions.filter((row) => row.moment_key === moment.key);
+          const comments = story.comments.filter((comment) => comment.moment_key === moment.key);
+          const open = openComments[moment.key];
+          const mediaUrl = moment.mediaPath ? mediaUrls[moment.mediaPath] : null;
+          const featured = homePeek && index === 0;
+          const when = formatActivityTime(new Date(moment.at).toISOString());
+          const who = moment.playerName || "Player";
+          if (homePeek) {
+            return (
+              <article
+                key={moment.key}
+                id={`post-${moment.key}`}
+                className={`feed-poster overflow-hidden ${featured ? "feed-poster-hero" : ""}`}
+              >
+                {mediaUrl ? (
+                  <img
+                    src={mediaUrl}
+                    alt={moment.detail || who}
+                    className="feed-poster-img"
+                  />
+                ) : moment.mediaPath ? (
+                  <div className="skeleton h-56 w-full" />
+                ) : null}
+                <div className="feed-poster-caption">
+                  <p className="truncate text-[0.95rem] font-semibold leading-none text-white">{who}</p>
+                  <p className="mt-1 text-[0.72rem] font-medium leading-none text-white/80">{when}</p>
+                  {moment.detail && !isJunkBody(moment.detail) ? (
+                    <p className="mt-2 line-clamp-2 text-[0.82rem] leading-snug text-white/90">
+                      {moment.detail}
+                    </p>
+                  ) : null}
+                </div>
+              </article>
+            );
+          }
+          return (
+            <article
+              key={moment.key}
+              id={`post-${moment.key}`}
+              className="feed-photo overflow-hidden"
+            >
+              {mediaUrl ? (
+                <div className="flex justify-center bg-secondary">
+                  <img
+                    src={mediaUrl}
+                    alt={moment.detail || moment.playerName || "Field photo"}
+                    className="h-auto max-h-[32rem] w-auto max-w-full object-contain"
+                  />
+                </div>
+              ) : moment.mediaPath ? (
+                <div className="skeleton h-48 w-full" />
+              ) : null}
+              <div className="px-4 py-3.5">
+                <header className="flex items-start gap-3">
+                  <Avatar
+                    name={moment.playerName || "Tin Cup"}
+                    teamSlug={moment.teamSlug}
+                    src={authorAvatar(moment.authorId, moment.playerId, moment.playerName)}
+                    size="md"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base font-semibold text-foreground">
+                      {moment.playerName || "Player"}
+                    </h3>
+                    <p className="t-micro">{when}</p>
+                    {moment.detail && !isJunkBody(moment.detail) ? (
+                      <p className="mt-1 text-[0.98rem] leading-7 text-foreground/95">
+                        {moment.detail}
+                      </p>
+                    ) : null}
+                  </div>
+                </header>
+                <ReactionBar
+                  visible={canParticipate}
+                  momentKey={moment.key}
+                  reactions={reactions}
+                  userId={user?.id}
+                  onToggle={(kind) => react(moment.key, kind)}
+                />
+                <CommentThread
+                  momentKey={moment.key}
+                  label={moment.playerName || "photo"}
+                  comments={comments}
+                  open={Boolean(open)}
+                  onToggle={() =>
+                    setOpenComments((current) => ({ ...current, [moment.key]: !open }))
+                  }
+                  canParticipate={canParticipate}
+                  canModerate={canModerate}
+                  userId={user?.id}
+                  authorName={authorName}
+                  editing={editing}
+                  setEditing={setEditing}
+                  draft={commentDrafts[moment.key] ?? ""}
+                  setDraft={(body) =>
+                    setCommentDrafts((current) => ({ ...current, [moment.key]: body }))
+                  }
+                  onPost={(body) =>
+                    story.addComment.mutate(
+                      { momentKey: moment.key, body },
+                      {
+                        onSuccess: () =>
+                          setCommentDrafts((current) => ({ ...current, [moment.key]: "" })),
+                        onError: (error) => toast.error(error.message),
+                      },
+                    )
+                  }
+                  onEdit={(id, body) =>
+                    story.editComment.mutate(
+                      { id, body },
+                      {
+                        onSuccess: () => setEditing(null),
+                        onError: (error) => toast.error(error.message),
+                      },
+                    )
+                  }
+                  onRemove={(id, moderate) =>
+                    story.removeComment.mutate(
+                      { id, moderate },
+                      { onError: (error) => toast.error(error.message) },
+                    )
+                  }
+                  onReport={(commentId) =>
+                    story.reportPost.mutate(
+                      { commentId },
+                      { onError: (error) => toast.error(error.message) },
+                    )
+                  }
+                />
+              </div>
+            </article>
+          );
+        })}
+
+        <div className="feed-moments divide-y divide-border overflow-hidden empty:hidden">
           {showClubhouse &&
-            story.clubhousePosts.map((post) => {
+            visiblePosts
+            .map((post) => {
               const reactionKey = `clubhouse-post:${post.id}`;
               const reactions = story.reactions.filter((row) => row.moment_key === reactionKey);
               const reported = story.reports.some(
@@ -502,7 +630,7 @@ export function SocialClubhouseFeed({
                 <article
                   key={post.id}
                   id={`post-${post.id}`}
-                  className={`px-4 py-3.5 ${post.pinned_at ? "announcement-card" : ""}`}
+                  className={`px-4 py-2.5 ${post.pinned_at ? "announcement-card" : ""}`}
                 >
                   <header className="flex items-start gap-3">
                     <Avatar
@@ -524,7 +652,7 @@ export function SocialClubhouseFeed({
                           </span>
                         )}
                         {post.pinned_at && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-hunter/15 px-2 py-0.5 text-xs font-semibold text-hunter">
+                          <span className="inline-flex items-center gap-1 px-1 text-xs font-semibold text-hunter">
                             <Pin className="size-3" /> Pinned
                           </span>
                         )}
@@ -651,6 +779,8 @@ export function SocialClubhouseFeed({
                     </p>
                   )}
                   <ReactionBar
+                    visible={canParticipate}
+                    heatOnly={homePeek}
                     momentKey={reactionKey}
                     reactions={reactions}
                     userId={user?.id}
@@ -759,7 +889,7 @@ export function SocialClubhouseFeed({
                           <p className="t-micro">
                             {formatActivityTime(new Date(moment.at).toISOString())}
                           </p>
-                          {moment.detail ? (
+                          {moment.detail && !isJunkBody(moment.detail) ? (
                             <p className="mt-1 text-[0.98rem] leading-7 text-foreground/95">
                               {moment.detail}
                             </p>
@@ -770,7 +900,7 @@ export function SocialClubhouseFeed({
                           <p className="t-micro flex items-center gap-1.5 text-muted-foreground">
                             <MomentIcon kind={moment.kind} /> {moment.kind.replace("-", " ")}
                           </p>
-                          <h3 className="t-title mt-1 text-foreground">{moment.title}</h3>
+                          <h3 className="t-body mt-1 font-medium text-foreground">{moment.title}</h3>
                           {moment.detail ? (
                             <p className="mt-1 text-sm leading-6 text-muted-foreground">
                               {moment.detail}
@@ -782,6 +912,7 @@ export function SocialClubhouseFeed({
                   </header>
                   <div className="mt-3">
                     <ReactionBar
+                      visible={canParticipate}
                       momentKey={moment.key}
                       reactions={reactions}
                       userId={user?.id}
@@ -866,120 +997,14 @@ export function SocialClubhouseFeed({
             );
           })}
         </div>
-        {photoMoments.map((moment) => {
-          const reactions = story.reactions.filter((row) => row.moment_key === moment.key);
-          const comments = story.comments.filter((comment) => comment.moment_key === moment.key);
-          const open = openComments[moment.key];
-          const mediaUrl = moment.mediaPath ? mediaUrls[moment.mediaPath] : null;
-          return (
-            <article key={moment.key} id={`post-${moment.key}`} className="surface overflow-hidden">
-              {mediaUrl ? (
-                <div className="flex justify-center bg-secondary">
-                  <img
-                    src={mediaUrl}
-                    alt={moment.detail || moment.playerName || "Field photo"}
-                    className="h-auto max-h-[32rem] w-auto max-w-full object-contain"
-                  />
-                </div>
-              ) : moment.mediaPath ? (
-                <div className="skeleton h-48 w-full" />
-              ) : null}
-              <div className="px-4 py-3.5">
-                <header className="flex items-start gap-3">
-                  <Avatar
-                    name={moment.playerName || "Tin Cup"}
-                    teamSlug={moment.teamSlug}
-                    src={authorAvatar(moment.authorId, moment.playerId, moment.playerName)}
-                    size="md"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-base font-semibold text-foreground">
-                      {moment.playerName || "Player"}
-                    </h3>
-                    <p className="t-micro">
-                      {formatActivityTime(new Date(moment.at).toISOString())}
-                    </p>
-                    {moment.detail ? (
-                      <p className="mt-1 text-[0.98rem] leading-7 text-foreground/95">
-                        {moment.detail}
-                      </p>
-                    ) : null}
-                  </div>
-                </header>
-                <ReactionBar
-                  momentKey={moment.key}
-                  reactions={reactions}
-                  userId={user?.id}
-                  onToggle={(kind) => react(moment.key, kind)}
-                />
-                <CommentThread
-                  momentKey={moment.key}
-                  label={moment.playerName || "photo"}
-                  comments={comments}
-                  open={Boolean(open)}
-                  onToggle={() =>
-                    setOpenComments((current) => ({ ...current, [moment.key]: !open }))
-                  }
-                  canParticipate={canParticipate}
-                  canModerate={canModerate}
-                  userId={user?.id}
-                  authorName={authorName}
-                  editing={editing}
-                  setEditing={setEditing}
-                  draft={commentDrafts[moment.key] ?? ""}
-                  setDraft={(body) =>
-                    setCommentDrafts((current) => ({ ...current, [moment.key]: body }))
-                  }
-                  onPost={(body) =>
-                    story.addComment.mutate(
-                      { momentKey: moment.key, body },
-                      {
-                        onSuccess: () =>
-                          setCommentDrafts((current) => ({ ...current, [moment.key]: "" })),
-                        onError: (error) => toast.error(error.message),
-                      },
-                    )
-                  }
-                  onEdit={(id, body) =>
-                    story.editComment.mutate(
-                      { id, body },
-                      {
-                        onSuccess: () => setEditing(null),
-                        onError: (error) => toast.error(error.message),
-                      },
-                    )
-                  }
-                  onRemove={(id, moderate) =>
-                    story.removeComment.mutate(
-                      { id, moderate },
-                      { onError: (error) => toast.error(error.message) },
-                    )
-                  }
-                  onReport={(commentId) =>
-                    story.reportPost.mutate(
-                      { commentId },
-                      { onError: (error) => toast.error(error.message) },
-                    )
-                  }
-                />
-              </div>
-            </article>
-          );
-        })}
       </div>
 
       {emptyFeed && (
-        <p className="t-micro px-1 py-2">
-          {story.clubhouseEnabled
-            ? "Captain notes and field photos land here."
-            : "Field notes land here as people post."}
-        </p>
+        <p className="t-micro px-1 py-1">Nothing on the field yet.</p>
       )}
-      {matchSocial.unavailable && (
-        <p className="t-micro text-muted-foreground">
-          Match participation is temporarily read-only.
-        </p>
-      )}
+      {canParticipate && matchSocial.unavailable ? (
+        <p className="t-micro text-muted-foreground">Field tools are temporarily read-only.</p>
+      ) : null}
     </section>
   );
 }
@@ -1023,6 +1048,7 @@ function CommentThread({
   onReport: (commentId: string) => void;
   trailing?: ReactNode;
 }) {
+  if (!canParticipate) return trailing ? <div className="mt-2">{trailing}</div> : null;
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2">
@@ -1158,29 +1184,36 @@ function ReactionBar({
   reactions,
   userId,
   onToggle,
+  visible = true,
+  heatOnly = false,
 }: {
   momentKey: string;
   reactions: Array<{ kind: string; user_id: string }>;
   userId?: string;
   onToggle: (kind: ReactionKind) => void;
+  visible?: boolean;
+  heatOnly?: boolean;
 }) {
+  if (!visible) return null;
+  const kinds = heatOnly ? REACTIONS.filter((row) => row.kind === "fire") : REACTIONS;
   return (
     <div className="mt-2 flex gap-1">
-      {REACTIONS.map(({ kind, label, icon: Icon }) => {
+      {kinds.map(({ kind, label, icon: Icon }) => {
         const count = reactions.filter((row) => row.kind === kind).length;
         const mine = reactions.some((row) => row.kind === kind && row.user_id === userId);
         return (
           <button
             key={kind}
             type="button"
-            aria-label={`${label}, ${count}`}
+            aria-label={heatOnly ? label : `${label}, ${count}`}
             aria-pressed={mine}
             onClick={() => onToggle(kind)}
             className={`press inline-flex min-h-11 items-center gap-1 rounded-full px-2.5 t-micro ${
-              mine ? "chip-on" : "text-muted-foreground"
+              mine ? "text-hunter" : "text-muted-foreground"
             }`}
           >
-            <Icon className="size-3.5" /> {count || ""}
+            <Icon className="size-3.5" />
+            {heatOnly ? null : count || ""}
           </button>
         );
       })}

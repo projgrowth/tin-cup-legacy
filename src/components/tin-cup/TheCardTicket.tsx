@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { Avatar, AvatarPair } from "@/components/tin-cup/Avatar";
 import type { useMatchSocial } from "@/hooks/useMatchSocial";
 import type { Match } from "@/hooks/useTournament";
+import { claimedPlayerIdFor } from "@/lib/profile-identity";
 import { type MatchPredictionChoice } from "@/lib/social-platform";
 import {
   CARD_NOTE_MAX,
@@ -18,6 +19,9 @@ import {
 export type CardFace = { name: string; teamSlug?: string | null; src?: string | null };
 export type CardRoast = { userId: string; name: string; note: string };
 
+const TICKET_GRID =
+  "grid w-full grid-cols-[4.75rem_minmax(0,1fr)_2rem_4.75rem_minmax(0,1fr)] items-center gap-x-2";
+
 export function TheCardTicket({
   market,
   matches,
@@ -30,6 +34,7 @@ export function TheCardTicket({
   crowdB = [],
   roasts = [],
   yours = false,
+  compact = false,
 }: {
   market: CardMarket;
   matches: Match[];
@@ -42,19 +47,32 @@ export function TheCardTicket({
   crowdB?: CardFace[];
   roasts?: CardRoast[];
   yours?: boolean;
+  compact?: boolean;
 }) {
   const mine = pickOnMarket(social.predictions, userId, market.matchIds);
   const openIds = pendingMatchIds(market, matches);
   const locked = market.locked || (market.matchIds.length > 0 && openIds.length === 0);
-  const canPick = Boolean(userId && claimed && !yours && !locked && openIds.length > 0);
+  const isClaimed = Boolean(claimed || claimedPlayerIdFor(userId));
+  const canPick = Boolean(userId && isClaimed && !yours && !locked && openIds.length > 0);
   const [line, setLine] = useState(mine?.note ?? "");
   const [composing, setComposing] = useState(false);
+  const roastRef = useRef<HTMLInputElement>(null);
   const crowd = faceoffCrowd(social.predictions, market.matchIds);
   const busy = social.predict.isPending || social.clear.isPending;
   const labelA = pairingFirstNames(market.sideA);
   const labelB = pairingFirstNames(market.sideB);
-  const claimToRide = !yours && !locked && (!userId || !claimed);
-  const otherRoasts = roasts.filter((roast) => roast.userId !== userId).slice(0, 2);
+  const claimToRide = !yours && !locked && (!userId || !isClaimed);
+  const showComposer = Boolean(canPick && mine && (composing || !mine.note));
+  const roastLine = mine?.note?.trim()
+    ? { note: mine.note.trim(), name: null as string | null }
+    : (() => {
+        const other = roasts.find((roast) => roast.userId !== userId);
+        return other ? { note: other.note, name: other.name } : null;
+      })();
+
+  useEffect(() => {
+    if (showComposer) roastRef.current?.focus();
+  }, [showComposer, mine?.choice]);
 
   function pick(choice: MatchPredictionChoice) {
     if (!canPick) return;
@@ -81,65 +99,83 @@ export function TheCardTicket({
       {
         onSuccess: () => {
           setComposing(false);
-          toast.success("Line’s up");
+          toast.success("Posted");
         },
         onError: (error) => toast.error(error.message),
       },
     );
   }
 
+  if (yours) {
+    return (
+      <article>
+        <Link
+          to="/scout"
+          search={{ course: "south", card: true }}
+          className="press block px-3 py-[var(--space-3)]"
+          aria-label="Open Friday book"
+        >
+          <p className="t-micro text-foreground/80">You&apos;re in this one.</p>
+          <div className={`${TICKET_GRID} mt-1.5`}>
+            <span className="flex justify-center">
+              <AvatarPair people={peopleA} size="sm" />
+            </span>
+            <p className="t-body min-w-0 font-semibold leading-snug text-foreground">{labelA}</p>
+            <p className="t-micro text-center text-muted-foreground">vs</p>
+            <span className="flex justify-center">
+              <AvatarPair people={peopleB} size="sm" />
+            </span>
+            <p className="t-body min-w-0 font-semibold leading-snug text-stone">{labelB}</p>
+          </div>
+        </Link>
+      </article>
+    );
+  }
+
   return (
-    <article className={`px-3 py-3 ${yours ? "bg-hunter/5" : ""}`}>
-      {yours || locked ? (
-        <p className="t-micro mb-1.5 text-muted-foreground">
-          {yours ? <span className="text-hunter">You</span> : null}
-          {yours && locked ? " · " : null}
-          {locked ? "Locked" : null}
-        </p>
-      ) : null}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1">
-        <SideRow
+    <article className="px-3 py-[var(--space-3)]">
+      <div className={TICKET_GRID}>
+        <SidePick
           people={peopleA}
           label={labelA}
           tone="hunter"
           selected={mine?.choice === "side-a"}
-          crowd={crowd.sideA}
-          riders={crowdA}
           disabled={!canPick || busy}
           to={claimToRide ? "/profile" : undefined}
           onClick={() => pick("side-a")}
         />
-        <p className="t-micro self-center px-0.5 text-muted-foreground">vs</p>
-        <SideRow
+        <p className="t-micro self-center text-center text-muted-foreground">vs</p>
+        <SidePick
           people={peopleB}
           label={labelB}
           tone="stone"
           selected={mine?.choice === "side-b"}
-          crowd={crowd.sideB}
-          riders={crowdB}
           disabled={!canPick || busy}
           to={claimToRide ? "/profile" : undefined}
           onClick={() => pick("side-b")}
         />
       </div>
-      {otherRoasts.map((roast) => (
-        <p key={roast.userId} className="t-micro mt-1.5 italic text-foreground/80">
-          “{roast.note}”
-          <span className="not-italic text-muted-foreground"> · {roast.name}</span>
+      <SplitBar sideA={crowd.sideA} sideB={crowd.sideB} />
+      {compact ? null : <CrowdUnderBar left={crowdA} right={crowdB} />}
+      {roastLine && !composing ? (
+        <p className="t-micro mt-1.5 truncate italic text-foreground/80">
+          “{roastLine.note}”
+          {roastLine.name ? (
+            <span className="not-italic text-muted-foreground"> · {roastLine.name}</span>
+          ) : null}
         </p>
-      ))}
-      {yours ? (
-        <p className="t-micro mt-1.5 text-hunter">You're in it.</p>
-      ) : canPick && mine && (composing || !mine.note) ? (
+      ) : null}
+      {showComposer ? (
         <div className="mt-2 flex gap-2">
           <label className="sr-only" htmlFor={`card-line-${market.id}`}>
             Talk your shit
           </label>
           <input
             id={`card-line-${market.id}`}
+            ref={roastRef}
             value={line}
             maxLength={CARD_NOTE_MAX}
-            placeholder="Talk your shit…"
+            placeholder="Talk your shit"
             onChange={(event) => {
               setLine(event.target.value);
               setComposing(true);
@@ -150,25 +186,65 @@ export function TheCardTicket({
             type="button"
             onClick={saveLine}
             disabled={busy}
-            className="press btn-quiet min-h-10 px-3 text-sm font-semibold"
+            className="press btn-primary min-h-10 px-3 text-sm font-semibold"
           >
             Post
           </button>
         </div>
-      ) : mine?.note ? (
-        <p className="t-micro mt-2 italic text-foreground/80">“{mine.note}”</p>
       ) : null}
     </article>
   );
 }
 
-function SideRow({
+function SplitBar({ sideA, sideB }: { sideA: number; sideB: number }) {
+  const total = sideA + sideB;
+  if (total <= 0) return null;
+  const left = Math.round((sideA / total) * 100);
+  return (
+    <div className="mt-2">
+      <p className="t-micro mb-1">the boys</p>
+      <div className="flex h-1 overflow-hidden rounded-full bg-border" aria-hidden>
+        <span className="h-full bg-hunter" style={{ width: `${left}%` }} />
+        <span className="h-full flex-1 bg-stone/70" />
+      </div>
+    </div>
+  );
+}
+
+function CrowdUnderBar({ left, right }: { left: CardFace[]; right: CardFace[] }) {
+  if (left.length + right.length === 0) return null;
+  return (
+    <div className="mt-1.5 flex items-center justify-between gap-3">
+      <FaceStack people={left} />
+      <FaceStack people={right} align="end" />
+    </div>
+  );
+}
+
+function FaceStack({ people, align = "start" }: { people: CardFace[]; align?: "start" | "end" }) {
+  if (people.length === 0) return <span />;
+  const extra = people.length - 3;
+  return (
+    <span className={`inline-flex items-center gap-0.5 ${align === "end" ? "justify-end" : ""}`}>
+      {people.slice(0, 3).map((rider, index) => (
+        <Avatar
+          key={`${rider.name}-${index}`}
+          name={rider.name}
+          teamSlug={rider.teamSlug}
+          src={rider.src}
+          size="sm"
+        />
+      ))}
+      {extra > 0 ? <span className="t-micro pl-0.5 text-muted-foreground">+{extra}</span> : null}
+    </span>
+  );
+}
+
+function SidePick({
   people,
   label,
   tone,
   selected,
-  crowd,
-  riders,
   disabled,
   to,
   onClick,
@@ -177,47 +253,34 @@ function SideRow({
   label: string;
   tone: "hunter" | "stone";
   selected: boolean;
-  crowd: number;
-  riders: CardFace[];
   disabled: boolean;
   to?: string;
   onClick: () => void;
 }) {
-  const color = tone === "hunter" ? "text-hunter" : "text-stone";
-  const fill =
-    tone === "hunter"
-      ? "bg-hunter/10 ring-1 ring-hunter/30"
-      : "bg-stone/15 ring-1 ring-stone/30";
-  const className = `flex min-h-16 min-w-0 w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-center transition-colors duration-150 disabled:opacity-100 ${
-    disabled && !to ? "cursor-default" : "press"
-  } ${selected ? fill : ""}`;
+  const color = selected
+    ? "text-primary-foreground"
+    : tone === "hunter"
+      ? "text-foreground"
+      : "text-stone";
+  const fill = selected ? "bg-hunter" : "";
+  const className = `contents`;
   const inner = (
     <>
-      <AvatarPair people={people} size="sm" />
-      <span className={`t-body max-w-full font-semibold leading-snug break-words ${color}`}>{label}</span>
-      {riders.length > 0 ? (
-        <span className="inline-flex items-center justify-center gap-0.5">
-          {riders.slice(0, 2).map((rider, index) => (
-            <Avatar
-              key={`${rider.name}-${index}`}
-              name={rider.name}
-              teamSlug={rider.teamSlug}
-              src={rider.src}
-              size="sm"
-            />
-          ))}
-          {crowd > 2 ? (
-            <span className="t-micro pl-0.5 tabular-nums text-muted-foreground">+{crowd - 2}</span>
-          ) : null}
-        </span>
-      ) : crowd > 0 ? (
-        <span className="t-micro tabular-nums text-muted-foreground">{crowd}</span>
-      ) : null}
+      <span
+        className={`flex min-h-12 items-center justify-center rounded-xl transition-colors duration-[120ms] ${fill}`}
+      >
+        <AvatarPair people={people} size="sm" />
+      </span>
+      <span
+        className={`min-w-0 rounded-xl px-1 py-1 text-left transition-colors duration-[120ms] ${fill}`}
+      >
+        <span className={`t-body block font-semibold leading-snug break-words ${color}`}>{label}</span>
+      </span>
     </>
   );
   if (to) {
     return (
-      <Link to={to} aria-label={`Ride with ${label}`} className={className}>
+      <Link to={to} aria-label={label} className={className}>
         {inner}
       </Link>
     );
@@ -227,9 +290,9 @@ function SideRow({
       type="button"
       disabled={disabled}
       aria-pressed={selected}
-      aria-label={selected ? `Undo ${label}` : `Ride with ${label}`}
+      aria-label={selected ? label : label}
       onClick={onClick}
-      className={className}
+      className={`${className} ${disabled && !to ? "cursor-default" : "press"}`}
     >
       {inner}
     </button>

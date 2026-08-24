@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
@@ -8,7 +8,7 @@ import { HomeSecondaryModules } from "@/components/tin-cup/HomeDashboard";
 import { ScoreModal } from "@/components/tin-cup/ScoreModal";
 import { Shell, SkeletonBlock } from "@/components/tin-cup/Shell";
 import { DisplayBoard } from "@/components/tin-cup/live/DisplayBoard";
-import { HomeWeekendDoors, LivePanel, PreTournamentPanel } from "@/components/tin-cup/panels";
+import { LivePanel, PreTournamentPanel } from "@/components/tin-cup/panels";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
@@ -20,7 +20,7 @@ import { type BoardMode } from "@/lib/tin-cup";
 import { tallyStandings } from "@/lib/scoring";
 
 import { hasAuthCallbackParams, parseAuthCallbackParams } from "@/lib/auth-recovery";
-import { resolveIdentity } from "@/lib/profile-identity";
+import { claimedPlayerIdFor, resolveIdentity } from "@/lib/profile-identity";
 import { buildWeekendContext } from "@/lib/weekend-context";
 import { smartHomeModules, type FeedFilter } from "@/lib/social-platform";
 
@@ -184,18 +184,19 @@ function Index() {
   const experience = useExperiencePreferences(user?.id);
   const planning = usePlanningProgress();
   const stale = isError && Boolean(data);
-  const claimedPlayer = profile?.player_id
-    ? (data?.players ?? []).find((p) => p.id === profile.player_id)
+  const playerId = claimedPlayerIdFor(user?.id, profile?.player_id);
+  const claimedPlayer = playerId
+    ? (data?.players ?? []).find((p) => p.id === playerId)
     : undefined;
   const identity = resolveIdentity({
     signedIn: Boolean(user),
-    profilePending: profileLoading,
-    profileError: Boolean(profileError),
-    playerId: profile?.player_id ?? null,
-    tournamentPending: Boolean(profile?.player_id && isPending && !data),
+    profilePending: profileLoading && !playerId,
+    profileError: Boolean(profileError) && !playerId,
+    playerId: playerId ?? null,
+    tournamentPending: Boolean(playerId && isPending && !data),
     playerOnRoster: Boolean(claimedPlayer),
   });
-  const needsClaim = Boolean(user) && identity.kind === "claim";
+  const needsClaim = Boolean(user) && identity.kind === "claim" && !playerId;
   const standings = tallyStandings(data?.matches ?? []);
   const canonicalUrl =
     typeof window === "undefined" ? "https://www.tincupinv.com/" : window.location.href;
@@ -203,6 +204,7 @@ function Index() {
     phase: mode,
     signedIn: Boolean(user),
     identityPending: Boolean(user) && identity.kind === "loading",
+    claimedId: playerId ?? null,
     player: claimedPlayer ?? null,
     rounds: data?.rounds ?? [],
     matches: data?.matches ?? [],
@@ -269,24 +271,7 @@ function Index() {
 
   return (
     <>
-      <Shell variant={mode === "pre" ? "content" : "dashboard"}>
-        {/* Claim nudge on live; pre mode uses the raised card in PreTournamentPanel */}
-        {needsClaim && mode === "live" && (
-          <Link
-            to="/profile"
-            className="press surface mb-3 flex items-center justify-between gap-3 px-4 py-3"
-          >
-            <span className="min-w-0">
-              <span className="t-body block font-medium text-foreground">
-                Claim your roster name
-              </span>
-              <span className="t-micro block text-muted-foreground">
-                Unlocks your player card, private notes, and photo credits
-              </span>
-            </span>
-            <span className="t-micro shrink-0">Account</span>
-          </Link>
-        )}
+      <Shell variant="content">
         {(canScore || isAdmin) && (
           <PhaseControl mode={mode} automatic={!override} onChange={selectMode} />
         )}
@@ -308,7 +293,7 @@ function Index() {
             ) : null}
           </div>
         ) : (
-          <div className={mode === "pre" ? "stack-page" : "home-dashboard mt-1"}>
+          <div className={mode === "pre" ? "stack" : "home-dashboard mt-1"}>
             {mode === "pre" && (
               <div className="home-action">
                 <PreTournamentPanel
@@ -316,7 +301,7 @@ function Index() {
                   matches={data?.matches ?? []}
                   players={data?.players ?? []}
                   teams={data?.teams ?? []}
-                  canUpload={Boolean(user)}
+                  canUpload={Boolean(claimedPlayer)}
                   signedIn={Boolean(user)}
                   claimedName={claimedPlayer?.name ?? null}
                   needsClaim={needsClaim}
@@ -351,34 +336,29 @@ function Index() {
               </div>
             )}
             <>
-              <div className="home-feed min-w-0">
-                <SocialClubhouseFeed
-                  matches={data?.matches ?? []}
-                  sideBets={data?.sideBets ?? []}
-                  trophies={data?.trophies ?? []}
-                  players={data?.players ?? []}
-                  teams={data?.teams ?? []}
-                  rounds={data?.rounds ?? []}
-                  filter={search.feed ?? "all"}
-                  onFilter={(feed) =>
-                    void navigate({
-                      to: "/",
-                      search: { ...search, feed: feed === "all" ? undefined : feed },
-                      replace: true,
-                    })
-                  }
-                  canModerate={canScore || isAdmin}
-                  canUpload={Boolean(user)}
-                  compact={experience.preferences.compactFeed}
-                />
-              </div>
-              {mode === "pre" ? (
-                <HomeWeekendDoors
-                  signedIn={Boolean(user)}
-                  claimedName={claimedPlayer?.name ?? null}
-                  players={data?.players ?? []}
-                  teams={data?.teams ?? []}
-                />
+              {mode !== "pre" ? (
+                <div className="home-feed min-w-0">
+                  <SocialClubhouseFeed
+                    matches={data?.matches ?? []}
+                    sideBets={data?.sideBets ?? []}
+                    trophies={data?.trophies ?? []}
+                    players={data?.players ?? []}
+                    teams={data?.teams ?? []}
+                    rounds={data?.rounds ?? []}
+                    filter={search.feed ?? "all"}
+                    onFilter={(feed) =>
+                      void navigate({
+                        to: "/",
+                        search: { ...search, feed: feed === "all" ? undefined : feed },
+                        replace: true,
+                      })
+                    }
+                    canModerate={canScore || isAdmin}
+                    canUpload={Boolean(claimedPlayer)}
+                    compact={experience.preferences.compactFeed}
+                    homePeek
+                  />
+                </div>
               ) : null}
               {mode !== "pre" && (
                 <aside className="home-secondary min-w-0 space-y-5 lg:sticky lg:top-28 lg:self-start">
@@ -401,7 +381,9 @@ function Index() {
                       kind: "score",
                       eyebrow: mode === "live" ? "Live Cup score" : "The fourth annual",
                       title: "Tin Cup Invitational",
-                      primary: `${standings.strongMental} – ${standings.grassRoots}`,
+                      primary: (data?.matches ?? []).some((m) => m.result && m.result !== "pending")
+                        ? `${standings.strongMental} – ${standings.grassRoots}`
+                        : "—",
                       secondary: "Strong Mental · Grass Roots",
                       canonicalUrl,
                     }}

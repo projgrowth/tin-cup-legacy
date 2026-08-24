@@ -1,10 +1,26 @@
-import { formatCountdown } from "@/lib/countdown";
+import { formatCountdown, formatCountdownPoster } from "@/lib/countdown";
 import { useLiveCountdown } from "@/lib/use-live-countdown";
 
-/** Full-width first-tee clock. Compact is a single caption for tight slots. */
-export function Countdown({ compact = false }: { compact?: boolean }) {
+/** Full-width first-tee clock. Compact / caption is a single line, not a hero. */
+export function Countdown({
+  compact = false,
+  caption,
+}: {
+  compact?: boolean;
+  /** Prefix for the under-spread line, e.g. "Friday · South". */
+  caption?: string;
+}) {
   const time = useLiveCountdown();
   const close = !time.done && time.remaining < 86_400_000;
+
+  if (caption) {
+    const clock = time.done ? "On the tee" : formatCountdownPoster(time.remaining);
+    return (
+      <p suppressHydrationWarning className="t-micro tabular-nums text-muted-foreground">
+        {caption} · {clock}
+      </p>
+    );
+  }
 
   if (compact) {
     if (time.done) {
@@ -47,14 +63,11 @@ export function Countdown({ compact = false }: { compact?: boolean }) {
       </p>
       <div className="grid grid-cols-3">
         {cells.map((cell) => (
-          <div key={cell.label} className="px-1 py-4 text-center">
-            <p
-              suppressHydrationWarning
-              className="font-bold tabular-nums leading-none tracking-tight text-foreground text-[clamp(2.4rem,11vw,3.35rem)]"
-            >
+          <div key={cell.label} className="px-1 py-2.5 text-center">
+            <p suppressHydrationWarning className="t-hero text-foreground">
               {String(cell.n).padStart(2, "0")}
             </p>
-            <p className="t-eyebrow mt-2">{cell.label}</p>
+            <p className="t-eyebrow mt-1">{cell.label}</p>
           </div>
         ))}
       </div>

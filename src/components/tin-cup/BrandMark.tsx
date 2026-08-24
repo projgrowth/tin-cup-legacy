@@ -20,17 +20,18 @@ export function MedalMark({
 }
 
 const CREST = {
-  sm: { box: "size-10", px: 40, round: "rounded-[0.7rem]" },
-  md: { box: "size-14", px: 56, round: "rounded-[0.9rem]" },
+  xs: { box: "size-8", px: 32, round: "rounded" },
+  sm: { box: "size-10", px: 40, round: "rounded" },
+  md: { box: "size-14", px: 56, round: "rounded" },
   lg: {
     box: "size-[7.25rem] sm:size-36",
     px: 144,
-    round: "rounded-[1.35rem]",
+    round: "rounded",
   },
 } as const;
 
 /**
- * Official crest — same gold PNG everywhere. Header uses sm; letterhead uses lg.
+ * Official crest PNG in a black well. Header uses xs; letterhead uses lg.
  */
 export function BrandMark({
   className = "",

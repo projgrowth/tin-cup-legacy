@@ -10,6 +10,7 @@ import {
 import type { Session, User } from "@supabase/supabase-js";
 
 import { supabase } from "@/integrations/supabase/client";
+import { claimedPlayerGrantsScore } from "@/lib/score-access";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import {
   clearRecoveryFlag,
@@ -86,8 +87,21 @@ async function loadRoles(userId: string): Promise<{ canScore: boolean; isAdmin: 
     { userId },
   );
   const roles = data.user_roles.map((row) => row.role);
+  const roleCanScore = roles.includes("admin") || roles.includes("captain");
+  let qa = false;
+  try {
+    const [{ data: profile }, { data: players }] = await Promise.all([
+      supabase.from("profiles").select("player_id").eq("id", userId).maybeSingle(),
+      supabase.from("players").select("id,name"),
+    ]);
+    const claimedId = profile?.player_id ?? null;
+    const claimed = (players ?? []).find((row) => row.id === claimedId) ?? null;
+    qa = claimedPlayerGrantsScore(players ?? [], claimed);
+  } catch {
+    qa = false;
+  }
   return {
-    canScore: roles.includes("admin") || roles.includes("captain"),
+    canScore: roleCanScore || qa,
     isAdmin: roles.includes("admin"),
   };
 }

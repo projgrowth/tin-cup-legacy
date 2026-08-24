@@ -20,13 +20,6 @@ export type AvatarIndex = {
   forSide: (side: string | null | undefined) => AvatarEntry[];
 };
 
-const EMPTY: AvatarIndex = {
-  byPlayerId: new Map(),
-  byName: new Map(),
-  getByName: () => undefined,
-  forSide: () => [],
-};
-
 function normalizeName(name: string) {
   return name.trim().toLowerCase();
 }
@@ -71,7 +64,7 @@ async function loadAvatarIndex(
         avatar_path: string | null;
       }>;
     }>(`query AvatarMap {
-      profiles(where: { player_id: { _is_null: false } }) {
+      profiles {
         id player_id display_name avatar_path
       }
     }`);
@@ -85,7 +78,11 @@ async function loadAvatarIndex(
   const paths: Array<{ playerId: string; path: string }> = [];
 
   for (const p of players) {
-    const profile = profiles.find((pr) => pr.player_id === p.id);
+    const profile =
+      profiles.find((pr) => pr.player_id === p.id) ??
+      profiles.find(
+        (pr) => pr.display_name && normalizeName(pr.display_name) === normalizeName(p.name),
+      );
     const entry: AvatarEntry = {
       playerId: p.id,
       name: p.name,
@@ -113,7 +110,9 @@ async function loadAvatarIndex(
   for (const entry of byPlayerId.values()) {
     byName.set(normalizeName(entry.name), entry);
     const first = entry.name.split(/\s+/)[0];
-    if (first) byName.set(normalizeName(first), entry);
+    if (first && !byName.has(normalizeName(first))) {
+      byName.set(normalizeName(first), entry);
+    }
   }
 
   const getByName = (name: string) => {
@@ -153,6 +152,19 @@ async function loadAvatarIndex(
   return { byPlayerId, byName, getByName, forSide };
 }
 
+export function faceUrl(
+  index: AvatarIndex | undefined,
+  name: string,
+  playerId?: string | null,
+): string | null {
+  if (!index) return null;
+  if (playerId) {
+    const fromId = index.byPlayerId.get(playerId)?.url;
+    if (fromId) return fromId;
+  }
+  return index.getByName(name)?.url ?? null;
+}
+
 /** Cached face map for the whole field (guests + signed-in). */
 export function usePlayerAvatars(players: Player[], teams: Team[]) {
   return useQuery({
@@ -164,6 +176,5 @@ export function usePlayerAvatars(players: Player[], teams: Team[]) {
     queryFn: () => loadAvatarIndex(players, teams),
     enabled: players.length > 0,
     staleTime: 60_000,
-    placeholderData: EMPTY,
   });
 }

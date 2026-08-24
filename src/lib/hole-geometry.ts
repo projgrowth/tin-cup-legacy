@@ -263,3 +263,77 @@ export function holeBounds(hole: Hole): {
   const span = Math.max(maxX - minX, maxY - minY, 1);
   return { minX, minY, maxX, maxY, cx, cy, span };
 }
+
+/** Target play direction in SVG space: negative Y = toward the top of the screen. */
+const PLAY_UP = -Math.PI / 2;
+
+/** Radians to rotate hole data so tee-to-green points up the page (tee at bottom). */
+export function playUpRotation(hole: Hole): { angle: number; cx: number; cy: number } {
+  const b = holeBounds(hole);
+  const tee = hole.line[0];
+  const green = hole.line[hole.line.length - 1];
+  if (!tee || !green) return { angle: 0, cx: b.cx, cy: b.cy };
+  const current = Math.atan2(green[1] - tee[1], green[0] - tee[0]);
+  return { angle: PLAY_UP - current, cx: b.cx, cy: b.cy };
+}
+
+export function rotateXY(
+  x: number,
+  y: number,
+  angle: number,
+  cx: number,
+  cy: number,
+): [number, number] {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  const dx = x - cx;
+  const dy = y - cy;
+  return [cx + dx * c - dy * s, cy + dx * s + dy * c];
+}
+
+/** Copy of a hole with coordinates rotated so play runs up the screen. */
+export function orientedHole(hole: Hole): Hole {
+  const { angle, cx, cy } = playUpRotation(hole);
+  const rot = (pt: [number, number]): [number, number] => rotateXY(pt[0], pt[1], angle, cx, cy);
+  return {
+    ...hole,
+    line: hole.line.map(rot),
+    f: hole.f.map((feat) => ({ ...feat, p: feat.p.map(rot) })),
+  };
+}
+
+/** Always taller than wide — yardage-book page, never landscape autofit. */
+export const PORTRAIT_MIN_ASPECT = 1.28;
+
+/**
+ * Padded portrait viewBox after play-up orientation.
+ * Wide holes get extra vertical pad instead of a landscape frame.
+ */
+export function portraitYardageFrame(
+  hole: Hole,
+  padRatio = 0.07,
+): {
+  minX: number;
+  minY: number;
+  width: number;
+  height: number;
+  viewBox: string;
+  oriented: Hole;
+} {
+  const oriented = orientedHole(hole);
+  const raw = paddedViewBox(oriented, padRatio);
+  let { minX, minY, width, height } = raw;
+  if (height / width < PORTRAIT_MIN_ASPECT) {
+    const target = width * PORTRAIT_MIN_ASPECT;
+    minY -= (target - height) / 2;
+    height = target;
+  }
+  return {
+    minX,
+    minY,
+    width,
+    height,
+    viewBox: `${minX.toFixed(2)} ${minY.toFixed(2)} ${width.toFixed(2)} ${height.toFixed(2)}`,
+    oriented,
+  };
+}

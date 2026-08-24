@@ -14,6 +14,8 @@ import {
 type AuthCardProps = {
   blurb: string;
   redirectPath?: string;
+  /** When false, skip the heading so a parent page title can stand alone. */
+  titled?: boolean;
 };
 
 type Mode = "password-in" | "password-up" | "magic";
@@ -29,7 +31,7 @@ function pathAfterAuth(redirectPath: string) {
   return "/profile";
 }
 
-export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
+export function AuthCard({ blurb, redirectPath = "/profile", titled = true }: AuthCardProps) {
   const formId = useId();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -169,17 +171,19 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
     }
   }
 
+  const title =
+    mode === "password-up" ? "Create account" : mode === "magic" ? "Email link" : "Sign in";
+
   return (
-    <div className="surface space-y-4 p-5">
-      <div>
-        <h2 className="t-title text-foreground">
-          {mode === "password-up" ? "Create account" : mode === "magic" ? "Email link" : "Sign in"}
-        </h2>
-        <p className="t-micro mt-1.5 text-muted-foreground">{blurb}</p>
-        <p className="t-micro mt-1.5 text-muted-foreground">
-          Stay signed in on this phone until you sign out.
-        </p>
-      </div>
+    <div className="space-y-4">
+      {titled ? (
+        <div>
+          <h1 className="t-title text-foreground">{title}</h1>
+          <p className="t-micro mt-1.5 text-muted-foreground">{blurb}</p>
+        </div>
+      ) : (
+        <p className="t-micro text-muted-foreground">{blurb}</p>
+      )}
 
       {sentTo && (
         <div className="rounded-xl border border-border bg-secondary/50 px-3.5 py-3">
@@ -246,47 +250,61 @@ export function AuthCard({ blurb, redirectPath = "/profile" }: AuthCardProps) {
         </>
       )}
 
-      <div className="flex flex-col pt-1">
+      <p className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 pt-1 t-micro text-muted-foreground">
         {mode === "magic" ? (
           <button
             type="button"
             disabled={busy}
             onClick={() => setMode("password-in")}
-            className="press min-h-11 t-micro text-center font-semibold text-foreground"
+            className="press min-h-11 px-1 font-medium text-foreground"
           >
-            Use password instead
+            Use password
           </button>
         ) : (
           <button
             type="button"
             disabled={busy}
-            onClick={() => setMode("magic")}
-            className="press t-micro min-h-11 w-full text-center text-muted-foreground"
+            onClick={() => setMode(mode === "password-up" ? "password-in" : "password-up")}
+            className="press min-h-11 px-1"
           >
-            Email me a link instead
+            {mode === "password-up" ? "Sign in" : "Create account"}
           </button>
         )}
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => setMode(mode === "password-up" ? "password-in" : "password-up")}
-          className="press t-micro min-h-11 w-full text-center text-muted-foreground"
-        >
-          {mode === "password-up"
-            ? "Already have an account? Sign in"
-            : "Need an account? Create one"}
-        </button>
-        {mode !== "magic" && (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void resetPassword()}
-            className="press t-micro min-h-11 w-full text-center text-muted-foreground"
-          >
-            Forgot password?
-          </button>
+        {mode !== "magic" ? (
+          <>
+            <span aria-hidden="true">·</span>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void resetPassword()}
+              className="press min-h-11 px-1"
+            >
+              Forgot
+            </button>
+            <span aria-hidden="true">·</span>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => setMode("magic")}
+              className="press min-h-11 px-1"
+            >
+              Email link
+            </button>
+          </>
+        ) : (
+          <>
+            <span aria-hidden="true">·</span>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => setMode("password-up")}
+              className="press min-h-11 px-1"
+            >
+              Create account
+            </button>
+          </>
         )}
-      </div>
+      </p>
     </div>
   );
 }

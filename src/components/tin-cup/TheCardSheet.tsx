@@ -5,15 +5,16 @@ import { useMatchSocial } from "@/hooks/useMatchSocial";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
+import { claimedPlayerIdFor } from "@/lib/profile-identity";
 import {
-  CARD_DISCLAIMER,
+  CARD_HEADER,
+  CARD_SUBLINE,
   cardRecords,
   faceoffRiders,
   faceoffRoasts,
   fridayCardMarkets,
   isYourMarket,
   peopleForMarket,
-  takenCount,
 } from "@/lib/the-card";
 
 export function TheCardSheet({
@@ -21,27 +22,27 @@ export function TheCardSheet({
   rounds,
   players = [],
   teams = [],
+  compact = false,
 }: {
   matches: Match[];
   rounds: Round[];
   players?: Player[];
   teams?: Team[];
+  compact?: boolean;
 }) {
   const { user } = useAuth();
   const { profile } = useProfile();
-  const social = useMatchSocial(user?.id, profile?.player_id);
+  const playerId = claimedPlayerIdFor(user?.id, profile?.player_id);
+  const social = useMatchSocial(user?.id, playerId);
   const profiles = usePublicProfiles();
   const avatars = usePlayerAvatars(players, teams);
   const face = (name: string) => avatars.data?.getByName(name);
-  const claimed = Boolean(profile?.player_id);
+  const claimed = Boolean(playerId);
   const claimedName = claimed
-    ? (players.find((player) => player.id === profile?.player_id)?.name ?? null)
+    ? (players.find((player) => player.id === playerId)?.name ?? null)
     : null;
   const allMarkets = fridayCardMarkets(matches, rounds);
-  const markets = claimedName
-    ? allMarkets.filter((market) => !isYourMarket(market, claimedName))
-    : allMarkets;
-  const progress = takenCount(social.predictions, user?.id, markets);
+  const markets = allMarkets;
   const graded = matches.some((match) => match.result !== "pending");
   const records = graded ? cardRecords(social.predictions, matches).slice(0, 4) : [];
   const nameOf = (userId: string) => {
@@ -66,19 +67,10 @@ export function TheCardSheet({
 
   return (
     <section aria-labelledby="the-card-title">
-      <div className="mb-1.5 flex items-end justify-between gap-3 px-1">
-        <div>
-          <h2 id="the-card-title" className="t-eyebrow">
-            Faceoff
-          </h2>
-          <p className="t-micro">{CARD_DISCLAIMER}</p>
-        </div>
-        {progress.taken > 0 ? (
-          <p className="t-micro tabular-nums text-muted-foreground">
-            {progress.taken}/{progress.total} lined up
-          </p>
-        ) : null}
-      </div>
+      <h2 id="the-card-title" className="t-title px-1 text-foreground">
+        {CARD_HEADER}
+      </h2>
+      <p className="t-micro mb-1 px-1">{CARD_SUBLINE}</p>
       <div className="surface divide-y divide-border overflow-hidden">
         {markets.map((market) => {
           const people = peopleForMarket(market, face);
@@ -101,7 +93,8 @@ export function TheCardSheet({
               crowdA={riders.sideA.map(faceForUser)}
               crowdB={riders.sideB.map(faceForUser)}
               roasts={roasts}
-              yours={false}
+              yours={isYourMarket(market, claimedName)}
+              compact={compact}
             />
           );
         })}

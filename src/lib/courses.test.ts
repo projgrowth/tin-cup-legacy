@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   COURSE_ORDER,
+  cannedHoleLine,
   clampHole,
   coursePar,
   defaultCourseId,
@@ -67,5 +68,11 @@ describe("courses helpers", () => {
 
   it("formats Eastern calendar keys consistently", () => {
     expect(easternDateKey(new Date("2026-08-28T23:30:00-04:00").getTime())).toBe("2026-08-28");
+  });
+
+  it("uses existing South 7 line and named holes only", () => {
+    expect(cannedHoleLine("south", 7)).toBe("left edge of right bunker");
+    expect(cannedHoleLine("south", 1)).toBeNull();
+    expect(cannedHoleLine("copperhead", 12)).toBe("Bridge Hole");
   });
 });

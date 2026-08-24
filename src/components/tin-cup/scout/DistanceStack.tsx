@@ -1,5 +1,6 @@
 /**
- * Front · Center · Back to the green. GPS-only extra panel on theater.
+ * Front · pin · back of the GREEN (not tee colors).
+ * Center/pin yards match the Black scorecard. GPS-only extra panel on theater.
  */
 export function DistanceStack({
   front,
@@ -8,6 +9,7 @@ export function DistanceStack({
   gpsEnabled = false,
   gpsActive = false,
   gpsError = null,
+  origin,
 }: {
   front: number;
   center: number;
@@ -15,19 +17,29 @@ export function DistanceStack({
   gpsEnabled?: boolean;
   gpsActive?: boolean;
   gpsError?: string | null;
+  origin?: "tee" | "green";
 }) {
   const live = gpsEnabled && gpsActive;
   const blocked = gpsEnabled && Boolean(gpsError);
+  const caption = origin === "tee" ? "from tee" : origin === "green" ? "to green" : null;
 
   return (
-    <div className="px-1">
+    <div className="px-1" role="group" aria-label="Yards to front, pin, and back of green">
       {blocked ? (
         <p className="text-sm font-semibold text-copper">GPS blocked</p>
       ) : (
         <div className="flex items-end gap-3">
-          <YardCol label="F" value={front} tone="muted" live={live} />
-          <YardCol label="C" value={center} tone={live ? "sky" : "gold"} live={live} hero />
-          <YardCol label="B" value={back} tone="muted" live={live} />
+          <YardCol label="F grn" value={front} tone="muted" live={live} title="Front of green" />
+          <YardCol
+            label="Pin"
+            value={center}
+            tone={live ? "sky" : "muted"}
+            live={live}
+            hero
+            caption={caption}
+            title="Pin / center of green · Black scorecard"
+          />
+          <YardCol label="B grn" value={back} tone="muted" live={live} title="Back of green" />
         </div>
       )}
     </div>
@@ -40,29 +52,33 @@ function YardCol({
   tone,
   hero,
   live,
+  caption,
+  title,
 }: {
   label: string;
   value: number;
   tone: "gold" | "sky" | "muted";
   hero?: boolean;
   live?: boolean;
+  caption?: string | null;
+  title?: string;
 }) {
   const color =
     tone === "gold"
       ? "text-white"
       : tone === "sky"
         ? "text-sky-100"
-        : "text-white/80";
-  const size = hero ? "text-[1.65rem] sm:text-[1.85rem]" : "text-[1.15rem] sm:text-[1.35rem]";
+        : "text-white";
+  const size = hero ? "text-[1.85rem] sm:text-[2.05rem]" : "text-[1.35rem] sm:text-[1.5rem]";
   return (
-    <div className="min-w-[2.75rem] text-center">
+    <div className="min-w-[2.9rem] text-center" title={title}>
       <p
         className={`hud-label ${
           tone === "gold"
             ? "text-white/70"
             : tone === "sky"
               ? "text-sky-300/80"
-              : "text-white/45"
+              : "text-white/75"
         }`}
       >
         {label}
@@ -70,6 +86,9 @@ function YardCol({
       <p className={`hud-num mt-0.5 ${size} ${color}`}>
         {live ? `~${value}` : value}
       </p>
+      {caption ? (
+        <p className="mt-0.5 text-[0.58rem] font-semibold tracking-wide text-white/50">{caption}</p>
+      ) : null}
     </div>
   );
 }

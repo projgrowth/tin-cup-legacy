@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 
-import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import {
   COURSE_DETAILS,
   COURSE_LABEL,
@@ -10,7 +9,7 @@ import {
   type CourseId,
   type Hole,
 } from "@/lib/courses";
-import { hasPlanContent, nineSplit, type PlanLine } from "@/lib/round-sheet";
+import { nineSplit, type PlanLine } from "@/lib/round-sheet";
 
 function NineRule({
   label,
@@ -22,7 +21,7 @@ function NineRule({
   yards: number;
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 px-4 py-2">
+    <div className="flex items-baseline justify-between gap-3 px-0 py-2">
       <p className="t-eyebrow">{label}</p>
       <p className="t-micro tabular-nums">
         Par {par}
@@ -33,65 +32,46 @@ function NineRule({
   );
 }
 
-function HoleRow({
-  line,
-  holeMeta,
+function ScoreRow({
+  lines,
   courseId,
-  contests,
+  onStageHole,
+  contestByHole,
 }: {
-  line: PlanLine;
-  holeMeta: Hole;
+  lines: PlanLine[];
   courseId: CourseId;
-  contests: Array<"ctp" | "ld">;
+  onStageHole?: number;
+  contestByHole: Map<number, Array<"ctp" | "ld">>;
 }) {
-  const snake = courseId === "copperhead" && SNAKE_PIT.includes(line.hole);
-  const planned = hasPlanContent(line.draft);
-  const holeMark = `flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${
-    snake
-      ? "ring-1 ring-copper text-copper"
-      : contests.length
-        ? "bg-hunter/15 text-hunter"
-        : planned
-          ? "ring-1 ring-hunter/40 text-hunter"
-          : "ring-1 ring-foreground/30 bg-card text-foreground"
-  }`;
-
   return (
-    <div className="border-t border-border">
-      <Link
-        to="/scout"
-        search={{ course: courseId, hole: line.hole, map: true }}
-        replace
-        aria-label={`Open hole ${line.hole} map`}
-        className="press flex items-center gap-3 px-4 py-3"
-      >
-        <span className={holeMark}>{line.hole}</span>
-        <span className="min-w-0 flex-1">
-          <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="text-sm font-bold tabular-nums text-foreground">Par {line.par}</span>
-            <span className="t-micro tabular-nums">{formatScorecardYards(line.yards)}</span>
-            {holeMeta.name ? (
-              <span className="t-micro truncate text-muted-foreground">{holeMeta.name}</span>
-            ) : null}
-            {snake ? <span className="t-micro font-semibold text-copper">Pit</span> : null}
-            {contests.map((c) => (
-              <span
-                key={c}
-                className="rounded-full bg-hunter/15 px-1.5 py-0.5 text-[0.65rem] font-semibold text-hunter"
-              >
-                {c === "ld" ? "LD" : "CTP"}
-              </span>
-            ))}
-          </span>
-          {planned ? (
-            <span className="mt-0.5 block truncate text-sm text-foreground/85">
-              {[line.draft?.tee_club, line.draft?.green_note, line.draft?.notes || line.draft?.target_line]
-                .filter(Boolean)
-                .join(" · ")}
+    <div className="grid grid-cols-9 gap-px">
+      {lines.map((line) => {
+        const snake = courseId === "copperhead" && SNAKE_PIT.includes(line.hole);
+        const contests = contestByHole.get(line.hole) ?? [];
+        const on = onStageHole != null && line.hole === onStageHole;
+        void contests;
+        return (
+          <Link
+            key={line.hole}
+            to="/scout"
+            search={{ course: courseId, hole: line.hole, map: true }}
+            replace
+            aria-label={`Open hole ${line.hole} map`}
+            aria-current={on ? "true" : undefined}
+            className="press flex min-h-11 flex-col items-center justify-center px-0.5 py-1.5 text-center"
+          >
+            <span
+              className={`t-title font-semibold tabular-nums ${on ? "text-hunter" : snake ? "text-copper" : "text-foreground"}`}
+            >
+              {line.hole}
             </span>
-          ) : null}
-        </span>
-      </Link>
+            <span className="t-micro tabular-nums text-muted-foreground">{line.par}</span>
+            <span className="t-micro tabular-nums">
+              {formatScorecardYards(line.yards)}
+            </span>
+          </Link>
+        );
+      })}
     </div>
   );
 }
@@ -102,6 +82,7 @@ function HoleRow({
  */
 export function RoundPlanBoard({
   courseId,
+  hole,
   holes,
   lines,
   contestByHole,
@@ -130,119 +111,101 @@ export function RoundPlanBoard({
 }) {
   const details = COURSE_DETAILS[courseId];
   const split = nineSplit(lines);
-  const holeByN = new Map(holes.map((h) => [h.h, h]));
-  const frontLines = split.front;
-  const pit = courseId === "copperhead";
-  const backLines = pit ? split.back.filter((line) => line.hole < 16) : split.back;
-  const pitLines = pit ? split.back.filter((line) => line.hole >= 16) : [];
-  const backStats = {
-    par: backLines.reduce((sum, line) => sum + line.par, 0),
-    yards: backLines.reduce((sum, line) => sum + line.yards, 0),
-  };
-  const pitStats = {
-    par: pitLines.reduce((sum, line) => sum + line.par, 0),
-    yards: pitLines.reduce((sum, line) => sum + line.yards, 0),
-  };
+  void holes;
+
+  const nine = (rows: PlanLine[]) => (
+    <ScoreRow
+      lines={rows}
+      courseId={courseId}
+      onStageHole={hole}
+      contestByHole={contestByHole}
+    />
+  );
+
+  const frontBlock = (
+    <div className="px-[var(--space-4)] pb-[var(--space-3)]">
+      <NineRule label={details.frontNine} par={split.out.par} yards={split.out.yards} />
+      {nine(split.front)}
+    </div>
+  );
+  const backBlock = (
+    <div className="px-[var(--space-4)] pb-[var(--space-4)]">
+      <NineRule label={details.backNine} par={split.inn.par} yards={split.inn.yards} />
+      {nine(split.back)}
+      {courseId === "copperhead" ? (
+        <p className="t-micro mt-2 text-copper">Snake Pit · 16–18</p>
+      ) : null}
+    </div>
+  );
 
   return (
-    <div className={hero ? "space-y-3 pb-[calc(var(--nav-height)+0.75rem)]" : "space-y-3"}>
+    <div className={hero ? "stack-tight pb-[calc(var(--nav-height)+0.75rem)]" : "stack-tight"}>
       {hero ? (
-        <PageMasthead
-          title={COURSE_LABEL[courseId]}
-          meta={
-            <>
-              {details.dayLabel} · {details.firstTee} · {details.format}
-              {pairingLine ? (
-                <span className="mt-1 block text-foreground">{pairingLine}</span>
-              ) : null}
-            </>
-          }
-        />
+        <header className="px-0.5">
+          <h1 className="t-title text-foreground">{COURSE_LABEL[courseId]}</h1>
+          <p className="t-micro mt-[var(--space-3)]">
+            Par {coursePar(courseId)} · {details.blackTotal.toLocaleString()} yds
+            <span className="mx-1.5 text-muted-foreground">·</span>
+            {details.format}
+          </p>
+          {pairingLine ? <p className="t-body mt-[var(--space-3)]">{pairingLine}</p> : null}
+        </header>
       ) : (
         <header className="px-0.5">
-          <h1 className="t-display text-foreground">{COURSE_LABEL[courseId]}</h1>
-          {pairingLine ? <p className="t-micro mt-1.5 text-foreground">{pairingLine}</p> : null}
+          <h1 className="t-title text-foreground">{COURSE_LABEL[courseId]}</h1>
           <p className="t-micro mt-1.5">
-            {details.dayLabel} · {details.format}
+            Par {coursePar(courseId)} · {details.blackTotal.toLocaleString()} yds
+            <span className="mx-1.5 text-muted-foreground">·</span>
+            {details.format}
           </p>
+          {pairingLine ? <p className="t-micro mt-1.5 text-foreground">{pairingLine}</p> : null}
         </header>
       )}
-      <p className="t-micro px-1">{details.formatTip}</p>
 
       <section className="surface overflow-hidden" aria-label="18-hole game plan">
-        <NineRule label={details.frontNine} par={split.out.par} yards={split.out.yards} />
-        {frontLines.map((line) => (
-          <HoleRow
-            key={line.hole}
-            line={line}
-            holeMeta={holeByN.get(line.hole) ?? holes[0]!}
-            courseId={courseId}
-            contests={contestByHole.get(line.hole) ?? []}
-          />
-        ))}
-        <NineRule
-          label={details.backNine}
-          par={backStats.par || split.inn.par}
-          yards={backStats.yards || split.inn.yards}
-        />
-        {backLines.map((line) => (
-          <HoleRow
-            key={line.hole}
-            line={line}
-            holeMeta={holeByN.get(line.hole) ?? holes[0]!}
-            courseId={courseId}
-            contests={contestByHole.get(line.hole) ?? []}
-          />
-        ))}
-        {pitLines.length > 0 ? (
+        {hero ? (
+          <div className="md:grid md:grid-cols-2 md:items-start">
+            {frontBlock}
+            <div className="md:border-l md:border-border">{backBlock}</div>
+          </div>
+        ) : (
           <>
-            <NineRule label="Snake Pit" par={pitStats.par} yards={pitStats.yards} />
-            {pitLines.map((line) => (
-              <HoleRow
-                key={line.hole}
-                line={line}
-                holeMeta={holeByN.get(line.hole) ?? holes[0]!}
-                courseId={courseId}
-                contests={contestByHole.get(line.hole) ?? []}
-              />
-            ))}
+            {frontBlock}
+            {backBlock}
           </>
-        ) : null}
+        )}
         <div className="flex items-baseline justify-between border-t border-border px-4 py-3">
           <p className="text-sm font-bold text-foreground">Par {coursePar(courseId)}</p>
           <p className="t-micro tabular-nums">{split.all.yards.toLocaleString()} yds Black</p>
         </div>
       </section>
 
-      <details className="group">
-        <summary className="press cursor-pointer list-none px-1 py-3 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
-          Day notes
-        </summary>
-        <div className="space-y-2 px-1 pb-3">
-          {!signedIn ? (
-            <p className="t-micro">On this device until you sign in.</p>
-          ) : (
-            <>
-              <textarea
-                value={dayDraft}
-                onChange={(e) => onDayDraft(e.target.value)}
-                rows={3}
-                maxLength={800}
-                className="control w-full resize-none text-base"
-                placeholder="Pairing thoughts, attack holes…"
-              />
-              <button
-                type="button"
-                disabled={!canSaveDay || savingDay}
-                onClick={onSaveDay}
-                className="press t-micro min-h-11 px-1 font-semibold text-hunter disabled:opacity-40"
-              >
-                {savingDay ? "Saving…" : "Save day plan"}
-              </button>
-            </>
-          )}
-        </div>
-      </details>
+      {signedIn ? (
+        <details className="px-1 pb-1">
+          <summary className="t-micro cursor-pointer py-2 font-semibold text-muted-foreground">
+            Day plan
+          </summary>
+          <div className="space-y-2 pt-1">
+            <textarea
+              value={dayDraft}
+              onChange={(e) => onDayDraft(e.target.value)}
+              rows={3}
+              maxLength={800}
+              className="control w-full resize-none text-base"
+              placeholder="Pairing thoughts, attack holes…"
+              aria-label="Day notes"
+            />
+            <button
+              type="button"
+              disabled={!canSaveDay || savingDay}
+              onClick={onSaveDay}
+              className="press btn-quiet t-micro min-h-11 px-3 font-semibold disabled:opacity-40"
+            >
+              {savingDay ? "Saving…" : "Save day plan"}
+            </button>
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 }

@@ -1,17 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Avatar } from "@/components/tin-cup/Avatar";
-import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
 import { ErrorState, LoadingRows, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
-import { useMatchSocial } from "@/hooks/useMatchSocial";
+import { useBanterVotes } from "@/hooks/useBanterVotes";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
-import { groupLine } from "@/lib/day1-pairings";
-import { cardLine, fridayCardMarkets, pickOnMarket } from "@/lib/the-card";
+import { day1GroupForPlayer, fridayPartnerLine, groupLine } from "@/lib/day1-pairings";
+import { chipForPlayer } from "@/lib/banter";
 import { formatRecord, pairingIncludes, playerRecord, roundStatus } from "@/lib/scoring";
 
 import { formatPayout } from "@/lib/purse";
@@ -73,24 +72,10 @@ function PlayerPage() {
   const face = avatars.data?.byPlayerId.get(playerId);
   const publicProfiles = usePublicProfiles();
   const socialProfile = publicProfiles.data?.find((candidate) => candidate.player_id === playerId);
-  const matchSocial = useMatchSocial();
-  const faceoffLines = fridayCardMarkets(matches, rounds)
-    .map((market) => {
-      if (!socialProfile) return null;
-      const pick = pickOnMarket(matchSocial.predictions, socialProfile.id, market.matchIds);
-      if (!pick) return null;
-      return {
-        id: market.id,
-        ...cardLine({
-          author: player?.name.trim().split(/\s+/)[0] ?? "Player",
-          choice: pick.choice,
-          sideA: market.sideA,
-          sideB: market.sideB,
-          note: pick.note,
-        }),
-      };
-    })
-    .filter((row): row is NonNullable<typeof row> => Boolean(row));
+  const { votes, prompts } = useBanterVotes();
+  const banterChips = player
+    ? chipForPlayer(votes, player.id, player.name.trim().split(/\s+/)[0] ?? player.name, prompts)
+    : [];
 
   if (isPending && !data) {
     return (
@@ -125,48 +110,50 @@ function PlayerPage() {
   const claims = (data?.sideBets ?? []).filter((b) => b.player_name === player.name);
   const cash = claims.reduce((sum, c) => sum + Number(c.amount), 0);
   const matchLine = groupLine(player.name, isYou);
+  const firstName = player.name.trim().split(/\s+/)[0] ?? player.name;
+  const teamChip = team.name.replace("Team ", "");
+  const hasPairing = Boolean(day1GroupForPlayer(player.name) || mine.length > 0);
+  const fridayLine = fridayPartnerLine(player.name) ?? matchLine;
 
   return (
     <Shell>
-      <Link
-        to="/rosters"
-        className="press t-micro mb-4 inline-flex min-h-11 items-center text-muted-foreground"
-      >
-        Teams
-      </Link>
+      <article className="flex flex-col items-center px-1 py-[var(--space-6)] text-center">
+        <Link
+          to={isYou ? "/profile" : "/photos"}
+          className="press shrink-0 rounded-full"
+          aria-label={isYou ? "Your face — open account" : `${firstName} in the vault`}
+        >
+          <Avatar name={player.name} teamSlug={team.slug} src={face?.url} size="poster" />
+        </Link>
+        <h1 className="t-hero mt-[var(--space-5)] text-foreground">{firstName}</h1>
+        {isYou ? <p className="t-micro mt-1">You</p> : null}
+        <p className="t-micro mt-[var(--space-3)]">
+          {teamChip}
+          {player.is_captain ? " · Captain" : ""}
+        </p>
+        {fridayLine ? <p className="t-micro mt-[var(--space-2)]">{fridayLine}</p> : null}
+        {shorthand && record.played > 0 ? <p className="t-micro mt-1">{shorthand}</p> : null}
+        {hasPairing ? (
+          <ShareMomentButton
+            className="mt-[var(--space-3)] w-auto border-0 bg-transparent px-2 t-micro font-medium text-muted-foreground"
+            payload={{
+              kind: "player",
+              eyebrow: team.name,
+              title: player.name,
+              primary: record.played > 0 ? `${record.points} pts` : fridayLine ?? teamChip,
+              secondary: shorthand
+                ? `${shorthand} record${cash > 0 ? ` · ${formatPayout(cash)} side cash` : ""}${socialProfile?.flair ? ` · ${socialProfile.flair.replace("vibes", "vibes captain")}` : ""}`
+                : "Tin Cup Invitational 2026",
+              canonicalUrl:
+                typeof window === "undefined" ? "https://www.tincupinv.com/" : window.location.href,
+            }}
+          >
+            Share card
+          </ShareMomentButton>
+        ) : null}
+      </article>
 
-      <div className="flex items-start gap-3">
-        <Avatar name={player.name} teamSlug={team.slug} src={face?.url} size="lg" />
-        <PageMasthead
-          title={player.name}
-          meta={[
-            team.name.replace("Team ", ""),
-            player.is_captain ? "Captain" : null,
-            matchLine,
-            shorthand || "No results yet",
-          ]
-            .filter(Boolean)
-            .join(" · ")}
-        />
-      </div>
-
-      <ShareMomentButton
-        className="mt-3 w-full"
-        payload={{
-          kind: "player",
-          eyebrow: team.name,
-          title: player.name,
-          primary: `${record.points} pts`,
-          secondary: shorthand
-            ? `${shorthand} record · ${formatPayout(cash)} side cash${socialProfile?.flair ? ` · ${socialProfile.flair.replace("vibes", "vibes captain")}` : ""}`
-            : "Tin Cup Invitational 2026",
-          canonicalUrl:
-            typeof window === "undefined" ? "https://www.tincupinv.com/" : window.location.href,
-        }}
-      >
-        Share card
-      </ShareMomentButton>
-
+      {record.played > 0 ? (
       <div className="mt-6 grid grid-cols-3 gap-3">
         {[
           { label: "Won", value: record.won },
@@ -179,14 +166,14 @@ function PlayerPage() {
           </div>
         ))}
       </div>
+      ) : null}
 
-      {(record.points > 0 || claims.length > 0 || player.is_captain) && (
+      {(record.points > 0 || claims.length > 0) && (
         <section className="mt-6" aria-labelledby="player-achievements">
           <h2 id="player-achievements" className="t-eyebrow">
             Weekend
           </h2>
           <ul className="mt-3 flex flex-wrap gap-2">
-            {player.is_captain && <li className="player-flair">Team captain</li>}
             {record.points > 0 && (
               <li className="player-flair">On the board · {record.points} pts</li>
             )}
@@ -197,23 +184,20 @@ function PlayerPage() {
         </section>
       )}
 
-      {faceoffLines.length > 0 ? (
-        <section className="mt-6">
-          <h2 className="t-eyebrow">Faceoff</h2>
-          <ul className="surface mt-2 divide-y divide-border overflow-hidden">
-            {faceoffLines.map((row) => (
-              <li key={row.id} className="px-4 py-3">
-                <p className="t-body font-medium text-foreground">{row.title}</p>
-                {row.detail ? <p className="t-micro mt-0.5 italic">{row.detail}</p> : null}
-              </li>
-            ))}
-          </ul>
-        </section>
+      {banterChips.length > 0 ? (
+        <ul className="mt-6 space-y-2">
+          {banterChips.map((line) => (
+            <li key={line} className="t-body text-foreground">
+              {line}
+            </li>
+          ))}
+        </ul>
       ) : null}
 
+      {mine.length > 0 ? (
       <section className="mt-6">
         <h2 className="t-eyebrow">Matches</h2>
-        <ol className="surface mt-2 divide-y divide-border overflow-hidden">
+        <ol className="mt-2 space-y-3">
           {mine.map((match) => {
             const round = rounds.find((r) => r.id === match.round_id);
             const onA = pairingIncludes(match.side_a, player.name);
@@ -221,7 +205,7 @@ function PlayerPage() {
             const opponents = onA ? match.side_b : match.side_a;
             const live = round && roundStatus(round) === "live";
             return (
-              <li key={match.id} className="px-4 py-3">
+              <li key={match.id}>
                 <div className="flex items-baseline justify-between gap-3">
                   <span className="t-body min-w-0 truncate font-medium text-foreground">
                     {match.label}
@@ -244,18 +228,13 @@ function PlayerPage() {
               </li>
             );
           })}
-          {mine.length === 0 && (
-            <li className="t-micro px-4 py-3">Pairings post once the captains set the lineups.</li>
-          )}
         </ol>
       </section>
+      ) : null}
 
+      {claims.length > 0 ? (
       <section className="mt-6">
         <h2 className="t-eyebrow">Side cash</h2>
-        {claims.length === 0 ? (
-          <p className="t-micro mt-3">No CTP or long drive claims yet.</p>
-        ) : (
-          <>
             <ul className="surface mt-2 divide-y divide-border overflow-hidden">
               {claims.map((claim) => (
                 <li key={claim.id} className="flex items-baseline justify-between gap-3 px-4 py-3">
@@ -273,9 +252,8 @@ function PlayerPage() {
               ))}
             </ul>
             <p className="t-micro mt-2 text-copper">{formatPayout(cash)} won on the side board</p>
-          </>
-        )}
       </section>
+      ) : null}
     </Shell>
   );
 }

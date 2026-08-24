@@ -67,15 +67,20 @@ export function PlanSheet({
   overlay?: boolean;
   pitLabel?: string | null;
 }) {
-  const [open, setOpen] = useState(overlay ? false : !editor.filled);
+  const [open, setOpen] = useState(false);
   const stripRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLAnchorElement>(null);
   const { led, filled, summary } = editor;
+  const peek = filled ? summary : "Club · miss · line";
 
   const expanded = open && !forceCollapsed;
 
   useEffect(() => {
-    if (forceCollapsed || overlay) return;
+    if (overlay) {
+      setOpen(false);
+      return;
+    }
+    if (forceCollapsed) return;
     setOpen(!filled);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hole]);
@@ -100,20 +105,20 @@ export function PlanSheet({
         setOpen((v) => !v);
       }}
       className={`press flex w-full flex-col items-center px-4 text-center ${
-        overlay && !expanded ? "pb-3 pt-2" : "py-3"
+        overlay && !expanded ? "pb-1 pt-1.5" : "py-3"
       }`}
       aria-label={overlay ? `Hole ${hole} plan` : undefined}
       aria-expanded={expanded}
       aria-disabled={forceCollapsed || undefined}
     >
-      {overlay ? <span aria-hidden className="mb-2 h-1 w-8 rounded-full bg-white/30" /> : null}
-      <span className="text-sm font-semibold tracking-tight text-white">
+      {overlay ? <span aria-hidden className="mb-1.5 h-0.5 w-8 rounded-full bg-white/30" /> : null}
+      <span
+        className={`font-semibold tracking-tight text-white ${
+          overlay && !expanded ? "max-w-[92%] truncate text-[0.72rem] text-white/70" : "t-body"
+        }`}
+      >
         {overlay
-          ? filled
-            ? summary
-            : pitLabel
-              ? "Pit · Club, miss, line"
-              : "Club · miss · line"
+          ? peek
           : `H${hole}${pitLabel ? ` · ${pitLabel}` : ""}`}
       </span>
       {overlay ? null : (
@@ -131,7 +136,9 @@ export function PlanSheet({
   const strip = (
     <div
       ref={stripRef}
-      className="no-scrollbar flex gap-1.5 overflow-x-auto scroll-smooth border-b border-white/10 px-3 py-2.5"
+      className={`no-scrollbar flex gap-1 overflow-x-auto scroll-smooth px-3 ${
+        overlay ? "border-t border-white/8 py-1.5" : "border-b border-white/10 py-2.5 gap-1.5"
+      }`}
     >
       {holes.map((h) => {
         const active = h.h === hole;
@@ -148,9 +155,11 @@ export function PlanSheet({
             onClick={() => onSelectHole(h.h)}
             aria-label={`Open hole ${h.h} map`}
             aria-current={active ? "true" : undefined}
-            className={`press relative size-11 shrink-0 rounded-full text-sm font-bold tabular-nums transition-colors ${
+            className={`press relative flex shrink-0 items-center justify-center rounded-full font-bold tabular-nums ${
+              overlay ? "size-8 text-[0.7rem]" : "size-11 text-sm"
+            } ${
               active
-                ? "bg-white/20 text-white ring-1 ring-white/40"
+                ? "bg-white/90 text-black"
                 : snake
                   ? "bg-white/5 text-copper"
                   : planned
@@ -162,15 +171,13 @@ export function PlanSheet({
             {planned && !active ? (
               <span
                 aria-hidden
-                className="absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-white"
+                className="absolute bottom-0.5 left-1/2 size-1 -translate-x-1/2 rounded-full bg-white"
               />
             ) : null}
             {contests.length > 0 && !active ? (
               <span
                 aria-hidden
-                className={`absolute right-0.5 top-0.5 size-1.5 rounded-full ${
-                  contests.includes("ld") ? "bg-amber-200" : "bg-white"
-                }`}
+                className="absolute right-0.5 top-0.5 size-1.5 rounded-full bg-white"
               />
             ) : null}
           </Link>
@@ -183,14 +190,14 @@ export function PlanSheet({
     <div
       className={`relative overflow-hidden transition-opacity ${
         overlay
-          ? `rounded-t-[1.15rem] border-t border-white/10 backdrop-blur-md ${
-              expanded ? "bg-black/78" : "bg-black/40"
+          ? `rounded-t-[var(--radius-card)] border-t border-white/12 ${
+              expanded ? "bg-black" : "bg-black/55"
             }`
           : "glass-panel"
       }`}
     >
       {overlay ? handle : strip}
-      {overlay ? strip : handle}
+      {overlay ? null : handle}
       {expanded && (
         <div className="border-t border-white/8 px-4 pb-4 pt-3">
           {overlay ? (
@@ -202,6 +209,7 @@ export function PlanSheet({
           )}
         </div>
       )}
+      {overlay ? strip : null}
     </div>
   );
 }

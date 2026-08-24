@@ -100,10 +100,7 @@ export function InstallHint({ embedded = false }: { embedded?: boolean }) {
         embedded ? "" : "surface"
       }`}
     >
-      <p className="min-w-0">
-        <span className="t-body block font-medium text-foreground">Add to Home Screen</span>
-        <span className="t-micro block">iPhone: Share → Add to Home Screen</span>
-      </p>
+      <p className="t-micro min-w-0">iPhone: Share → Add to Home Screen</p>
       <button
         type="button"
         className="press t-micro min-h-11 shrink-0 px-1 font-semibold text-muted-foreground"

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
-import { FridayPairings } from "@/components/tin-cup/FridayPairings";
+import { PairingStrip } from "@/components/tin-cup/PairingStrip";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
@@ -20,6 +20,8 @@ import {
   type CourseId,
 } from "@/lib/courses";
 import { WEEKEND_SOCIAL } from "@/lib/tin-cup";
+import { PropertyLocator } from "@/components/tin-cup/PropertyLocator";
+import { DAY1_PAIRINGS } from "@/lib/day1-pairings";
 
 function useNow() {
   const [now, setNow] = useState<number | null>(null);
@@ -57,6 +59,10 @@ export const Route = createFileRoute("/schedule")({
   component: SchedulePage,
 });
 
+function dinnerFor(dayLabel: string) {
+  return WEEKEND_SOCIAL.find((row) => row.day.startsWith(dayLabel));
+}
+
 function SchedulePage() {
   const search = Route.useSearch();
   const { data, isError, refetch, isFetching } = useTournament();
@@ -88,32 +94,18 @@ function SchedulePage() {
   const autoCourseId = todayRound ? (courseIdFromRound(todayRound) ?? todayCourse) : todayCourse;
   const courseId = search.course ?? autoCourseId;
   const details = COURSE_DETAILS[courseId];
-  const selectedRound =
-    rounds.find((round) => round.slug === details.roundSlug) ??
-    rounds.find((round) => courseIdFromRound(round) === courseId) ??
-    null;
-
-  const socialOrdered = useMemo(() => {
-    const dayLabel = details.dayLabel;
-    const list = [...WEEKEND_SOCIAL];
-    list.sort((a, b) => {
-      const aToday = a.day.startsWith(dayLabel) ? 0 : 1;
-      const bToday = b.day.startsWith(dayLabel) ? 0 : 1;
-      return aToday - bToday;
-    });
-    return list;
-  }, [details.dayLabel]);
-
   const claimedPlayer = profile?.player_id
     ? (data?.players ?? []).find((player) => player.id === profile.player_id)
     : undefined;
   const playerIdByName = (name: string) =>
     (data?.players ?? []).find((player) => player.name.trim().toLowerCase() === name.trim().toLowerCase())
       ?.id;
+  const dinner = dinnerFor(details.dayLabel);
+  const isFriday = courseId === "south";
 
   return (
     <Shell variant="content">
-      <div className="stack-page pb-4">
+      <div className="stack-page">
         <section className="stack-tight">
           <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Day">
             {COURSE_ORDER.map((id) => {
@@ -134,62 +126,61 @@ function SchedulePage() {
             })}
           </div>
 
-          <header className="px-0.5">
-            <h1 className="t-title text-foreground">{details.format}</h1>
-            <p className="t-micro mt-1">
-              {details.dayLabel} · {COURSE_LABEL[courseId]} · {details.firstTee}
-              {` · ${selectedRound?.points ?? details.points} pts`}
-            </p>
-          </header>
-
-          {courseId === "south" ? (
-            <FridayPairings
-              getFace={(name) => avatars.data?.getByName(name)}
-              claimedName={claimedPlayer?.name ?? null}
-              playerIdByName={playerIdByName}
-              matches={data?.matches ?? []}
-              rounds={data?.rounds ?? []}
-            />
+          {isFriday ? (
+            <ol className="stack">
+              {DAY1_PAIRINGS.map((group) => (
+                <li key={group.matchIndex}>
+                  <PairingStrip
+                    group={group}
+                    avatars={avatars.data}
+                    claimedName={claimedPlayer?.name ?? null}
+                    playerIdByName={playerIdByName}
+                  />
+                </li>
+              ))}
+            </ol>
           ) : (
-            <p className="t-body px-1 text-foreground/80">Pairings when captains post</p>
+            <header className="px-0.5">
+              <h1 className="t-title text-foreground">
+                {COURSE_LABEL[courseId]} · {details.firstTee}
+              </h1>
+              <p className="t-micro mt-2">{details.format} · {details.points} pts</p>
+              <p className="t-micro mt-[var(--space-5)]">Pairings when captains post</p>
+            </header>
           )}
 
+          {dinner ? <p className="t-micro">Tonight · {dinner.title}</p> : null}
+
+          <details>
+            <summary className="press t-micro min-h-11 cursor-pointer list-none py-2 [&::-webkit-details-marker]:hidden">
+              Property
+            </summary>
+            <PropertyLocator courseId={courseId} />
+          </details>
         </section>
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
-        <section className="stack-tight">
-          <h2 className="t-eyebrow">Dinners</h2>
-          <div className="surface divide-y divide-border overflow-hidden">
-            {socialOrdered.map((row, index) => (
-              <details key={row.day} open={index === 0 || undefined}>
-                <summary className="press flex min-h-11 cursor-pointer list-none items-center px-4 py-3 [&::-webkit-details-marker]:hidden">
-                  <span className="t-body min-w-0 truncate font-medium text-foreground">
-                    {row.day} · {row.title}
-                  </span>
-                </summary>
-                <p className="t-micro px-4 pb-3 text-muted-foreground">{row.detail}</p>
-              </details>
-            ))}
-          </div>
-        </section>
-
-        <div className="surface divide-y divide-border overflow-hidden">
-          <FormatSheet triggerClassName="flex w-full items-center px-4 py-3 t-body font-medium text-foreground" />
-          <SnakePitDrawer triggerClassName="flex w-full items-center px-4 py-3 t-body font-medium text-foreground" />
-          {rounds.length > 0 && (
-            <button
-              type="button"
-              onClick={() => {
-                downloadWeekendIcs(rounds);
-                void trackProductEvent("calendar_downloaded", { kind: "weekend" });
-              }}
-              className="press flex min-h-11 w-full items-center px-4 py-3 t-body font-medium text-foreground"
-            >
-              Add weekend to calendar
-            </button>
-          )}
-        </div>
+        <p className="t-micro flex flex-wrap items-baseline gap-x-2">
+          <FormatSheet triggerClassName="t-micro" />
+          <span aria-hidden="true">·</span>
+          <SnakePitDrawer triggerClassName="t-micro" />
+          {rounds.length > 0 ? (
+            <>
+              <span aria-hidden="true">·</span>
+              <button
+                type="button"
+                onClick={() => {
+                  downloadWeekendIcs(rounds);
+                  void trackProductEvent("calendar_downloaded", { kind: "weekend" });
+                }}
+                className="press t-micro"
+              >
+                Calendar
+              </button>
+            </>
+          ) : null}
+        </p>
         <p className="t-micro px-1 text-muted-foreground">
           Playoff · If 13–13: captains each pick a scramble partner · one hole until decided.
         </p>

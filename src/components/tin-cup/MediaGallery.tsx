@@ -191,7 +191,9 @@ export function MediaGallery({
                           {item.playerName || "Tin Cup"}
                         </span>
                         <span className="t-micro block truncate">
-                          {item.subtitle || item.eventTag || "Weekend photo"}
+                          {(item.subtitle && item.subtitle.trim().toLowerCase() !== "test"
+                            ? item.subtitle
+                            : null) || item.eventTag || "Weekend photo"}
                         </span>
                       </span>
                       {item.featured && <Star className="size-4 shrink-0 text-hunter" />}

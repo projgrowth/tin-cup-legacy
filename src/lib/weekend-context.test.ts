@@ -61,6 +61,16 @@ describe("buildWeekendContext", () => {
         canScore: false,
       }).nextAction.kind,
     ).toBe("claim-player");
+    expect(
+      buildWeekendContext({
+        phase: "pre",
+        signedIn: true,
+        claimedId: "p-dan",
+        rounds: [],
+        matches: [],
+        canScore: false,
+      }).nextAction.kind,
+    ).toBe("view-pairing");
   });
 
   it("prioritizes planning before the event and a live match during play", () => {

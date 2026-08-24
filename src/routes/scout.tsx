@@ -10,7 +10,6 @@ import { RoundPlanBoard } from "@/components/tin-cup/scout/RoundPlanBoard";
 import { useAuth } from "@/hooks/useAuth";
 import { useHoleNotes, useProfile, useRoundPlan, type HoleNoteDraft } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
-import { yourGroupLine } from "@/lib/day1-pairings";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { knownContestsForHole } from "@/lib/contest-holes";
 import {
@@ -26,6 +25,7 @@ import {
   type CourseId,
 } from "@/lib/courses";
 import { getGuestNote } from "@/lib/guest-notes";
+import { readLastHole, writeLastHole } from "@/lib/scout-memory";
 import { buildPlanLines, hasPlanContent, type PlanLine } from "@/lib/round-sheet";
 
 const HoleStage = lazy(() =>
@@ -118,10 +118,19 @@ function ScoutPage() {
     }
   }
 
-  const courseId: CourseId = search.course ?? defaultCourseId();
+  const remembered = readLastHole();
+  const courseId: CourseId = search.course ?? remembered?.course ?? defaultCourseId();
   const course = getCourse(courseId);
-  const hole = clampHole(search.hole ?? 1, course.holes.length);
+  const hole = clampHole(
+    search.hole ??
+      (search.course && search.course !== remembered?.course ? 1 : (remembered?.hole ?? 1)),
+    course.holes.length,
+  );
   const showMap = search.map === true;
+
+  useEffect(() => {
+    writeLastHole(courseId, hole);
+  }, [courseId, hole]);
 
   const setSelection = (next: { course?: CourseId; hole?: number; map?: boolean }) => {
     const nextCourse = next.course ?? courseId;
@@ -157,7 +166,9 @@ function ScoutPage() {
   const claimedName = profile?.player_id
     ? tournament?.players.find((p) => p.id === profile.player_id)?.name
     : null;
-  const pairingLine = courseId === "south" && claimedName ? yourGroupLine(claimedName) : null;
+  const pairingLine = claimedName
+    ? `You · ${details.dayLabel} · ${details.firstTee}`
+    : null;
 
   const contestByHole = useMemo(() => {
     const map = new Map<number, Array<"ctp" | "ld">>();
@@ -210,12 +221,12 @@ function ScoutPage() {
 
   const orb =
     "press flex size-11 items-center justify-center rounded-full border border-white/15 bg-black/45 text-white shadow-[var(--shadow-card)] backdrop-blur-md";
-  const mapChip = "press chip min-h-11 border-white/15 bg-black/45 text-white backdrop-blur-md";
+  const mapChip = "press min-h-10 px-2.5 text-[0.65rem] font-semibold tracking-wide text-white/55";
 
   if (showMap) {
     return (
       <Shell variant="theater">
-        <div className="relative h-svh w-full overflow-hidden bg-black">
+        <div className="relative h-svh w-full overflow-hidden bg-black [transform:none]">
           <div className={`absolute inset-0 ${wideTheater ? "lg:right-96" : ""}`}>
             <Suspense
               fallback={
@@ -238,7 +249,6 @@ function ScoutPage() {
                 onSatFailed={() => setPlayGpsOn(false)}
                 holeCount={course.holes.length}
                 courseLabel={COURSE_LABEL[courseId]}
-                note={planEditor.filled ? planEditor.summary : null}
               />
             </Suspense>
           </div>
@@ -270,10 +280,10 @@ function ScoutPage() {
                 void import("@/components/tin-cup/SatelliteHoleMap");
               }
             }}
-            className={`${mapChip} absolute right-3 z-40 ${playGpsOn ? "chip-on" : ""}`}
+            className={`${mapChip} absolute right-3 z-40 ${playGpsOn ? "text-white" : "text-white/55"}`}
             style={{ top: "max(0.75rem, env(safe-area-inset-top))" }}
           >
-            Satellite
+            Aerial
           </button>
 
           {!wideTheater ? (
@@ -300,6 +310,7 @@ function ScoutPage() {
             <aside className="absolute inset-y-0 right-0 z-30 w-96 overflow-y-auto border-l border-border bg-background/98 px-3 pb-8 pt-20">
               <RoundPlanBoard
                 courseId={courseId}
+                hole={hole}
                 holes={course.holes}
                 lines={planLines}
                 contestByHole={contestByHole}
@@ -342,16 +353,22 @@ function ScoutPage() {
                     hole: 1,
                     card: true,
                   }}
-                  className={`press chip min-h-11 w-full ${on ? "chip-on" : ""}`}
+                  className={`press chip min-h-11 w-full ${on ? "chip-on" : "text-muted-foreground"}`}
                 >
-                  {COURSE_LABEL[id]}
+                  {id === "copperhead" ? (
+                    <>
+                      <span className="sm:hidden">Pit</span>
+                      <span className="hidden sm:inline">{COURSE_LABEL[id]}</span>
+                    </>
+                  ) : (
+                    COURSE_LABEL[id]
+                  )}
                 </Link>
               );
             })}
           </div>
         </div>
         <RoundPlanBoard
-          hero
           courseId={courseId}
           holes={course.holes}
           lines={planLines}

@@ -4,6 +4,7 @@ import {
   CLAIM_CACHE_KEY,
   clearClaimedPlayerId,
   isMissingColumnError,
+  claimedPlayerIdFor,
   readClaimedPlayerId,
   resolveIdentity,
   writeClaimedPlayerId,
@@ -50,6 +51,13 @@ describe("claim cache", () => {
     writeClaimedPlayerId("u1", null);
     expect(readClaimedPlayerId("u1")).toBeNull();
     expect(store.get(CLAIM_CACHE_KEY)).toBeUndefined();
+  });
+
+  it("treats a cached player id as claimed while the profile hydrates", () => {
+    writeClaimedPlayerId("u1", "p-dan");
+    expect(claimedPlayerIdFor("u1", null)).toBe("p-dan");
+    expect(claimedPlayerIdFor("u1", "p-live")).toBe("p-live");
+    expect(claimedPlayerIdFor("u2", null)).toBeNull();
   });
 });
 

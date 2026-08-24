@@ -13,3 +13,16 @@ export function phaseMode(phase: EventPhase): BoardMode {
   if (phase === "after") return "post";
   return "live";
 }
+
+/** Live hole-by-hole UI waits for first tee, unless play already exists. */
+export function liveScorecardOpen(opts: {
+  now?: number;
+  result?: string | null;
+  hasReports?: boolean;
+  sessionLive?: boolean;
+} = {}): boolean {
+  if (opts.hasReports) return true;
+  if (opts.result && opts.result !== "pending") return true;
+  if (opts.sessionLive) return true;
+  return getEventPhase(opts.now) !== "before";
+}
