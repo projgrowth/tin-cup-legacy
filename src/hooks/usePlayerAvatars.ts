@@ -20,13 +20,6 @@ export type AvatarIndex = {
   forSide: (side: string | null | undefined) => AvatarEntry[];
 };
 
-const EMPTY: AvatarIndex = {
-  byPlayerId: new Map(),
-  byName: new Map(),
-  getByName: () => undefined,
-  forSide: () => [],
-};
-
 function normalizeName(name: string) {
   return name.trim().toLowerCase();
 }
@@ -153,6 +146,19 @@ async function loadAvatarIndex(
   return { byPlayerId, byName, getByName, forSide };
 }
 
+export function faceUrl(
+  index: AvatarIndex | undefined,
+  name: string,
+  playerId?: string | null,
+): string | null {
+  if (!index) return null;
+  if (playerId) {
+    const fromId = index.byPlayerId.get(playerId)?.url;
+    if (fromId) return fromId;
+  }
+  return index.getByName(name)?.url ?? null;
+}
+
 /** Cached face map for the whole field (guests + signed-in). */
 export function usePlayerAvatars(players: Player[], teams: Team[]) {
   return useQuery({
@@ -164,6 +170,5 @@ export function usePlayerAvatars(players: Player[], teams: Team[]) {
     queryFn: () => loadAvatarIndex(players, teams),
     enabled: players.length > 0,
     staleTime: 60_000,
-    placeholderData: EMPTY,
   });
 }

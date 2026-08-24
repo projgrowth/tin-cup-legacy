@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Avatar } from "@/components/tin-cup/Avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useBanterVotes } from "@/hooks/useBanterVotes";
-import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
+import { faceUrl, usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { useProfile } from "@/hooks/useJournal";
 import { useWeekendStory } from "@/hooks/useWeekendStory";
 import type { Player, Team } from "@/hooks/useTournament";
@@ -86,16 +86,12 @@ export function LockerWall({
   }
 
   return (
-    <section aria-labelledby="wall-title" className="stack">
+    <section aria-label="The wall" className="stack">
       <div>
         {latestRoast ? (
-          <p id="wall-title" className="t-body italic text-foreground">
-            “{latestRoast.body.trim()}”
-          </p>
+          <p className="t-body italic text-foreground">“{latestRoast.body.trim()}”</p>
         ) : (
-          <h2 id="wall-title" className="t-title text-foreground">
-            The wall
-          </h2>
+          <p className="t-micro">The wall</p>
         )}
         {canTalk ? (
           <>
@@ -109,7 +105,7 @@ export function LockerWall({
               maxLength={500}
               rows={2}
               placeholder="Talk your shit"
-              className="control mt-[var(--space-4)] w-full resize-none text-base"
+              className="control mt-[var(--space-3)] w-full resize-none text-base"
             />
             <button
               type="button"
@@ -121,8 +117,8 @@ export function LockerWall({
             </button>
           </>
         ) : (
-          <Link to="/profile" className="press mt-[var(--space-4)] block min-h-11">
-            <p className="t-body text-muted-foreground">Talk your shit</p>
+          <Link to="/profile" className="press mt-[var(--space-3)] block min-h-11">
+            <p className="t-micro">Talk your shit</p>
           </Link>
         )}
       </div>
@@ -130,7 +126,7 @@ export function LockerWall({
       <div>
         {prompt ? (
           <>
-            <h2 className="t-title text-foreground">{prompt.prompt}</h2>
+            <p className="t-body text-foreground">{prompt.prompt}</p>
             {(() => {
               const result = resultForPrompt(votes, prompt.id);
               const winnerPlayer = result
@@ -140,23 +136,23 @@ export function LockerWall({
               return (
                 <>
                   {winnerPlayer && result ? (
-                    <p className="t-body mt-[var(--space-4)] text-foreground">
+                    <p className="t-micro mt-[var(--space-2)] text-foreground">
                       {crowdSays(firstName(winnerPlayer.name), prompt, result.percent)}
                     </p>
                   ) : null}
-                  <div className="mt-[var(--space-4)] flex flex-wrap justify-center gap-x-2 gap-y-3">
+                  <div className="mt-[var(--space-3)] grid grid-cols-8 gap-x-1 gap-y-2">
                     {faces.map((player) => {
                       const selected = mine?.playerId === player.id;
+                      const src = faceUrl(avatars.data, player.name, player.id);
                       const face = (
                         <>
                           <Avatar
                             name={player.name}
-                            teamSlug={teams.find((team) => team.id === player.team_id)?.slug}
-                            src={avatars.data?.byPlayerId.get(player.id)?.url}
+                            src={src}
                             size="sm"
                             className={selected ? "ring-2 ring-hunter" : ""}
                           />
-                          <span className={`t-micro mt-1 block ${selected ? "text-hunter" : ""}`}>
+                          <span className={`t-micro mt-1 block truncate ${selected ? "text-hunter" : ""}`}>
                             {firstName(player.name)}
                           </span>
                         </>
@@ -166,7 +162,7 @@ export function LockerWall({
                           <Link
                             key={player.id}
                             to="/profile"
-                            className="press flex w-10 flex-col items-center text-center"
+                            className="press flex min-w-0 flex-col items-center text-center"
                           >
                             {face}
                           </Link>
@@ -179,7 +175,7 @@ export function LockerWall({
                           aria-pressed={selected}
                           aria-label={firstName(player.name)}
                           onClick={() => void pick(prompt.id, player.id)}
-                          className="press flex w-10 flex-col items-center text-center"
+                          className="press flex min-w-0 flex-col items-center text-center"
                         >
                           {face}
                         </button>
@@ -219,7 +215,7 @@ export function LockerWall({
             </>
           ) : (
             <Link to="/profile" className="press flex min-h-11 items-center">
-              <p className="t-body text-muted-foreground">Most likely to…</p>
+              <p className="t-micro">Most likely to…</p>
             </Link>
           )}
         </div>

@@ -42,7 +42,12 @@ export function PreTournamentPanel({
   return (
     <section aria-label="This weekend" className="stack">
       <FridayPairings
-        getFace={(name) => avatars.data?.getByName(name)}
+        avatars={avatars.data}
+        getFace={(name) => {
+          const id = playerIdByName(name);
+          const entry = (id ? avatars.data?.byPlayerId.get(id) : undefined) ?? avatars.data?.getByName(name);
+          return entry ? { name: entry.name, url: entry.url, src: entry.url } : undefined;
+        }}
         claimedName={claimedName}
         playerIdByName={playerIdByName}
         hideIntro

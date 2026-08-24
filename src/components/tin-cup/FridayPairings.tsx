@@ -1,10 +1,12 @@
 import { Link } from "@tanstack/react-router";
 
 import { Avatar } from "@/components/tin-cup/Avatar";
+import type { AvatarIndex } from "@/hooks/usePlayerAvatars";
+import { faceUrl } from "@/hooks/usePlayerAvatars";
 import type { Match, Round } from "@/hooks/useTournament";
 import { DAY1_PAIRINGS, yourGroupLine } from "@/lib/day1-pairings";
 
-type Face = { name: string; url?: string | null };
+type Face = { name: string; url?: string | null; src?: string | null };
 
 function sameName(a: string, b: string) {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
@@ -25,29 +27,45 @@ export type PairingGroup = {
 
 export type PairingVariant = "home" | "grid";
 
+function resolvedSrc(
+  name: string,
+  getFace?: (name: string) => Face | undefined,
+  avatars?: AvatarIndex,
+  playerIdByName?: (name: string) => string | undefined,
+) {
+  const id = playerIdByName?.(name);
+  const fromIndex = faceUrl(avatars, name, id);
+  if (fromIndex) return fromIndex;
+  const face = getFace?.(name);
+  const raw = face?.url ?? face?.src;
+  return raw?.trim() ? raw : null;
+}
+
 function FaceCell({
   name,
   src,
-  teamSlug,
   href,
   label,
-  size,
+  you,
 }: {
   name: string;
   src?: string | null;
-  teamSlug: "strong-mental" | "grass-roots";
   href?: string;
   label: string;
-  size: "hero" | "compact";
+  you?: boolean;
 }) {
-  const type = size === "hero" ? "t-title mt-[var(--space-2)]" : "t-micro mt-1";
-  const typeSize = size === "hero" ? "text-[clamp(1.25rem,5vw,2rem)]" : "text-[clamp(0.7rem,3.2vw,1rem)]";
   const inner = (
     <>
-      <span className="block aspect-square overflow-hidden bg-secondary">
-        <Avatar name={name} teamSlug={teamSlug} src={src} crop="bleed" className={typeSize} />
+      <span className="relative block aspect-square w-full overflow-hidden bg-secondary">
+        <span className="absolute inset-0">
+          <Avatar name={name} src={src} size="tile" crop="bleed" />
+        </span>
       </span>
-      <span className={`block truncate text-center ${type} text-foreground`}>{label}</span>
+      <span
+        className={`mt-1 block truncate text-center t-micro ${you ? "font-semibold text-hunter" : "text-foreground"}`}
+      >
+        {label}
+      </span>
     </>
   );
   if (href) {
@@ -62,32 +80,29 @@ function FaceCell({
 
 function SideLockup({
   names,
-  teamSlug,
   getFace,
+  avatars,
   playerIdByName,
   claimedName,
-  size,
 }: {
   names: string[];
-  teamSlug: "strong-mental" | "grass-roots";
   getFace?: (name: string) => Face | undefined;
+  avatars?: AvatarIndex;
   playerIdByName?: (name: string) => string | undefined;
   claimedName?: string | null;
-  size: "hero" | "compact";
 }) {
   return (
-    <div className={size === "hero" ? "grid grid-cols-2 gap-px" : "grid grid-cols-2 gap-px"}>
+    <div className="grid grid-cols-2 gap-px">
       {names.map((name) => {
         const you = Boolean(claimedName && sameName(name, claimedName));
         return (
           <FaceCell
             key={name}
             name={name}
-            src={getFace?.(name)?.url}
-            teamSlug={teamSlug}
+            src={resolvedSrc(name, getFace, avatars, playerIdByName)}
             href={playerIdByName?.(name)}
             label={you ? "You" : firstName(name)}
-            size={size}
+            you={you}
           />
         );
       })}
@@ -99,6 +114,7 @@ function SideLockup({
 export function MatchLockup({
   group,
   getFace,
+  avatars,
   claimedName = null,
   playerIdByName,
   size = "compact",
@@ -107,6 +123,7 @@ export function MatchLockup({
 }: {
   group: PairingGroup;
   getFace?: (name: string) => Face | undefined;
+  avatars?: AvatarIndex;
   claimedName?: string | null;
   playerIdByName?: (name: string) => string | undefined;
   size?: "hero" | "compact";
@@ -116,13 +133,15 @@ export function MatchLockup({
   const onA = Boolean(claimedName && group.playersA.some((name) => sameName(name, claimedName)));
   const leftNames = yours && claimedName && !onA ? group.playersB : group.playersA;
   const rightNames = yours && claimedName && !onA ? group.playersA : group.playersB;
-  const leftTeam = yours && claimedName && !onA ? ("grass-roots" as const) : ("strong-mental" as const);
-  const rightTeam = yours && claimedName && !onA ? ("strong-mental" as const) : ("grass-roots" as const);
   const names = [...group.playersA, ...group.playersB].map(firstName).join(" · ");
 
   return (
     <article aria-label={caption ?? names} className="min-w-0">
-      {caption ? <p className="t-micro mb-[var(--space-3)] text-foreground">{caption}</p> : null}
+      {caption ? (
+        <p className={`t-micro mb-[var(--space-3)] ${yours ? "text-hunter" : "text-foreground"}`}>
+          {caption}
+        </p>
+      ) : null}
       <div
         className={
           size === "hero"
@@ -132,38 +151,38 @@ export function MatchLockup({
       >
         <SideLockup
           names={leftNames}
-          teamSlug={leftTeam}
           getFace={getFace}
+          avatars={avatars}
           playerIdByName={playerIdByName}
           claimedName={claimedName}
-          size={size}
         />
         <span className="t-micro self-center px-0.5 font-medium text-muted-foreground" aria-hidden>
           vs
         </span>
         <SideLockup
           names={rightNames}
-          teamSlug={rightTeam}
           getFace={getFace}
+          avatars={avatars}
           playerIdByName={playerIdByName}
           claimedName={claimedName}
-          size={size}
         />
       </div>
     </article>
   );
 }
 
-/** Four groups as lockups. Home raises the claimed match; Weekend stays an even 2×2. */
+/** Four groups as lockups. Home raises the claimed match; Weekend and guests stay an even 2×2. */
 export function PairingSpread({
   groups,
   getFace,
+  avatars,
   claimedName = null,
   playerIdByName,
   variant = "grid",
 }: {
   groups: PairingGroup[];
   getFace?: (name: string) => Face | undefined;
+  avatars?: AvatarIndex;
   claimedName?: string | null;
   playerIdByName?: (name: string) => string | undefined;
   variant?: PairingVariant;
@@ -180,6 +199,7 @@ export function PairingSpread({
         <MatchLockup
           group={yours}
           getFace={getFace}
+          avatars={avatars}
           claimedName={claimedName}
           playerIdByName={playerIdByName}
           size="hero"
@@ -193,6 +213,7 @@ export function PairingSpread({
             <MatchLockup
               group={p}
               getFace={getFace}
+              avatars={avatars}
               claimedName={claimedName}
               playerIdByName={playerIdByName}
               size="compact"
@@ -207,6 +228,7 @@ export function PairingSpread({
 /** Friday groups as lockups. Format copy stays off Home. */
 export function FridayPairings({
   getFace,
+  avatars,
   claimedName = null,
   playerIdByName,
   matches: _matches = [],
@@ -215,6 +237,7 @@ export function FridayPairings({
   variant = "grid",
 }: {
   getFace?: (name: string) => Face | undefined;
+  avatars?: AvatarIndex;
   claimedName?: string | null;
   playerIdByName?: (name: string) => string | undefined;
   matches?: Match[];
@@ -232,6 +255,7 @@ export function FridayPairings({
       <PairingSpread
         groups={DAY1_PAIRINGS}
         getFace={getFace}
+        avatars={avatars}
         claimedName={claimedName}
         playerIdByName={playerIdByName}
         variant={variant}
