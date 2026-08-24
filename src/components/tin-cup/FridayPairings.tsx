@@ -47,22 +47,16 @@ function FaceCell({
   href,
   label,
   you,
-  compact = false,
 }: {
   name: string;
   src?: string | null;
   href?: string;
   label: string;
   you?: boolean;
-  compact?: boolean;
 }) {
   const inner = (
     <>
-      <span
-        className={`lockup-photo relative block aspect-square overflow-hidden bg-secondary ${
-          compact ? "mx-auto w-full max-w-[3.35rem]" : "w-full"
-        }`}
-      >
+      <span className="lockup-photo relative block aspect-square w-full overflow-hidden bg-secondary">
         <span className="absolute inset-0">
           <Avatar name={name} src={src} size="tile" crop="bleed" />
         </span>
@@ -90,17 +84,15 @@ function SideLockup({
   avatars,
   playerIdByName,
   claimedName,
-  compact = false,
 }: {
   names: string[];
   getFace?: (name: string) => Face | undefined;
   avatars?: AvatarIndex;
   playerIdByName?: (name: string) => string | undefined;
   claimedName?: string | null;
-  compact?: boolean;
 }) {
   return (
-    <div className={`grid grid-cols-2 ${compact ? "gap-1.5" : "gap-px"}`}>
+    <div className="grid grid-cols-2 gap-px">
       {names.map((name) => {
         const you = Boolean(claimedName && sameName(name, claimedName));
         return (
@@ -111,7 +103,6 @@ function SideLockup({
             href={playerIdByName?.(name)}
             label={you ? "You" : firstName(name)}
             you={you}
-            compact={compact}
           />
         );
       })}
@@ -156,7 +147,7 @@ export function MatchLockup({
         className={
           size === "hero"
             ? "grid grid-cols-[1fr_auto_1fr] items-start gap-3 sm:gap-4"
-            : "grid grid-cols-[1fr_auto_1fr] items-start gap-2"
+            : "grid grid-cols-[1fr_auto_1fr] items-start gap-1"
         }
       >
         <SideLockup
@@ -165,7 +156,6 @@ export function MatchLockup({
           avatars={avatars}
           playerIdByName={playerIdByName}
           claimedName={claimedName}
-          compact={size === "compact"}
         />
         <span className="lockup-vs t-micro self-center px-0.5 font-medium" aria-hidden>
           vs
@@ -176,7 +166,6 @@ export function MatchLockup({
           avatars={avatars}
           playerIdByName={playerIdByName}
           claimedName={claimedName}
-          compact={size === "compact"}
         />
       </div>
     </article>
@@ -238,8 +227,8 @@ export function PairingSpread({
   }
 
   return (
-    <div className="hangout mx-auto w-full max-w-[22.5rem] stack">
-      <ol className="grid grid-cols-2 gap-x-[var(--space-5)] gap-y-[var(--space-8)]">
+    <div className="hangout mx-auto w-full max-w-[48rem] stack md:max-w-none">
+      <ol className="grid grid-cols-2 gap-x-[var(--space-3)] gap-y-[var(--space-5)]">
         {groups.map((p) => (
           <li key={p.matchIndex} className="min-w-0">
             <MatchLockup
