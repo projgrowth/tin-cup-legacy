@@ -47,12 +47,12 @@ export function PropertyLocator({ courseId }: { courseId: CourseId }) {
               onClick={() => go(r.id)}
             >
               {on ? (
-                <span className="pointer-events-none absolute inset-1 rounded-md ring-2 ring-hunter/80 ring-offset-1 ring-offset-transparent" />
+                <span className="pointer-events-none absolute inset-1 rounded-md ring-1 ring-hunter" />
               ) : null}
               <span
                 className={`pointer-events-none absolute bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide ${
                   on
-                    ? "bg-hunter text-white"
+                    ? "bg-white text-black"
                     : "bg-black/35 text-white/90"
                 }`}
               >

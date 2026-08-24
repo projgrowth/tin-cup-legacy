@@ -9,7 +9,7 @@ import {
   type CourseId,
   type Hole,
 } from "@/lib/courses";
-import { hasPlanContent, nineSplit, type PlanLine } from "@/lib/round-sheet";
+import { nineSplit, type PlanLine } from "@/lib/round-sheet";
 
 function NineRule({
   label,
@@ -47,9 +47,9 @@ function ScoreRow({
     <div className="grid grid-cols-9 gap-px">
       {lines.map((line) => {
         const snake = courseId === "copperhead" && SNAKE_PIT.includes(line.hole);
-        const planned = hasPlanContent(line.draft);
         const contests = contestByHole.get(line.hole) ?? [];
         const on = onStageHole != null && line.hole === onStageHole;
+        void contests;
         return (
           <Link
             key={line.hole}
@@ -58,22 +58,10 @@ function ScoreRow({
             replace
             aria-label={`Open hole ${line.hole} map`}
             aria-current={on ? "true" : undefined}
-            className={`press flex min-h-11 flex-col items-center justify-center px-0.5 py-1.5 text-center ${
-              on ? "bg-hunter/15" : ""
-            }`}
+            className="press flex min-h-11 flex-col items-center justify-center px-0.5 py-1.5 text-center"
           >
             <span
-              className={`text-sm font-bold tabular-nums ${
-                on
-                  ? "text-hunter"
-                  : snake
-                    ? "text-copper"
-                    : contests.length
-                      ? "text-hunter"
-                      : planned
-                        ? "text-foreground"
-                        : "text-foreground"
-              }`}
+              className={`text-sm font-bold tabular-nums ${on ? "text-hunter" : snake ? "text-copper" : "text-foreground"}`}
             >
               {line.hole}
             </span>
@@ -154,7 +142,7 @@ export function RoundPlanBoard({
     <div className={hero ? "stack-tight pb-[calc(var(--nav-height)+0.75rem)]" : "stack-tight"}>
       {hero ? (
         <header className="px-0.5">
-          <h1 className="t-hero text-foreground">{COURSE_LABEL[courseId]}</h1>
+          <h1 className="t-title text-foreground">{COURSE_LABEL[courseId]}</h1>
           <p className="t-micro mt-[var(--space-3)]">
             Par {coursePar(courseId)} · {details.blackTotal.toLocaleString()} yds
             <span className="mx-1.5 text-muted-foreground">·</span>
@@ -211,7 +199,7 @@ export function RoundPlanBoard({
               type="button"
               disabled={!canSaveDay || savingDay}
               onClick={onSaveDay}
-              className="press t-micro min-h-11 px-1 font-semibold text-hunter disabled:opacity-40"
+              className="press btn-quiet t-micro min-h-11 px-3 font-semibold disabled:opacity-40"
             >
               {savingDay ? "Saving…" : "Save day plan"}
             </button>

@@ -149,7 +149,7 @@ function SchedulePage() {
             </>
           ) : (
             <header className="px-0.5">
-              <h1 className="t-hero text-foreground">{details.format}</h1>
+              <h1 className="t-title text-foreground">{details.format}</h1>
               <p className="t-micro mt-2">
                 {COURSE_LABEL[courseId]} · {details.firstTee} · {details.points} pts
               </p>
