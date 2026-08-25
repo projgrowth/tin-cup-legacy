@@ -90,7 +90,7 @@ export function WeekendRecap({
       const player = players.find((row) => row.id === publicProfile?.player_id);
       return {
         userId,
-        name: player?.name ?? publicProfile?.display_name ?? "Clubhouse player",
+        name: player?.name ?? "Clubhouse player",
         ...record,
       };
     })

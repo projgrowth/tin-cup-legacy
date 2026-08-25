@@ -158,7 +158,7 @@ async function loadActivity(players: Player[], teams: Team[]): Promise<ActivityI
   for (const p of profiles) {
     if (!p.player_id) continue;
     const player = playerById.get(p.player_id);
-    const name = player?.name || p.display_name || "Someone";
+    const name = player?.name || "Someone";
     const teamSlug = player ? (teamById.get(player.team_id) ?? null) : null;
     const at = p.created_at || p.updated_at || new Date(0).toISOString();
     items.push({
@@ -196,7 +196,7 @@ async function loadActivity(players: Player[], teams: Team[]): Promise<ActivityI
   for (const ph of photos) {
     const author = ph.uploaded_by ? profileByUser.get(ph.uploaded_by) : null;
     const player = author?.player_id ? playerById.get(author.player_id) : null;
-    const name = player?.name || author?.display_name || "Someone";
+    const name = player?.name || "Someone";
     const teamSlug = player ? (teamById.get(player.team_id) ?? null) : null;
     items.push({
       id: `photo-${ph.id}`,

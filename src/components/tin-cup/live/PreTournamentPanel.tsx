@@ -63,7 +63,7 @@ export function PreTournamentPanel({
             </Link>
           ) : null}
           <span className="chip min-h-11">
-            {EVENT.totalPoints} pts · {EVENT.pointsToWin} to win
+            Fri 8 + Sat 6 + Sun 12 = {EVENT.totalPoints}. {EVENT.pointsToWin} to win.
           </span>
         </div>
         <Countdown compact />

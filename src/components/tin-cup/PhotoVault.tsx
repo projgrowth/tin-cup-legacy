@@ -53,7 +53,7 @@ async function loadPhotos(): Promise<VaultItem[]> {
   for (const p of result.profiles ?? []) {
     const roster =
       p.player_id && rosterByPlayerId.get(p.player_id) ? rosterByPlayerId.get(p.player_id)! : null;
-    const label = roster || p.display_name.trim();
+    const label = roster || "Player";
     if (label) authorByUserId.set(p.id, label);
   }
 

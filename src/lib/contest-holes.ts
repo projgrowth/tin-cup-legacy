@@ -22,11 +22,75 @@ export function contestHoleLabel(hole: number | null): string {
   return hole ? `Hole ${hole}` : "Hole TBD";
 }
 
+/** Canonical 8 pots. Used when the side-bet table has not hydrated yet. */
+export const KNOWN_SIDE_POTS = [
+  { key: "fri-ctp-3", kind: "ctp", label: "CTP - Friday front", hole: 3 },
+  { key: "fri-ld-13", kind: "ld", label: "Long Drive - Friday", hole: 13 },
+  { key: "fri-ctp-18", kind: "ctp", label: "CTP - Friday back", hole: 18 },
+  { key: "sat-ctp-front", kind: "ctp", label: "CTP - Saturday front", hole: null },
+  { key: "sat-ctp-back", kind: "ctp", label: "CTP - Saturday back", hole: null },
+  { key: "sat-ld", kind: "ld", label: "Long Drive - Saturday", hole: null },
+  { key: "sun-ctp-front", kind: "ctp", label: "CTP - Sunday front", hole: null },
+  { key: "sun-ctp-back", kind: "ctp", label: "CTP - Sunday back", hole: null },
+] as const;
+
+export function potStatus(hole: number | null) {
+  if (
+    hole === DAY1_CONTESTS.ctpFront ||
+    hole === DAY1_CONTESTS.ctpBack ||
+    hole === DAY1_CONTESTS.longDrive
+  ) {
+    return `Open · ${contestHoleLabel(hole)}`;
+  }
+  if (hole != null) return contestHoleLabel(hole);
+  return "Named Friday night";
+}
+
+export function displayBetLabel(label: string) {
+  return label.replace(/\bstavs\b/gi, "staves");
+}
+
+export type DisplayPot = {
+  id: string;
+  kind: string;
+  label: string;
+  hole: number | null;
+  amount: number;
+  player_name: string | null;
+};
+
+export function displaySidePots(
+  bets: Array<{
+    id?: string;
+    kind: string;
+    label: string;
+    hole: number | null;
+    amount?: number | string;
+    player_name?: string | null;
+  }>,
+): DisplayPot[] {
+  if (bets.length > 0) {
+    return bets.map((bet, index) => ({
+      id: bet.id ?? `live-${index}`,
+      kind: bet.kind,
+      label: displayBetLabel(bet.label),
+      hole: bet.hole,
+      amount: Number(bet.amount) || 100,
+      player_name: bet.player_name ?? null,
+    }));
+  }
+  return KNOWN_SIDE_POTS.map((pot) => ({
+    id: pot.key,
+    kind: pot.kind,
+    label: pot.label,
+    hole: pot.hole,
+    amount: 100,
+    player_name: null,
+  }));
+}
+
 /** Friday contests are canonical even before the side-bet table hydrates. */
-export function knownContestsForHole(
-  courseId: string,
-  hole: number,
-): Array<"ctp" | "ld"> {
+export function knownContestsForHole(courseId: string, hole: number): Array<"ctp" | "ld"> {
   if (courseId !== DAY1_CONTESTS.courseId) return [];
   if (hole === DAY1_CONTESTS.ctpFront || hole === DAY1_CONTESTS.ctpBack) return ["ctp"];
   if (hole === DAY1_CONTESTS.longDrive) return ["ld"];
@@ -34,7 +98,9 @@ export function knownContestsForHole(
 }
 
 function isFridayBet(bet: BetLike, fridayId?: string) {
-  return Boolean(fridayId && bet.round_id === fridayId) || bet.label.toLowerCase().includes("friday");
+  return (
+    Boolean(fridayId && bet.round_id === fridayId) || bet.label.toLowerCase().includes("friday")
+  );
 }
 
 export function applyDay1ContestHoles<T extends BetLike>(bets: T[], rounds: RoundLike[]): T[] {
