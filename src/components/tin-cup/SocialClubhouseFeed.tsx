@@ -958,13 +958,13 @@ export function SocialClubhouseFeed({
         })}
       </div>
 
-      {emptyFeed && (
+      {emptyFeed && user ? (
         <p className="t-micro px-1 py-2">
           {story.clubhouseEnabled
             ? "Talk and photos land here."
             : "Field notes land here as people post."}
         </p>
-      )}
+      ) : null}
       {matchSocial.unavailable && (
         <p className="t-micro text-muted-foreground">
           Match participation is temporarily read-only.

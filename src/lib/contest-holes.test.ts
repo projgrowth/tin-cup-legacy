@@ -90,9 +90,9 @@ describe("Day 1 contest holes", () => {
     expect(KNOWN_SIDE_POTS).toHaveLength(8);
     const empty = displaySidePots([]);
     expect(empty).toHaveLength(8);
-    expect(potStatus(3)).toBe("Open · Hole 3");
-    expect(potStatus(7)).toBe("Open · Hole 7");
-    expect(potStatus(18)).toBe("Open · Hole 18");
+    expect(potStatus(3)).toBe("Hole 3");
+    expect(potStatus(7)).toBe("Hole 7");
+    expect(potStatus(18)).toBe("Hole 18");
     expect(potStatus(null)).toBe("Named Friday night");
     expect(
       displaySidePots([{ kind: "ctp", label: "CTP stavs", hole: 3, amount: 100 }])[0]?.label,

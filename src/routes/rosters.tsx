@@ -108,9 +108,7 @@ function RostersPage() {
                 key={side.slug}
                 className={`surface overflow-hidden border-t-2 ${rail} ${hiddenOnMobile ? "hidden md:block" : ""}`}
               >
-                <p
-                  className={`t-micro px-4 pb-1 pt-3 ${side.slug === "strong-mental" ? "text-hunter" : "text-stone"}`}
-                >
+                <p className="t-micro px-4 pb-1 pt-3 text-muted-foreground">
                   {side.name.replace("Team ", "")}
                   {myTeam?.slug === side.slug ? " · Your side" : ""}
                 </p>
