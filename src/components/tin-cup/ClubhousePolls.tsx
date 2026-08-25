@@ -96,7 +96,7 @@ export function ClubhousePolls({
               <div
                 className="no-scrollbar mt-1.5 flex gap-2 overflow-x-auto"
                 role="tablist"
-                aria-label="Dares"
+                aria-label="Polls"
               >
                 {polls.map((row, i) => (
                   <button
@@ -196,12 +196,12 @@ export function ClubhousePolls({
           </ul>
         </>
       ) : (
-        <p className="t-micro px-1">No dares yet.</p>
+        <p className="t-micro px-1">No poll yet.</p>
       )}
       {canCreate ? (
         <div className="px-1">
           <label className="sr-only" htmlFor="clubhouse-poll-q">
-            Add a dare
+            Add a question
           </label>
           <input
             id="clubhouse-poll-q"
@@ -217,7 +217,7 @@ export function ClubhousePolls({
             onClick={() => void addPoll()}
             className="press btn-quiet mt-2 min-h-11 px-4 text-sm font-semibold"
           >
-            Add a dare
+            Add a question
           </button>
         </div>
       ) : null}

@@ -116,13 +116,13 @@ export function TheCardTicket({
           <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
             <span className="flex min-w-0 items-center gap-2">
               <AvatarPair people={peopleA} size="sm" />
-              <span className="t-body min-w-0 font-semibold leading-snug text-hunter">
+              <span className="t-body min-w-0 font-semibold leading-snug text-foreground">
                 {labelA}
               </span>
             </span>
             <p className="t-micro text-muted-foreground">vs</p>
             <span className="flex min-w-0 items-center justify-end gap-2">
-              <span className="t-body min-w-0 text-right font-semibold leading-snug text-stone">
+              <span className="t-body min-w-0 text-right font-semibold leading-snug text-foreground">
                 {labelB}
               </span>
               <AvatarPair people={peopleB} size="sm" />
@@ -139,7 +139,6 @@ export function TheCardTicket({
         <SideRow
           people={peopleA}
           label={labelA}
-          tone="hunter"
           selected={mine?.choice === "side-a"}
           disabled={!canPick || busy}
           onClick={() => pick("side-a")}
@@ -148,7 +147,6 @@ export function TheCardTicket({
         <SideRow
           people={peopleB}
           label={labelB}
-          tone="stone"
           selected={mine?.choice === "side-b"}
           disabled={!canPick || busy}
           onClick={() => pick("side-b")}
@@ -239,21 +237,16 @@ export function TheCardTicket({
 function SideRow({
   people,
   label,
-  tone,
   selected,
   disabled,
   onClick,
 }: {
   people: CardFace[];
   label: string;
-  tone: "hunter" | "stone";
   selected: boolean;
   disabled: boolean;
   onClick: () => void;
 }) {
-  const color = tone === "hunter" ? "text-hunter" : "text-stone";
-  const fill =
-    tone === "hunter" ? "bg-hunter/10 ring-1 ring-hunter/30" : "bg-stone/15 ring-1 ring-stone/30";
   return (
     <button
       type="button"
@@ -263,10 +256,10 @@ function SideRow({
       onClick={onClick}
       className={`flex min-h-16 min-w-0 w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-center transition-colors duration-150 disabled:opacity-100 ${
         disabled ? "cursor-default" : "press"
-      } ${selected ? fill : ""}`}
+      } ${selected ? "bg-hunter/10 ring-1 ring-hunter/30" : ""}`}
     >
       <AvatarPair people={people} size="sm" />
-      <span className={`t-body max-w-full font-semibold leading-snug break-words ${color}`}>
+      <span className="t-body max-w-full font-semibold leading-snug break-words text-foreground">
         {label}
       </span>
     </button>

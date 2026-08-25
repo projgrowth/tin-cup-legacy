@@ -19,7 +19,7 @@ import {
   defaultCourseId,
   type CourseId,
 } from "@/lib/courses";
-import { EVENT, PLAYOFF_RULE, WEEKEND_SOCIAL } from "@/lib/tin-cup";
+import { WEEKEND_SOCIAL } from "@/lib/tin-cup";
 
 function useNow() {
   const [now, setNow] = useState<number | null>(null);
@@ -106,9 +106,6 @@ function SchedulePage() {
   return (
     <Shell variant="content">
       <div className="stack-page pb-4">
-        <p className="t-micro px-1">
-          Fri 8 + Sat 6 + Sun 12 = {EVENT.totalPoints}. {EVENT.pointsToWin} to win.
-        </p>
         <section className="stack-tight">
           <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Day">
             {COURSE_ORDER.map((id) => {
@@ -163,27 +160,22 @@ function SchedulePage() {
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
-        <section className="stack-tight">
-          <FormatSheet triggerClassName="t-body font-medium text-foreground" />
+        <section className="flex flex-col px-1">
+          <FormatSheet triggerClassName="t-micro min-h-11 justify-start text-muted-foreground" />
+          <SnakePitDrawer triggerClassName="t-micro min-h-11 justify-start text-muted-foreground" />
+          {rounds.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => {
+                downloadWeekendIcs(rounds);
+                void trackProductEvent("calendar_downloaded", { kind: "weekend" });
+              }}
+              className="press t-micro min-h-11 justify-start text-left"
+            >
+              Add weekend to calendar
+            </button>
+          ) : null}
         </section>
-        <section className="stack-tight">
-          <SnakePitDrawer triggerClassName="t-body font-medium text-foreground" />
-        </section>
-        <p className="t-micro px-1 text-muted-foreground">
-          Playoff · If 13–13: {PLAYOFF_RULE} · one hole until decided.
-        </p>
-        {rounds.length > 0 ? (
-          <button
-            type="button"
-            onClick={() => {
-              downloadWeekendIcs(rounds);
-              void trackProductEvent("calendar_downloaded", { kind: "weekend" });
-            }}
-            className="press t-micro min-h-11 px-1"
-          >
-            Add weekend to calendar
-          </button>
-        ) : null}
       </div>
     </Shell>
   );

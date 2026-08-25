@@ -39,7 +39,8 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Weekend", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Plan", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Pay \$150/ }).first()).toBeVisible();
-  await expect(page.getByText(/Fri 8 \+ Sat 6 \+ Sun 12/)).toBeVisible();
+  await expect(page.getByRole("link", { name: /Tonight/ }).first()).toBeVisible();
+  await expect(page.getByText(/Fri 8 \+ Sat 6 \+ Sun 12/)).toHaveCount(0);
   await expect(page.getByText("Sign in to join the Clubhouse")).toHaveCount(0);
   await expect(page.getByText("Today at Tin Cup")).toHaveCount(0);
   expect((await logoRequest).ok()).toBe(true);
