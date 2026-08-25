@@ -63,7 +63,7 @@ export function TheCardTicket({
   const ranked = [...roasts].sort(
     (a, b) => (reactionCounts[b.userId] ?? 0) - (reactionCounts[a.userId] ?? 0),
   );
-  const visible = moreTalk ? ranked : ranked.slice(0, 2);
+  const visible = moreTalk ? ranked : ranked.slice(0, 1);
   const hidden = Math.max(0, ranked.length - visible.length);
   const rideA = rideCountLine(crowd.sideA, labelA);
   const rideB = rideCountLine(crowd.sideB, labelB);
@@ -134,7 +134,7 @@ export function TheCardTicket({
   }
 
   return (
-    <article className="px-3 py-3">
+    <article className="px-3 py-2">
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1">
         <SideRow
           people={peopleA}
@@ -254,7 +254,7 @@ function SideRow({
       aria-pressed={selected}
       aria-label={selected ? `Undo ${label}` : `Ride with ${label}`}
       onClick={onClick}
-      className={`flex min-h-16 min-w-0 w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-center transition-colors duration-150 disabled:opacity-100 ${
+      className={`flex min-h-12 min-w-0 w-full flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-center transition-colors duration-150 disabled:opacity-100 ${
         disabled ? "cursor-default" : "press"
       } ${selected ? "bg-hunter/10 ring-1 ring-hunter/30" : ""}`}
     >
