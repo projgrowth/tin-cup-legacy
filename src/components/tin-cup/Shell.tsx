@@ -135,7 +135,7 @@ export function Shell({
                 key={to}
                 to={to}
                 activeOptions={{ exact }}
-                className="press t-micro rounded-full px-3 py-2 font-semibold text-muted-foreground no-underline data-[status=active]:text-foreground"
+                className="press t-micro px-3 py-2 font-semibold text-muted-foreground no-underline data-[status=active]:text-foreground"
               >
                 {label}
               </Link>
@@ -177,7 +177,7 @@ export function Shell({
             )}
           </Link>
         </div>
-        <div className="h-px w-full bg-[var(--gold)]/45" />
+        <div className="h-px w-full bg-foreground/12" />
       </header>
       {preview && (
         <div

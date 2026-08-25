@@ -49,7 +49,7 @@ export function PreTournamentPanel({
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className="press chip chip-on min-h-11"
+            className="press chip chip-on min-h-11 no-underline"
           >
             Pay ${BUY_IN}
           </a>

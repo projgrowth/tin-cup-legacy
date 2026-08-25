@@ -2,8 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
-import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { sideCash, sideCashByPlayer, settlement, formatPayout } from "@/lib/purse";
@@ -37,10 +35,7 @@ export const Route = createFileRoute("/purse")({
 });
 
 function PursePage() {
-  const { user } = useAuth();
-  const { profile } = useProfile();
   const { data, isError, refetch, isFetching } = useTournament();
-  const claimedPlayer = Boolean(user && profile?.player_id);
   const bets = data?.sideBets ?? [];
   const players = data?.players ?? [];
   const pots = displaySidePots(bets);
@@ -70,9 +65,7 @@ function PursePage() {
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className={`press t-body mt-4 flex min-h-11 w-full justify-center ${
-              claimedPlayer ? "btn-quiet" : "btn-primary"
-            }`}
+            className="press chip chip-on mt-4 inline-flex min-h-11 no-underline"
           >
             Pay ${BUY_IN}
           </a>
@@ -104,7 +97,7 @@ function PursePage() {
               <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
                 <span className="min-w-0">
                   <span className="flex min-w-0 items-center gap-2">
-                    <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[0.65rem] font-semibold text-muted-foreground">
+                    <span className="contest-mark">
                       {isLongDrive(bet.kind) ? "LD" : isCtp(bet.kind) ? "CTP" : bet.kind}
                     </span>
                     <span className="t-body min-w-0 truncate font-medium text-foreground">
