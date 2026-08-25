@@ -161,8 +161,8 @@ function SchedulePage() {
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
         <section className="flex flex-col px-1">
-          <FormatSheet triggerClassName="t-micro min-h-11 justify-start text-muted-foreground" />
-          <SnakePitDrawer triggerClassName="t-micro min-h-11 justify-start text-muted-foreground" />
+          <FormatSheet triggerClassName="t-micro flex w-full min-h-11 items-center justify-start text-left text-muted-foreground" />
+          <SnakePitDrawer triggerClassName="t-micro flex w-full min-h-11 items-center justify-start text-left text-muted-foreground" />
           {rounds.length > 0 ? (
             <button
               type="button"
