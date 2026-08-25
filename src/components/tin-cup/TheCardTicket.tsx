@@ -266,7 +266,7 @@ function SideRow({
       }`}
     >
       <AvatarPair people={people} size="sm" />
-      <span className="t-body min-w-0 flex-1 font-semibold leading-snug break-words text-foreground">
+      <span className="t-body min-w-0 flex-1 truncate font-semibold leading-snug text-foreground">
         {label}
       </span>
     </button>
