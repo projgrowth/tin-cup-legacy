@@ -152,7 +152,11 @@ function SchedulePage() {
 
           {dinner ? (
             <p className="t-micro px-1">
-              {details.dayLabel === "Friday" ? "Tonight" : dinner.title} · {dinner.detail}
+              {details.dayLabel === "Friday"
+                ? "Tonight · Salamander"
+                : details.dayLabel === "Saturday"
+                  ? "Steakhouse · 7:00 PM"
+                  : "Lunch and awards"}
             </p>
           ) : null}
         </section>

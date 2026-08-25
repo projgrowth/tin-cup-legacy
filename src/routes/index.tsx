@@ -1,10 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
 import { WeekendRecap } from "@/components/tin-cup/WeekendRecap";
 import { SocialClubhouseFeed } from "@/components/tin-cup/SocialClubhouseFeed";
-import { HomeSecondaryModules } from "@/components/tin-cup/HomeDashboard";
 import { ScoreModal } from "@/components/tin-cup/ScoreModal";
 import { Shell, SkeletonBlock } from "@/components/tin-cup/Shell";
 import { DisplayBoard } from "@/components/tin-cup/live/DisplayBoard";
@@ -13,7 +11,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
 import { usePlanningProgress } from "@/hooks/usePlanningProgress";
-import { useActivityFeed } from "@/hooks/useActivityFeed";
 import { useExperiencePreferences } from "@/hooks/useExperiencePreferences";
 import { getEventPhase, phaseMode } from "@/lib/event-phase";
 import { type BoardMode } from "@/lib/tin-cup";
@@ -22,7 +19,7 @@ import { tallyStandings } from "@/lib/scoring";
 import { hasAuthCallbackParams, parseAuthCallbackParams } from "@/lib/auth-recovery";
 import { resolveIdentity } from "@/lib/profile-identity";
 import { buildWeekendContext } from "@/lib/weekend-context";
-import { smartHomeModules, type FeedFilter } from "@/lib/social-platform";
+import { type FeedFilter } from "@/lib/social-platform";
 
 const MODES: Array<{ key: BoardMode; label: string }> = [
   { key: "pre", label: "Weekend" },
@@ -197,8 +194,6 @@ function Index() {
   });
   const needsClaim = Boolean(user) && identity.kind === "claim";
   const standings = tallyStandings(data?.matches ?? []);
-  const canonicalUrl =
-    typeof window === "undefined" ? "https://www.tincupinv.com/" : window.location.href;
   const weekendContext = buildWeekendContext({
     phase: mode,
     signedIn: Boolean(user),
@@ -212,11 +207,6 @@ function Index() {
     failedWrites,
     conflicts,
   });
-  const activity = useActivityFeed(data?.players ?? [], data?.teams ?? []);
-  const photoCount = (activity.data ?? []).filter(
-    (item) => item.kind === "photo" || item.kind === "avatar",
-  ).length;
-
   useEffect(() => {
     if (!claimedPlayer) return;
     const team = (data?.teams ?? []).find((candidate) => candidate.id === claimedPlayer.team_id);
@@ -373,35 +363,8 @@ function Index() {
                   compact={experience.preferences.compactFeed}
                 />
               </div>
-              {mode !== "pre" && (
-                <aside className="home-secondary min-w-0 space-y-5 lg:sticky lg:top-28 lg:self-start">
-                  {mode === "live" && isError && !data && (
-                    <BoardError onRetry={() => void refetch()} busy={isFetching} />
-                  )}
-                  <HomeSecondaryModules
-                    order={smartHomeModules(
-                      mode,
-                      experience.preferences.homeModules,
-                      experience.preferences.layoutMode,
-                    )}
-                    context={weekendContext}
-                    sideBets={data?.sideBets ?? []}
-                    photoCount={photoCount}
-                  />
-                  <ShareMomentButton
-                    className="w-full"
-                    payload={{
-                      kind: "score",
-                      eyebrow: mode === "live" ? "Live Cup score" : "The fourth annual",
-                      title: "Tin Cup Invitational",
-                      primary: `${standings.strongMental} – ${standings.grassRoots}`,
-                      secondary: "Strong Mental · Grass Roots",
-                      canonicalUrl,
-                    }}
-                  >
-                    Share board
-                  </ShareMomentButton>
-                </aside>
+              {mode === "live" && isError && !data && (
+                <BoardError onRetry={() => void refetch()} busy={isFetching} />
               )}
             </>
           </div>

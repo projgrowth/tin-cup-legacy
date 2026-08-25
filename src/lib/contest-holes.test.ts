@@ -6,7 +6,10 @@ import {
   contestHoleOpsDetail,
   contestHoleStatus,
   DAY1_CONTESTS,
+  displaySidePots,
   knownContestsForHole,
+  KNOWN_SIDE_POTS,
+  potStatus,
 } from "./contest-holes";
 
 const friday = "friday-id";
@@ -72,5 +75,18 @@ describe("Day 1 contest holes", () => {
     const status = contestHoleStatus(bets, rounds);
     expect(status).toEqual({ fridayPosted: true, remainingOpen: 2, allPosted: false });
     expect(contestHoleOpsDetail(status)).toContain("Saturday/Sunday TBD");
+  });
+
+  it("always shows eight pots, with Friday holes open", () => {
+    expect(KNOWN_SIDE_POTS).toHaveLength(8);
+    const empty = displaySidePots([]);
+    expect(empty).toHaveLength(8);
+    expect(potStatus(3)).toBe("Open · Hole 3");
+    expect(potStatus(13)).toBe("Open · Hole 13");
+    expect(potStatus(18)).toBe("Open · Hole 18");
+    expect(potStatus(null)).toBe("Named Friday night");
+    expect(
+      displaySidePots([{ kind: "ctp", label: "CTP stavs", hole: 3, amount: 100 }])[0]?.label,
+    ).toBe("CTP staves");
   });
 });

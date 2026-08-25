@@ -39,6 +39,7 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Weekend", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Plan", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Pay \$150/ }).first()).toBeVisible();
+  await expect(page.getByText(/Fri 8 \+ Sat 6 \+ Sun 12/)).toBeVisible();
   await expect(page.getByText("Sign in to join the Clubhouse")).toHaveCount(0);
   await expect(page.getByText("Today at Tin Cup")).toHaveCount(0);
   expect((await logoRequest).ok()).toBe(true);
@@ -125,7 +126,7 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await page.goto("/scout");
   await expect(page.getByRole("heading", { name: /^South$/ })).toBeVisible();
   await expect(page.getByText("Scramble first nine mindset")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Open hole 1 map" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Plan hole 1" })).toBeVisible();
   await expect(page.getByText("335 yds").first()).toBeVisible();
   await expect(page.getByText("Out", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("In", { exact: true }).first()).toBeVisible();

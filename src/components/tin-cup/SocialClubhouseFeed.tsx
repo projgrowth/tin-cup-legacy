@@ -86,6 +86,8 @@ export function SocialClubhouseFeed({
   const profiles = usePublicProfiles();
   const avatars = usePlayerAvatars(players, teams);
   const [draft, setDraft] = useState("");
+  const [tagPlayerId, setTagPlayerId] = useState("");
+  const [tagMatch, setTagMatch] = useState("");
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
@@ -240,13 +242,23 @@ export function SocialClubhouseFeed({
   }
 
   function submitPost() {
-    const body = draft.trim();
-    if (!body) return;
+    const raw = draft.trim();
+    if (!raw) return;
+    const taggedPlayer = players.find((player) => player.id === tagPlayerId);
+    const prefix = [taggedPlayer ? `@${taggedPlayer.name.split(/\s+/)[0]}` : null, tagMatch || null]
+      .filter(Boolean)
+      .join(" ");
+    const body = (prefix ? `${prefix} ${raw}` : raw).slice(0, TALK_MAX);
+    const mentionedUserId = taggedPlayer
+      ? (profiles.data ?? []).find((row) => row.player_id === taggedPlayer.id)?.id
+      : undefined;
     story.addComment.mutate(
-      { momentKey: CLUBHOUSE_MOMENT_KEY, body },
+      { momentKey: CLUBHOUSE_MOMENT_KEY, body, mentionedUserId },
       {
         onSuccess: () => {
           setDraft("");
+          setTagPlayerId("");
+          setTagMatch("");
           void trackProductEvent("clubhouse_post", { kind: "text" });
         },
         onError: (error) => toast.error(error.message),
@@ -307,6 +319,49 @@ export function SocialClubhouseFeed({
                 className="control w-full resize-none border-0 bg-transparent px-0 text-base shadow-none focus:ring-0"
               />
               <div className="mt-2 flex flex-wrap items-center gap-2">
+                <label className="sr-only" htmlFor="talk-tag-player">
+                  Tag a player
+                </label>
+                <select
+                  id="talk-tag-player"
+                  value={tagPlayerId}
+                  onChange={(event) => setTagPlayerId(event.target.value)}
+                  className="control min-h-11 max-w-[9.5rem] text-sm"
+                >
+                  <option value="">Player</option>
+                  {players.map((player) => (
+                    <option key={player.id} value={player.id}>
+                      {player.name.split(/\s+/)[0]}
+                    </option>
+                  ))}
+                </select>
+                <label className="sr-only" htmlFor="talk-tag-match">
+                  Tag a match
+                </label>
+                <select
+                  id="talk-tag-match"
+                  value={tagMatch}
+                  onChange={(event) => setTagMatch(event.target.value)}
+                  className="control min-h-11 max-w-[10rem] text-sm"
+                >
+                  <option value="">Match</option>
+                  {matches
+                    .filter(
+                      (match, index, list) =>
+                        list.findIndex(
+                          (row) => row.side_a === match.side_a && row.side_b === match.side_b,
+                        ) === index,
+                    )
+                    .slice(0, 8)
+                    .map((match) => {
+                      const label = `${(match.side_a ?? "TBD").split("/")[0]?.trim()} vs ${(match.side_b ?? "TBD").split("/")[0]?.trim()}`;
+                      return (
+                        <option key={match.id} value={label}>
+                          {label}
+                        </option>
+                      );
+                    })}
+                </select>
                 {canUpload ? (
                   <PhotoPicker
                     onFile={(file) => void uploadPhoto(file)}

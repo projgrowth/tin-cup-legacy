@@ -13,26 +13,9 @@ import {
   EXPECTED_PLAYER_COUNT,
   TOURNAMENT_BANK,
   SIDE_BET_PAYOUTS_CONFIRMED,
-  contestHoleLabel,
   venmoUrl,
 } from "@/lib/tin-cup";
-import { DAY1_CONTESTS } from "@/lib/contest-holes";
-
-function displayBetLabel(label: string) {
-  return label.replace(/\bstavs\b/gi, "staves");
-}
-
-function potStatus(hole: number | null) {
-  if (
-    hole === DAY1_CONTESTS.ctpFront ||
-    hole === DAY1_CONTESTS.ctpBack ||
-    hole === DAY1_CONTESTS.longDrive
-  ) {
-    return `Open · ${contestHoleLabel(hole)}`;
-  }
-  if (hole != null) return contestHoleLabel(hole);
-  return "Named Friday night";
-}
+import { displaySidePots, potStatus } from "@/lib/contest-holes";
 
 export const Route = createFileRoute("/purse")({
   head: () => ({
@@ -60,7 +43,8 @@ function PursePage() {
   const claimedPlayer = Boolean(user && profile?.player_id);
   const bets = data?.sideBets ?? [];
   const players = data?.players ?? [];
-  const claimed = bets.filter((b) => b.player_name);
+  const pots = displaySidePots(bets);
+  const claimed = pots.filter((b) => b.player_name);
   const fieldSize = players.length || EXPECTED_PLAYER_COUNT;
   const cash = sideCash(bets, fieldSize);
   const hasTbdPayouts = !SIDE_BET_PAYOUTS_CONFIRMED || cash.unconfigured > 0;
@@ -108,46 +92,44 @@ function PursePage() {
           <MoneySplit />
         </section>
 
-        {bets.length > 0 && (
-          <section>
-            <div className="mb-3 flex items-baseline justify-between gap-3">
-              <h2 className="t-eyebrow">Side pots</h2>
-              <span className="t-micro text-muted-foreground">
-                {claimed.length}/{bets.length}
-              </span>
-            </div>
-            <ul className="surface divide-y divide-border overflow-hidden">
-              {bets.map((bet) => (
-                <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
-                  <span className="min-w-0">
-                    <span className="flex min-w-0 items-center gap-2">
-                      <span
-                        className={`rounded-full px-1.5 py-0.5 text-[0.65rem] font-semibold ${
-                          isLongDrive(bet.kind)
-                            ? "bg-stone/20 text-stone"
-                            : isCtp(bet.kind)
-                              ? "bg-hunter/15 text-hunter"
-                              : "bg-secondary text-muted-foreground"
-                        }`}
-                      >
-                        {isLongDrive(bet.kind) ? "LD" : isCtp(bet.kind) ? "CTP" : bet.kind}
-                      </span>
-                      <span className="t-body min-w-0 truncate font-medium text-foreground">
-                        {displayBetLabel(bet.label)}
-                      </span>
+        <section>
+          <div className="mb-3 flex items-baseline justify-between gap-3">
+            <h2 className="t-eyebrow">Side pots</h2>
+            <span className="t-micro text-muted-foreground">
+              {claimed.length}/{pots.length}
+            </span>
+          </div>
+          <ul className="surface divide-y divide-border overflow-hidden">
+            {pots.map((bet) => (
+              <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
+                <span className="min-w-0">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 text-[0.65rem] font-semibold ${
+                        isLongDrive(bet.kind)
+                          ? "bg-stone/20 text-stone"
+                          : isCtp(bet.kind)
+                            ? "bg-hunter/15 text-hunter"
+                            : "bg-secondary text-muted-foreground"
+                      }`}
+                    >
+                      {isLongDrive(bet.kind) ? "LD" : isCtp(bet.kind) ? "CTP" : bet.kind}
                     </span>
-                    <span className="t-micro text-muted-foreground">
-                      {bet.player_name ?? "Open"} · {potStatus(bet.hole)}
+                    <span className="t-body min-w-0 truncate font-medium text-foreground">
+                      {bet.label}
                     </span>
                   </span>
-                  <span className="t-numeral shrink-0 text-foreground">
-                    {formatPayout(bet.amount)}
+                  <span className="t-micro text-muted-foreground">
+                    {bet.player_name ?? "Open"} · {potStatus(bet.hole)}
                   </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+                </span>
+                <span className="t-numeral shrink-0 text-foreground">
+                  {formatPayout(bet.amount)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         {perPlayer.length > 0 && (
           <section>

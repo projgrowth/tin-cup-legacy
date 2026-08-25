@@ -52,9 +52,9 @@ function HoleRow({
     <div className="border-t border-border">
       <Link
         to="/scout"
-        search={{ course: courseId, hole: line.hole, map: true }}
+        search={{ course: courseId, hole: line.hole, card: true }}
         replace
-        aria-label={`Open hole ${line.hole} map`}
+        aria-label={`Plan hole ${line.hole}`}
         className="press flex items-center gap-3 px-4 py-3"
       >
         <span className={holeMark}>{line.hole}</span>

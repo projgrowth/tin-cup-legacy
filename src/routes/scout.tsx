@@ -353,6 +353,7 @@ function ScoutPage() {
         <RoundPlanBoard
           hero
           courseId={courseId}
+          hole={hole}
           holes={course.holes}
           lines={planLines}
           contestByHole={contestByHole}
@@ -369,6 +370,26 @@ function ScoutPage() {
           signedIn={Boolean(user)}
           pairingLine={pairingLine}
         />
+        <PlanSheet
+          courseId={courseId}
+          hole={current.h}
+          par={current.par}
+          holes={course.holes}
+          mode={planMode}
+          loading={authLoading || journal.loading}
+          editor={planEditor}
+          hasNote={(h) => hasPlanContent(noteForDraft(h))}
+          contestByHole={contestByHole}
+          onSelectHole={(nextHole) => setSelection({ hole: nextHole, map: false })}
+          pitLabel={isSnake ? "Snake Pit" : null}
+        />
+        <Link
+          to="/scout"
+          search={{ course: courseId, hole: current.h, map: true }}
+          className="press t-micro min-h-11 px-1"
+        >
+          Map hole {current.h}
+        </Link>
       </div>
     </Shell>
   );
