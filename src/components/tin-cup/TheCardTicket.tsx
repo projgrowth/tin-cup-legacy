@@ -142,6 +142,7 @@ export function TheCardTicket({
           align="start"
           selected={mine?.choice === "side-a"}
           disabled={!canPick || busy}
+          to={!canPick && !locked && (!userId || !claimed) ? "/profile" : undefined}
           onClick={() => pick("side-a")}
         />
         <p className="t-micro self-center px-1 text-muted-foreground">vs</p>
@@ -151,6 +152,7 @@ export function TheCardTicket({
           align="end"
           selected={mine?.choice === "side-b"}
           disabled={!canPick || busy}
+          to={!canPick && !locked && (!userId || !claimed) ? "/profile" : undefined}
           onClick={() => pick("side-b")}
         />
       </div>
@@ -243,6 +245,7 @@ function SideRow({
   align,
   selected,
   disabled,
+  to,
   onClick,
 }: {
   people: CardFace[];
@@ -250,8 +253,29 @@ function SideRow({
   align: "start" | "end";
   selected: boolean;
   disabled: boolean;
+  to?: string;
   onClick: () => void;
 }) {
+  const className = `flex min-h-12 min-w-0 w-full items-center gap-2 rounded-xl px-1 py-1.5 transition-colors duration-150 disabled:opacity-100 ${
+    align === "end" ? "flex-row-reverse text-right" : "text-left"
+  } ${disabled && !to ? "cursor-default" : "press"} ${
+    selected ? "bg-hunter/10 ring-1 ring-hunter/30" : ""
+  }`;
+  const inner = (
+    <>
+      <AvatarPair people={people} size="sm" />
+      <span className="t-body min-w-0 flex-1 truncate font-semibold leading-snug text-foreground">
+        {label}
+      </span>
+    </>
+  );
+  if (to) {
+    return (
+      <Link to={to} aria-label={`Ride with ${label}`} className={className}>
+        {inner}
+      </Link>
+    );
+  }
   return (
     <button
       type="button"
@@ -259,16 +283,9 @@ function SideRow({
       aria-pressed={selected}
       aria-label={selected ? `Undo ${label}` : `Ride with ${label}`}
       onClick={onClick}
-      className={`flex min-h-12 min-w-0 w-full items-center gap-2 rounded-xl px-1 py-1.5 transition-colors duration-150 disabled:opacity-100 ${
-        align === "end" ? "flex-row-reverse text-right" : "text-left"
-      } ${disabled ? "cursor-default" : "press"} ${
-        selected ? "bg-hunter/10 ring-1 ring-hunter/30" : ""
-      }`}
+      className={className}
     >
-      <AvatarPair people={people} size="sm" />
-      <span className="t-body min-w-0 flex-1 truncate font-semibold leading-snug text-foreground">
-        {label}
-      </span>
+      {inner}
     </button>
   );
 }

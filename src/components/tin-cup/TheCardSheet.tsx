@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 
 import { TheCardTicket } from "@/components/tin-cup/TheCardTicket";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +11,7 @@ import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { rosterName } from "@/lib/profile-identity";
 import {
   cardRecords,
+  faceoffCrowd,
   faceoffRoasts,
   fridayCardMarkets,
   isYourMarket,
@@ -50,7 +51,17 @@ export function TheCardSheet({
     : allMarkets;
   const graded = matches.some((match) => match.result !== "pending");
   const records = graded ? cardRecords(social.predictions, matches).slice(0, 4) : [];
+  const [moreCard, setMoreCard] = useState(false);
   const nameOf = (userId: string) => rosterName({ userId, players, profiles: profiles.data ?? [] });
+  const rankedMarkets = [...markets].sort((a, b) => {
+    const heat = (market: (typeof markets)[number]) => {
+      const crowd = faceoffCrowd(social.predictions, market.matchIds);
+      return crowd.sideA + crowd.sideB + faceoffRoasts(social.predictions, market.matchIds).length;
+    };
+    return heat(b) - heat(a);
+  });
+  const shownMarkets = moreCard ? rankedMarkets : rankedMarkets.slice(0, 2);
+  const hiddenMarkets = Math.max(0, rankedMarkets.length - shownMarkets.length);
 
   function react(momentKey: string, kind: ReactionKind) {
     if (!user || !claimed) return;
@@ -78,18 +89,13 @@ export function TheCardSheet({
       ) : null}
       <section aria-labelledby="the-card-title">
         <div className="surface overflow-hidden">
-          <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+          <div className="px-4 py-2.5">
             <h2 id="the-card-title" className="t-eyebrow">
               Faceoff
             </h2>
-            {(!user || !claimed) && markets.some((market) => !market.locked) ? (
-              <Link to="/profile" className="press t-micro inline-flex min-h-11 items-center">
-                {user ? "Claim your name" : "Sign in to ride"}
-              </Link>
-            ) : null}
           </div>
           <div className="divide-y divide-border">
-            {markets.map((market) => {
+            {shownMarkets.map((market) => {
               const people = peopleForMarket(market, face);
               const roasts = faceoffRoasts(social.predictions, market.matchIds).map((pick) => ({
                 userId: pick.userId,
@@ -122,6 +128,15 @@ export function TheCardSheet({
                 />
               );
             })}
+            {hiddenMarkets > 0 ? (
+              <button
+                type="button"
+                onClick={() => setMoreCard(true)}
+                className="press t-micro flex min-h-11 w-full items-center px-4"
+              >
+                {hiddenMarkets} more
+              </button>
+            ) : null}
           </div>
         </div>
         {records.length > 0 ? (
