@@ -60,13 +60,9 @@ function afterGolf(dayLabel: string) {
   return null;
 }
 
-function dayBeat(courseId: CourseId, tee: string) {
-  if (courseId === "copperhead") {
-    return `Breakfast · golf ${tee} · Steakhouse 7:00 PM`;
-  }
-  if (courseId === "island") {
-    return `Breakfast · golf ${tee} · lunch and awards`;
-  }
+function dayBeat(courseId: CourseId) {
+  if (courseId === "copperhead") return "Breakfast · golf · Steakhouse 7:00";
+  if (courseId === "island") return "Breakfast · golf · lunch and awards";
   return null;
 }
 
@@ -141,9 +137,7 @@ function SchedulePage() {
             <p className="t-body mt-3 text-muted-foreground">{details.formatTip}</p>
           </header>
 
-          {dayBeat(courseId, details.firstTee) ? (
-            <p className="t-body">{dayBeat(courseId, details.firstTee)}</p>
-          ) : null}
+          {dayBeat(courseId) ? <p className="t-body">{dayBeat(courseId)}</p> : null}
 
           {courseId === "south" ? (
             <FridayPairings
