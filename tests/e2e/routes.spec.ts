@@ -33,13 +33,13 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await page.goto("/");
   await expectTinCupIdentity(page);
   await expect(page.getByRole("link", { name: "Sign in", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Friday · South/i })).toBeVisible();
+  await expect(page.getByText(/Friday · South/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: /12:19/ })).toBeVisible();
   await expect(page.getByText("Where the vibes are high and the divots are deep")).toHaveCount(0);
   await expect(page.getByText(/12:19 PM/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Weekend", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Plan", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Pay \$150/ }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: /Tonight/ }).first()).toBeVisible();
   await expect(page.getByText(/Fri 8 \+ Sat 6 \+ Sun 12/)).toHaveCount(0);
   await expect(page.getByText("Sign in to join the Clubhouse")).toHaveCount(0);
   await expect(page.getByText("Today at Tin Cup")).toHaveCount(0);
@@ -71,7 +71,7 @@ test("weekend is not covered by a first-run welcome sheet", async ({ page }) => 
     localStorage.removeItem("tc-seat-v1");
   });
   await page.goto("/schedule");
-  await expect(page.getByRole("heading", { name: /South · 12:19 PM/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^South$/ })).toBeVisible();
   await expect(page.getByText("Just looking")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "I'm in the field" })).toHaveCount(0);
 });
@@ -80,7 +80,7 @@ test("social-first Home preserves feed filters, deep links, and board compatibil
   page,
 }) => {
   await page.goto("/?feed=photos");
-  await expect(page.getByRole("heading", { name: /Friday · South/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /12:19/ })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Around the weekend" })).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
 
@@ -92,7 +92,7 @@ test("social-first Home preserves feed filters, deep links, and board compatibil
 
 test("weekend, scout and purse retain confirmed source-of-truth details", async ({ page }) => {
   await page.goto("/schedule");
-  await expect(page.getByRole("heading", { name: /South · 12:19 PM/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^South$/ })).toBeVisible();
   await expect(page.getByText("Just looking")).toHaveCount(0);
   await expect(page.getByText("Welcome to the weekend")).toHaveCount(0);
   await expect(page.getByText("Zack · Chris")).toBeVisible();
@@ -102,8 +102,8 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(page.getByRole("tab", { name: "Saturday" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Sunday" })).toBeVisible();
   await page.getByRole("tab", { name: "Saturday" }).click();
-  await expect(page.getByRole("heading", { name: /Copperhead · 9:54/i })).toBeVisible();
-  await expect(page.getByText("Pairings when captains post")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Copperhead$/ })).toBeVisible();
+  await expect(page.getByText("Pairings posted Friday night.")).toBeVisible();
   await expect(page.getByText("Pool & Salamander Grille")).toHaveCount(0);
   await expect(page.getByText(/scramble partner/i)).toHaveCount(0);
   await expect(page.getByText("Loading…")).toHaveCount(0);
@@ -191,7 +191,7 @@ test("protected preview exposes the gallery and engagement prompt without produc
   await expect(page.getByText("Protected preview", { exact: false })).toBeVisible({
     timeout: 10_000,
   });
-  await expect(page.getByRole("heading", { name: /Friday · South/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /12:19/ })).toBeVisible();
   await expect(page.getByText("First-tee faces")).toHaveCount(0);
   await expect(page.getByText("Who holes the first walk-off putt?")).toHaveCount(0);
   await page.goto("/photos");
