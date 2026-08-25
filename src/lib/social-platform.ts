@@ -134,6 +134,24 @@ export function pollClosed(poll: Pick<ClubhousePoll, "closedAt" | "closesAt">, n
   return Boolean(poll.closedAt || (poll.closesAt && Date.parse(poll.closesAt) <= now));
 }
 
+/** First-hole 3-putt leads. Other dares keep insert order. */
+export function orderClubhousePolls(polls: ClubhousePoll[]) {
+  const ranked = polls
+    .filter((poll) => !poll.deletedAt)
+    .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
+  const first = ranked.findIndex((poll) => /3-putt/i.test(poll.question));
+  if (first > 0) {
+    const [hit] = ranked.splice(first, 1);
+    ranked.unshift(hit);
+  }
+  return ranked;
+}
+
+export function pollDare(question: string) {
+  const stripped = question.replace(/^most likely\s+/i, "").trim();
+  return stripped || question;
+}
+
 export function activeCheckIns(rows: PlayerCheckIn[], now = Date.now()) {
   return rows.filter((row) => Date.parse(row.expiresAt) > now);
 }
