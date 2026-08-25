@@ -59,6 +59,10 @@ export function ClubhousePolls({
   const countFor = (label: string) =>
     tallies.find((row) => row.option.label.trim().toLowerCase() === label.trim().toLowerCase())
       ?.count ?? 0;
+  const leading = roster
+    .filter((player) => countFor(player.name) > 0)
+    .sort((a, b) => countFor(b.name) - countFor(a.name));
+  const rest = roster.filter((player) => countFor(player.name) === 0);
 
   async function pick(optionId: string) {
     if (!poll || !canVote || closed) return;
@@ -129,10 +133,9 @@ export function ClubhousePolls({
               </Link>
             ) : null}
           </header>
-          <ul className="surface divide-y divide-border overflow-hidden">
-            {[...roster]
-              .sort((a, b) => countFor(b.name) - countFor(a.name))
-              .map((player) => {
+          {leading.length > 0 ? (
+            <ul className="surface divide-y divide-border overflow-hidden">
+              {leading.map((player) => {
                 const option =
                   poll.options.find(
                     (row) => row.label.trim().toLowerCase() === player.name.trim().toLowerCase(),
@@ -157,13 +160,7 @@ export function ClubhousePolls({
                     >
                       {firstName(player.name)}
                     </span>
-                    <span
-                      className={`t-micro tabular-nums ${
-                        count > 0 ? "text-muted-foreground" : "invisible"
-                      }`}
-                    >
-                      {count || 0}
-                    </span>
+                    <span className="t-micro tabular-nums text-muted-foreground">{count}</span>
                   </>
                 );
                 return (
@@ -187,7 +184,42 @@ export function ClubhousePolls({
                   </li>
                 );
               })}
-          </ul>
+            </ul>
+          ) : null}
+          {rest.length > 0 ? (
+            <div className="flex flex-wrap gap-x-1 gap-y-1">
+              {rest.map((player) => {
+                const option =
+                  poll.options.find(
+                    (row) => row.label.trim().toLowerCase() === player.name.trim().toLowerCase(),
+                  ) ?? poll.options.find((row) => firstName(row.label) === firstName(player.name));
+                const selected = Boolean(option && mine?.optionId === option.id);
+                const label = firstName(player.name);
+                if (canVote && !closed) {
+                  return (
+                    <button
+                      key={player.id}
+                      type="button"
+                      disabled={!option}
+                      aria-pressed={selected}
+                      aria-label={`Vote ${label}`}
+                      onClick={() => option && void pick(option.id)}
+                      className={`press t-body min-h-11 px-2.5 ${
+                        selected ? "font-semibold text-foreground" : "text-muted-foreground"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                }
+                return (
+                  <span key={player.id} className="t-body px-2.5 py-2.5 text-muted-foreground">
+                    {label}
+                  </span>
+                );
+              })}
+            </div>
+          ) : null}
         </>
       ) : (
         <p className="t-micro">No poll yet.</p>

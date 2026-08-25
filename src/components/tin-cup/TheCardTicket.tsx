@@ -139,6 +139,7 @@ export function TheCardTicket({
         <SideRow
           people={peopleA}
           label={labelA}
+          align="start"
           selected={mine?.choice === "side-a"}
           disabled={!canPick || busy}
           onClick={() => pick("side-a")}
@@ -147,6 +148,7 @@ export function TheCardTicket({
         <SideRow
           people={peopleB}
           label={labelB}
+          align="end"
           selected={mine?.choice === "side-b"}
           disabled={!canPick || busy}
           onClick={() => pick("side-b")}
@@ -238,12 +240,14 @@ export function TheCardTicket({
 function SideRow({
   people,
   label,
+  align,
   selected,
   disabled,
   onClick,
 }: {
   people: CardFace[];
   label: string;
+  align: "start" | "end";
   selected: boolean;
   disabled: boolean;
   onClick: () => void;
@@ -255,12 +259,14 @@ function SideRow({
       aria-pressed={selected}
       aria-label={selected ? `Undo ${label}` : `Ride with ${label}`}
       onClick={onClick}
-      className={`flex min-h-12 min-w-0 w-full flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-center transition-colors duration-150 disabled:opacity-100 ${
-        disabled ? "cursor-default" : "press"
-      } ${selected ? "bg-hunter/10 ring-1 ring-hunter/30" : ""}`}
+      className={`flex min-h-12 min-w-0 w-full items-center gap-2 rounded-xl px-1 py-1.5 transition-colors duration-150 disabled:opacity-100 ${
+        align === "end" ? "flex-row-reverse text-right" : "text-left"
+      } ${disabled ? "cursor-default" : "press"} ${
+        selected ? "bg-hunter/10 ring-1 ring-hunter/30" : ""
+      }`}
     >
       <AvatarPair people={people} size="sm" />
-      <span className="t-body max-w-full font-semibold leading-snug break-words text-foreground">
+      <span className="t-body min-w-0 flex-1 font-semibold leading-snug break-words text-foreground">
         {label}
       </span>
     </button>

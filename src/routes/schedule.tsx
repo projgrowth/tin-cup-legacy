@@ -130,18 +130,12 @@ function SchedulePage() {
           </div>
 
           <header>
-            <p className="t-eyebrow">{details.dayLabel}</p>
-            <h1 className="t-display mt-1 text-foreground">{COURSE_LABEL[courseId]}</h1>
-            <p className="t-title mt-3 text-foreground">{details.format}</p>
-            <p className="t-micro mt-1">
-              {details.firstTee} · {details.points} pts
+            <h1 className="t-display text-foreground">{COURSE_LABEL[courseId]}</h1>
+            <p className="t-micro mt-2">
+              {details.firstTee} · {details.format} · {details.points} pts
             </p>
             <p className="t-body mt-3 text-muted-foreground">{details.formatTip}</p>
           </header>
-
-          {beforeGolf(details.dayLabel) ? (
-            <p className="t-body">{beforeGolf(details.dayLabel)}</p>
-          ) : null}
 
           {courseId === "south" ? (
             <FridayPairings
@@ -150,9 +144,14 @@ function SchedulePage() {
             />
           ) : (
             <p className="t-body text-muted-foreground">
-              {courseId === "copperhead"
-                ? "Pairings posted Friday night."
-                : "Pairings posted Saturday night."}
+              {[
+                beforeGolf(details.dayLabel),
+                courseId === "copperhead"
+                  ? "Pairings posted Friday night."
+                  : "Pairings posted Saturday night.",
+              ]
+                .filter(Boolean)
+                .join(" ")}
             </p>
           )}
 

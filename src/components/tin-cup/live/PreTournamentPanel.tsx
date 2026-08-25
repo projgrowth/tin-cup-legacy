@@ -43,17 +43,17 @@ export function PreTournamentPanel({
         {groupLine ? (
           <p className="t-body mt-3 font-semibold text-foreground">{groupLine}</p>
         ) : null}
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <Countdown compact />
+          <a
+            href={venmoUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="press chip chip-on min-h-11"
+          >
+            Pay ${BUY_IN}
+          </a>
         </div>
-        <a
-          href={venmoUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="press chip chip-on mt-4 min-h-11"
-        >
-          Pay ${BUY_IN}
-        </a>
       </header>
 
       <TheCardSheet matches={matches} rounds={rounds} players={players} teams={teams} />
