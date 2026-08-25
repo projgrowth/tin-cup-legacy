@@ -113,17 +113,17 @@ export function ClubhousePolls({
               </div>
             ) : null}
             <h2 className="t-title mt-2 text-foreground">{pollDare(poll.question)}</h2>
-            <p className="t-micro mt-1">
-              {closed
-                ? "Locked after the weekend."
-                : youVoted
-                  ? `You picked ${firstName(youVoted)}. Tap someone else to change it.`
-                  : canVote
-                    ? "Tap a name. One vote — change it anytime."
-                    : user
-                      ? "Claim your roster name to vote."
-                      : "The field is already on it."}
-            </p>
+            {closed || youVoted || canVote || user ? (
+              <p className="t-micro mt-1">
+                {closed
+                  ? "Locked after the weekend."
+                  : youVoted
+                    ? `You picked ${firstName(youVoted)}. Tap someone else to change it.`
+                    : canVote
+                      ? "Tap a name. One vote — change it anytime."
+                      : "Claim your roster name to vote."}
+              </p>
+            ) : null}
             {!canVote && !closed ? (
               <Link to="/profile" className="press t-micro mt-1 inline-flex min-h-11 items-center">
                 {user ? "Claim your name" : "Sign in to vote"}

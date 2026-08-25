@@ -35,13 +35,6 @@ export const KNOWN_SIDE_POTS = [
 ] as const;
 
 export function potStatus(hole: number | null) {
-  if (
-    hole === DAY1_CONTESTS.ctpFront ||
-    hole === DAY1_CONTESTS.ctpBack ||
-    hole === DAY1_CONTESTS.longDrive
-  ) {
-    return `Open · ${contestHoleLabel(hole)}`;
-  }
   if (hole != null) return contestHoleLabel(hole);
   return "Named Friday night";
 }

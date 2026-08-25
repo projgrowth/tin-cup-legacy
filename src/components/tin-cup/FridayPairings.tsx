@@ -1,24 +1,18 @@
 import { Link } from "@tanstack/react-router";
 
-import { AvatarPair } from "@/components/tin-cup/Avatar";
 import type { Match, Round } from "@/hooks/useTournament";
 import { DAY1_PAIRINGS } from "@/lib/day1-pairings";
-
-type Face = { name: string; url?: string | null };
 
 function sameName(a: string, b: string) {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
 
-/** One Friday sheet — format lives in the Weekend masthead, not on every row. */
+/** Type-first Friday sheet — faces live on Home Faceoff. */
 export function FridayPairings({
-  getFace,
   claimedName = null,
   playerIdByName,
-  matches: _matches = [],
-  rounds: _rounds = [],
 }: {
-  getFace?: (name: string) => Face | undefined;
+  getFace?: (name: string) => { name: string; url?: string | null } | undefined;
   claimedName?: string | null;
   playerIdByName?: (name: string) => string | undefined;
   matches?: Match[];
@@ -27,36 +21,17 @@ export function FridayPairings({
   return (
     <ol className="surface divide-y divide-border overflow-hidden">
       {DAY1_PAIRINGS.map((p) => {
-        const peopleA = p.playersA.map((name) => ({
-          name,
-          teamSlug: "strong-mental" as const,
-          src: getFace?.(name)?.url,
-        }));
-        const peopleB = p.playersB.map((name) => ({
-          name,
-          teamSlug: "grass-roots" as const,
-          src: getFace?.(name)?.url,
-        }));
         const yours = Boolean(
           claimedName && [...p.playersA, ...p.playersB].some((name) => sameName(name, claimedName)),
         );
         return (
-          <li key={p.matchIndex} className={`flex gap-3 px-4 py-3 ${yours ? "bg-hunter/5" : ""}`}>
-            <span className="t-micro w-4 shrink-0 pt-1.5 tabular-nums">{p.matchIndex}</span>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <AvatarPair people={peopleA} size="sm" />
-                <p className="t-body min-w-0 font-semibold leading-snug">
-                  <SideNames names={p.playersA} playerIdByName={playerIdByName} />
-                </p>
-              </div>
-              <div className="mt-1.5 flex items-center gap-2">
-                <AvatarPair people={peopleB} size="sm" />
-                <p className="t-body min-w-0 font-semibold leading-snug">
-                  <SideNames names={p.playersB} playerIdByName={playerIdByName} />
-                </p>
-              </div>
-            </div>
+          <li key={p.matchIndex} className={`flex gap-3 px-4 py-2.5 ${yours ? "bg-hunter/5" : ""}`}>
+            <span className="t-micro w-4 shrink-0 pt-0.5 tabular-nums">{p.matchIndex}</span>
+            <p className="t-body min-w-0 font-medium leading-snug text-foreground">
+              <SideNames names={p.playersA} playerIdByName={playerIdByName} />
+              <span className="t-micro font-medium text-muted-foreground"> vs </span>
+              <SideNames names={p.playersB} playerIdByName={playerIdByName} />
+            </p>
           </li>
         );
       })}

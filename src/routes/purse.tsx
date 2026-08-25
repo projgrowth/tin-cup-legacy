@@ -104,15 +104,7 @@ function PursePage() {
               <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
                 <span className="min-w-0">
                   <span className="flex min-w-0 items-center gap-2">
-                    <span
-                      className={`rounded-full px-1.5 py-0.5 text-[0.65rem] font-semibold ${
-                        isLongDrive(bet.kind)
-                          ? "bg-stone/20 text-stone"
-                          : isCtp(bet.kind)
-                            ? "bg-hunter/15 text-hunter"
-                            : "bg-secondary text-muted-foreground"
-                      }`}
-                    >
+                    <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[0.65rem] font-semibold text-muted-foreground">
                       {isLongDrive(bet.kind) ? "LD" : isCtp(bet.kind) ? "CTP" : bet.kind}
                     </span>
                     <span className="t-body min-w-0 truncate font-medium text-foreground">
