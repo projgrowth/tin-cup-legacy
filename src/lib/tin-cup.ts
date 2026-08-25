@@ -77,6 +77,9 @@ export const EVENT = {
   pointsToWin: 13.5,
 };
 
+/** 13–13: each captain plus the player he picks, 2v2 scramble — not singles. */
+export const PLAYOFF_RULE = "captain and his pick, 2v2 scramble";
+
 export type BoardMode = "pre" | "live" | "post";
 
 /** Which board the app should open on, based on the current date. */

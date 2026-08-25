@@ -37,7 +37,7 @@ All tournament facts in the app must match **this** document.
 | Saturday | Copperhead · 9:54–10:20 am · Modified Stableford full team · 2/2/2 (6) | Round seed | Match |
 | Sunday | Island · 9:54–10:20 am · Shamble / Singles · 4/8 (12) | Round seed | Match |
 | Cup | 26 total points; **13.5 to win** | `EVENT` | Match |
-| Playoff | Captains each pick one partner for one-hole scramble until decided | Rules copy (playoff hole TBD) | Match |
+| Playoff | Captain and his pick, 2v2 scramble, one hole until decided | Rules copy (playoff hole TBD) | Match |
 | Friday social | Pool (if weather) → Salamander Grille dinner | `WEEKEND_SOCIAL` | Match |
 | Saturday social | Breakfast included; free time / extra golf / bikes / pool; Steakhouse **7 PM** | `WEEKEND_SOCIAL` | Match |
 | Sunday social | Breakfast; stick around for lunch + awards (brief ceremony) | `WEEKEND_SOCIAL` | Match |

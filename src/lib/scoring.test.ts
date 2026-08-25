@@ -118,6 +118,8 @@ describe("raceLine", () => {
     const standings = { strongMental: 13, grassRoots: 13, played: 26, remaining: 0 };
     const line = raceLine(standings);
     expect(line.headline.toLowerCase()).toContain("playoff");
+    expect(line.headline.toLowerCase()).toContain("2v2 scramble");
+    expect(line.headline.toLowerCase()).not.toContain("singles");
   });
 
   it("surfaces points left when all square mid-event", () => {
@@ -263,16 +265,10 @@ describe("pairingIncludesLoose / playerInMatch", () => {
 
   it("detects a player on either side of a match", () => {
     expect(
-      playerInMatch(
-        { side_a: "Zack / Chris", side_b: "Charles / Blake" },
-        "Chris Maher",
-      ),
+      playerInMatch({ side_a: "Zack / Chris", side_b: "Charles / Blake" }, "Chris Maher"),
     ).toBe(true);
     expect(
-      playerInMatch(
-        { side_a: "Zack / Chris", side_b: "Charles / Blake" },
-        "Seth Beaver",
-      ),
+      playerInMatch({ side_a: "Zack / Chris", side_b: "Charles / Blake" }, "Seth Beaver"),
     ).toBe(false);
   });
 });

@@ -1,5 +1,5 @@
 /** Pure cup-scoring helpers. Kept free of React so they can be unit tested. */
-import { EVENT } from "@/lib/tin-cup";
+import { EVENT, PLAYOFF_RULE } from "@/lib/tin-cup";
 
 export type ScoredMatch = {
   id: string;
@@ -91,13 +91,9 @@ export function raceLine(
     return { headline: "Grass Roots clinches the Cup", detail: `${strongMental}–${grassRoots}` };
   }
   // All points decided, still under threshold and level → one-hole playoff rule.
-  if (
-    remaining === 0 &&
-    strongMental === grassRoots &&
-    strongMental < EVENT.pointsToWin
-  ) {
+  if (remaining === 0 && strongMental === grassRoots && strongMental < EVENT.pointsToWin) {
     return {
-      headline: "Playoff — captains pick scramble partners",
+      headline: `Playoff — ${PLAYOFF_RULE}`,
       detail: `${strongMental}–${grassRoots} · one hole until decided`,
     };
   }

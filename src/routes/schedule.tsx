@@ -19,7 +19,7 @@ import {
   defaultCourseId,
   type CourseId,
 } from "@/lib/courses";
-import { EVENT, WEEKEND_SOCIAL } from "@/lib/tin-cup";
+import { EVENT, PLAYOFF_RULE, WEEKEND_SOCIAL } from "@/lib/tin-cup";
 
 function useNow() {
   const [now, setNow] = useState<number | null>(null);
@@ -170,7 +170,7 @@ function SchedulePage() {
           <SnakePitDrawer triggerClassName="t-body font-medium text-foreground" />
         </section>
         <p className="t-micro px-1 text-muted-foreground">
-          Playoff · If 13–13: captains each pick a singles player · one hole until decided.
+          Playoff · If 13–13: {PLAYOFF_RULE} · one hole until decided.
         </p>
         {rounds.length > 0 ? (
           <button
