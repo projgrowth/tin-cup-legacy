@@ -8,7 +8,6 @@ import { useTournament } from "@/hooks/useTournament";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { sideCash, sideCashByPlayer, settlement, formatPayout } from "@/lib/purse";
 import { MoneySplit } from "@/components/tin-cup/DayStory";
-import { Link } from "@tanstack/react-router";
 import {
   BUY_IN,
   EXPECTED_PLAYER_COUNT,
@@ -17,6 +16,23 @@ import {
   contestHoleLabel,
   venmoUrl,
 } from "@/lib/tin-cup";
+import { DAY1_CONTESTS } from "@/lib/contest-holes";
+
+function displayBetLabel(label: string) {
+  return label.replace(/\bstavs\b/gi, "staves");
+}
+
+function potStatus(hole: number | null) {
+  if (
+    hole === DAY1_CONTESTS.ctpFront ||
+    hole === DAY1_CONTESTS.ctpBack ||
+    hole === DAY1_CONTESTS.longDrive
+  ) {
+    return `Open · ${contestHoleLabel(hole)}`;
+  }
+  if (hole != null) return contestHoleLabel(hole);
+  return "Named Friday night";
+}
 
 export const Route = createFileRoute("/purse")({
   head: () => ({
@@ -101,57 +117,35 @@ function PursePage() {
               </span>
             </div>
             <ul className="surface divide-y divide-border overflow-hidden">
-              {bets
-                .filter((bet) => bet.hole != null)
-                .map((bet) => (
-                  <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
-                    <span className="min-w-0">
-                      <span className="flex min-w-0 items-center gap-2">
-                        <span
-                          className={`rounded-full px-1.5 py-0.5 text-[0.65rem] font-semibold ${
-                            isLongDrive(bet.kind)
-                              ? "bg-stone/20 text-stone"
-                              : isCtp(bet.kind)
-                                ? "bg-hunter/15 text-hunter"
-                                : "bg-secondary text-muted-foreground"
-                          }`}
-                        >
-                          {isLongDrive(bet.kind) ? "LD" : isCtp(bet.kind) ? "CTP" : bet.kind}
-                        </span>
-                        <span className="t-body min-w-0 truncate font-medium text-foreground">
-                          {bet.label}
-                        </span>
-                      </span>
-                      <span className="t-micro text-muted-foreground">
-                        {bet.player_name ?? "Open"} · {contestHoleLabel(bet.hole)}
-                      </span>
-                    </span>
-                    <span className="t-numeral shrink-0 text-foreground">
-                      {formatPayout(bet.amount)}
-                    </span>
-                  </li>
-                ))}
-            </ul>
-            {bets.some((bet) => bet.hole == null) ? (
-              <details className="mt-2">
-                <summary className="press t-micro flex min-h-11 cursor-pointer list-none items-center text-muted-foreground [&::-webkit-details-marker]:hidden">
-                  Saturday and Sunday holes Friday night
-                </summary>
-                <ul className="surface mt-1 divide-y divide-border overflow-hidden">
-                  {bets
-                    .filter((bet) => bet.hole == null)
-                    .map((bet) => (
-                      <li
-                        key={bet.id}
-                        className="flex items-center justify-between gap-3 px-4 py-3"
+              {bets.map((bet) => (
+                <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
+                  <span className="min-w-0">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span
+                        className={`rounded-full px-1.5 py-0.5 text-[0.65rem] font-semibold ${
+                          isLongDrive(bet.kind)
+                            ? "bg-stone/20 text-stone"
+                            : isCtp(bet.kind)
+                              ? "bg-hunter/15 text-hunter"
+                              : "bg-secondary text-muted-foreground"
+                        }`}
                       >
-                        <span className="t-body min-w-0 truncate">{bet.label}</span>
-                        <span className="t-numeral shrink-0">{formatPayout(bet.amount)}</span>
-                      </li>
-                    ))}
-                </ul>
-              </details>
-            ) : null}
+                        {isLongDrive(bet.kind) ? "LD" : isCtp(bet.kind) ? "CTP" : bet.kind}
+                      </span>
+                      <span className="t-body min-w-0 truncate font-medium text-foreground">
+                        {displayBetLabel(bet.label)}
+                      </span>
+                    </span>
+                    <span className="t-micro text-muted-foreground">
+                      {bet.player_name ?? "Open"} · {potStatus(bet.hole)}
+                    </span>
+                  </span>
+                  <span className="t-numeral shrink-0 text-foreground">
+                    {formatPayout(bet.amount)}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 
@@ -171,24 +165,7 @@ function PursePage() {
           </section>
         )}
 
-        <section className="stack-tight">
-          <p className="t-body px-1 text-muted-foreground">
-            Six closest-to-the-pin and two long drives pay $100. Friday: CTP 3 and 18, long drive 13
-            in the fairway. Saturday and Sunday holes TBD. Captains do not pick them.
-          </p>
-          <p className="t-micro px-1 text-muted-foreground">
-            Official scoring stays captain-controlled.
-          </p>
-          <div className="surface overflow-hidden">
-            <Link
-              to="/schedule"
-              className="press flex min-h-12 items-center justify-between px-4 py-3"
-            >
-              <span className="t-body font-medium text-foreground">Weekend formats</span>
-              <span className="t-micro">Weekend</span>
-            </Link>
-          </div>
-        </section>
+        <p className="t-micro px-1">Official scoring stays captain-controlled.</p>
       </div>
     </Shell>
   );

@@ -14,11 +14,13 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CaptainRouteImport } from './routes/captain'
 import { Route as OpsRouteImport } from './routes/ops'
 import { Route as PhotosRouteImport } from './routes/photos'
+import { Route as PlanRouteImport } from './routes/plan'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PurseRouteImport } from './routes/purse'
 import { Route as RostersRouteImport } from './routes/rosters'
 import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as ScoutRouteImport } from './routes/scout'
+import { Route as TeamsRouteImport } from './routes/teams'
 import { Route as PlayerPlayerIdRouteImport } from './routes/player.$playerId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -46,6 +48,11 @@ const PhotosRoute = PhotosRouteImport.update({
   path: '/photos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlanRoute = PlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -71,6 +78,11 @@ const ScoutRoute = ScoutRouteImport.update({
   path: '/scout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TeamsRoute = TeamsRouteImport.update({
+  id: '/teams',
+  path: '/teams',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlayerPlayerIdRoute = PlayerPlayerIdRouteImport.update({
   id: '/player/$playerId',
   path: '/player/$playerId',
@@ -83,11 +95,13 @@ export interface FileRoutesByFullPath {
   '/captain': typeof CaptainRoute
   '/ops': typeof OpsRoute
   '/photos': typeof PhotosRoute
+  '/plan': typeof PlanRoute
   '/profile': typeof ProfileRoute
   '/purse': typeof PurseRoute
   '/rosters': typeof RostersRoute
   '/schedule': typeof ScheduleRoute
   '/scout': typeof ScoutRoute
+  '/teams': typeof TeamsRoute
   '/player/$playerId': typeof PlayerPlayerIdRoute
 }
 export interface FileRoutesByTo {
@@ -96,11 +110,13 @@ export interface FileRoutesByTo {
   '/captain': typeof CaptainRoute
   '/ops': typeof OpsRoute
   '/photos': typeof PhotosRoute
+  '/plan': typeof PlanRoute
   '/profile': typeof ProfileRoute
   '/purse': typeof PurseRoute
   '/rosters': typeof RostersRoute
   '/schedule': typeof ScheduleRoute
   '/scout': typeof ScoutRoute
+  '/teams': typeof TeamsRoute
   '/player/$playerId': typeof PlayerPlayerIdRoute
 }
 export interface FileRoutesById {
@@ -110,11 +126,13 @@ export interface FileRoutesById {
   '/captain': typeof CaptainRoute
   '/ops': typeof OpsRoute
   '/photos': typeof PhotosRoute
+  '/plan': typeof PlanRoute
   '/profile': typeof ProfileRoute
   '/purse': typeof PurseRoute
   '/rosters': typeof RostersRoute
   '/schedule': typeof ScheduleRoute
   '/scout': typeof ScoutRoute
+  '/teams': typeof TeamsRoute
   '/player/$playerId': typeof PlayerPlayerIdRoute
 }
 export interface FileRouteTypes {
@@ -125,11 +143,13 @@ export interface FileRouteTypes {
     | '/captain'
     | '/ops'
     | '/photos'
+    | '/plan'
     | '/profile'
     | '/purse'
     | '/rosters'
     | '/schedule'
     | '/scout'
+    | '/teams'
     | '/player/$playerId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -138,11 +158,13 @@ export interface FileRouteTypes {
     | '/captain'
     | '/ops'
     | '/photos'
+    | '/plan'
     | '/profile'
     | '/purse'
     | '/rosters'
     | '/schedule'
     | '/scout'
+    | '/teams'
     | '/player/$playerId'
   id:
     | '__root__'
@@ -151,11 +173,13 @@ export interface FileRouteTypes {
     | '/captain'
     | '/ops'
     | '/photos'
+    | '/plan'
     | '/profile'
     | '/purse'
     | '/rosters'
     | '/schedule'
     | '/scout'
+    | '/teams'
     | '/player/$playerId'
   fileRoutesById: FileRoutesById
 }
@@ -165,11 +189,13 @@ export interface RootRouteChildren {
   CaptainRoute: typeof CaptainRoute
   OpsRoute: typeof OpsRoute
   PhotosRoute: typeof PhotosRoute
+  PlanRoute: typeof PlanRoute
   ProfileRoute: typeof ProfileRoute
   PurseRoute: typeof PurseRoute
   RostersRoute: typeof RostersRoute
   ScheduleRoute: typeof ScheduleRoute
   ScoutRoute: typeof ScoutRoute
+  TeamsRoute: typeof TeamsRoute
   PlayerPlayerIdRoute: typeof PlayerPlayerIdRoute
 }
 
@@ -210,6 +236,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PhotosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plan': {
+      id: '/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof PlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile': {
       id: '/profile'
       path: '/profile'
@@ -245,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/teams': {
+      id: '/teams'
+      path: '/teams'
+      fullPath: '/teams'
+      preLoaderRoute: typeof TeamsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/player/$playerId': {
       id: '/player/$playerId'
       path: '/player/$playerId'
@@ -261,23 +301,15 @@ const rootRouteChildren: RootRouteChildren = {
   CaptainRoute: CaptainRoute,
   OpsRoute: OpsRoute,
   PhotosRoute: PhotosRoute,
+  PlanRoute: PlanRoute,
   ProfileRoute: ProfileRoute,
   PurseRoute: PurseRoute,
   RostersRoute: RostersRoute,
   ScheduleRoute: ScheduleRoute,
   ScoutRoute: ScoutRoute,
+  TeamsRoute: TeamsRoute,
   PlayerPlayerIdRoute: PlayerPlayerIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

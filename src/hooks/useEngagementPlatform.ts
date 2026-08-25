@@ -169,12 +169,12 @@ export function useEngagementPlatform(userId?: string, playerId?: string | null)
       options: string[];
       closesAt?: string | null;
     }) => {
-      if (!userId || !playerId) throw new Error("Claim your player before creating a poll.");
+      if (!userId) throw new Error("Sign in to add a poll.");
       const cleanQuestion = question.trim().slice(0, 140);
       const cleanOptions = options
         .map((option) => option.trim().slice(0, 60))
         .filter(Boolean)
-        .slice(0, 4);
+        .slice(0, 16);
       if (!cleanQuestion || cleanOptions.length < 2)
         throw new Error("Add a question and at least two options.");
       const now = new Date().toISOString();
@@ -333,7 +333,10 @@ export function useEngagementPlatform(userId?: string, playerId?: string | null)
       if (!row.title || Date.parse(endsAt) <= Date.parse(startsAt))
         throw new Error("Add a title and a valid time window.");
       if (isPreviewMode()) {
-        localWrite(PROMPTS_KEY, [row, ...dropSeededPrompts(localRead<EngagementPrompt>(PROMPTS_KEY))]);
+        localWrite(PROMPTS_KEY, [
+          row,
+          ...dropSeededPrompts(localRead<EngagementPrompt>(PROMPTS_KEY)),
+        ]);
         return;
       }
       const result = await supabase.from("engagement_prompts").insert({

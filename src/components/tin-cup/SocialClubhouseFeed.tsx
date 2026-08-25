@@ -1,20 +1,10 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  Camera,
-  Check,
-  Clock3,
-  Flame,
-  MoreHorizontal,
-  PartyPopper,
-  Pin,
-  Trophy,
-} from "lucide-react";
+import { Camera, Check, Clock3, MoreHorizontal, Pin, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
 import { Avatar } from "@/components/tin-cup/Avatar";
-import { ClubhouseEngagement } from "@/components/tin-cup/EngagementPanels";
 import { PhotoPicker } from "@/components/tin-cup/PhotoPicker";
 import { ShareMomentButton } from "@/components/tin-cup/ShareMomentButton";
 import { useActivityFeed, formatActivityTime } from "@/hooks/useActivityFeed";
@@ -34,24 +24,22 @@ import type {
 } from "@/hooks/useTournament";
 import { signedVaultUrl, uploadVaultImage } from "@/integrations/supabase/storage";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
+import { TALK_MAX, isJunkBody, isJunkCaption, maskGuestProfanity } from "@/lib/locker-copy";
+import { rosterName } from "@/lib/profile-identity";
 import { CLUBHOUSE_MOMENT_KEY, type FeedFilter } from "@/lib/social-platform";
-import { buildCardMoments } from "@/lib/the-card";
 import { trackProductEvent } from "@/lib/product-analytics";
 import { savePreviewPhoto } from "@/lib/preview-media";
 import { isPreviewMode } from "@/lib/runtime-mode";
 import {
+  LOCKER_REACTIONS,
   buildStoryMoments,
+  isBoardMoment,
   isHangoutMoment,
+  isResultsMoment,
   type ReactionKind,
   type StoryComment,
   type StoryMoment,
 } from "@/lib/weekend-story";
-
-const REACTIONS: Array<{ kind: ReactionKind; label: string; icon: typeof Flame }> = [
-  { kind: "applause", label: "Applause", icon: PartyPopper },
-  { kind: "fire", label: "Fire", icon: Flame },
-  { kind: "trophy", label: "Trophy", icon: Trophy },
-];
 
 function fieldReplyKey(postId: string) {
   return `clubhouse-post:${postId}`;
@@ -93,6 +81,7 @@ export function SocialClubhouseFeed({
   const { profile } = useProfile();
   const story = useWeekendStory(user?.id);
   const matchSocial = useMatchSocial(user?.id, profile?.player_id);
+  const signedIn = Boolean(user);
   const activity = useActivityFeed(players, teams);
   const profiles = usePublicProfiles();
   const avatars = usePlayerAvatars(players, teams);
@@ -116,57 +105,22 @@ export function SocialClubhouseFeed({
     [profiles.data],
   );
   const moments = useMemo(() => {
-    const teamSlugById = new Map(teams.map((team) => [team.id, team.slug]));
-    const predictions = matchSocial.predictionsEnabled
-      ? buildCardMoments({
-          matches,
-          predictions: matchSocial.predictions,
-          authorName: (userId) => {
-            const row = profileById.get(userId);
-            return (
-              (row?.player_id && playerById.get(row.player_id)?.name) ||
-              row?.display_name ||
-              "Player"
-            );
-          },
-          authorPlayer: (userId) => {
-            const row = profileById.get(userId);
-            const player = row?.player_id ? playerById.get(row.player_id) : undefined;
-            return {
-              id: player?.id ?? row?.player_id ?? null,
-              teamSlug: player ? (teamSlugById.get(player.team_id) ?? null) : null,
-            };
-          },
-        })
-      : [];
-    return [
-      ...buildStoryMoments({ matches, sideBets, trophies, activity: activity.data }),
-      ...predictions,
-    ]
+    return buildStoryMoments({ matches, sideBets, trophies, activity: activity.data })
       .sort((a, b) => b.at - a.at)
       .filter((moment) => {
         if (!isHangoutMoment(moment)) return false;
-        if (filter === "all") return true;
-        if (filter === "photos") return moment.kind === "photo";
-        if (filter === "scores")
-          return ["match", "prediction", "side-bet", "trophy", "lead-change"].includes(moment.kind);
-        return false;
+        if (moment.kind === "prediction") return false;
+        if (moment.kind === "photo" && isJunkCaption(moment.detail)) return false;
+        if (filter === "photos") return isBoardMoment(moment);
+        if (filter === "scores") return isResultsMoment(moment);
+        return isBoardMoment(moment) || isResultsMoment(moment);
       });
-  }, [
-    activity.data,
-    filter,
-    matchSocial.predictions,
-    matchSocial.predictionsEnabled,
-    matches,
-    playerById,
-    profileById,
-    sideBets,
-    teams,
-    trophies,
-  ]);
-  const showClubhouse = filter === "all" || filter === "clubhouse";
+  }, [activity.data, filter, matches, sideBets, trophies]);
+  const showClubhouse = filter !== "photos" && filter !== "scores";
   const photoMoments = moments.filter((moment) => moment.kind === "photo");
-  const restMoments = moments.filter((moment) => moment.kind !== "photo");
+  const resultMoments = moments.filter((moment) => isResultsMoment(moment));
+  const restMoments = filter === "scores" ? resultMoments : [];
+  const hasResults = resultMoments.length > 0;
   const emptyFeed =
     story.clubhousePosts.length === 0 && photoMoments.length === 0 && restMoments.length === 0;
   const mediaPaths = moments
@@ -208,8 +162,11 @@ export function SocialClubhouseFeed({
     if (authorId === "preview-organizer") return "Tin Cup Committee";
     if (authorId === "preview-captain") return "Captain's Desk";
     if (authorId === "preview-player") return "Clubhouse Player";
-    const row = profileById.get(authorId);
-    return (row?.player_id && playerById.get(row.player_id)?.name) || row?.display_name || "Player";
+    return rosterName({
+      userId: authorId,
+      players,
+      profiles: profiles.data ?? [],
+    });
   }
 
   function authorTeam(authorId: string) {
@@ -301,7 +258,7 @@ export function SocialClubhouseFeed({
     <section aria-labelledby="updates-title" className="stack-tight">
       <div className="flex items-end justify-between gap-3 px-1">
         <h2 id="updates-title" className="t-eyebrow">
-          Field
+          Board
         </h2>
         {story.unreadCount > 0 && (
           <span className="rounded-full bg-hunter px-2.5 py-1 text-xs font-bold text-primary-foreground">
@@ -330,29 +287,23 @@ export function SocialClubhouseFeed({
         <div className="feed-composer surface p-2.5 sm:p-3">
           <div className="flex gap-3">
             <Avatar
-              name={profile?.display_name || "You"}
+              name={(profile?.player_id && playerById.get(profile.player_id)?.name) || "You"}
               teamSlug={profile?.player_id ? authorTeam(user?.id ?? "") : undefined}
               src={authorAvatar(user?.id, profile?.player_id)}
               size="sm"
             />
             <div className="min-w-0 flex-1">
               <label className="sr-only" htmlFor="clubhouse-post">
-                Post to the field
+                Talk
               </label>
               <textarea
                 id="clubhouse-post"
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
                 disabled={!canParticipate}
-                maxLength={500}
+                maxLength={TALK_MAX}
                 rows={2}
-                placeholder={
-                  canParticipate
-                    ? "What’s going on…"
-                    : user
-                      ? "Claim your name to post"
-                      : "Sign in to post"
-                }
+                placeholder="Talk your shit"
                 className="control w-full resize-none border-0 bg-transparent px-0 text-base shadow-none focus:ring-0"
               />
               <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -361,8 +312,7 @@ export function SocialClubhouseFeed({
                     onFile={(file) => void uploadPhoto(file)}
                     disabled={uploading}
                     size="compact"
-                    cameraLabel="Camera"
-                    libraryLabel="Library"
+                    single
                     className="min-w-0"
                   />
                 ) : null}
@@ -447,279 +397,264 @@ export function SocialClubhouseFeed({
         </details>
       )}
 
-      {canModerate && (!emptyFeed || filter !== "all") && (
+      {hasResults && (
         <div
           className="no-scrollbar flex gap-2 overflow-x-auto pb-1"
           role="tablist"
-          aria-label="Feed filter"
+          aria-label="Board filter"
         >
-          {(
-            [
-              "all",
-              ...(story.clubhouseEnabled ? ["clubhouse" as const] : []),
-              "scores",
-              "photos",
-            ] as FeedFilter[]
-          ).map((value) => (
+          {(["all", "scores"] as FeedFilter[]).map((value) => (
             <button
               key={value}
               type="button"
               role="tab"
-              aria-selected={filter === value}
+              aria-selected={filter === value || (value === "all" && filter !== "scores")}
               onClick={() => onFilter(value)}
-              className={`press chip min-h-11 shrink-0 ${filter === value ? "chip-on" : ""}`}
+              className={`press chip min-h-11 shrink-0 ${
+                (value === "scores" ? filter === "scores" : filter !== "scores") ? "chip-on" : ""
+              }`}
             >
-              {value === "scores"
-                ? "Results"
-                : value === "clubhouse"
-                  ? "Field"
-                  : value === "photos"
-                    ? "Photos"
-                    : "All"}
+              {value === "scores" ? "Results" : "Board"}
             </button>
           ))}
         </div>
       )}
 
       <div className={compact ? "space-y-2" : "space-y-3"}>
-        {showClubhouse && story.clubhouseEnabled && (
-          <ClubhouseEngagement
-            userId={user?.id}
-            playerId={profile?.player_id}
-            players={players}
-            canModerate={canModerate}
-          />
-        )}
         <div className="surface divide-y divide-border overflow-hidden empty:hidden">
           {showClubhouse &&
-            story.clubhousePosts.map((post) => {
-              const reactionKey = `clubhouse-post:${post.id}`;
-              const reactions = story.reactions.filter((row) => row.moment_key === reactionKey);
-              const reported = story.reports.some(
-                (row) => row.comment_id === post.id && row.reporter_id === user?.id,
-              );
-              return (
-                <article
-                  key={post.id}
-                  id={`post-${post.id}`}
-                  className={`px-4 py-3.5 ${post.pinned_at ? "announcement-card" : ""}`}
-                >
-                  <header className="flex items-start gap-3">
-                    <Avatar
-                      name={authorName(post.author_id)}
-                      teamSlug={authorTeam(post.author_id)}
-                      src={authorAvatar(post.author_id)}
-                      size="md"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <h3 className="text-base font-semibold text-foreground">
-                          {authorName(post.author_id)}
-                        </h3>
-                        {profileById.get(post.author_id)?.flair && (
-                          <span className="player-flair">
-                            {profileById
-                              .get(post.author_id)
-                              ?.flair?.replace("vibes", "vibes captain")}
-                          </span>
-                        )}
-                        {post.pinned_at && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-hunter/15 px-2 py-0.5 text-xs font-semibold text-hunter">
-                            <Pin className="size-3" /> Pinned
-                          </span>
-                        )}
-                      </div>
-                      <p className="t-micro">{formatActivityTime(post.created_at)}</p>
-                      {profileById.get(post.author_id)?.status_text && (
-                        <p className="t-micro mt-0.5 text-foreground/70">
-                          {profileById.get(post.author_id)?.status_text}
-                        </p>
-                      )}
-                    </div>
-                    {(post.author_id === user?.id || canModerate || canParticipate) && (
-                      <details className="relative">
-                        <summary className="press flex size-11 cursor-pointer list-none items-center justify-center rounded-full text-muted-foreground [&::-webkit-details-marker]:hidden">
-                          <MoreHorizontal className="size-5" />
-                          <span className="sr-only">Post actions</span>
-                        </summary>
-                        <div className="absolute right-0 top-11 z-10 min-w-36 rounded-xl border border-border bg-popover p-1 shadow-xl">
-                          {canModerate && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                story.pinPost.mutate({ id: post.id, pinned: !post.pinned_at })
-                              }
-                              className="press min-h-11 w-full rounded-lg px-3 text-left text-sm"
-                            >
-                              {post.pinned_at ? "Unpin" : "Pin announcement"}
-                            </button>
+            story.clubhousePosts
+              .filter((post) => !isJunkBody(post.body))
+              .map((post) => {
+                const reactionKey = `clubhouse-post:${post.id}`;
+                const reactions = story.reactions.filter((row) => row.moment_key === reactionKey);
+                const reported = story.reports.some(
+                  (row) => row.comment_id === post.id && row.reporter_id === user?.id,
+                );
+                return (
+                  <article
+                    key={post.id}
+                    id={`post-${post.id}`}
+                    className={`px-4 py-3.5 ${post.pinned_at ? "announcement-card" : ""}`}
+                  >
+                    <header className="flex items-start gap-3">
+                      <Avatar
+                        name={authorName(post.author_id)}
+                        teamSlug={authorTeam(post.author_id)}
+                        src={authorAvatar(post.author_id)}
+                        size="md"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <h3 className="text-base font-semibold text-foreground">
+                            {authorName(post.author_id)}
+                          </h3>
+                          {profileById.get(post.author_id)?.flair && (
+                            <span className="player-flair">
+                              {profileById
+                                .get(post.author_id)
+                                ?.flair?.replace("vibes", "vibes captain")}
+                            </span>
                           )}
-                          {post.author_id === user?.id && (
-                            <button
-                              type="button"
-                              onClick={() => setEditing({ id: post.id, body: post.body })}
-                              className="press min-h-11 w-full rounded-lg px-3 text-left text-sm"
-                            >
-                              Edit post
-                            </button>
-                          )}
-                          {post.author_id === user?.id || canModerate ? (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                story.removeComment.mutate({
-                                  id: post.id,
-                                  moderate: post.author_id !== user?.id,
-                                })
-                              }
-                              className="press min-h-11 w-full rounded-lg px-3 text-left text-sm text-copper"
-                            >
-                              {post.author_id === user?.id ? "Delete" : "Hide post"}
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              disabled={reported}
-                              onClick={() => story.reportPost.mutate({ commentId: post.id })}
-                              className="press min-h-11 w-full rounded-lg px-3 text-left text-sm text-copper"
-                            >
-                              {reported ? "Reported" : "Report"}
-                            </button>
+                          {post.pinned_at && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-hunter/15 px-2 py-0.5 text-xs font-semibold text-hunter">
+                              <Pin className="size-3" /> Pinned
+                            </span>
                           )}
                         </div>
-                      </details>
-                    )}
-                  </header>
-                  {editing?.id === post.id ? (
-                    <form
-                      className="mt-3 space-y-2"
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        story.editComment.mutate(
-                          { id: post.id, body: editing.body },
-                          {
-                            onSuccess: () => {
-                              setEditing(null);
-                              toast.success("Post updated");
+                        <p className="t-micro">{formatActivityTime(post.created_at)}</p>
+                        {profileById.get(post.author_id)?.status_text && (
+                          <p className="t-micro mt-0.5 text-foreground/70">
+                            {profileById.get(post.author_id)?.status_text}
+                          </p>
+                        )}
+                      </div>
+                      {(post.author_id === user?.id || canModerate || canParticipate) && (
+                        <details className="relative">
+                          <summary className="press flex size-11 cursor-pointer list-none items-center justify-center rounded-full text-muted-foreground [&::-webkit-details-marker]:hidden">
+                            <MoreHorizontal className="size-5" />
+                            <span className="sr-only">Post actions</span>
+                          </summary>
+                          <div className="absolute right-0 top-11 z-10 min-w-36 rounded-xl border border-border bg-popover p-1 shadow-xl">
+                            {canModerate && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  story.pinPost.mutate({ id: post.id, pinned: !post.pinned_at })
+                                }
+                                className="press min-h-11 w-full rounded-lg px-3 text-left text-sm"
+                              >
+                                {post.pinned_at ? "Unpin" : "Pin announcement"}
+                              </button>
+                            )}
+                            {post.author_id === user?.id && (
+                              <button
+                                type="button"
+                                onClick={() => setEditing({ id: post.id, body: post.body })}
+                                className="press min-h-11 w-full rounded-lg px-3 text-left text-sm"
+                              >
+                                Edit post
+                              </button>
+                            )}
+                            {post.author_id === user?.id || canModerate ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  story.removeComment.mutate({
+                                    id: post.id,
+                                    moderate: post.author_id !== user?.id,
+                                  })
+                                }
+                                className="press min-h-11 w-full rounded-lg px-3 text-left text-sm text-copper"
+                              >
+                                {post.author_id === user?.id ? "Delete" : "Hide post"}
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={reported}
+                                onClick={() => story.reportPost.mutate({ commentId: post.id })}
+                                className="press min-h-11 w-full rounded-lg px-3 text-left text-sm text-copper"
+                              >
+                                {reported ? "Reported" : "Report"}
+                              </button>
+                            )}
+                          </div>
+                        </details>
+                      )}
+                    </header>
+                    {editing?.id === post.id ? (
+                      <form
+                        className="mt-3 space-y-2"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          story.editComment.mutate(
+                            { id: post.id, body: editing.body },
+                            {
+                              onSuccess: () => {
+                                setEditing(null);
+                                toast.success("Post updated");
+                              },
+                              onError: (error) => toast.error(error.message),
                             },
+                          );
+                        }}
+                      >
+                        <textarea
+                          autoFocus
+                          aria-label="Edit post"
+                          value={editing.body}
+                          onChange={(event) =>
+                            setEditing({ id: post.id, body: event.target.value })
+                          }
+                          maxLength={500}
+                          rows={3}
+                          className="control w-full resize-none text-base"
+                        />
+                        <div className="flex gap-3">
+                          <button
+                            type="submit"
+                            disabled={!editing.body.trim() || story.editComment.isPending}
+                            className="press t-micro min-h-11 px-1 font-semibold text-hunter"
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditing(null)}
+                            className="press t-micro min-h-11 px-1"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <p className="mt-3 whitespace-pre-wrap text-[0.98rem] leading-7 text-foreground/95">
+                        {maskGuestProfanity(post.body, signedIn)}
+                      </p>
+                    )}
+                    {post.updated_at !== post.created_at && <p className="t-micro mt-1">Edited</p>}
+                    {post.pinned_at && post.announcement_expires_at && (
+                      <p className="t-micro mt-2 flex items-center gap-1">
+                        <Clock3 className="size-3.5" /> Announcement expires{" "}
+                        {new Date(post.announcement_expires_at).toLocaleString([], {
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    )}
+                    <ReactionBar
+                      momentKey={reactionKey}
+                      reactions={reactions}
+                      userId={user?.id}
+                      onToggle={(kind) => react(reactionKey, kind)}
+                    />
+                    <CommentThread
+                      momentKey={fieldReplyKey(post.id)}
+                      label={`post by ${authorName(post.author_id)}`}
+                      comments={story.comments.filter(
+                        (row) => row.moment_key === fieldReplyKey(post.id),
+                      )}
+                      open={Boolean(openComments[fieldReplyKey(post.id)])}
+                      onToggle={() =>
+                        setOpenComments((current) => ({
+                          ...current,
+                          [fieldReplyKey(post.id)]: !current[fieldReplyKey(post.id)],
+                        }))
+                      }
+                      canParticipate={canParticipate}
+                      canModerate={canModerate}
+                      userId={user?.id}
+                      authorName={authorName}
+                      editing={editing}
+                      setEditing={setEditing}
+                      draft={commentDrafts[fieldReplyKey(post.id)] ?? ""}
+                      setDraft={(body) =>
+                        setCommentDrafts((current) => ({
+                          ...current,
+                          [fieldReplyKey(post.id)]: body,
+                        }))
+                      }
+                      onPost={(body) =>
+                        story.addComment.mutate(
+                          { momentKey: fieldReplyKey(post.id), body },
+                          {
+                            onSuccess: () =>
+                              setCommentDrafts((current) => ({
+                                ...current,
+                                [fieldReplyKey(post.id)]: "",
+                              })),
                             onError: (error) => toast.error(error.message),
                           },
-                        );
-                      }}
-                    >
-                      <textarea
-                        autoFocus
-                        aria-label="Edit post"
-                        value={editing.body}
-                        onChange={(event) => setEditing({ id: post.id, body: event.target.value })}
-                        maxLength={500}
-                        rows={3}
-                        className="control w-full resize-none text-base"
-                      />
-                      <div className="flex gap-3">
-                        <button
-                          type="submit"
-                          disabled={!editing.body.trim() || story.editComment.isPending}
-                          className="press t-micro min-h-11 px-1 font-semibold text-hunter"
-                        >
-                          Save
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditing(null)}
-                          className="press t-micro min-h-11 px-1"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
-                    <p className="mt-3 whitespace-pre-wrap text-[0.98rem] leading-7 text-foreground/95">
-                      {post.body}
-                    </p>
-                  )}
-                  {post.updated_at !== post.created_at && <p className="t-micro mt-1">Edited</p>}
-                  {post.pinned_at && post.announcement_expires_at && (
-                    <p className="t-micro mt-2 flex items-center gap-1">
-                      <Clock3 className="size-3.5" /> Announcement expires{" "}
-                      {new Date(post.announcement_expires_at).toLocaleString([], {
-                        month: "short",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  )}
-                  <ReactionBar
-                    momentKey={reactionKey}
-                    reactions={reactions}
-                    userId={user?.id}
-                    onToggle={(kind) => react(reactionKey, kind)}
-                  />
-                  <CommentThread
-                    momentKey={fieldReplyKey(post.id)}
-                    label={`post by ${authorName(post.author_id)}`}
-                    comments={story.comments.filter(
-                      (row) => row.moment_key === fieldReplyKey(post.id),
-                    )}
-                    open={Boolean(openComments[fieldReplyKey(post.id)])}
-                    onToggle={() =>
-                      setOpenComments((current) => ({
-                        ...current,
-                        [fieldReplyKey(post.id)]: !current[fieldReplyKey(post.id)],
-                      }))
-                    }
-                    canParticipate={canParticipate}
-                    canModerate={canModerate}
-                    userId={user?.id}
-                    authorName={authorName}
-                    editing={editing}
-                    setEditing={setEditing}
-                    draft={commentDrafts[fieldReplyKey(post.id)] ?? ""}
-                    setDraft={(body) =>
-                      setCommentDrafts((current) => ({
-                        ...current,
-                        [fieldReplyKey(post.id)]: body,
-                      }))
-                    }
-                    onPost={(body) =>
-                      story.addComment.mutate(
-                        { momentKey: fieldReplyKey(post.id), body },
-                        {
-                          onSuccess: () =>
-                            setCommentDrafts((current) => ({
-                              ...current,
-                              [fieldReplyKey(post.id)]: "",
-                            })),
-                          onError: (error) => toast.error(error.message),
-                        },
-                      )
-                    }
-                    onEdit={(id, body) =>
-                      story.editComment.mutate(
-                        { id, body },
-                        {
-                          onSuccess: () => setEditing(null),
-                          onError: (error) => toast.error(error.message),
-                        },
-                      )
-                    }
-                    onRemove={(id, moderate) =>
-                      story.removeComment.mutate(
-                        { id, moderate },
-                        { onError: (error) => toast.error(error.message) },
-                      )
-                    }
-                    onReport={(commentId) =>
-                      story.reportPost.mutate(
-                        { commentId },
-                        { onError: (error) => toast.error(error.message) },
-                      )
-                    }
-                  />
-                </article>
-              );
-            })}
+                        )
+                      }
+                      onEdit={(id, body) =>
+                        story.editComment.mutate(
+                          { id, body },
+                          {
+                            onSuccess: () => setEditing(null),
+                            onError: (error) => toast.error(error.message),
+                          },
+                        )
+                      }
+                      onRemove={(id, moderate) =>
+                        story.removeComment.mutate(
+                          { id, moderate },
+                          { onError: (error) => toast.error(error.message) },
+                        )
+                      }
+                      onReport={(commentId) =>
+                        story.reportPost.mutate(
+                          { commentId },
+                          { onError: (error) => toast.error(error.message) },
+                        )
+                      }
+                    />
+                  </article>
+                );
+              })}
 
           {restMoments.map((moment) => {
             const reactions = story.reactions.filter((row) => row.moment_key === moment.key);
@@ -1166,7 +1101,7 @@ function ReactionBar({
 }) {
   return (
     <div className="mt-2 flex gap-1">
-      {REACTIONS.map(({ kind, label, icon: Icon }) => {
+      {LOCKER_REACTIONS.map(({ kind, label, glyph }) => {
         const count = reactions.filter((row) => row.kind === kind).length;
         const mine = reactions.some((row) => row.kind === kind && row.user_id === userId);
         return (
@@ -1180,7 +1115,7 @@ function ReactionBar({
               mine ? "chip-on" : "text-muted-foreground"
             }`}
           >
-            <Icon className="size-3.5" /> {count || ""}
+            {glyph} {count || ""}
           </button>
         );
       })}

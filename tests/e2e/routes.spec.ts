@@ -43,21 +43,19 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByText("Today at Tin Cup")).toHaveCount(0);
   expect((await logoRequest).ok()).toBe(true);
   await expect(page.getByRole("button", { name: "Captain score input" })).toHaveCount(0);
-  await expect(page.getByText("Days", { exact: true })).toBeVisible();
-  await expect(page.getByText("Hours", { exact: true })).toBeVisible();
-  await expect(page.getByText("Minutes", { exact: true })).toBeVisible();
+  await expect(page.getByText("Days", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Secs", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Share weekend" })).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Field" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Board" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Field" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Updates" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Faceoff" })).toBeVisible();
-  await expect(page.getByText("Ride the other groups. Yours is already set.")).toBeVisible();
+  await expect(page.getByText("Ride the other groups. Yours is already set.")).toHaveCount(0);
   await expect(page.getByText("Side A", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Take", exact: true })).toHaveCount(0);
   await expect(page.getByRole("link", { name: /Sign in to pick a side/ })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Add your face" })).toHaveCount(0);
-  await expect(page.getByText("Add to Home Screen", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Got it" })).toBeVisible();
+  await expect(page.getByText("Add to Home Screen", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Sign in to post" })).toBeVisible();
   await expect(page.getByText("August 28–30, 2026", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Skip intro")).toHaveCount(0);
@@ -71,7 +69,7 @@ test("weekend is not covered by a first-run welcome sheet", async ({ page }) => 
     localStorage.removeItem("tc-seat-v1");
   });
   await page.goto("/schedule");
-  await expect(page.getByRole("heading", { name: /Scramble \+ Modified Alt Shot/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /South · 12:19 PM/i })).toBeVisible();
   await expect(page.getByText("Just looking")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "I'm in the field" })).toHaveCount(0);
 });
@@ -92,7 +90,7 @@ test("social-first Home preserves feed filters, deep links, and board compatibil
 
 test("weekend, scout and purse retain confirmed source-of-truth details", async ({ page }) => {
   await page.goto("/schedule");
-  await expect(page.getByRole("heading", { name: /Scramble \+ Modified Alt Shot/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /South · 12:19 PM/i })).toBeVisible();
   await expect(page.getByText("Just looking")).toHaveCount(0);
   await expect(page.getByText("Welcome to the weekend")).toHaveCount(0);
   await expect(page.getByText("Zack · Chris")).toBeVisible();
@@ -102,24 +100,24 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(page.getByRole("tab", { name: "Saturday" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Sunday" })).toBeVisible();
   await page.getByRole("tab", { name: "Saturday" }).click();
-  await expect(page.getByRole("heading", { name: /Modified Stableford Match/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Copperhead · 9:54/i })).toBeVisible();
   await expect(page.getByText("Pairings when captains post")).toBeVisible();
-  await expect(page.getByText("Pool & Salamander Grille")).toBeVisible();
-  await expect(page.getByRole("button", { name: "How formats work" })).toBeVisible();
+  await expect(page.getByText("Pool & Salamander Grille")).toHaveCount(0);
+  await expect(page.getByText(/scramble partner/i)).toHaveCount(0);
   await expect(page.getByText("Loading…")).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
 
   await page.goto("/rosters");
   await expect(page.getByRole("tab", { name: "Strong Mental" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Grass Roots" })).toBeVisible();
-  await expect(page.getByText("Zack Smith", { exact: true })).toBeVisible();
-  await expect(page.getByText("Kevin Maher", { exact: true })).toBeVisible();
+  await expect(page.getByText("Zack", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Kevin", { exact: true }).first()).toBeVisible();
   await page.getByRole("tab", { name: "Grass Roots" }).click();
   await expect(page.getByRole("tab", { name: "Grass Roots" })).toHaveAttribute(
     "aria-selected",
     "true",
   );
-  await expect(page.getByText("Charles Grass", { exact: true })).toBeVisible();
+  await expect(page.getByText("Charles", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Team Strong Mental" })).toHaveCount(0);
   await expect(page.getByText("Loading…")).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
@@ -129,8 +127,8 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(page.getByText("Scramble first nine mindset")).toBeVisible();
   await expect(page.getByRole("link", { name: "Open hole 1 map" })).toBeVisible();
   await expect(page.getByText("335 yds").first()).toBeVisible();
-  await expect(page.getByText("Scramble", { exact: true })).toBeVisible();
-  await expect(page.getByText("Alt shot", { exact: true })).toBeVisible();
+  await expect(page.getByText("Out", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("In", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("CTP", { exact: true })).toHaveCount(2);
   await expect(page.getByText("LD", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: /Target/i })).toHaveCount(0);
@@ -145,14 +143,13 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(payment).toHaveAttribute("href", /https:\/\/venmo\.com\/Kmaher.*amount=150/);
   await expect(page.getByText("$800").first()).toBeVisible();
   await expect(page.getByText("Team match stake")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Weekend formats" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Weekend formats" })).toHaveCount(0);
   await expect(page.getByText("Loading…")).toHaveCount(0, { timeout: 15_000 });
-  // Kevin admin: Day 1 CTP 3/18 and LD 13; remaining days stay TBD.
   await expect(page.getByText("$100", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Open · Hole 3")).toBeVisible();
   await expect(page.getByText("Open · Hole 18")).toBeVisible();
   await expect(page.getByText("Open · Hole 13")).toBeVisible();
-  await page.getByText("Saturday and Sunday holes Friday night").click();
+  await expect(page.getByText("Named Friday night").first()).toBeVisible();
   await expect(page.getByText("$100").nth(1)).toBeVisible();
   await expect(page.locator("main")).not.toContainText("$93");
   await expect(page.locator("main")).not.toContainText("$120");

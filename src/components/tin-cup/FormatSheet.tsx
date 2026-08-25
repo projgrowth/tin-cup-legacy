@@ -54,7 +54,7 @@ export function FormatSheet({ triggerClassName = "" }: { triggerClassName?: stri
             <>
               <WeekendDayStories />
               <p className="t-micro text-muted-foreground">
-                Halves are 0.5. Tie: captains each pick a scramble partner, one hole until decided.
+                Halves are 0.5. Tie: captains each pick a singles player, one hole until decided.
               </p>
             </>
           )}

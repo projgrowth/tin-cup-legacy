@@ -6,6 +6,7 @@ import {
   isMissingColumnError,
   readClaimedPlayerId,
   resolveIdentity,
+  rosterName,
   writeClaimedPlayerId,
 } from "./profile-identity";
 
@@ -13,9 +14,9 @@ describe("isMissingColumnError", () => {
   it("detects PostgREST and Postgres missing-column failures", () => {
     expect(isMissingColumnError({ code: "PGRST204", message: "schema cache" })).toBe(true);
     expect(isMissingColumnError({ code: "42703", message: "column does not exist" })).toBe(true);
-    expect(
-      isMissingColumnError({ message: "column profiles.status_text does not exist" }),
-    ).toBe(true);
+    expect(isMissingColumnError({ message: "column profiles.status_text does not exist" })).toBe(
+      true,
+    );
     expect(isMissingColumnError({ code: "42501", message: "permission denied" })).toBe(false);
   });
 });
@@ -50,6 +51,25 @@ describe("claim cache", () => {
     writeClaimedPlayerId("u1", null);
     expect(readClaimedPlayerId("u1")).toBeNull();
     expect(store.get(CLAIM_CACHE_KEY)).toBeUndefined();
+  });
+});
+
+describe("rosterName", () => {
+  it("uses players.name and never a handle", () => {
+    expect(
+      rosterName({
+        userId: "u1",
+        players: [{ id: "p1", name: "Nick Sears" }],
+        profiles: [{ id: "u1", player_id: "p1" }],
+      }),
+    ).toBe("Nick");
+    expect(
+      rosterName({
+        userId: "u2",
+        players: [{ id: "p1", name: "Nick Sears" }],
+        profiles: [{ id: "u2", player_id: null }],
+      }),
+    ).toBe("Player");
   });
 });
 

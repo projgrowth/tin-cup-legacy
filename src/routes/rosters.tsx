@@ -2,15 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { Avatar } from "@/components/tin-cup/Avatar";
-import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
-import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import { graphqlRequest } from "@/integrations/supabase/graphql";
 import { useTournament } from "@/hooks/useTournament";
-import { tallyStandings } from "@/lib/scoring";
-import { FIELD_SIDES } from "@/lib/day1-pairings";
+import { FIELD_SIDES, fridayPartnerName } from "@/lib/day1-pairings";
 
 type RosterSearch = { side?: "strong-mental" | "grass-roots" };
 
@@ -43,11 +40,9 @@ function RostersPage() {
   const search = Route.useSearch();
   const { data, isError, refetch, isFetching } = useTournament();
   const { user } = useAuth();
-  const standings = tallyStandings(data?.matches ?? []);
   const teams = data?.teams ?? [];
   const players = data?.players ?? [];
   const avatars = usePlayerAvatars(players, teams);
-  const publicProfiles = usePublicProfiles();
 
   const { data: myPlayerId } = useQuery({
     queryKey: ["my-player", user?.id],
@@ -71,6 +66,7 @@ function RostersPage() {
     () => (myPlayer ? teams.find((t) => t.id === myPlayer.team_id) : null),
     [myPlayer, teams],
   );
+  const myPartner = myPlayer ? fridayPartnerName(myPlayer.name) : null;
 
   const playersByName = useMemo(() => {
     const map = new Map<string, (typeof players)[number]>();
@@ -82,18 +78,9 @@ function RostersPage() {
   return (
     <Shell variant="content">
       <div className="stack-page">
-        <PageMasthead
-          title="Teams"
-          meta={
-            standings.played > 0
-              ? `${standings.strongMental}–${standings.grassRoots} · 13.5 to win`
-              : `8 v 8 · 13.5 to win`
-          }
-        />
-
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
-        <div className="grid grid-cols-2 gap-2" role="tablist" aria-label="Side">
+        <div className="grid grid-cols-2 gap-2 md:hidden" role="tablist" aria-label="Side">
           {FIELD_SIDES.map((side) => {
             const on = side.slug === pickedSide;
             return (
@@ -112,23 +99,28 @@ function RostersPage() {
           })}
         </div>
 
-        <div className="stack-tight">
-          {FIELD_SIDES.filter((side) => side.slug === pickedSide).map((side) => {
-            const liveTeam = teams.find((team) => team.slug === side.slug);
+        <div className="grid gap-6 md:grid-cols-2">
+          {FIELD_SIDES.map((side) => {
+            const hiddenOnMobile = side.slug !== pickedSide;
+            const rail = side.slug === "strong-mental" ? "border-hunter" : "border-stone";
             return (
-              <section key={side.slug} className="surface overflow-hidden">
-                <p className="t-micro px-4 pb-1 pt-3">
-                  Capt. {liveTeam?.captain_name ?? side.captain}
+              <section
+                key={side.slug}
+                className={`surface overflow-hidden border-t-2 ${rail} ${hiddenOnMobile ? "hidden md:block" : ""}`}
+              >
+                <p
+                  className={`t-micro px-4 pb-1 pt-3 ${side.slug === "strong-mental" ? "text-hunter" : "text-stone"}`}
+                >
+                  {side.name.replace("Team ", "")}
                   {myTeam?.slug === side.slug ? " · Your side" : ""}
                 </p>
                 <ul className="divide-y divide-border">
                   {side.players.map((name) => {
                     const player = playersByName.get(name.trim().toLowerCase());
                     const isYou = Boolean(player && myPlayerId === player.id);
+                    const isPartner = Boolean(myPartner && name.split(/\s+/)[0] === myPartner);
                     const isCaptain = name === side.captain || Boolean(player?.is_captain);
-                    const social = player
-                      ? publicProfiles.data?.find((candidate) => candidate.player_id === player.id)
-                      : undefined;
+                    const friday = fridayPartnerName(name);
                     const body = (
                       <span className="flex min-w-0 flex-1 items-center gap-3">
                         <Avatar
@@ -139,37 +131,37 @@ function RostersPage() {
                         />
                         <span className="min-w-0 flex-1">
                           <span className="t-body flex items-center gap-2 truncate font-medium text-foreground">
-                            <span className="truncate">{name}</span>
+                            <span className="truncate">{name.split(" ")[0]}</span>
                             {isCaptain ? (
                               <span className="t-micro text-muted-foreground">C</span>
                             ) : null}
                             {isYou ? (
-                              <span className="t-micro shrink-0 text-muted-foreground">You</span>
+                              <span className="t-micro shrink-0 text-hunter">You</span>
+                            ) : isPartner ? (
+                              <span className="t-micro shrink-0">Friday</span>
                             ) : null}
                           </span>
-                          {social?.status_text ? (
-                            <span className="t-micro mt-0.5 block truncate">{social.status_text}</span>
+                          {friday ? (
+                            <span className="t-micro mt-0.5 block truncate">w/ {friday}</span>
                           ) : null}
                         </span>
                       </span>
                     );
                     return (
-                      <li key={name} className={isYou ? "bg-secondary/40" : ""}>
-                        <div className="flex items-center pr-1">
-                          {player ? (
-                            <Link
-                              to="/player/$playerId"
-                              params={{ playerId: player.id }}
-                              className="press flex min-h-14 min-w-0 flex-1 items-center gap-3 px-4 py-3.5"
-                            >
-                              {body}
-                            </Link>
-                          ) : (
-                            <div className="flex min-h-14 min-w-0 flex-1 items-center px-4 py-3.5">
-                              {body}
-                            </div>
-                          )}
-                        </div>
+                      <li key={name} className={isYou || isPartner ? "bg-secondary/40" : ""}>
+                        {player ? (
+                          <Link
+                            to="/player/$playerId"
+                            params={{ playerId: player.id }}
+                            className="press flex min-h-14 min-w-0 items-center gap-3 px-4 py-3.5"
+                          >
+                            {body}
+                          </Link>
+                        ) : (
+                          <div className="flex min-h-14 min-w-0 items-center px-4 py-3.5">
+                            {body}
+                          </div>
+                        )}
                       </li>
                     );
                   })}

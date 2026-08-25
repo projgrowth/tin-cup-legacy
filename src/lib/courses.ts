@@ -31,7 +31,9 @@ export const ROUND_COURSE: Record<string, CourseId> = {
 };
 
 /** Map a live round row to South / Copperhead / Island. */
-export function courseIdFromRound(round: { slug?: string; course?: string } | null | undefined): CourseId | null {
+export function courseIdFromRound(
+  round: { slug?: string; course?: string } | null | undefined,
+): CourseId | null {
   if (!round) return null;
   if (round.slug && ROUND_COURSE[round.slug]) return ROUND_COURSE[round.slug];
   const c = (round.course ?? "").toLowerCase();
@@ -99,11 +101,12 @@ export const COURSE_DETAILS: Record<
     blackTotal: 6620,
     teeTotals: { black: 6620, green: 6340, white: 5900 },
     format: "Scramble + Modified Alt Shot",
-    formatTip: "Scramble first nine mindset · pick the smart miss, not hero ball. Alt shot: talk every club.",
+    formatTip:
+      "Scramble first nine mindset · pick the smart miss, not hero ball. Alt shot: talk every club.",
     firstTee: "12:19 PM",
     roundSlug: "friday",
-    frontNine: "Scramble",
-    backNine: "Alt shot",
+    frontNine: "Out",
+    backNine: "In",
     points: 8,
   },
   copperhead: {
@@ -116,8 +119,9 @@ export const COURSE_DETAILS: Record<
     blackTotal: 7209,
     teeTotals: { black: 7209 },
     format: "Modified Stableford Match",
-    formatTip: "Stableford rewards aggression on birdie holes — protect the big numbers on Snake Pit.",
-    firstTee: "9:54 AM",
+    formatTip:
+      "Stableford rewards aggression on birdie holes — protect the big numbers on Snake Pit.",
+    firstTee: "9:54–10:20 AM",
     roundSlug: "saturday",
     frontNine: "Out",
     backNine: "In",
@@ -133,8 +137,9 @@ export const COURSE_DETAILS: Record<
     blackTotal: 7194,
     teeTotals: { black: 7194 },
     format: "Shamble + Singles",
-    formatTip: "Shamble: get one in play. Singles: play your game — points are on the board all day.",
-    firstTee: "9:54 AM",
+    formatTip:
+      "Shamble: get one in play. Singles: play your game — points are on the board all day.",
+    firstTee: "9:54–10:20 AM",
     roundSlug: "sunday",
     frontNine: "Out",
     backNine: "In",

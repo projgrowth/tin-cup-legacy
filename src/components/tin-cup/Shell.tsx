@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { AlertTriangle, CloudOff } from "lucide-react";
 
-import { BottomNav } from "./BottomNav";
+import { BottomNav, NAV_ITEMS } from "./BottomNav";
 import { BrandMark } from "./BrandMark";
 import { PageMasthead } from "./PageMasthead";
 import { Avatar } from "./Avatar";
@@ -87,7 +87,7 @@ export function Shell({
       className={`min-h-screen ${
         immersive
           ? "pb-[calc(var(--nav-height)+var(--space-4)+env(safe-area-inset-bottom))] md:pb-10"
-          : "pb-[calc(var(--nav-height)+var(--space-6)+env(safe-area-inset-bottom))] lg:pb-24"
+          : "pb-[calc(var(--nav-height)+var(--space-8)+env(safe-area-inset-bottom))] md:pb-12"
       }`}
     >
       <a
@@ -101,7 +101,7 @@ export function Shell({
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
         <div
-          className={`mx-auto grid w-full ${width} min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 sm:px-5`}
+          className={`mx-auto grid w-full ${width} min-h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 sm:px-5`}
         >
           <Link to="/" className="flex min-w-0 items-center gap-3">
             <BrandMark />
@@ -129,6 +129,18 @@ export function Shell({
               </span>
             )}
           </Link>
+          <nav className="hidden min-w-0 justify-center gap-1 md:flex" aria-label="Weekend">
+            {NAV_ITEMS.map(({ to, label, exact }) => (
+              <Link
+                key={to}
+                to={to}
+                activeOptions={{ exact }}
+                className="press t-micro rounded-full px-3 py-2 font-semibold text-muted-foreground no-underline data-[status=active]:text-foreground"
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
           <Link
             to="/profile"
             aria-label={
@@ -165,7 +177,7 @@ export function Shell({
             )}
           </Link>
         </div>
-        <div className="h-px w-full bg-border" />
+        <div className="h-px w-full bg-[var(--gold)]/45" />
       </header>
       {preview && (
         <div

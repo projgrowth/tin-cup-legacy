@@ -8,7 +8,7 @@ import { HomeSecondaryModules } from "@/components/tin-cup/HomeDashboard";
 import { ScoreModal } from "@/components/tin-cup/ScoreModal";
 import { Shell, SkeletonBlock } from "@/components/tin-cup/Shell";
 import { DisplayBoard } from "@/components/tin-cup/live/DisplayBoard";
-import { HomeWeekendDoors, LivePanel, PreTournamentPanel } from "@/components/tin-cup/panels";
+import { LivePanel, PreTournamentPanel } from "@/components/tin-cup/panels";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
@@ -321,6 +321,7 @@ function Index() {
                   claimedName={claimedPlayer?.name ?? null}
                   needsClaim={needsClaim}
                   context={weekendContext}
+                  canModerate={canScore || isAdmin}
                 />
               </div>
             )}
@@ -372,14 +373,6 @@ function Index() {
                   compact={experience.preferences.compactFeed}
                 />
               </div>
-              {mode === "pre" ? (
-                <HomeWeekendDoors
-                  signedIn={Boolean(user)}
-                  claimedName={claimedPlayer?.name ?? null}
-                  players={data?.players ?? []}
-                  teams={data?.teams ?? []}
-                />
-              ) : null}
               {mode !== "pre" && (
                 <aside className="home-secondary min-w-0 space-y-5 lg:sticky lg:top-28 lg:self-start">
                   {mode === "live" && isError && !data && (

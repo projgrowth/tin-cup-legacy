@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { CalendarDays, House, Map, Users, Wallet } from "lucide-react";
 
-const items = [
+export const NAV_ITEMS = [
   { to: "/", label: "Home", icon: House, exact: true },
   { to: "/schedule", label: "Weekend", icon: CalendarDays, exact: false },
   { to: "/scout", label: "Plan", icon: Map, exact: false },
@@ -11,9 +11,9 @@ const items = [
 
 export function BottomNav({ live = false }: { live?: boolean }) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] md:hidden">
       <div className="mx-auto flex w-full max-w-4xl items-stretch px-4 sm:px-5">
-        {items.map(({ to, label, icon: Icon, exact }) => (
+        {NAV_ITEMS.map(({ to, label, icon: Icon, exact }) => (
           <Link
             key={to}
             to={to}

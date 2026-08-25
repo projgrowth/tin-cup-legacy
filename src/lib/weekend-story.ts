@@ -3,7 +3,12 @@ import type { Match, SideBet, Trophy } from "@/hooks/useTournament";
 
 export type StoryMomentKind =
   "photo" | "roster" | "match" | "prediction" | "side-bet" | "trophy" | "lead-change";
-export type ReactionKind = "applause" | "fire" | "trophy";
+export type ReactionKind = "applause" | "fire" | "trophy" | "egg" | "flag";
+export const LOCKER_REACTIONS: Array<{ kind: ReactionKind; label: string; glyph: string }> = [
+  { kind: "fire", label: "Fire", glyph: "🔥" },
+  { kind: "egg", label: "Egg", glyph: "🥚" },
+  { kind: "flag", label: "Flag", glyph: "⛳" },
+];
 export type StoryMoment = {
   key: string;
   kind: StoryMomentKind;
@@ -94,4 +99,13 @@ export function buildStoryMoments(input: {
 /** Face claims stay off Field — they are not hangout posts. */
 export function isHangoutMoment(moment: Pick<StoryMoment, "kind">) {
   return moment.kind !== "roster";
+}
+
+/** Home board: photos, talk, announcements — never rides or claims. */
+export function isBoardMoment(moment: Pick<StoryMoment, "kind">) {
+  return moment.kind === "photo";
+}
+
+export function isResultsMoment(moment: Pick<StoryMoment, "kind">) {
+  return moment.kind === "match" || moment.kind === "side-bet" || moment.kind === "trophy";
 }
