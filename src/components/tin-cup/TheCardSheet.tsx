@@ -77,53 +77,55 @@ export function TheCardSheet({
         </section>
       ) : null}
       <section aria-labelledby="the-card-title">
-        <div className="flex items-baseline justify-between gap-3 px-1">
-          <h2 id="the-card-title" className="t-eyebrow">
-            Faceoff
-          </h2>
-          {(!user || !claimed) && markets.some((market) => !market.locked) ? (
-            <Link to="/profile" className="press t-micro inline-flex min-h-11 items-center">
-              {user ? "Claim your name" : "Sign in to ride"}
-            </Link>
-          ) : null}
-        </div>
-        <div className="surface mt-1.5 divide-y divide-border overflow-hidden">
-          {markets.map((market) => {
-            const people = peopleForMarket(market, face);
-            const roasts = faceoffRoasts(social.predictions, market.matchIds).map((pick) => ({
-              userId: pick.userId,
-              name: nameOf(pick.userId),
-              note: pick.note!.trim(),
-              matchIds: market.matchIds,
-            }));
-            const reactionCounts: Record<string, number> = {};
-            for (const roast of roasts) {
-              const key = predictionMomentKey(market.matchIds, roast.userId);
-              reactionCounts[roast.userId] = story.reactions.filter(
-                (row) => row.moment_key === key,
-              ).length;
-            }
-            return (
-              <TheCardTicket
-                key={market.id}
-                market={market}
-                matches={matches}
-                userId={user?.id}
-                claimed={claimed}
-                social={social}
-                peopleA={people.peopleA}
-                peopleB={people.peopleB}
-                roasts={roasts}
-                yours={false}
-                signedIn={Boolean(user)}
-                reactionCounts={reactionCounts}
-                onReact={claimed ? react : undefined}
-              />
-            );
-          })}
+        <div className="surface overflow-hidden">
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+            <h2 id="the-card-title" className="t-eyebrow">
+              Faceoff
+            </h2>
+            {(!user || !claimed) && markets.some((market) => !market.locked) ? (
+              <Link to="/profile" className="press t-micro inline-flex min-h-11 items-center">
+                {user ? "Claim your name" : "Sign in to ride"}
+              </Link>
+            ) : null}
+          </div>
+          <div className="divide-y divide-border">
+            {markets.map((market) => {
+              const people = peopleForMarket(market, face);
+              const roasts = faceoffRoasts(social.predictions, market.matchIds).map((pick) => ({
+                userId: pick.userId,
+                name: nameOf(pick.userId),
+                note: pick.note!.trim(),
+                matchIds: market.matchIds,
+              }));
+              const reactionCounts: Record<string, number> = {};
+              for (const roast of roasts) {
+                const key = predictionMomentKey(market.matchIds, roast.userId);
+                reactionCounts[roast.userId] = story.reactions.filter(
+                  (row) => row.moment_key === key,
+                ).length;
+              }
+              return (
+                <TheCardTicket
+                  key={market.id}
+                  market={market}
+                  matches={matches}
+                  userId={user?.id}
+                  claimed={claimed}
+                  social={social}
+                  peopleA={people.peopleA}
+                  peopleB={people.peopleB}
+                  roasts={roasts}
+                  yours={false}
+                  signedIn={Boolean(user)}
+                  reactionCounts={reactionCounts}
+                  onReact={claimed ? react : undefined}
+                />
+              );
+            })}
+          </div>
         </div>
         {records.length > 0 ? (
-          <ul className="mt-2 px-1">
+          <ul className="mt-2">
             {records.map((row) => (
               <li key={row.userId} className="t-micro flex justify-between gap-3 py-1">
                 <span className="text-foreground">{nameOf(row.userId)}</span>

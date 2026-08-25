@@ -268,7 +268,7 @@ export function SocialClubhouseFeed({
 
   return (
     <section aria-labelledby="updates-title" className="stack-tight">
-      <div className="flex items-end justify-between gap-3 px-1">
+      <div className="flex items-end justify-between gap-3">
         <h2 id="updates-title" className="t-eyebrow">
           Board
         </h2>
@@ -959,7 +959,7 @@ export function SocialClubhouseFeed({
       </div>
 
       {emptyFeed && user ? (
-        <p className="t-micro px-1 py-2">
+        <p className="t-micro py-2">
           {story.clubhouseEnabled
             ? "Talk and photos land here."
             : "Field notes land here as people post."}

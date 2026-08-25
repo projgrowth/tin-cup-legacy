@@ -105,7 +105,7 @@ export function TheCardTicket({
 
   if (yours) {
     return (
-      <article className="border-l-2 border-hunter px-3 py-3">
+      <article className="border-l-2 border-hunter px-4 py-3">
         <Link
           to="/scout"
           search={{ course: "south", card: true }}
@@ -134,7 +134,7 @@ export function TheCardTicket({
   }
 
   return (
-    <article className="px-3 py-2">
+    <article className="px-4 py-2.5">
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1">
         <SideRow
           people={peopleA}
@@ -143,7 +143,7 @@ export function TheCardTicket({
           disabled={!canPick || busy}
           onClick={() => pick("side-a")}
         />
-        <p className="t-micro self-center px-0.5 text-muted-foreground">vs</p>
+        <p className="t-micro self-center px-1 text-muted-foreground">vs</p>
         <SideRow
           people={peopleB}
           label={labelB}
@@ -153,10 +153,11 @@ export function TheCardTicket({
         />
       </div>
       {rideA || rideB ? (
-        <p className="t-micro mt-1.5 flex justify-between gap-3">
-          <span>{rideA}</span>
-          <span className="text-right">{rideB}</span>
-        </p>
+        <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-1">
+          <p className="t-micro">{rideA}</p>
+          <span />
+          <p className="t-micro text-right">{rideB}</p>
+        </div>
       ) : null}
       {visible.map((roast) => {
         const key = predictionMomentKey(roast.matchIds ?? market.matchIds, roast.userId);

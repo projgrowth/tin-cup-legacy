@@ -35,7 +35,7 @@ export function PreTournamentPanel({
 
   return (
     <section aria-label="This weekend" className="space-y-8">
-      <header className="px-1">
+      <header>
         <p className="t-eyebrow">
           {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
         </p>
