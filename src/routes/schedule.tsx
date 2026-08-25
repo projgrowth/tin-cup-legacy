@@ -55,15 +55,19 @@ export const Route = createFileRoute("/schedule")({
   component: SchedulePage,
 });
 
-function beforeGolf(dayLabel: string) {
-  if (dayLabel === "Saturday" || dayLabel === "Sunday") return "Breakfast in the clubhouse.";
+function afterGolf(dayLabel: string) {
+  if (dayLabel === "Friday") return "Pool if the weather holds, then Salamander.";
   return null;
 }
 
-function afterGolf(dayLabel: string) {
-  if (dayLabel === "Friday") return "Pool if the weather holds, then Salamander.";
-  if (dayLabel === "Saturday") return "Steakhouse at 7:00 PM.";
-  return "Lunch in the clubhouse.";
+function dayBeat(courseId: CourseId, tee: string) {
+  if (courseId === "copperhead") {
+    return `Breakfast · golf ${tee} · Steakhouse 7:00 PM`;
+  }
+  if (courseId === "island") {
+    return `Breakfast · golf ${tee} · lunch and awards`;
+  }
+  return null;
 }
 
 function SchedulePage() {
@@ -137,21 +141,20 @@ function SchedulePage() {
             <p className="t-body mt-3 text-muted-foreground">{details.formatTip}</p>
           </header>
 
+          {dayBeat(courseId, details.firstTee) ? (
+            <p className="t-body">{dayBeat(courseId, details.firstTee)}</p>
+          ) : null}
+
           {courseId === "south" ? (
             <FridayPairings
               claimedName={claimedPlayer?.name ?? null}
               playerIdByName={playerIdByName}
             />
           ) : (
-            <p className="t-body text-muted-foreground">
-              {[
-                beforeGolf(details.dayLabel),
-                courseId === "copperhead"
-                  ? "Pairings posted Friday night."
-                  : "Pairings posted Saturday night.",
-              ]
-                .filter(Boolean)
-                .join(" ")}
+            <p className="t-micro">
+              {courseId === "copperhead"
+                ? "Pairings posted Friday night."
+                : "Pairings posted Saturday night."}
             </p>
           )}
 
@@ -182,7 +185,9 @@ function SchedulePage() {
             </ul>
           ) : null}
 
-          <p className="t-body font-medium text-foreground">{afterGolf(details.dayLabel)}</p>
+          {afterGolf(details.dayLabel) ? (
+            <p className="t-body font-medium text-foreground">{afterGolf(details.dayLabel)}</p>
+          ) : null}
         </section>
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}

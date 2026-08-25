@@ -116,7 +116,7 @@ export function ClubhousePolls({
               </div>
             ) : null}
             <h2 className="t-title mt-2 text-foreground">{pollDare(poll.question)}</h2>
-            {closed || youVoted || canVote || user ? (
+            {closed || youVoted || canVote || (user && !claimed) ? (
               <p className="t-micro mt-1">
                 {closed
                   ? "Locked after the weekend."
@@ -127,9 +127,9 @@ export function ClubhousePolls({
                       : "Claim your roster name to vote."}
               </p>
             ) : null}
-            {!canVote && !closed ? (
+            {user && !claimed && !closed ? (
               <Link to="/profile" className="press t-micro mt-1 inline-flex min-h-11 items-center">
-                {user ? "Claim your name" : "Sign in to vote"}
+                Claim your name
               </Link>
             ) : null}
           </header>
@@ -176,6 +176,14 @@ export function ClubhousePolls({
                       >
                         {row}
                       </button>
+                    ) : !user && !closed ? (
+                      <Link
+                        to="/profile"
+                        aria-label={`Vote ${firstName(player.name)}`}
+                        className="press flex min-h-12 w-full items-center gap-3 px-4 py-2.5"
+                      >
+                        {row}
+                      </Link>
                     ) : (
                       <div className="flex min-h-12 w-full items-center gap-3 px-4 py-2.5">
                         {row}
@@ -186,7 +194,7 @@ export function ClubhousePolls({
               })}
             </ul>
           ) : null}
-          {rest.length > 0 ? (
+          {rest.length > 0 && canVote ? (
             <div className="flex flex-wrap gap-x-1 gap-y-1">
               {rest.map((player) => {
                 const option =
