@@ -9,7 +9,7 @@ import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { useProfile } from "@/hooks/useJournal";
 import type { Player, Team } from "@/hooks/useTournament";
 import { fridayRosterNames } from "@/lib/day1-pairings";
-import { orderClubhousePolls, pollClosed, pollDare } from "@/lib/social-platform";
+import { orderClubhousePolls, pollClosed, pollDare, pollDareChip } from "@/lib/social-platform";
 
 function firstName(name: string) {
   return name.trim().split(/\s+/)[0] ?? name;
@@ -92,7 +92,27 @@ export function ClubhousePolls({
         <>
           <header className="px-1">
             <p className="t-micro">Most likely</p>
-            <h2 className="t-title mt-0.5 text-foreground">{pollDare(poll.question)}</h2>
+            {polls.length > 1 ? (
+              <div
+                className="no-scrollbar mt-1.5 flex gap-2 overflow-x-auto"
+                role="tablist"
+                aria-label="Dares"
+              >
+                {polls.map((row, i) => (
+                  <button
+                    key={row.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={i === index}
+                    onClick={() => setIndex(i)}
+                    className={`press chip min-h-11 shrink-0 ${i === index ? "chip-on" : ""}`}
+                  >
+                    {pollDareChip(row.question)}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <h2 className="t-title mt-2 text-foreground">{pollDare(poll.question)}</h2>
             <p className="t-micro mt-1">
               {closed
                 ? "Locked after the weekend."
@@ -102,7 +122,7 @@ export function ClubhousePolls({
                     ? "Tap a name. One vote — change it anytime."
                     : user
                       ? "Claim your roster name to vote."
-                      : "The field is already voting."}
+                      : "The field is already on it."}
             </p>
             {!canVote && !closed ? (
               <Link to="/profile" className="press t-micro mt-1 inline-flex min-h-11 items-center">
@@ -110,26 +130,6 @@ export function ClubhousePolls({
               </Link>
             ) : null}
           </header>
-          {polls.length > 1 ? (
-            <div
-              className="no-scrollbar flex gap-2 overflow-x-auto px-1"
-              role="tablist"
-              aria-label="Dares"
-            >
-              {polls.map((row, i) => (
-                <button
-                  key={row.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={i === index}
-                  onClick={() => setIndex(i)}
-                  className={`press chip min-h-11 shrink-0 ${i === index ? "chip-on" : ""}`}
-                >
-                  {pollDare(row.question)}
-                </button>
-              ))}
-            </div>
-          ) : null}
           {top.length > 0 ? (
             <p className="t-micro px-1">
               Field:{" "}

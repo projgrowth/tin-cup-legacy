@@ -152,6 +152,20 @@ export function pollDare(question: string) {
   return stripped || question;
 }
 
+/** Short tab label so chips do not repeat the dare title. */
+export function pollDareChip(question: string) {
+  const dare = pollDare(question);
+  if (/3-putt/i.test(dare)) return "3-putt";
+  if (/3-wood/i.test(dare)) return "3-wood";
+  if (/steakhouse/i.test(dare)) return "steakhouse";
+  const words = dare
+    .replace(/^to\s+/i, "")
+    .split(/\s+/)
+    .slice(0, 2)
+    .join(" ");
+  return words || dare;
+}
+
 export function activeCheckIns(rows: PlayerCheckIn[], now = Date.now()) {
   return rows.filter((row) => Date.parse(row.expiresAt) > now);
 }

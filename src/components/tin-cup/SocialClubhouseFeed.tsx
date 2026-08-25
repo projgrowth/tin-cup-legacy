@@ -961,7 +961,7 @@ export function SocialClubhouseFeed({
       {emptyFeed && (
         <p className="t-micro px-1 py-2">
           {story.clubhouseEnabled
-            ? "Captain notes and field photos land here."
+            ? "Talk and photos land here."
             : "Field notes land here as people post."}
         </p>
       )}

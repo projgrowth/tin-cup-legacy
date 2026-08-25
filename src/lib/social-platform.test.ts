@@ -11,6 +11,7 @@ import {
   orderClubhousePolls,
   pollClosed,
   pollDare,
+  pollDareChip,
   smartHomeModules,
   type ClubhousePoll,
   type MatchConfirmation,
@@ -130,6 +131,9 @@ describe("social platform rules", () => {
 
   it("puts the first-hole 3-putt dare first and strips Most likely", () => {
     expect(pollDare("Most likely to 3-putt the first hole")).toBe("to 3-putt the first hole");
+    expect(pollDareChip("Most likely to 3-putt the first hole")).toBe("3-putt");
+    expect(pollDareChip("Most likely to bomb a 3-wood from 90 yards")).toBe("3-wood");
+    expect(pollDareChip("Most likely to buy the steakhouse table a round")).toBe("steakhouse");
     const polls = orderClubhousePolls([
       {
         id: "b",
