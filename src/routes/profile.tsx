@@ -179,9 +179,6 @@ function ProfilePage() {
                 : "Claim your name. Password works if the email link is rate-limited."
             }
           />
-          <div className="surface overflow-hidden">
-            <ThemeToggle />
-          </div>
         </div>
       ) : identity.kind === "loading" ? (
         <LoadingForm fields={3} />

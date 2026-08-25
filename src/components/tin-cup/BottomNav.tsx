@@ -18,9 +18,9 @@ export function BottomNav({ live = false }: { live?: boolean }) {
             key={to}
             to={to}
             activeOptions={{ exact }}
-            className="group press t-micro relative flex min-h-12 flex-1 flex-col items-center justify-center gap-1 px-1 py-2 font-semibold text-muted-foreground data-[status=active]:text-hunter"
+            className="group press t-micro relative flex min-h-12 flex-1 flex-col items-center justify-center gap-1 px-1 py-2 font-semibold text-muted-foreground data-[status=active]:text-foreground"
           >
-            <span className="relative flex size-8 items-center justify-center rounded-full group-data-[status=active]:bg-hunter/10">
+            <span className="relative flex size-8 items-center justify-center">
               <Icon className="size-4" strokeWidth={1.7} />
               {label === "Home" && live ? (
                 <span

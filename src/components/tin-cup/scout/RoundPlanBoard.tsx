@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 
-import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import {
   COURSE_DETAILS,
   COURSE_LABEL,
@@ -52,9 +51,9 @@ function HoleRow({
     <div className="border-t border-border">
       <Link
         to="/scout"
-        search={{ course: courseId, hole: line.hole, card: true }}
+        search={{ course: courseId, hole: line.hole, map: true }}
         replace
-        aria-label={`Plan hole ${line.hole}`}
+        aria-label={`Open hole ${line.hole} map`}
         className="press flex items-center gap-3 px-4 py-3"
       >
         <span className={holeMark}>{line.hole}</span>
@@ -67,10 +66,7 @@ function HoleRow({
             ) : null}
             {snake ? <span className="t-micro font-semibold text-copper">Pit</span> : null}
             {contests.map((c) => (
-              <span
-                key={c}
-                className="rounded-full bg-hunter/15 px-1.5 py-0.5 text-[0.65rem] font-semibold text-hunter"
-              >
+              <span key={c} className="contest-mark">
                 {c === "ld" ? "LD" : "CTP"}
               </span>
             ))}
@@ -141,9 +137,12 @@ export function RoundPlanBoard({
   };
 
   return (
-    <div className={hero ? "space-y-3 pb-[calc(var(--nav-height)+0.75rem)]" : "space-y-3"}>
+    <div className="space-y-3">
       {hero ? (
-        <PageMasthead title={COURSE_LABEL[courseId]} meta={details.formatTip} />
+        <header>
+          <h1 className="sr-only">{COURSE_LABEL[courseId]}</h1>
+          <p className="t-body text-muted-foreground">{details.formatTip}</p>
+        </header>
       ) : (
         <header className="px-0.5">
           <h1 className="t-display text-foreground">{COURSE_LABEL[courseId]}</h1>

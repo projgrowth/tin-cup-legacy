@@ -137,9 +137,10 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expectNoHorizontalOverflow(page);
 
   await page.goto("/scout");
-  await expect(page.getByRole("heading", { name: /^South$/ })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "South" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByText("Scramble first nine mindset")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Plan hole 1", exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open hole 1 map", exact: true })).toBeVisible();
+  await expect(page.getByText("Map hole 1")).toHaveCount(0);
   await expect(page.getByText("335 yds").first()).toBeVisible();
   await expect(page.getByText("Out", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("In", { exact: true }).first()).toBeVisible();
@@ -147,9 +148,12 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(page.getByText("LD", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: /Target/i })).toHaveCount(0);
   await page.getByRole("tab", { name: /Copperhead/i }).click();
-  await expect(page.getByRole("heading", { name: /^Copperhead$/ })).toBeVisible();
+  await expect(page.getByRole("tab", { name: /Copperhead/i })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
   await page.getByRole("tab", { name: /Island/i }).click();
-  await expect(page.getByRole("heading", { name: /^Island$/ })).toBeVisible();
+  await expect(page.getByRole("tab", { name: /Island/i })).toHaveAttribute("aria-selected", "true");
   await expectNoHorizontalOverflow(page);
 
   await page.goto("/purse");
@@ -173,7 +177,7 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
 
 test("plan hole map opens the 2D theater and pages holes", async ({ page }) => {
   await page.goto("/scout?course=south&card=true");
-  await expect(page.getByRole("heading", { name: /^South$/ })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "South" })).toHaveAttribute("aria-selected", "true");
   const holeMap = page.getByRole("link", { name: "Open hole 7 map" });
   await holeMap.scrollIntoViewIfNeeded();
   await holeMap.click();
@@ -193,7 +197,7 @@ test("plan hole map opens the 2D theater and pages holes", async ({ page }) => {
   await expect(page.getByRole("img", { name: /Schematic layout of hole 8/i })).toBeVisible();
   await page.getByRole("link", { name: "Back to scorecard" }).click();
   await expect(page).toHaveURL(/card=true/);
-  await expect(page.getByRole("heading", { name: /^South$/ })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "South" })).toHaveAttribute("aria-selected", "true");
 });
 
 test("protected preview exposes the gallery and engagement prompt without production writes", async ({
@@ -218,8 +222,8 @@ test("profile guest sees sign-in instead of a stuck claim screen", async ({ page
   await page.goto("/profile");
   await expect(page.getByRole("heading", { name: "Account" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Paper" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Night" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Paper" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Night" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Claim your name" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Couldn't load your account" })).toHaveCount(0);
 });

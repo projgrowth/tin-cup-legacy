@@ -93,8 +93,9 @@ export function ClubhousePolls({
     <section aria-label="Most likely" className="space-y-3">
       {poll ? (
         <>
-          <header>
-            <p className="t-micro">Most likely</p>
+          <div className="surface overflow-hidden">
+          <header className="px-4 py-2.5">
+            <p className="t-eyebrow">Most likely</p>
             {polls.length > 1 ? (
               <div
                 className="no-scrollbar mt-1.5 flex gap-2 overflow-x-auto"
@@ -115,7 +116,7 @@ export function ClubhousePolls({
                 ))}
               </div>
             ) : null}
-            <h2 className="t-title mt-2 text-foreground">{pollDare(poll.question)}</h2>
+            <h2 className="t-title mt-1.5 text-foreground">{pollDare(poll.question)}</h2>
             {closed || youVoted || canVote || (user && !claimed) ? (
               <p className="t-micro mt-1">
                 {closed
@@ -134,7 +135,7 @@ export function ClubhousePolls({
             ) : null}
           </header>
           {leading.length > 0 ? (
-            <ul className="surface divide-y divide-border overflow-hidden">
+            <ul className="divide-y divide-border">
               {leading.map((player) => {
                 const option =
                   poll.options.find(
@@ -194,6 +195,7 @@ export function ClubhousePolls({
               })}
             </ul>
           ) : null}
+          </div>
           {rest.length > 0 && canVote ? (
             <div className="flex flex-wrap gap-x-1 gap-y-1">
               {rest.map((player) => {

@@ -268,21 +268,20 @@ export function SocialClubhouseFeed({
 
   return (
     <section aria-labelledby="updates-title" className="stack-tight">
-      <div className="flex items-end justify-between gap-3">
+      <div className="surface overflow-hidden">
+      <div className="flex items-center justify-between gap-3 px-4 py-2.5">
         <h2 id="updates-title" className="t-eyebrow">
           Board
         </h2>
         {story.unreadCount > 0 && (
-          <span className="rounded-full bg-hunter px-2.5 py-1 text-xs font-bold text-primary-foreground">
-            {story.unreadCount} new
-          </span>
+          <span className="t-micro tabular-nums">{story.unreadCount} new</span>
         )}
       </div>
 
       {!user ? (
         <Link
           to="/profile"
-          className="press surface flex min-h-12 items-center justify-between px-4 py-3"
+          className="press flex min-h-12 items-center justify-between border-t border-border px-4 py-3"
         >
           <span className="t-body font-medium text-foreground">Sign in to post</span>
           <span className="t-micro">Account</span>
@@ -290,13 +289,13 @@ export function SocialClubhouseFeed({
       ) : !canParticipate ? (
         <Link
           to="/profile"
-          className="press surface flex min-h-12 items-center justify-between px-4 py-3"
+          className="press flex min-h-12 items-center justify-between border-t border-border px-4 py-3"
         >
           <span className="t-body font-medium text-foreground">Claim your name to post</span>
           <span className="t-micro">Account</span>
         </Link>
       ) : (
-        <div className="feed-composer surface p-2.5 sm:p-3">
+        <div className="feed-composer border-t border-border p-2.5 sm:p-3">
           <div className="flex gap-3">
             <Avatar
               name={(profile?.player_id && playerById.get(profile.player_id)?.name) || "You"}
@@ -386,6 +385,7 @@ export function SocialClubhouseFeed({
           </div>
         </div>
       )}
+      </div>
 
       {canModerate && story.clubhouseEnabled && (
         <details className="surface-inset overflow-hidden">
