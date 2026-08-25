@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarPair } from "@/components/tin-cup/Avatar";
 import type { useMatchSocial } from "@/hooks/useMatchSocial";
 import type { Match } from "@/hooks/useTournament";
+import { maskGuestProfanity } from "@/lib/locker-copy";
 import { type MatchPredictionChoice } from "@/lib/social-platform";
 import {
   CARD_NOTE_MAX,
@@ -12,11 +13,14 @@ import {
   pairingFirstNames,
   pendingMatchIds,
   pickOnMarket,
+  predictionMomentKey,
+  rideCountLine,
   type CardMarket,
 } from "@/lib/the-card";
+import { LOCKER_REACTIONS, type ReactionKind } from "@/lib/weekend-story";
 
 export type CardFace = { name: string; teamSlug?: string | null; src?: string | null };
-export type CardRoast = { userId: string; name: string; note: string };
+export type CardRoast = { userId: string; name: string; note: string; matchIds?: string[] };
 
 export function TheCardTicket({
   market,
@@ -30,6 +34,9 @@ export function TheCardTicket({
   crowdB = [],
   roasts = [],
   yours = false,
+  signedIn = false,
+  reactionCounts = {},
+  onReact,
 }: {
   market: CardMarket;
   matches: Match[];
@@ -42,6 +49,9 @@ export function TheCardTicket({
   crowdB?: CardFace[];
   roasts?: CardRoast[];
   yours?: boolean;
+  signedIn?: boolean;
+  reactionCounts?: Record<string, number>;
+  onReact?: (momentKey: string, kind: ReactionKind) => void;
 }) {
   const mine = pickOnMarket(social.predictions, userId, market.matchIds);
   const openIds = pendingMatchIds(market, matches);
@@ -49,61 +59,93 @@ export function TheCardTicket({
   const canPick = Boolean(userId && claimed && !yours && !locked && openIds.length > 0);
   const [line, setLine] = useState(mine?.note ?? "");
   const [composing, setComposing] = useState(false);
+  const [moreTalk, setMoreTalk] = useState(false);
   const crowd = faceoffCrowd(social.predictions, market.matchIds);
   const busy = social.predict.isPending || social.clear.isPending;
   const labelA = pairingFirstNames(market.sideA);
   const labelB = pairingFirstNames(market.sideB);
   const claimToRide = !yours && !locked && (!userId || !claimed);
-  const otherRoasts = roasts.filter((roast) => roast.userId !== userId).slice(0, 2);
+  const ranked = [...roasts].sort(
+    (a, b) => (reactionCounts[b.userId] ?? 0) - (reactionCounts[a.userId] ?? 0),
+  );
+  const visible = moreTalk ? ranked : ranked.slice(0, 2);
+  const hidden = Math.max(0, ranked.length - visible.length);
+  const rideA = rideCountLine(crowd.sideA, labelA);
+  const rideB = rideCountLine(crowd.sideB, labelB);
 
   function pick(choice: MatchPredictionChoice) {
     if (!canPick) return;
     if (mine?.choice === choice) {
-      social.clear.mutate({ matchIds: openIds }, { onError: (error) => toast.error(error.message) });
+      social.clear.mutate(
+        { matchIds: openIds },
+        { onError: (error) => toast.error(error.message) },
+      );
       setComposing(false);
       return;
     }
     social.predict.mutate(
       { matchIds: openIds, choice, note: composing ? line : undefined },
-      {
-        onSuccess: () => {
-          if (!mine) setComposing(true);
-        },
-        onError: (error) => toast.error(error.message),
-      },
+      { onError: (error) => toast.error(error.message) },
     );
   }
 
   function saveLine() {
-    if (!mine || !canPick) return;
+    if (!canPick) return;
+    const choice = mine?.choice;
+    if (!choice) {
+      toast.error("Pick a side first");
+      return;
+    }
     social.predict.mutate(
-      { matchIds: openIds.length ? openIds : market.matchIds, choice: mine.choice, note: line },
+      { matchIds: openIds.length ? openIds : market.matchIds, choice, note: line },
       {
         onSuccess: () => {
           setComposing(false);
-          toast.success("Line’s up");
+          toast.success("Posted");
         },
         onError: (error) => toast.error(error.message),
       },
     );
   }
 
+  if (yours) {
+    return (
+      <article className="border-l-2 border-hunter px-3 py-3">
+        <Link
+          to="/scout"
+          search={{ course: "south", card: true }}
+          className="press block"
+          aria-label="Open Friday book"
+        >
+          <p className="t-micro text-hunter">You</p>
+          <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+            <span className="flex min-w-0 items-center gap-2">
+              <AvatarPair people={peopleA} size="sm" />
+              <span className="t-body min-w-0 font-semibold leading-snug text-hunter">
+                {labelA}
+              </span>
+            </span>
+            <p className="t-micro text-muted-foreground">vs</p>
+            <span className="flex min-w-0 items-center justify-end gap-2">
+              <span className="t-body min-w-0 text-right font-semibold leading-snug text-stone">
+                {labelB}
+              </span>
+              <AvatarPair people={peopleB} size="sm" />
+            </span>
+          </div>
+        </Link>
+      </article>
+    );
+  }
+
   return (
-    <article className={`px-3 py-3 ${yours ? "bg-hunter/5" : ""}`}>
-      {yours || locked ? (
-        <p className="t-micro mb-1.5 text-muted-foreground">
-          {yours ? <span className="text-hunter">You</span> : null}
-          {yours && locked ? " · " : null}
-          {locked ? "Locked" : null}
-        </p>
-      ) : null}
+    <article className="px-3 py-3">
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1">
         <SideRow
           people={peopleA}
           label={labelA}
           tone="hunter"
           selected={mine?.choice === "side-a"}
-          crowd={crowd.sideA}
           riders={crowdA}
           disabled={!canPick || busy}
           to={claimToRide ? "/profile" : undefined}
@@ -115,48 +157,89 @@ export function TheCardTicket({
           label={labelB}
           tone="stone"
           selected={mine?.choice === "side-b"}
-          crowd={crowd.sideB}
           riders={crowdB}
           disabled={!canPick || busy}
           to={claimToRide ? "/profile" : undefined}
           onClick={() => pick("side-b")}
         />
       </div>
-      {otherRoasts.map((roast) => (
-        <p key={roast.userId} className="t-micro mt-1.5 italic text-foreground/80">
-          “{roast.note}”
-          <span className="not-italic text-muted-foreground"> · {roast.name}</span>
+      {rideA || rideB ? (
+        <p className="t-micro mt-1.5 flex justify-between gap-3">
+          <span>{rideA}</span>
+          <span className="text-right">{rideB}</span>
         </p>
-      ))}
-      {yours ? (
-        <p className="t-micro mt-1.5 text-hunter">You're in it.</p>
-      ) : canPick && mine && (composing || !mine.note) ? (
-        <div className="mt-2 flex gap-2">
-          <label className="sr-only" htmlFor={`card-line-${market.id}`}>
-            Talk your shit
-          </label>
-          <input
-            id={`card-line-${market.id}`}
-            value={line}
-            maxLength={CARD_NOTE_MAX}
-            placeholder="Talk your shit…"
-            onChange={(event) => {
-              setLine(event.target.value);
-              setComposing(true);
-            }}
-            className="control min-h-10 flex-1 text-sm"
-          />
+      ) : null}
+      {visible.map((roast) => {
+        const key = predictionMomentKey(roast.matchIds ?? market.matchIds, roast.userId);
+        const note = maskGuestProfanity(roast.note, signedIn);
+        return (
+          <div key={roast.userId} className="mt-1.5">
+            <p className="t-micro italic text-foreground/80">
+              “{note}”<span className="not-italic text-muted-foreground"> · {roast.name}</span>
+            </p>
+            {onReact ? (
+              <div className="mt-0.5 flex gap-1">
+                {LOCKER_REACTIONS.map((reaction) => (
+                  <button
+                    key={reaction.kind}
+                    type="button"
+                    aria-label={reaction.label}
+                    onClick={() => onReact(key, reaction.kind)}
+                    className="press t-micro min-h-9 px-1.5"
+                  >
+                    {reaction.glyph}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
+      {hidden > 0 ? (
+        <button
+          type="button"
+          onClick={() => setMoreTalk(true)}
+          className="press t-micro mt-1 min-h-11"
+        >
+          more talk
+        </button>
+      ) : null}
+      {canPick ? (
+        composing || mine?.note ? (
+          <div className="mt-2 flex gap-2">
+            <label className="sr-only" htmlFor={`card-line-${market.id}`}>
+              Add a line
+            </label>
+            <input
+              id={`card-line-${market.id}`}
+              value={line}
+              autoFocus={composing && !mine?.note}
+              maxLength={CARD_NOTE_MAX}
+              placeholder="Add a line"
+              onChange={(event) => {
+                setLine(event.target.value);
+                setComposing(true);
+              }}
+              className="control min-h-10 flex-1 text-sm"
+            />
+            <button
+              type="button"
+              onClick={saveLine}
+              disabled={busy || !line.trim()}
+              className="press btn-quiet min-h-10 px-3 text-sm font-semibold"
+            >
+              Post
+            </button>
+          </div>
+        ) : (
           <button
             type="button"
-            onClick={saveLine}
-            disabled={busy}
-            className="press btn-quiet min-h-10 px-3 text-sm font-semibold"
+            onClick={() => setComposing(true)}
+            className="press t-micro mt-1.5 min-h-11 text-muted-foreground"
           >
-            Post
+            Add a line
           </button>
-        </div>
-      ) : mine?.note ? (
-        <p className="t-micro mt-2 italic text-foreground/80">“{mine.note}”</p>
+        )
       ) : null}
     </article>
   );
@@ -167,7 +250,6 @@ function SideRow({
   label,
   tone,
   selected,
-  crowd,
   riders,
   disabled,
   to,
@@ -177,7 +259,6 @@ function SideRow({
   label: string;
   tone: "hunter" | "stone";
   selected: boolean;
-  crowd: number;
   riders: CardFace[];
   disabled: boolean;
   to?: string;
@@ -185,16 +266,16 @@ function SideRow({
 }) {
   const color = tone === "hunter" ? "text-hunter" : "text-stone";
   const fill =
-    tone === "hunter"
-      ? "bg-hunter/10 ring-1 ring-hunter/30"
-      : "bg-stone/15 ring-1 ring-stone/30";
+    tone === "hunter" ? "bg-hunter/10 ring-1 ring-hunter/30" : "bg-stone/15 ring-1 ring-stone/30";
   const className = `flex min-h-16 min-w-0 w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-center transition-colors duration-150 disabled:opacity-100 ${
     disabled && !to ? "cursor-default" : "press"
   } ${selected ? fill : ""}`;
   const inner = (
     <>
       <AvatarPair people={people} size="sm" />
-      <span className={`t-body max-w-full font-semibold leading-snug break-words ${color}`}>{label}</span>
+      <span className={`t-body max-w-full font-semibold leading-snug break-words ${color}`}>
+        {label}
+      </span>
       {riders.length > 0 ? (
         <span className="inline-flex items-center justify-center gap-0.5">
           {riders.slice(0, 2).map((rider, index) => (
@@ -206,12 +287,7 @@ function SideRow({
               size="sm"
             />
           ))}
-          {crowd > 2 ? (
-            <span className="t-micro pl-0.5 tabular-nums text-muted-foreground">+{crowd - 2}</span>
-          ) : null}
         </span>
-      ) : crowd > 0 ? (
-        <span className="t-micro tabular-nums text-muted-foreground">{crowd}</span>
       ) : null}
     </>
   );

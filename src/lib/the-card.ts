@@ -9,7 +9,17 @@ import {
 import type { StoryMoment } from "@/lib/weekend-story";
 
 export const CARD_NOTE_MAX = 140;
-export const CARD_DISCLAIMER = "Ride the other groups. Yours is already set.";
+export const CARD_DISCLAIMER = "Ride the other groups.";
+
+export function predictionMomentKey(matchIds: string[], userId: string): string {
+  const id = matchIds[0] || "open";
+  return `prediction:${id}:${userId}`;
+}
+
+export function rideCountLine(count: number, side: string): string | null {
+  if (count <= 0) return null;
+  return `${count} with ${side}`;
+}
 
 export function pairingFirstNames(side: string | null | undefined): string {
   if (!side?.trim()) return "TBD";
@@ -26,7 +36,10 @@ export function normalizeCardNote(value: string | null | undefined): string | nu
   return trimmed.slice(0, CARD_NOTE_MAX);
 }
 
-export function pairingKey(sideA: string | null | undefined, sideB: string | null | undefined): string {
+export function pairingKey(
+  sideA: string | null | undefined,
+  sideB: string | null | undefined,
+): string {
   return `${(sideA ?? "").trim().toLowerCase()}||${(sideB ?? "").trim().toLowerCase()}`;
 }
 
@@ -115,7 +128,11 @@ export function fridayCardMarkets(matches: Match[], rounds: Round[]): CardMarket
   return cardMarkets(matches, rounds).filter((market) => market.roundLabel === "Friday");
 }
 
-export type CardPerson = { name: string; teamSlug: "strong-mental" | "grass-roots"; src?: string | null };
+export type CardPerson = {
+  name: string;
+  teamSlug: "strong-mental" | "grass-roots";
+  src?: string | null;
+};
 
 export function peopleForMarket(
   market: CardMarket,
@@ -186,9 +203,7 @@ export function cardRecords(predictions: MatchPrediction[], matches: Match[]): C
   const matchById = new Map(matches.map((match) => [match.id, match]));
   const byUser = new Map<string, CardRecord>();
   const seen = new Set<string>();
-  const picks = [...predictions].sort(
-    (a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt),
-  );
+  const picks = [...predictions].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
   for (const pick of picks) {
     const match = matchById.get(pick.matchId);
     const pairing = match
@@ -271,10 +286,7 @@ export function cardLine(input: {
   return { title, detail: parts.length ? parts.join(" · ") : undefined };
 }
 
-export function isYourMarket(
-  market: CardMarket,
-  claimedName: string | null | undefined,
-): boolean {
+export function isYourMarket(market: CardMarket, claimedName: string | null | undefined): boolean {
   if (!claimedName?.trim()) return false;
   return (
     pairingIncludesLoose(market.sideA, claimedName) ||

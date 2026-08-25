@@ -12,15 +12,7 @@ import {
 } from "@/lib/courses";
 import { hasPlanContent, nineSplit, type PlanLine } from "@/lib/round-sheet";
 
-function NineRule({
-  label,
-  par,
-  yards,
-}: {
-  label: string;
-  par: number;
-  yards: number;
-}) {
+function NineRule({ label, par, yards }: { label: string; par: number; yards: number }) {
   return (
     <div className="flex items-baseline justify-between gap-3 px-4 py-2">
       <p className="t-eyebrow">{label}</p>
@@ -85,7 +77,11 @@ function HoleRow({
           </span>
           {planned ? (
             <span className="mt-0.5 block truncate text-sm text-foreground/85">
-              {[line.draft?.tee_club, line.draft?.green_note, line.draft?.notes || line.draft?.target_line]
+              {[
+                line.draft?.tee_club,
+                line.draft?.green_note,
+                line.draft?.notes || line.draft?.target_line,
+              ]
                 .filter(Boolean)
                 .join(" · ")}
             </span>
@@ -214,35 +210,57 @@ export function RoundPlanBoard({
         </div>
       </section>
 
-      <details className="group">
-        <summary className="press cursor-pointer list-none px-1 py-3 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
-          Day notes
-        </summary>
-        <div className="space-y-2 px-1 pb-3">
-          {!signedIn ? (
-            <p className="t-micro">On this device until you sign in.</p>
-          ) : (
-            <>
-              <textarea
-                value={dayDraft}
-                onChange={(e) => onDayDraft(e.target.value)}
-                rows={3}
-                maxLength={800}
-                className="control w-full resize-none text-base"
-                placeholder="Pairing thoughts, attack holes…"
-              />
-              <button
-                type="button"
-                disabled={!canSaveDay || savingDay}
-                onClick={onSaveDay}
-                className="press t-micro min-h-11 px-1 font-semibold text-hunter disabled:opacity-40"
-              >
-                {savingDay ? "Saving…" : "Save day plan"}
-              </button>
-            </>
-          )}
-        </div>
-      </details>
+      {signedIn && dayDraft.trim() ? (
+        <details className="group" open>
+          <summary className="press cursor-pointer list-none px-1 py-3 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
+            Day notes
+          </summary>
+          <div className="space-y-2 px-1 pb-3">
+            <textarea
+              value={dayDraft}
+              onChange={(e) => onDayDraft(e.target.value)}
+              rows={3}
+              maxLength={800}
+              className="control w-full resize-none text-base"
+              placeholder="Pairing thoughts, attack holes…"
+              aria-label="Day notes"
+            />
+            <button
+              type="button"
+              disabled={!canSaveDay || savingDay}
+              onClick={onSaveDay}
+              className="press t-micro min-h-11 px-1 font-semibold text-hunter disabled:opacity-40"
+            >
+              {savingDay ? "Saving…" : "Save day plan"}
+            </button>
+          </div>
+        </details>
+      ) : signedIn ? (
+        <details className="group">
+          <summary className="press cursor-pointer list-none px-1 py-3 t-micro text-muted-foreground [&::-webkit-details-marker]:hidden">
+            Add day notes
+          </summary>
+          <div className="space-y-2 px-1 pb-3">
+            <textarea
+              value={dayDraft}
+              onChange={(e) => onDayDraft(e.target.value)}
+              rows={3}
+              maxLength={800}
+              className="control w-full resize-none text-base"
+              placeholder="Pairing thoughts, attack holes…"
+              aria-label="Day notes"
+            />
+            <button
+              type="button"
+              disabled={!canSaveDay || savingDay}
+              onClick={onSaveDay}
+              className="press t-micro min-h-11 px-1 font-semibold text-hunter disabled:opacity-40"
+            >
+              {savingDay ? "Saving…" : "Save day plan"}
+            </button>
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 }

@@ -14,8 +14,8 @@
     "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
   --font-display: var(--font-sans);
-  --color-gold: var(--hunter);
-  --color-gold-light: var(--hunter);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
   --color-copper: var(--copper);
   --color-hunter: var(--hunter);
   --color-stone: var(--stone);
@@ -107,8 +107,8 @@
   --border-strong: oklch(0.24 0.035 155 / 22%);
   --input: oklch(0.24 0.035 155 / 14%);
   --ring: oklch(0.34 0.055 155 / 45%);
-  --gold: var(--hunter);
-  --gold-light: var(--hunter);
+  --gold: oklch(0.72 0.1 85);
+  --gold-light: oklch(0.82 0.08 85);
   --copper: oklch(0.52 0.16 28);
   --glass: oklch(0.975 0.008 95 / 90%);
   --status-live: oklch(0.48 0.11 155);

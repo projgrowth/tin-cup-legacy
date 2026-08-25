@@ -10,6 +10,8 @@ type Props = {
   size?: "default" | "compact";
   cameraLabel?: string;
   libraryLabel?: string;
+  /** One Photo control instead of Camera + Library. */
+  single?: boolean;
 };
 
 /**
@@ -24,6 +26,7 @@ export function PhotoPicker({
   size = "default",
   cameraLabel = "Take photo",
   libraryLabel = "Library",
+  single = false,
 }: Props) {
   const cameraRef = useRef<HTMLInputElement>(null);
   const libraryRef = useRef<HTMLInputElement>(null);
@@ -60,22 +63,35 @@ export function PhotoPicker({
           e.target.value = "";
         }}
       />
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => cameraRef.current?.click()}
-        className={btn}
-      >
-        {cameraLabel}
-      </button>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => libraryRef.current?.click()}
-        className={btn}
-      >
-        {libraryLabel}
-      </button>
+      {single ? (
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => libraryRef.current?.click()}
+          className={btn}
+        >
+          Photo
+        </button>
+      ) : (
+        <>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => cameraRef.current?.click()}
+            className={btn}
+          >
+            {cameraLabel}
+          </button>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => libraryRef.current?.click()}
+            className={btn}
+          >
+            {libraryLabel}
+          </button>
+        </>
+      )}
     </div>
   );
 }

@@ -12,6 +12,8 @@ import {
   faceoffRoasts,
   fridayCardMarkets,
   normalizeCardNote,
+  predictionMomentKey,
+  rideCountLine,
   pairingFirstNames,
   pendingMatchIds,
   peopleForMarket,
@@ -67,6 +69,12 @@ describe("the card", () => {
     expect(people.peopleA.map((row) => row.name)).toEqual(["Zack Smith", "Chris Maher"]);
     expect(people.peopleA[0]?.src).toBe("/zack.jpg");
     expect(people.peopleB[0]?.teamSlug).toBe("grass-roots");
+  });
+
+  it("prints a ride count on the ticket, not a feed sentence", () => {
+    expect(rideCountLine(4, "Zack · Chris")).toBe("4 with Zack · Chris");
+    expect(rideCountLine(0, "Zack · Chris")).toBeNull();
+    expect(predictionMomentKey(["s1", "a1"], "u1")).toBe("prediction:s1:u1");
   });
 
   it("prints first names, never Side A", () => {

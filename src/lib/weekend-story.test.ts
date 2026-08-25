@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildStoryMoments, isHangoutMoment } from "./weekend-story";
+import {
+  buildStoryMoments,
+  isBoardMoment,
+  isHangoutMoment,
+  isResultsMoment,
+} from "./weekend-story";
 
 describe("weekend story", () => {
   it("normalizes only published tournament moments with stable revision keys", () => {
@@ -71,5 +76,11 @@ describe("weekend story", () => {
     expect(moments[0]?.kind).toBe("roster");
     expect(isHangoutMoment(moments[0]!)).toBe(false);
     expect(isHangoutMoment({ kind: "photo" })).toBe(true);
+  });
+
+  it("keeps the Home board to photos, not rides", () => {
+    expect(isBoardMoment({ kind: "photo" })).toBe(true);
+    expect(isBoardMoment({ kind: "prediction" })).toBe(false);
+    expect(isResultsMoment({ kind: "match" })).toBe(true);
   });
 });

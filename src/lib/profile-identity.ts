@@ -8,7 +8,9 @@ type ClaimCache = {
   playerId: string;
 };
 
-export function isMissingColumnError(error: { code?: string; message?: string } | null | undefined) {
+export function isMissingColumnError(
+  error: { code?: string; message?: string } | null | undefined,
+) {
   if (!error) return false;
   const code = String(error.code ?? "");
   const message = String(error.message ?? "").toLowerCase();
@@ -22,7 +24,9 @@ export function isMissingColumnError(error: { code?: string; message?: string } 
 function readRaw(): ClaimCache | null {
   if (typeof window === "undefined") return null;
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(CLAIM_CACHE_KEY) ?? "null") as ClaimCache | null;
+    const parsed = JSON.parse(
+      window.localStorage.getItem(CLAIM_CACHE_KEY) ?? "null",
+    ) as ClaimCache | null;
     if (!parsed?.userId || !parsed.playerId) return null;
     return parsed;
   } catch {
@@ -44,7 +48,10 @@ export function writeClaimedPlayerId(userId: string, playerId: string | null) {
       if (cached?.userId === userId) window.localStorage.removeItem(CLAIM_CACHE_KEY);
       return;
     }
-    window.localStorage.setItem(CLAIM_CACHE_KEY, JSON.stringify({ userId, playerId } satisfies ClaimCache));
+    window.localStorage.setItem(
+      CLAIM_CACHE_KEY,
+      JSON.stringify({ userId, playerId } satisfies ClaimCache),
+    );
   } catch {
     /* private mode */
   }
@@ -66,6 +73,21 @@ export type IdentityState = {
   playerId: string | null;
   playerMissing: boolean;
 };
+
+/** Roster `players.name` only — never profiles.display_name handles. */
+export function rosterName(input: {
+  userId: string;
+  players: Array<{ id: string; name: string }>;
+  profiles: Array<{ id: string; player_id: string | null }>;
+}): string {
+  const row = input.profiles.find((profile) => profile.id === input.userId);
+  const player = row?.player_id
+    ? input.players.find((candidate) => candidate.id === row.player_id)
+    : undefined;
+  const name = player?.name.trim();
+  if (!name) return "Player";
+  return name.split(/\s+/)[0] ?? name;
+}
 
 export function resolveIdentity(input: {
   signedIn: boolean;

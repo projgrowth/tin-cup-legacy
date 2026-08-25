@@ -119,3 +119,14 @@ export function groupLine(playerName: string, asYou = false): string | null {
 export function yourGroupLine(playerName: string): string | null {
   return groupLine(playerName, true);
 }
+
+/** Friday partner first name, for roster captions. */
+export function fridayPartnerName(playerName: string): string | null {
+  const group = day1GroupForPlayer(playerName);
+  return group ? firstName(group.partner) : null;
+}
+
+/** The 16 locked Friday names, Strong Mental then Grass Roots. */
+export function fridayRosterNames(): string[] {
+  return FIELD_SIDES.flatMap((side) => side.players);
+}

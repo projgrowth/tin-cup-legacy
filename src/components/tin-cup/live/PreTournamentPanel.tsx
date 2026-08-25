@@ -1,33 +1,23 @@
 import { Link } from "@tanstack/react-router";
 
-import { TheCardSheet } from "@/components/tin-cup/TheCardSheet";
-import { FieldChatLink, InstallHint } from "@/components/tin-cup/WhatsAppLinks";
-import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
-import type { Match, Player, Round, Team } from "@/hooks/useTournament";
+import { ClubhousePolls } from "@/components/tin-cup/ClubhousePolls";
 import { Countdown } from "@/components/tin-cup/Countdown";
+import { TheCardSheet } from "@/components/tin-cup/TheCardSheet";
+import { useAuth } from "@/hooks/useAuth";
+import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
-
 import { yourGroupLine } from "@/lib/day1-pairings";
-import {
-  BUY_IN,
-  VENMO_IS_PLACEHOLDER,
-  WEEKEND_SOCIAL,
-  WHATSAPP_GROUP_CONFIGURED,
-  venmoUrl,
-} from "@/lib/tin-cup";
+import { BUY_IN, EVENT, WEEKEND_SOCIAL, venmoUrl } from "@/lib/tin-cup";
 import type { WeekendContext } from "@/lib/weekend-context";
 
-/** Pre-event Home — clock, Faceoff, Field. Same kit as Weekend. */
+/** Pre-event Home — next tee, your match, Faceoff, poll. Not a pairings dump. */
 export function PreTournamentPanel({
   rounds = [],
   matches = [],
   players = [],
   teams = [],
-  canUpload: _canUpload = false,
-  signedIn: _signedIn = false,
   claimedName = null,
-  needsClaim: _needsClaim = false,
-  context: _context,
+  canModerate = false,
 }: {
   rounds?: Round[];
   matches?: Match[];
@@ -38,85 +28,60 @@ export function PreTournamentPanel({
   claimedName?: string | null;
   needsClaim?: boolean;
   context?: WeekendContext;
+  canModerate?: boolean;
 }) {
+  const { user } = useAuth();
   const nextCourseId = defaultCourseId() as CourseId;
   const today = COURSE_DETAILS[nextCourseId];
   const groupLine = claimedName ? yourGroupLine(claimedName) : null;
+  const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
+  const tonightChip = tonight?.title.includes("Salamander")
+    ? "Tonight · Salamander"
+    : tonight
+      ? `Tonight · ${tonight.title}`
+      : null;
 
   return (
-    <section aria-label="This weekend" className="space-y-5">
-      <div>
-        <Countdown />
-        <header className="px-1 text-center">
-          <h1 className="text-[0.95rem] font-semibold tracking-tight text-foreground">
-            {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
-          </h1>
-          <p className="t-micro mt-1">{today.firstTee}</p>
-        </header>
-        {groupLine ? (
-          <p className="mt-2 px-1 text-center text-sm font-semibold text-foreground">{groupLine}</p>
-        ) : null}
-      </div>
+    <section aria-label="This weekend" className="space-y-8">
+      <header className="space-y-3 px-1">
+        <h1 className="t-title text-foreground">
+          {today.dayLabel} · {COURSE_LABEL[nextCourseId]} · {today.firstTee}
+        </h1>
+        {groupLine ? <p className="t-body font-semibold text-foreground">{groupLine}</p> : null}
+        <div className="flex flex-wrap gap-2">
+          <a
+            href={venmoUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="press chip chip-on min-h-11"
+          >
+            Pay ${BUY_IN}
+          </a>
+          {tonightChip ? (
+            <Link to="/schedule" className="press chip min-h-11">
+              {tonightChip}
+            </Link>
+          ) : null}
+          <span className="chip min-h-11">
+            {EVENT.totalPoints} pts · {EVENT.pointsToWin} to win
+          </span>
+        </div>
+        <Countdown compact />
+      </header>
 
       <TheCardSheet matches={matches} rounds={rounds} players={players} teams={teams} />
+
+      <ClubhousePolls players={players} teams={teams} canCreate={canModerate && Boolean(user)} />
     </section>
   );
 }
 
-/** Pay / tonight / install — after Field, not in the hangout spine. */
-export function HomeWeekendDoors({
-  signedIn = false,
-  claimedName = null,
-  players = [],
-  teams = [],
-}: {
+/** Install / WhatsApp stay off Home. Kept so live mode callers compile. */
+export function HomeWeekendDoors(_props: {
   signedIn?: boolean;
   claimedName?: string | null;
   players?: Player[];
   teams?: Team[];
 }) {
-  const nextCourseId = defaultCourseId() as CourseId;
-  const today = COURSE_DETAILS[nextCourseId];
-  const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
-  const avatars = usePlayerAvatars(players, teams);
-  const face = (name: string) => avatars.data?.getByName(name);
-
-  return (
-    <div className="stack-tight">
-      <div className="surface divide-y divide-border overflow-hidden empty:hidden">
-        <a
-          href={venmoUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="press flex min-h-12 items-center justify-between px-4 py-3"
-        >
-          <span className="t-body font-medium text-foreground">Pay ${BUY_IN}</span>
-          <span className="t-micro">{claimedName ? "Venmo" : "Due"}</span>
-        </a>
-        {signedIn && claimedName && !face(claimedName)?.url ? (
-          <Link
-            to="/profile"
-            className="press flex min-h-11 items-center justify-between px-4 py-3"
-          >
-            <span className="t-body font-medium text-foreground">Add your face</span>
-            <span className="t-micro">Account</span>
-          </Link>
-        ) : null}
-        {tonight ? (
-          <Link
-            to="/schedule"
-            className="press flex min-h-11 items-center justify-between px-4 py-3"
-          >
-            <span className="t-body font-medium text-foreground">Tonight · {tonight.title}</span>
-            <span className="t-micro">Weekend</span>
-          </Link>
-        ) : null}
-        <InstallHint embedded />
-      </div>
-      {VENMO_IS_PLACEHOLDER && (
-        <p className="t-micro px-1 text-copper">Set VITE_VENMO_HANDLE before the weekend.</p>
-      )}
-      {WHATSAPP_GROUP_CONFIGURED && <FieldChatLink className="!min-h-11 w-full" />}
-    </div>
-  );
+  return null;
 }
