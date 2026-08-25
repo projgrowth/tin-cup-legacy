@@ -1,7 +1,7 @@
 /** Guest-only locker-room mask. Signed-in players see the raw line. */
 
 const GUEST_MASK =
-  /\b(fuck(?:ing|er|ed)?|shit(?:ty|ting)?|asshole|bitch|cunt|dick|cock|piss(?:ed)?|goddamn)\b/gi;
+  /\b(fuck\w*|shit(?:ty|ting)?|asshole|bitch|cunt|dick|cock|piss(?:ed)?|goddamn)\b/gi;
 
 export function maskGuestProfanity(body: string, signedIn: boolean): string {
   const text = body.trim();

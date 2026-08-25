@@ -143,10 +143,10 @@ export function PlanSheet({
             key={h.h}
             ref={active ? activeRef : undefined}
             to="/scout"
-            search={{ course: courseId, hole: h.h, map: true }}
+            search={{ course: courseId, hole: h.h, ...(overlay ? { map: true } : { card: true }) }}
             replace
             onClick={() => onSelectHole(h.h)}
-            aria-label={`Open hole ${h.h} map`}
+            aria-label={overlay ? `Open hole ${h.h} map` : `Plan hole ${h.h}`}
             aria-current={active ? "true" : undefined}
             className={`press relative size-11 shrink-0 rounded-full text-sm font-bold tabular-nums transition-colors ${
               active
