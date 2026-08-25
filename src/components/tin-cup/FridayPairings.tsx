@@ -38,8 +38,7 @@ export function FridayPairings({
           src: getFace?.(name)?.url,
         }));
         const yours = Boolean(
-          claimedName &&
-            [...p.playersA, ...p.playersB].some((name) => sameName(name, claimedName)),
+          claimedName && [...p.playersA, ...p.playersB].some((name) => sameName(name, claimedName)),
         );
         return (
           <li key={p.matchIndex} className={`flex gap-3 px-4 py-3 ${yours ? "bg-hunter/5" : ""}`}>
@@ -48,13 +47,13 @@ export function FridayPairings({
               <div className="flex items-center gap-2">
                 <AvatarPair people={peopleA} size="sm" />
                 <p className="t-body min-w-0 font-semibold leading-snug">
-                  <SideNames names={p.playersA} tone="hunter" playerIdByName={playerIdByName} />
+                  <SideNames names={p.playersA} playerIdByName={playerIdByName} />
                 </p>
               </div>
               <div className="mt-1.5 flex items-center gap-2">
                 <AvatarPair people={peopleB} size="sm" />
                 <p className="t-body min-w-0 font-semibold leading-snug">
-                  <SideNames names={p.playersB} tone="stone" playerIdByName={playerIdByName} />
+                  <SideNames names={p.playersB} playerIdByName={playerIdByName} />
                 </p>
               </div>
             </div>
@@ -67,14 +66,11 @@ export function FridayPairings({
 
 function SideNames({
   names,
-  tone,
   playerIdByName,
 }: {
   names: string[];
-  tone: "hunter" | "stone";
   playerIdByName?: (name: string) => string | undefined;
 }) {
-  const color = tone === "hunter" ? "text-hunter" : "text-stone";
   return (
     <>
       {names.map((name, index) => {
@@ -85,14 +81,18 @@ function SideNames({
           return (
             <span key={name}>
               {sep}
-              <Link to="/player/$playerId" params={{ playerId: id }} className={`press ${color}`}>
+              <Link
+                to="/player/$playerId"
+                params={{ playerId: id }}
+                className="press text-foreground"
+              >
                 {label}
               </Link>
             </span>
           );
         }
         return (
-          <span key={name} className={color}>
+          <span key={name} className="text-foreground">
             {sep}
             {label}
           </span>
