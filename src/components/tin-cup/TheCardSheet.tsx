@@ -77,14 +77,16 @@ export function TheCardSheet({
         </section>
       ) : null}
       <section aria-labelledby="the-card-title">
-        <h2 id="the-card-title" className="t-eyebrow px-1">
-          Faceoff
-        </h2>
-        {(!user || !claimed) && markets.some((market) => !market.locked) ? (
-          <Link to="/profile" className="press t-micro mt-1 inline-flex min-h-11 items-center px-1">
-            {user ? "Claim your name to ride" : "Sign in to ride"}
-          </Link>
-        ) : null}
+        <div className="flex items-baseline justify-between gap-3 px-1">
+          <h2 id="the-card-title" className="t-eyebrow">
+            Faceoff
+          </h2>
+          {(!user || !claimed) && markets.some((market) => !market.locked) ? (
+            <Link to="/profile" className="press t-micro inline-flex min-h-11 items-center">
+              {user ? "Claim your name" : "Sign in to ride"}
+            </Link>
+          ) : null}
+        </div>
         <div className="surface mt-1.5 divide-y divide-border overflow-hidden">
           {markets.map((market) => {
             const people = peopleForMarket(market, face);

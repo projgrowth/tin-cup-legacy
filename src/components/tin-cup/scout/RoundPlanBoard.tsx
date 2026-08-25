@@ -107,7 +107,7 @@ export function RoundPlanBoard({
   canSaveDay,
   savingDay,
   signedIn,
-  pairingLine = null,
+  pairingLine: _pairingLine = null,
   hero = false,
 }: {
   courseId: CourseId;
@@ -143,27 +143,13 @@ export function RoundPlanBoard({
   return (
     <div className={hero ? "space-y-3 pb-[calc(var(--nav-height)+0.75rem)]" : "space-y-3"}>
       {hero ? (
-        <PageMasthead
-          title={COURSE_LABEL[courseId]}
-          meta={
-            <>
-              {details.dayLabel} · {details.firstTee} · {details.format}
-              {pairingLine ? (
-                <span className="mt-1 block text-foreground">{pairingLine}</span>
-              ) : null}
-            </>
-          }
-        />
+        <PageMasthead title={COURSE_LABEL[courseId]} meta={details.formatTip} />
       ) : (
         <header className="px-0.5">
           <h1 className="t-display text-foreground">{COURSE_LABEL[courseId]}</h1>
-          {pairingLine ? <p className="t-micro mt-1.5 text-foreground">{pairingLine}</p> : null}
-          <p className="t-micro mt-1.5">
-            {details.dayLabel} · {details.format}
-          </p>
+          <p className="t-micro mt-1.5">{details.formatTip}</p>
         </header>
       )}
-      <p className="t-micro px-1">{details.formatTip}</p>
 
       <section className="surface overflow-hidden" aria-label="18-hole game plan">
         <NineRule label={details.frontNine} par={split.out.par} yards={split.out.yards} />

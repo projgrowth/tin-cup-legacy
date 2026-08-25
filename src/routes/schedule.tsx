@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
 import { FridayPairings } from "@/components/tin-cup/FridayPairings";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
-import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
 import { useProfile } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
 import { roundStatus } from "@/lib/scoring";
@@ -18,6 +17,7 @@ import {
   defaultCourseId,
   type CourseId,
 } from "@/lib/courses";
+import { SNAKE_PIT, TROPHIES } from "@/lib/tin-cup";
 
 function useNow() {
   const [now, setNow] = useState<number | null>(null);
@@ -54,6 +54,11 @@ export const Route = createFileRoute("/schedule")({
   }),
   component: SchedulePage,
 });
+
+function beforeGolf(dayLabel: string) {
+  if (dayLabel === "Saturday" || dayLabel === "Sunday") return "Breakfast in the clubhouse.";
+  return null;
+}
 
 function afterGolf(dayLabel: string) {
   if (dayLabel === "Friday") return "Pool if the weather holds, then Salamander.";
@@ -134,27 +139,63 @@ function SchedulePage() {
             <p className="t-body mt-3 text-muted-foreground">{details.formatTip}</p>
           </header>
 
+          {beforeGolf(details.dayLabel) ? (
+            <div className="px-0.5">
+              <p className="t-eyebrow">Before golf</p>
+              <p className="t-body mt-1 font-medium text-foreground">
+                {beforeGolf(details.dayLabel)}
+              </p>
+            </div>
+          ) : null}
+
           {courseId === "south" ? (
             <FridayPairings
               claimedName={claimedPlayer?.name ?? null}
               playerIdByName={playerIdByName}
             />
           ) : (
-            <p className="t-micro px-1">
-              {courseId === "copperhead"
-                ? "Pairings posted Friday night."
-                : "Pairings posted Saturday night."}
-            </p>
+            <div className="px-0.5">
+              <p className="t-eyebrow">Groups</p>
+              <p className="t-body mt-1 text-muted-foreground">
+                {courseId === "copperhead"
+                  ? "Pairings posted Friday night."
+                  : "Pairings posted Saturday night."}
+              </p>
+            </div>
           )}
+
+          {courseId === "copperhead" ? (
+            <div className="px-0.5">
+              <p className="t-eyebrow">Snake Pit</p>
+              <ul className="mt-2 space-y-1.5">
+                {SNAKE_PIT.map((hole) => (
+                  <li key={hole.hole} className="t-body text-foreground">
+                    <span className="tabular-nums text-muted-foreground">{hole.hole}</span>
+                    <span className="mx-2">{hole.name}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="t-micro mt-2">16–18 decide Saturday — and the Snake Pit Trophy.</p>
+            </div>
+          ) : null}
+
+          {courseId === "island" ? (
+            <div className="px-0.5">
+              <p className="t-eyebrow">Awards</p>
+              <ul className="mt-2 space-y-1.5">
+                {TROPHIES.map((row) => (
+                  <li key={row.name} className="t-body text-foreground">
+                    {row.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
           <div className="px-0.5">
             <p className="t-eyebrow">After golf</p>
             <p className="t-body mt-1 font-medium text-foreground">{afterGolf(details.dayLabel)}</p>
           </div>
-
-          {courseId === "copperhead" ? (
-            <SnakePitDrawer triggerClassName="t-micro flex w-full min-h-11 items-center justify-start text-left text-muted-foreground" />
-          ) : null}
         </section>
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
