@@ -62,10 +62,10 @@ export function PreTournamentPanel({
               {tonightChip}
             </Link>
           ) : null}
-          <span className="chip min-h-11">
-            Fri 8 + Sat 6 + Sun 12 = {EVENT.totalPoints}. {EVENT.pointsToWin} to win.
-          </span>
         </div>
+        <p className="t-micro text-muted-foreground">
+          Fri 8 + Sat 6 + Sun 12 = {EVENT.totalPoints}. {EVENT.pointsToWin} to win.
+        </p>
         <Countdown compact />
       </header>
 

@@ -1,4 +1,6 @@
-import { TheCardTicket, type CardFace } from "@/components/tin-cup/TheCardTicket";
+import { Link } from "@tanstack/react-router";
+
+import { TheCardTicket } from "@/components/tin-cup/TheCardTicket";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
 import { useMatchSocial } from "@/hooks/useMatchSocial";
@@ -9,7 +11,6 @@ import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { rosterName } from "@/lib/profile-identity";
 import {
   cardRecords,
-  faceoffRiders,
   faceoffRoasts,
   fridayCardMarkets,
   isYourMarket,
@@ -50,17 +51,6 @@ export function TheCardSheet({
   const graded = matches.some((match) => match.result !== "pending");
   const records = graded ? cardRecords(social.predictions, matches).slice(0, 4) : [];
   const nameOf = (userId: string) => rosterName({ userId, players, profiles: profiles.data ?? [] });
-  const faceForUser = (userId: string): CardFace => {
-    const row = (profiles.data ?? []).find((item) => item.id === userId);
-    const player = players.find((item) => item.id === row?.player_id);
-    const name = player?.name || "Player";
-    const team = player ? teams.find((item) => item.id === player.team_id) : null;
-    return {
-      name,
-      teamSlug: team?.slug,
-      src: player ? avatars.data?.byPlayerId.get(player.id)?.url : null,
-    };
-  };
 
   function react(momentKey: string, kind: ReactionKind) {
     if (!user || !claimed) return;
@@ -93,7 +83,6 @@ export function TheCardSheet({
         <div className="surface mt-1.5 divide-y divide-border overflow-hidden">
           {markets.map((market) => {
             const people = peopleForMarket(market, face);
-            const riders = faceoffRiders(social.predictions, market.matchIds);
             const roasts = faceoffRoasts(social.predictions, market.matchIds).map((pick) => ({
               userId: pick.userId,
               name: nameOf(pick.userId),
@@ -117,8 +106,6 @@ export function TheCardSheet({
                 social={social}
                 peopleA={people.peopleA}
                 peopleB={people.peopleB}
-                crowdA={riders.sideA.map(faceForUser)}
-                crowdB={riders.sideB.map(faceForUser)}
                 roasts={roasts}
                 yours={false}
                 signedIn={Boolean(user)}
@@ -128,6 +115,14 @@ export function TheCardSheet({
             );
           })}
         </div>
+        {(!user || !claimed) && markets.some((market) => !market.locked) ? (
+          <Link
+            to="/profile"
+            className="press t-micro mt-1.5 inline-flex min-h-11 items-center px-1"
+          >
+            {user ? "Claim your name to ride" : "Sign in to ride"}
+          </Link>
+        ) : null}
         {records.length > 0 ? (
           <ul className="mt-2 px-1">
             {records.map((row) => (

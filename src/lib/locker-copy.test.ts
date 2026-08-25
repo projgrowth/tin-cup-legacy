@@ -6,6 +6,8 @@ describe("locker copy", () => {
   it("masks guest-visible profanity and leaves signed-in copy raw", () => {
     expect(maskGuestProfanity("that shit is cooked", false)).toBe("that — is cooked");
     expect(maskGuestProfanity("You guys fuckin suck", false)).toBe("You guys — suck");
+    expect(maskGuestProfanity("You guys fuckin suck 🍆💦", false)).toBe("You guys — suck");
+    expect(maskGuestProfanity("You guys fuckin suck 🍆💦", true)).toBe("You guys fuckin suck 🍆💦");
     expect(maskGuestProfanity("that shit is cooked", true)).toBe("that shit is cooked");
   });
 

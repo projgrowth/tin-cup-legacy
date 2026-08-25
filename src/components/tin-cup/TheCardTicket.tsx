@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
-import { Avatar, AvatarPair } from "@/components/tin-cup/Avatar";
+import { AvatarPair } from "@/components/tin-cup/Avatar";
 import type { useMatchSocial } from "@/hooks/useMatchSocial";
 import type { Match } from "@/hooks/useTournament";
 import { maskGuestProfanity } from "@/lib/locker-copy";
@@ -30,8 +30,6 @@ export function TheCardTicket({
   social,
   peopleA = [],
   peopleB = [],
-  crowdA = [],
-  crowdB = [],
   roasts = [],
   yours = false,
   signedIn = false,
@@ -45,8 +43,6 @@ export function TheCardTicket({
   social: ReturnType<typeof useMatchSocial>;
   peopleA?: CardFace[];
   peopleB?: CardFace[];
-  crowdA?: CardFace[];
-  crowdB?: CardFace[];
   roasts?: CardRoast[];
   yours?: boolean;
   signedIn?: boolean;
@@ -64,7 +60,6 @@ export function TheCardTicket({
   const busy = social.predict.isPending || social.clear.isPending;
   const labelA = pairingFirstNames(market.sideA);
   const labelB = pairingFirstNames(market.sideB);
-  const claimToRide = !yours && !locked && (!userId || !claimed);
   const ranked = [...roasts].sort(
     (a, b) => (reactionCounts[b.userId] ?? 0) - (reactionCounts[a.userId] ?? 0),
   );
@@ -146,9 +141,7 @@ export function TheCardTicket({
           label={labelA}
           tone="hunter"
           selected={mine?.choice === "side-a"}
-          riders={crowdA}
           disabled={!canPick || busy}
-          to={claimToRide ? "/profile" : undefined}
           onClick={() => pick("side-a")}
         />
         <p className="t-micro self-center px-0.5 text-muted-foreground">vs</p>
@@ -157,9 +150,7 @@ export function TheCardTicket({
           label={labelB}
           tone="stone"
           selected={mine?.choice === "side-b"}
-          riders={crowdB}
           disabled={!canPick || busy}
-          to={claimToRide ? "/profile" : undefined}
           onClick={() => pick("side-b")}
         />
       </div>
@@ -250,54 +241,19 @@ function SideRow({
   label,
   tone,
   selected,
-  riders,
   disabled,
-  to,
   onClick,
 }: {
   people: CardFace[];
   label: string;
   tone: "hunter" | "stone";
   selected: boolean;
-  riders: CardFace[];
   disabled: boolean;
-  to?: string;
   onClick: () => void;
 }) {
   const color = tone === "hunter" ? "text-hunter" : "text-stone";
   const fill =
     tone === "hunter" ? "bg-hunter/10 ring-1 ring-hunter/30" : "bg-stone/15 ring-1 ring-stone/30";
-  const className = `flex min-h-16 min-w-0 w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-center transition-colors duration-150 disabled:opacity-100 ${
-    disabled && !to ? "cursor-default" : "press"
-  } ${selected ? fill : ""}`;
-  const inner = (
-    <>
-      <AvatarPair people={people} size="sm" />
-      <span className={`t-body max-w-full font-semibold leading-snug break-words ${color}`}>
-        {label}
-      </span>
-      {riders.length > 0 ? (
-        <span className="inline-flex items-center justify-center gap-0.5">
-          {riders.slice(0, 2).map((rider, index) => (
-            <Avatar
-              key={`${rider.name}-${index}`}
-              name={rider.name}
-              teamSlug={rider.teamSlug}
-              src={rider.src}
-              size="sm"
-            />
-          ))}
-        </span>
-      ) : null}
-    </>
-  );
-  if (to) {
-    return (
-      <Link to={to} aria-label={`Ride with ${label}`} className={className}>
-        {inner}
-      </Link>
-    );
-  }
   return (
     <button
       type="button"
@@ -305,9 +261,14 @@ function SideRow({
       aria-pressed={selected}
       aria-label={selected ? `Undo ${label}` : `Ride with ${label}`}
       onClick={onClick}
-      className={className}
+      className={`flex min-h-16 min-w-0 w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-center transition-colors duration-150 disabled:opacity-100 ${
+        disabled ? "cursor-default" : "press"
+      } ${selected ? fill : ""}`}
     >
-      {inner}
+      <AvatarPair people={people} size="sm" />
+      <span className={`t-body max-w-full font-semibold leading-snug break-words ${color}`}>
+        {label}
+      </span>
     </button>
   );
 }
