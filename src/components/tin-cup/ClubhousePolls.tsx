@@ -89,7 +89,7 @@ export function ClubhousePolls({
     <section aria-label="Most likely" className="space-y-3">
       {poll ? (
         <>
-          <header className="px-1">
+          <header>
             <p className="t-micro">Most likely</p>
             {polls.length > 1 ? (
               <div
@@ -190,10 +190,10 @@ export function ClubhousePolls({
           </ul>
         </>
       ) : (
-        <p className="t-micro px-1">No poll yet.</p>
+        <p className="t-micro">No poll yet.</p>
       )}
       {canCreate ? (
-        <div className="px-1">
+        <div>
           <label className="sr-only" htmlFor="clubhouse-poll-q">
             Add a question
           </label>

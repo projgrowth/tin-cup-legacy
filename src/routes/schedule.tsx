@@ -129,7 +129,7 @@ function SchedulePage() {
             })}
           </div>
 
-          <header className="px-0.5">
+          <header>
             <p className="t-eyebrow">{details.dayLabel}</p>
             <h1 className="t-display mt-1 text-foreground">{COURSE_LABEL[courseId]}</h1>
             <p className="t-title mt-3 text-foreground">{details.format}</p>
@@ -140,7 +140,7 @@ function SchedulePage() {
           </header>
 
           {beforeGolf(details.dayLabel) ? (
-            <p className="t-body px-0.5">{beforeGolf(details.dayLabel)}</p>
+            <p className="t-body">{beforeGolf(details.dayLabel)}</p>
           ) : null}
 
           {courseId === "south" ? (
@@ -149,7 +149,7 @@ function SchedulePage() {
               playerIdByName={playerIdByName}
             />
           ) : (
-            <p className="t-body px-0.5 text-muted-foreground">
+            <p className="t-body text-muted-foreground">
               {courseId === "copperhead"
                 ? "Pairings posted Friday night."
                 : "Pairings posted Saturday night."}
@@ -157,38 +157,38 @@ function SchedulePage() {
           )}
 
           {courseId === "copperhead" ? (
-            <div className="px-0.5">
-              <p className="t-eyebrow">Snake Pit</p>
-              <ul className="mt-2 space-y-1">
-                {SNAKE_PIT.map((hole) => (
-                  <li key={hole.hole} className="t-body text-foreground">
-                    <span className="tabular-nums text-muted-foreground">{hole.hole}</span>
-                    <span className="mx-2">{hole.name}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <ul className="surface divide-y divide-border overflow-hidden">
+              <li className="px-4 py-2.5">
+                <p className="t-eyebrow">Snake Pit</p>
+              </li>
+              {SNAKE_PIT.map((hole) => (
+                <li key={hole.hole} className="flex gap-3 px-4 py-2.5">
+                  <span className="t-micro w-4 shrink-0 tabular-nums">{hole.hole}</span>
+                  <span className="t-body text-foreground">{hole.name}</span>
+                </li>
+              ))}
+            </ul>
           ) : null}
 
           {courseId === "island" ? (
-            <div className="px-0.5">
-              <p className="t-eyebrow">Awards</p>
-              <ul className="mt-2 space-y-1">
-                {TROPHIES.map((row) => (
-                  <li key={row.name} className="t-body text-foreground">
-                    {row.name}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <ul className="surface divide-y divide-border overflow-hidden">
+              <li className="px-4 py-2.5">
+                <p className="t-eyebrow">Awards</p>
+              </li>
+              {TROPHIES.map((row) => (
+                <li key={row.name} className="px-4 py-2.5">
+                  <p className="t-body text-foreground">{row.name}</p>
+                </li>
+              ))}
+            </ul>
           ) : null}
 
-          <p className="t-body px-0.5 font-medium text-foreground">{afterGolf(details.dayLabel)}</p>
+          <p className="t-body font-medium text-foreground">{afterGolf(details.dayLabel)}</p>
         </section>
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
-        <p className="flex flex-wrap gap-x-5 px-1">
+        <p className="flex flex-wrap gap-x-5">
           <FormatSheet triggerClassName="t-micro inline-flex min-h-11 items-center" />
           {rounds.length > 0 ? (
             <button
