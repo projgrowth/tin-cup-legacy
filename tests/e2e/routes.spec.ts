@@ -95,6 +95,11 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(page.getByRole("heading", { name: /^South$/ })).toBeVisible();
   await expect(page.getByText("Just looking")).toHaveCount(0);
   await expect(page.getByText("Welcome to the weekend")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Calendar" })).toBeVisible();
+  await expect(page.getByText("How formats work", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: /Scramble \+ Modified Alt Shot/ }),
+  ).toBeVisible();
   await expect(page.getByText("Zack · Chris")).toBeVisible();
   await expect(page.getByText("Charles · Blake")).toBeVisible();
   await expect(page.getByRole("button", { name: /Take / })).toHaveCount(0);
@@ -103,11 +108,18 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(page.getByRole("tab", { name: "Sunday" })).toBeVisible();
   await page.getByRole("tab", { name: "Saturday" }).click();
   await expect(page.getByRole("heading", { name: /^Copperhead$/ })).toBeVisible();
+  await expect(page.getByText("Breakfast · Steakhouse 7:00")).toBeVisible();
+  await expect(page.getByText("Breakfast · golf")).toHaveCount(0);
   await expect(page.getByText("Pairings posted Friday night.")).toBeVisible();
   await expect(page.getByText("Pool & Salamander Grille")).toHaveCount(0);
   await expect(page.getByText(/scramble partner/i)).toHaveCount(0);
   await expect(page.getByText("Loading…")).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
+  await page.getByRole("tab", { name: "Sunday" }).click();
+  await expect(page.getByRole("heading", { name: /^Island$/ })).toBeVisible();
+  await expect(page.getByText("Breakfast · lunch and awards")).toBeVisible();
+  await page.getByRole("button", { name: /Shamble \+ Singles/ }).click();
+  await expect(page.getByRole("heading", { name: "Weekend formats" })).toBeVisible();
 
   await page.goto("/rosters");
   await expect(page.getByRole("tab", { name: "Strong Mental" })).toBeVisible();
@@ -127,7 +139,7 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await page.goto("/scout");
   await expect(page.getByRole("heading", { name: /^South$/ })).toBeVisible();
   await expect(page.getByText("Scramble first nine mindset")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Plan hole 1" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Plan hole 1", exact: true }).first()).toBeVisible();
   await expect(page.getByText("335 yds").first()).toBeVisible();
   await expect(page.getByText("Out", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("In", { exact: true }).first()).toBeVisible();

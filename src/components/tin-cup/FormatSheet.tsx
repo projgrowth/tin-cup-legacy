@@ -10,17 +10,20 @@ import {
 import { WeekendDayStories } from "@/components/tin-cup/DayStory";
 import { EVENT, PLAYOFF_RULE } from "@/lib/tin-cup";
 
-/** Non-invasive format / money explainer — chip opens bottom sheet. */
+/** Weekend format sheet. Pass the day’s format as the trigger. */
 export function FormatSheet({
   triggerClassName = "",
   children,
+  ariaLabel,
 }: {
   triggerClassName?: string;
   children?: ReactNode;
+  ariaLabel?: string;
 }) {
   return (
     <Drawer>
       <DrawerTrigger
+        aria-label={ariaLabel}
         className={`press min-h-11 ${triggerClassName || "t-micro inline-flex items-center gap-1.5 text-muted-foreground"}`}
       >
         {children ?? "How formats work"}
