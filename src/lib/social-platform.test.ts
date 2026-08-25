@@ -8,8 +8,11 @@ import {
   playerParticipates,
   predictionLocked,
   predictionTotals,
+  orderClubhousePolls,
   pollClosed,
+  pollDare,
   smartHomeModules,
+  type ClubhousePoll,
   type MatchConfirmation,
   type MatchPrediction,
 } from "./social-platform";
@@ -123,5 +126,34 @@ describe("social platform rules", () => {
         points: 2,
       }).map((row) => row.id),
     ).toEqual(["planner", "clubhouse", "crowd-favorite", "predictor", "verified", "points"]);
+  });
+
+  it("puts the first-hole 3-putt dare first and strips Most likely", () => {
+    expect(pollDare("Most likely to 3-putt the first hole")).toBe("to 3-putt the first hole");
+    const polls = orderClubhousePolls([
+      {
+        id: "b",
+        authorId: "u",
+        question: "Most likely to buy the steakhouse table a round",
+        createdAt: "2026-08-25T00:00:02Z",
+        closesAt: null,
+        closedAt: null,
+        deletedAt: null,
+        moderatedBy: null,
+        options: [],
+      },
+      {
+        id: "a",
+        authorId: "u",
+        question: "Most likely to 3-putt the first hole",
+        createdAt: "2026-08-25T00:00:00Z",
+        closesAt: null,
+        closedAt: null,
+        deletedAt: null,
+        moderatedBy: null,
+        options: [],
+      },
+    ] satisfies ClubhousePoll[]);
+    expect(polls.map((poll) => poll.id)).toEqual(["a", "b"]);
   });
 });
