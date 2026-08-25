@@ -4,7 +4,6 @@ import { FormatSheet } from "@/components/tin-cup/FormatSheet";
 import { FridayPairings } from "@/components/tin-cup/FridayPairings";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { SnakePitDrawer } from "@/components/tin-cup/SnakePitDrawer";
-import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { useProfile } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
 import { roundStatus } from "@/lib/scoring";
@@ -19,7 +18,6 @@ import {
   defaultCourseId,
   type CourseId,
 } from "@/lib/courses";
-import { WEEKEND_SOCIAL } from "@/lib/tin-cup";
 
 function useNow() {
   const [now, setNow] = useState<number | null>(null);
@@ -57,15 +55,16 @@ export const Route = createFileRoute("/schedule")({
   component: SchedulePage,
 });
 
-function dinnerFor(dayLabel: string) {
-  return WEEKEND_SOCIAL.find((row) => row.day.startsWith(dayLabel));
+function afterGolf(dayLabel: string) {
+  if (dayLabel === "Friday") return "Pool if the weather holds, then Salamander.";
+  if (dayLabel === "Saturday") return "Steakhouse at 7:00 PM.";
+  return "Lunch, then a short awards.";
 }
 
 function SchedulePage() {
   const search = Route.useSearch();
   const { data, isError, refetch, isFetching } = useTournament();
   const { profile } = useProfile();
-  const avatars = usePlayerAvatars(data?.players ?? [], data?.teams ?? []);
   const now = useNow();
   const todayCourse = defaultCourseId(now ?? undefined);
 
@@ -94,7 +93,6 @@ function SchedulePage() {
     : todayCourse;
   const courseId: CourseId = search.course ?? autoCourseId;
   const details = COURSE_DETAILS[courseId];
-  const dinner = dinnerFor(details.dayLabel);
   const claimedPlayer = profile?.player_id
     ? (data?.players ?? []).find((player) => player.id === profile.player_id)
     : undefined;
@@ -127,34 +125,35 @@ function SchedulePage() {
           </div>
 
           <header className="px-0.5">
-            <h1 className="t-title text-foreground">
-              {COURSE_LABEL[courseId]} · {details.firstTee}
-            </h1>
+            <p className="t-eyebrow">{details.dayLabel}</p>
+            <h1 className="t-display mt-1 text-foreground">{COURSE_LABEL[courseId]}</h1>
+            <p className="t-title mt-3 text-foreground">{details.format}</p>
             <p className="t-micro mt-1">
-              {details.format} · {details.points} pts
+              {details.firstTee} · {details.points} pts
             </p>
+            <p className="t-body mt-3 text-muted-foreground">{details.formatTip}</p>
           </header>
 
           {courseId === "south" ? (
             <FridayPairings
-              getFace={(name) => avatars.data?.getByName(name)}
               claimedName={claimedPlayer?.name ?? null}
               playerIdByName={playerIdByName}
-              matches={data?.matches ?? []}
-              rounds={data?.rounds ?? []}
             />
           ) : (
-            <p className="t-body px-1 text-foreground/80">Pairings when captains post.</p>
+            <p className="t-micro px-1">
+              {courseId === "copperhead"
+                ? "Pairings posted Friday night."
+                : "Pairings posted Saturday night."}
+            </p>
           )}
 
-          {dinner ? (
-            <p className="t-micro px-1">
-              {details.dayLabel === "Friday"
-                ? "Tonight · Salamander"
-                : details.dayLabel === "Saturday"
-                  ? "Steakhouse · 7:00 PM"
-                  : "Lunch and awards"}
-            </p>
+          <div className="px-0.5">
+            <p className="t-eyebrow">After golf</p>
+            <p className="t-body mt-1 font-medium text-foreground">{afterGolf(details.dayLabel)}</p>
+          </div>
+
+          {courseId === "copperhead" ? (
+            <SnakePitDrawer triggerClassName="t-micro flex w-full min-h-11 items-center justify-start text-left text-muted-foreground" />
           ) : null}
         </section>
 
@@ -162,7 +161,6 @@ function SchedulePage() {
 
         <section className="flex flex-col px-1">
           <FormatSheet triggerClassName="t-micro flex w-full min-h-11 items-center justify-start text-left text-muted-foreground" />
-          <SnakePitDrawer triggerClassName="t-micro flex w-full min-h-11 items-center justify-start text-left text-muted-foreground" />
           {rounds.length > 0 ? (
             <button
               type="button"

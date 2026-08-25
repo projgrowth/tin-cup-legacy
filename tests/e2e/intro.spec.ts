@@ -12,7 +12,7 @@ test("mobile first visit opens directly into the personalized weekend", async ({
 
   await expect(page.getByLabel("Tin Cup Invitational film intro")).toHaveCount(0);
   await expect(page.getByRole("region", { name: "This weekend" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Friday · South/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /12:19/ })).toBeVisible();
   const action = page.getByRole("link", { name: "Weekend", exact: true }).first();
   await expect(action).toBeVisible();
   const box = await action.boundingBox();

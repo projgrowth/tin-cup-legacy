@@ -1,5 +1,3 @@
-import { Link } from "@tanstack/react-router";
-
 import { ClubhousePolls } from "@/components/tin-cup/ClubhousePolls";
 import { Countdown } from "@/components/tin-cup/Countdown";
 import { TheCardSheet } from "@/components/tin-cup/TheCardSheet";
@@ -7,10 +5,10 @@ import { useAuth } from "@/hooks/useAuth";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
 import { yourGroupLine } from "@/lib/day1-pairings";
-import { BUY_IN, WEEKEND_SOCIAL, venmoUrl } from "@/lib/tin-cup";
+import { BUY_IN, venmoUrl } from "@/lib/tin-cup";
 import type { WeekendContext } from "@/lib/weekend-context";
 
-/** Pre-event Home — next tee, your match, Faceoff, poll. Not a pairings dump. */
+/** Pre-event Home — first tee, Faceoff, poll, board. Dinner lives on Weekend. */
 export function PreTournamentPanel({
   rounds = [],
   matches = [],
@@ -34,29 +32,28 @@ export function PreTournamentPanel({
   const nextCourseId = defaultCourseId() as CourseId;
   const today = COURSE_DETAILS[nextCourseId];
   const groupLine = claimedName ? yourGroupLine(claimedName) : null;
-  const tonight = WEEKEND_SOCIAL.find((row) => row.day === today.dayLabel);
-  const tonightLine = tonight?.title.includes("Salamander")
-    ? "Tonight · Salamander"
-    : tonight
-      ? `Tonight · ${tonight.title}`
-      : null;
 
   return (
     <section aria-label="This weekend" className="space-y-8">
-      <header className="space-y-3 px-1">
-        <h1 className="t-title text-foreground">
-          {today.dayLabel} · {COURSE_LABEL[nextCourseId]} · {today.firstTee}
-        </h1>
-        {groupLine ? <p className="t-body font-semibold text-foreground">{groupLine}</p> : null}
-        <a href={venmoUrl} target="_blank" rel="noreferrer" className="press chip chip-on min-h-11">
+      <header className="px-1">
+        <p className="t-eyebrow">
+          {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
+        </p>
+        <h1 className="t-hero mt-1 text-foreground">{today.firstTee}</h1>
+        {groupLine ? (
+          <p className="t-body mt-3 font-semibold text-foreground">{groupLine}</p>
+        ) : null}
+        <div className="mt-3">
+          <Countdown compact />
+        </div>
+        <a
+          href={venmoUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="press chip chip-on mt-4 min-h-11"
+        >
           Pay ${BUY_IN}
         </a>
-        {tonightLine ? (
-          <Link to="/schedule" className="press t-micro inline-flex min-h-11 items-center">
-            {tonightLine}
-          </Link>
-        ) : null}
-        <Countdown compact />
       </header>
 
       <TheCardSheet matches={matches} rounds={rounds} players={players} teams={teams} />
