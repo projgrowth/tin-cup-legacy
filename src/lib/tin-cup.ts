@@ -17,7 +17,7 @@ export const TOURNAMENT_BANK = "Kevin Maher";
  * Launch gates for side-cash display.
  * Buy-in / formats: Desktop deck `4th Annual Tin Cup Invitational 2026.pdf`.
  * Contest pots: Kevin (admin) 2026-08 — $100 CTP × 6, $100 LD × 2 (fairway required).
- * Day 1 (Friday / South): CTP 3 & 18, long drive 13. Other contest holes TBD.
+ * Day 1 (Friday / South): CTP 3 & 18, long drive 7. Other contest holes TBD.
  */
 export const SIDE_BET_PAYOUTS_CONFIRMED = true;
 export { contestHoleLabel, DAY1_CONTESTS } from "@/lib/contest-holes";
@@ -136,7 +136,8 @@ export const PURSE = [
   {
     title: "Long Drive",
     amount: "$100",
-    detail: "Two opportunities (Friday & Saturday). Friday: hole 13. Saturday TBD. Ball must finish in the fairway.",
+    detail:
+      "Two opportunities (Friday & Saturday). Friday: hole 7. Saturday TBD. Ball must finish in the fairway.",
   },
   {
     title: "Side Skins",

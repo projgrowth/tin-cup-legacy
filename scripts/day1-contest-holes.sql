@@ -1,5 +1,5 @@
 -- Optional hosted apply. Do not run unless Kevin approves a production SQL change.
--- Day 1 (Friday / South): CTP holes 3 and 18, long drive 13.
+-- Day 1 (Friday / South): CTP holes 3 and 18, long drive 7.
 -- Other days stay NULL / TBD. The client already overlays these values.
 
 UPDATE side_bets
@@ -17,7 +17,6 @@ WHERE kind = 'ctp'
   AND label ILIKE '%back%';
 
 UPDATE side_bets
-SET hole = 13
+SET hole = 7
 WHERE kind IN ('ld', 'long-drive')
-  AND hole IS NULL
   AND label ILIKE '%friday%';

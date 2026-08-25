@@ -20,7 +20,7 @@ const rounds = [
 ];
 
 describe("Day 1 contest holes", () => {
-  it("fills Friday CTP 3 / 18 and long drive 13 without touching other days", () => {
+  it("fills Friday CTP 3 / 18 and long drive 7 without touching other days", () => {
     const bets = applyDay1ContestHoles(
       [
         { kind: "ctp", label: "CTP - Friday front", hole: null, round_id: friday },
@@ -48,6 +48,14 @@ describe("Day 1 contest holes", () => {
     expect(bet?.hole).toBe(9);
   });
 
+  it("restamps Friday long drive to hole 7 even if 13 was stored", () => {
+    const [bet] = applyDay1ContestHoles(
+      [{ kind: "ld", label: "Long Drive - Friday", hole: 13, round_id: friday }],
+      rounds,
+    );
+    expect(bet?.hole).toBe(7);
+  });
+
   it("labels only confirmed hole numbers", () => {
     expect(contestHoleLabel(3)).toBe("Hole 3");
     expect(contestHoleLabel(null)).toBe("Hole TBD");
@@ -56,7 +64,8 @@ describe("Day 1 contest holes", () => {
   it("stamps Friday contests without a bet table", () => {
     expect(knownContestsForHole("south", 3)).toEqual(["ctp"]);
     expect(knownContestsForHole("south", 18)).toEqual(["ctp"]);
-    expect(knownContestsForHole("south", 13)).toEqual(["ld"]);
+    expect(knownContestsForHole("south", 7)).toEqual(["ld"]);
+    expect(knownContestsForHole("south", 13)).toEqual([]);
     expect(knownContestsForHole("south", 1)).toEqual([]);
     expect(knownContestsForHole("copperhead", 16)).toEqual([]);
   });
@@ -82,7 +91,7 @@ describe("Day 1 contest holes", () => {
     const empty = displaySidePots([]);
     expect(empty).toHaveLength(8);
     expect(potStatus(3)).toBe("Open · Hole 3");
-    expect(potStatus(13)).toBe("Open · Hole 13");
+    expect(potStatus(7)).toBe("Open · Hole 7");
     expect(potStatus(18)).toBe("Open · Hole 18");
     expect(potStatus(null)).toBe("Named Friday night");
     expect(

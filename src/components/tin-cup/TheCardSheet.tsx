@@ -80,6 +80,11 @@ export function TheCardSheet({
         <h2 id="the-card-title" className="t-eyebrow px-1">
           Faceoff
         </h2>
+        {(!user || !claimed) && markets.some((market) => !market.locked) ? (
+          <Link to="/profile" className="press t-micro mt-1 inline-flex min-h-11 items-center px-1">
+            {user ? "Claim your name to ride" : "Sign in to ride"}
+          </Link>
+        ) : null}
         <div className="surface mt-1.5 divide-y divide-border overflow-hidden">
           {markets.map((market) => {
             const people = peopleForMarket(market, face);
@@ -115,14 +120,6 @@ export function TheCardSheet({
             );
           })}
         </div>
-        {(!user || !claimed) && markets.some((market) => !market.locked) ? (
-          <Link
-            to="/profile"
-            className="press t-micro mt-1.5 inline-flex min-h-11 items-center px-1"
-          >
-            {user ? "Claim your name to ride" : "Sign in to ride"}
-          </Link>
-        ) : null}
         {records.length > 0 ? (
           <ul className="mt-2 px-1">
             {records.map((row) => (

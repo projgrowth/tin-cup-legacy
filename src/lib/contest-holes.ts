@@ -1,12 +1,12 @@
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 
-/** Kevin 2026-08-20: Day 1 (Friday / South) contest holes. Other days stay TBD. */
+/** Captains 2026-08-25: Friday / South LD moved to 7. CTP 3 & 18 stay. Other days TBD. */
 export const DAY1_CONTESTS = {
   courseId: "south",
   roundSlug: "friday",
   ctpFront: 3,
   ctpBack: 18,
-  longDrive: 13,
+  longDrive: 7,
 } as const;
 
 type BetLike = {
@@ -25,7 +25,7 @@ export function contestHoleLabel(hole: number | null): string {
 /** Canonical 8 pots. Used when the side-bet table has not hydrated yet. */
 export const KNOWN_SIDE_POTS = [
   { key: "fri-ctp-3", kind: "ctp", label: "CTP - Friday front", hole: 3 },
-  { key: "fri-ld-13", kind: "ld", label: "Long Drive - Friday", hole: 13 },
+  { key: "fri-ld-7", kind: "ld", label: "Long Drive - Friday", hole: 7 },
   { key: "fri-ctp-18", kind: "ctp", label: "CTP - Friday back", hole: 18 },
   { key: "sat-ctp-front", kind: "ctp", label: "CTP - Saturday front", hole: null },
   { key: "sat-ctp-back", kind: "ctp", label: "CTP - Saturday back", hole: null },
@@ -106,15 +106,15 @@ function isFridayBet(bet: BetLike, fridayId?: string) {
 export function applyDay1ContestHoles<T extends BetLike>(bets: T[], rounds: RoundLike[]): T[] {
   const fridayId = rounds.find((round) => round.slug === DAY1_CONTESTS.roundSlug)?.id;
   return bets.map((bet) => {
-    if (bet.hole != null) return bet;
     const onFriday = isFridayBet(bet, fridayId);
     const label = bet.label.toLowerCase();
+    if (isLongDrive(bet.kind) && onFriday) {
+      return { ...bet, hole: DAY1_CONTESTS.longDrive };
+    }
+    if (bet.hole != null) return bet;
     if (isCtp(bet.kind) && onFriday) {
       if (label.includes("back")) return { ...bet, hole: DAY1_CONTESTS.ctpBack };
       if (label.includes("front")) return { ...bet, hole: DAY1_CONTESTS.ctpFront };
-    }
-    if (isLongDrive(bet.kind) && onFriday) {
-      return { ...bet, hole: DAY1_CONTESTS.longDrive };
     }
     return bet;
   });

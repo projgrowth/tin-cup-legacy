@@ -74,11 +74,11 @@ VITE_EXPECTED_PLAYER_COUNT=16
 
 ## 2b. Roles (Kevin is admin, not a team captain)
 
-| Role | Person | Notes |
-|------|--------|--------|
-| **admin** | Kevin Maher (tournament bank / organizer) | Manages `/admin`; can score as admin. **Do not** grant him `captain`. |
-| **captain** | Zack Smith, Charles Grass | Set **match pairings**, post results, claim CTP/LD. |
-| Contest holes | Friday: CTP 3 & 18, long drive 13. Other days TBD | Captains do **not** pick CTP/LD holes. |
+| Role          | Person                                           | Notes                                                                 |
+| ------------- | ------------------------------------------------ | --------------------------------------------------------------------- |
+| **admin**     | Kevin Maher (tournament bank / organizer)        | Manages `/admin`; can score as admin. **Do not** grant him `captain`. |
+| **captain**   | Zack Smith, Charles Grass                        | Set **match pairings**, post results, claim CTP/LD.                   |
+| Contest holes | Friday: CTP 3 & 18, long drive 7. Other days TBD | Captains do **not** pick CTP/LD holes.                                |
 
 ## 3. Grant captains
 
