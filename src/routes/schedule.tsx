@@ -63,7 +63,7 @@ function beforeGolf(dayLabel: string) {
 function afterGolf(dayLabel: string) {
   if (dayLabel === "Friday") return "Pool if the weather holds, then Salamander.";
   if (dayLabel === "Saturday") return "Steakhouse at 7:00 PM.";
-  return "Lunch, then a short awards.";
+  return "Lunch in the clubhouse.";
 }
 
 function SchedulePage() {
@@ -140,12 +140,7 @@ function SchedulePage() {
           </header>
 
           {beforeGolf(details.dayLabel) ? (
-            <div className="px-0.5">
-              <p className="t-eyebrow">Before golf</p>
-              <p className="t-body mt-1 font-medium text-foreground">
-                {beforeGolf(details.dayLabel)}
-              </p>
-            </div>
+            <p className="t-body px-0.5">{beforeGolf(details.dayLabel)}</p>
           ) : null}
 
           {courseId === "south" ? (
@@ -154,20 +149,17 @@ function SchedulePage() {
               playerIdByName={playerIdByName}
             />
           ) : (
-            <div className="px-0.5">
-              <p className="t-eyebrow">Groups</p>
-              <p className="t-body mt-1 text-muted-foreground">
-                {courseId === "copperhead"
-                  ? "Pairings posted Friday night."
-                  : "Pairings posted Saturday night."}
-              </p>
-            </div>
+            <p className="t-body px-0.5 text-muted-foreground">
+              {courseId === "copperhead"
+                ? "Pairings posted Friday night."
+                : "Pairings posted Saturday night."}
+            </p>
           )}
 
           {courseId === "copperhead" ? (
             <div className="px-0.5">
               <p className="t-eyebrow">Snake Pit</p>
-              <ul className="mt-2 space-y-1.5">
+              <ul className="mt-2 space-y-1">
                 {SNAKE_PIT.map((hole) => (
                   <li key={hole.hole} className="t-body text-foreground">
                     <span className="tabular-nums text-muted-foreground">{hole.hole}</span>
@@ -175,14 +167,13 @@ function SchedulePage() {
                   </li>
                 ))}
               </ul>
-              <p className="t-micro mt-2">16–18 decide Saturday — and the Snake Pit Trophy.</p>
             </div>
           ) : null}
 
           {courseId === "island" ? (
             <div className="px-0.5">
               <p className="t-eyebrow">Awards</p>
-              <ul className="mt-2 space-y-1.5">
+              <ul className="mt-2 space-y-1">
                 {TROPHIES.map((row) => (
                   <li key={row.name} className="t-body text-foreground">
                     {row.name}
@@ -192,16 +183,13 @@ function SchedulePage() {
             </div>
           ) : null}
 
-          <div className="px-0.5">
-            <p className="t-eyebrow">After golf</p>
-            <p className="t-body mt-1 font-medium text-foreground">{afterGolf(details.dayLabel)}</p>
-          </div>
+          <p className="t-body px-0.5 font-medium text-foreground">{afterGolf(details.dayLabel)}</p>
         </section>
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
 
-        <section className="flex flex-col px-1">
-          <FormatSheet triggerClassName="t-micro flex w-full min-h-11 items-center justify-start text-left text-muted-foreground" />
+        <p className="flex flex-wrap gap-x-5 px-1">
+          <FormatSheet triggerClassName="t-micro inline-flex min-h-11 items-center" />
           {rounds.length > 0 ? (
             <button
               type="button"
@@ -209,12 +197,12 @@ function SchedulePage() {
                 downloadWeekendIcs(rounds);
                 void trackProductEvent("calendar_downloaded", { kind: "weekend" });
               }}
-              className="press t-micro min-h-11 justify-start text-left"
+              className="press t-micro min-h-11"
             >
-              Add weekend to calendar
+              Calendar
             </button>
           ) : null}
-        </section>
+        </p>
       </div>
     </Shell>
   );
