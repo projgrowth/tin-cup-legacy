@@ -137,7 +137,6 @@ export function TheCardTicket({
     <article className="px-4 py-2.5">
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1">
         <SideRow
-          people={peopleA}
           label={labelA}
           align="start"
           selected={mine?.choice === "side-a"}
@@ -147,7 +146,6 @@ export function TheCardTicket({
         />
         <p className="t-micro self-center px-1 text-muted-foreground">vs</p>
         <SideRow
-          people={peopleB}
           label={labelB}
           align="end"
           selected={mine?.choice === "side-b"}
@@ -240,7 +238,6 @@ export function TheCardTicket({
 }
 
 function SideRow({
-  people,
   label,
   align,
   selected,
@@ -248,7 +245,6 @@ function SideRow({
   to,
   onClick,
 }: {
-  people: CardFace[];
   label: string;
   align: "start" | "end";
   selected: boolean;
@@ -256,19 +252,12 @@ function SideRow({
   to?: string;
   onClick: () => void;
 }) {
-  const className = `flex min-h-12 min-w-0 w-full items-center gap-2 rounded-xl px-1 py-1.5 transition-colors duration-150 disabled:opacity-100 ${
-    align === "end" ? "flex-row-reverse text-right" : "text-left"
+  const className = `flex min-h-12 min-w-0 w-full items-center rounded-xl px-1 py-1.5 transition-colors duration-150 disabled:opacity-100 ${
+    align === "end" ? "justify-end text-right" : "text-left"
   } ${disabled && !to ? "cursor-default" : "press"} ${
     selected ? "bg-hunter/10 ring-1 ring-hunter/30" : ""
   }`;
-  const inner = (
-    <>
-      <AvatarPair people={people} size="sm" />
-      <span className="t-body min-w-0 flex-1 truncate font-semibold leading-snug text-foreground">
-        {label}
-      </span>
-    </>
-  );
+  const inner = <span className="t-body font-semibold leading-snug text-foreground">{label}</span>;
   if (to) {
     return (
       <Link to={to} aria-label={`Ride with ${label}`} className={className}>
