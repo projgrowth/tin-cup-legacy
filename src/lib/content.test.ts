@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { COURSE_DETAILS, COURSE_ORDER } from "@/lib/courses";
-import { BUY_IN, EVENT, EXPECTED_PLAYER_COUNT, FEE_BREAKDOWN, SNAKE_PIT } from "@/lib/tin-cup";
+import {
+  BUY_IN,
+  EVENT,
+  EXPECTED_PLAYER_COUNT,
+  FEE_BREAKDOWN,
+  PLAYOFF_RULE,
+  SNAKE_PIT,
+} from "@/lib/tin-cup";
 
 /**
  * Invariants locked to the Desktop deck:
@@ -21,6 +28,8 @@ describe("2026 tournament content invariants", () => {
     expect(COURSE_ORDER.reduce((sum, id) => sum + COURSE_DETAILS[id].points, 0)).toBe(26);
     expect(EVENT.title).toContain("4th Annual");
     expect(EVENT.dates).toBe("August 28–30, 2026");
+    expect(PLAYOFF_RULE).toMatch(/2v2 scramble/i);
+    expect(PLAYOFF_RULE).not.toMatch(/singles/i);
   });
 
   it("keeps official course sources and tournament tees explicitly TBD", () => {

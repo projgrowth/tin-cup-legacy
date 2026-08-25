@@ -6,7 +6,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { WeekendDayStories } from "@/components/tin-cup/DayStory";
-import { EVENT } from "@/lib/tin-cup";
+import { EVENT, PLAYOFF_RULE } from "@/lib/tin-cup";
 
 /** Non-invasive format / money explainer — chip opens bottom sheet. */
 export function FormatSheet({ triggerClassName = "" }: { triggerClassName?: string }) {
@@ -28,7 +28,7 @@ export function FormatSheet({ triggerClassName = "" }: { triggerClassName?: stri
         <div className="max-h-[50svh] space-y-2.5 overflow-y-auto px-4 py-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
           <WeekendDayStories />
           <p className="t-micro text-muted-foreground">
-            Halves are 0.5. Tie: captains each pick a singles player, one hole until decided.
+            Halves are 0.5. Tie: {PLAYOFF_RULE}, one hole until decided.
           </p>
         </div>
       </DrawerContent>

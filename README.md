@@ -73,7 +73,7 @@ Include a top status segmented control to toggle app focus:
 
 - Sun Aug 30 | Island Course | 9:54–10:20 AM | Shamble / Singles (12 Pts - 4/8) | Lunch & Awards Ceremony
 
-- Playoff: 1-hole scramble tiebreaker chosen by Captains.
+- Playoff: 13–13 is captain and his pick, 2v2 scramble, one hole until decided.
 
 #### C. Stakes & Side Cash ($150 Buy-In)
 
