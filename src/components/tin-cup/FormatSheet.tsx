@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import {
   Drawer,
   DrawerContent,
@@ -9,13 +11,19 @@ import { WeekendDayStories } from "@/components/tin-cup/DayStory";
 import { EVENT, PLAYOFF_RULE } from "@/lib/tin-cup";
 
 /** Non-invasive format / money explainer — chip opens bottom sheet. */
-export function FormatSheet({ triggerClassName = "" }: { triggerClassName?: string }) {
+export function FormatSheet({
+  triggerClassName = "",
+  children,
+}: {
+  triggerClassName?: string;
+  children?: ReactNode;
+}) {
   return (
     <Drawer>
       <DrawerTrigger
         className={`press min-h-11 ${triggerClassName || "t-micro inline-flex items-center gap-1.5 text-muted-foreground"}`}
       >
-        How formats work
+        {children ?? "How formats work"}
       </DrawerTrigger>
       <DrawerContent className="border-border bg-card">
         <DrawerHeader className="pb-2 text-left">

@@ -54,7 +54,6 @@ export function ClubhousePolls({
       count: votes.filter((vote) => vote.optionId === option.id).length,
     }))
     .sort((a, b) => b.count - a.count || a.option.sortOrder - b.option.sortOrder);
-  const top = tallies.filter((row) => row.count > 0).slice(0, 3);
   const youVoted = mine ? poll?.options.find((option) => option.id === mine.optionId)?.label : null;
   const closed = poll ? pollClosed(poll) : true;
   const countFor = (label: string) =>
@@ -130,69 +129,64 @@ export function ClubhousePolls({
               </Link>
             ) : null}
           </header>
-          {top.length > 0 ? (
-            <p className="t-micro px-1">
-              Field:{" "}
-              {top.map((row, place) => (
-                <span key={row.option.id}>
-                  {place > 0 ? " · " : null}
-                  {firstName(row.option.label)} {row.count}
-                </span>
-              ))}
-            </p>
-          ) : null}
-          <ul className="grid grid-cols-4 gap-2">
-            {roster.map((player) => {
-              const option =
-                poll.options.find(
-                  (row) => row.label.trim().toLowerCase() === player.name.trim().toLowerCase(),
-                ) ?? poll.options.find((row) => firstName(row.label) === firstName(player.name));
-              const selected = Boolean(option && mine?.optionId === option.id);
-              const count = countFor(player.name);
-              const teamSlug = teamById.get(player.team_id);
-              const face = (
-                <>
-                  <Avatar
-                    name={player.name}
-                    teamSlug={teamSlug}
-                    src={avatars.data?.byPlayerId.get(player.id)?.url}
-                    size="md"
-                    title={firstName(player.name)}
-                    className={selected ? "ring-2 ring-hunter/50" : ""}
-                  />
-                  <span
-                    className={`t-micro mt-1 block truncate ${
-                      selected ? "font-semibold text-foreground" : "text-muted-foreground"
-                    }`}
-                  >
-                    {firstName(player.name)}
-                  </span>
-                  <span
-                    className={`t-micro tabular-nums ${count > 0 ? "text-muted-foreground" : "invisible"}`}
-                  >
-                    {count || 0}
-                  </span>
-                </>
-              );
-              return (
-                <li key={player.id} className="min-w-0">
-                  {canVote && !closed ? (
-                    <button
-                      type="button"
-                      disabled={!option}
-                      aria-pressed={selected}
-                      aria-label={`Vote ${firstName(player.name)}`}
-                      onClick={() => option && void pick(option.id)}
-                      className="press flex min-h-11 w-full flex-col items-center text-center"
+          <ul className="surface divide-y divide-border overflow-hidden">
+            {[...roster]
+              .sort((a, b) => countFor(b.name) - countFor(a.name))
+              .map((player) => {
+                const option =
+                  poll.options.find(
+                    (row) => row.label.trim().toLowerCase() === player.name.trim().toLowerCase(),
+                  ) ?? poll.options.find((row) => firstName(row.label) === firstName(player.name));
+                const selected = Boolean(option && mine?.optionId === option.id);
+                const count = countFor(player.name);
+                const teamSlug = teamById.get(player.team_id);
+                const row = (
+                  <>
+                    <Avatar
+                      name={player.name}
+                      teamSlug={teamSlug}
+                      src={avatars.data?.byPlayerId.get(player.id)?.url}
+                      size="sm"
+                      title={firstName(player.name)}
+                      className={selected ? "ring-2 ring-hunter/50" : ""}
+                    />
+                    <span
+                      className={`t-body min-w-0 flex-1 truncate ${
+                        selected ? "font-semibold text-foreground" : "text-foreground"
+                      }`}
                     >
-                      {face}
-                    </button>
-                  ) : (
-                    <div className="flex w-full flex-col items-center text-center">{face}</div>
-                  )}
-                </li>
-              );
-            })}
+                      {firstName(player.name)}
+                    </span>
+                    <span
+                      className={`t-micro tabular-nums ${
+                        count > 0 ? "text-muted-foreground" : "invisible"
+                      }`}
+                    >
+                      {count || 0}
+                    </span>
+                  </>
+                );
+                return (
+                  <li key={player.id}>
+                    {canVote && !closed ? (
+                      <button
+                        type="button"
+                        disabled={!option}
+                        aria-pressed={selected}
+                        aria-label={`Vote ${firstName(player.name)}`}
+                        onClick={() => option && void pick(option.id)}
+                        className="press flex min-h-12 w-full items-center gap-3 px-4 py-2.5 text-left"
+                      >
+                        {row}
+                      </button>
+                    ) : (
+                      <div className="flex min-h-12 w-full items-center gap-3 px-4 py-2.5">
+                        {row}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
           </ul>
         </>
       ) : (
