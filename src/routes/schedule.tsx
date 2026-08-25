@@ -61,8 +61,8 @@ function afterGolf(dayLabel: string) {
 }
 
 function dayBeat(courseId: CourseId) {
-  if (courseId === "copperhead") return "Breakfast · golf · Steakhouse 7:00";
-  if (courseId === "island") return "Breakfast · golf · lunch and awards";
+  if (courseId === "copperhead") return "Breakfast · Steakhouse 7:00";
+  if (courseId === "island") return "Breakfast · lunch and awards";
   return null;
 }
 
@@ -130,9 +130,36 @@ function SchedulePage() {
           </div>
 
           <header>
-            <h1 className="t-display text-foreground">{COURSE_LABEL[courseId]}</h1>
-            <p className="t-micro mt-2">
-              {details.firstTee} · {details.format} · {details.points} pts
+            <div className="flex min-h-11 items-center justify-between gap-3">
+              <h1 className="t-display text-foreground">{COURSE_LABEL[courseId]}</h1>
+              <button
+                type="button"
+                disabled={rounds.length === 0}
+                onClick={() => {
+                  if (rounds.length === 0) return;
+                  downloadWeekendIcs(rounds);
+                  void trackProductEvent("calendar_downloaded", { kind: "weekend" });
+                }}
+                className="press t-micro min-h-11 shrink-0 disabled:opacity-40"
+              >
+                Calendar
+              </button>
+            </div>
+            <p className="mt-2 flex flex-wrap items-center gap-x-1.5">
+              <span className="t-micro">{details.firstTee}</span>
+              <span className="t-micro" aria-hidden="true">
+                ·
+              </span>
+              <FormatSheet
+                ariaLabel={`${details.format}. How formats work`}
+                triggerClassName="t-micro inline-flex items-center text-foreground"
+              >
+                {details.format}
+              </FormatSheet>
+              <span className="t-micro" aria-hidden="true">
+                ·
+              </span>
+              <span className="t-micro">{details.points} pts</span>
             </p>
             <p className="t-body mt-3 text-muted-foreground">{details.formatTip}</p>
           </header>
@@ -185,22 +212,6 @@ function SchedulePage() {
         </section>
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
-
-        <p className="flex flex-wrap gap-x-5">
-          <FormatSheet triggerClassName="t-micro inline-flex min-h-11 items-center" />
-          {rounds.length > 0 ? (
-            <button
-              type="button"
-              onClick={() => {
-                downloadWeekendIcs(rounds);
-                void trackProductEvent("calendar_downloaded", { kind: "weekend" });
-              }}
-              className="press t-micro min-h-11"
-            >
-              Calendar
-            </button>
-          ) : null}
-        </p>
       </div>
     </Shell>
   );
