@@ -44,7 +44,7 @@ export default defineConfig({
             {
               urlPattern: ({ request }) => request.mode === "navigate",
               handler: "NetworkFirst",
-              options: { cacheName: "tin-cup-nav-v2", networkTimeoutSeconds: 4 },
+              options: { cacheName: "tin-cup-nav-v3", networkTimeoutSeconds: 4 },
             },
             {
               urlPattern: ({ url, sameOrigin }) =>
@@ -57,7 +57,7 @@ export default defineConfig({
                   url.pathname === "/favicon.png"),
               handler: "CacheFirst",
               options: {
-                cacheName: "tin-cup-assets",
+                cacheName: "tin-cup-assets-v3",
                 expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
               },
             },

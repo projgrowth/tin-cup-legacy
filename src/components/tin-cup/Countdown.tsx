@@ -8,20 +8,29 @@ function onTeeLine() {
 }
 
 /** Full-width first-tee clock. Compact is a single caption for tight slots. */
-export function Countdown({ compact = false }: { compact?: boolean }) {
+export function Countdown({
+  compact = false,
+  className = "",
+}: {
+  compact?: boolean;
+  className?: string;
+}) {
   const time = useLiveCountdown();
   const close = !time.done && time.remaining < 86_400_000;
 
   if (compact) {
     if (time.done) {
-      return <span className="t-micro text-hunter">{onTeeLine()}</span>;
+      return <span className={`t-micro ${className || "text-hunter"}`.trim()}>{onTeeLine()}</span>;
     }
     const line = close
       ? `${String(time.hours + time.days * 24).padStart(2, "0")}:${String(time.minutes).padStart(2, "0")}:${String(time.seconds).padStart(2, "0")}`
       : `${time.days}d ${time.hours}h ${time.minutes}m`;
     return (
-      <span suppressHydrationWarning className="t-micro tabular-nums text-muted-foreground">
-        <span className="font-semibold text-foreground">{line}</span>
+      <span
+        suppressHydrationWarning
+        className={`t-micro tabular-nums ${className || "text-muted-foreground"}`.trim()}
+      >
+        <span className="font-semibold">{line}</span>
       </span>
     );
   }

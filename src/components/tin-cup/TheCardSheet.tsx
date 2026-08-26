@@ -68,13 +68,13 @@ export function TheCardSheet({
                       fallback="none"
                     />
                   ) : null}
-                  <p className="t-body min-w-0 font-semibold leading-snug text-foreground">
+                  <p className="t-body min-w-0 font-semibold leading-snug text-hunter [&_a]:text-hunter">
                     <SideNames names={pairing.playersA} playerIdByName={playerIdByName} />
                   </p>
                 </div>
                 <span className="t-micro">vs</span>
                 <div className="flex items-center justify-center gap-1.5">
-                  <p className="t-body min-w-0 font-semibold leading-snug text-foreground">
+                  <p className="t-body min-w-0 font-semibold leading-snug text-stone [&_a]:text-stone">
                     <SideNames names={pairing.playersB} playerIdByName={playerIdByName} />
                   </p>
                   {faceB ? (
