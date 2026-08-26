@@ -81,6 +81,14 @@ test("responsive Home and gallery compose without overflow", async ({ page }, te
     ),
   ).toBeLessThanOrEqual(1);
   await page.screenshot({ path: testInfo.outputPath("teams.png"), fullPage: true });
+
+  await page.goto("/schedule");
+  await expect(page.getByText("Where to be")).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("weekend.png"), fullPage: true });
+
+  await page.goto("/purse");
+  await expect(page.getByRole("link", { name: /Pay \$150/ })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("purse.png"), fullPage: true });
 });
 
 test("post-event recap remains composed", async ({ page }, testInfo) => {

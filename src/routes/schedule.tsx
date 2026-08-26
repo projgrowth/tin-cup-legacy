@@ -145,11 +145,23 @@ function SchedulePage() {
           </header>
 
           {social ? (
-            <div>
-              <p className="t-eyebrow">Where to be</p>
-              <p className="t-body mt-1.5 font-semibold text-foreground">{social.title}</p>
-              <p className="t-body mt-1.5 text-muted-foreground">{social.detail}</p>
-            </div>
+            <article className="surface overflow-hidden">
+              <header className="card-row py-4">
+                <p className="t-eyebrow">Where to be</p>
+                <h2 className="t-title mt-1.5 text-foreground">{social.title}</h2>
+              </header>
+              <ol>
+                {social.beats.map((beat) => (
+                  <li
+                    key={beat.when}
+                    className="card-row flex gap-4 border-t border-border py-3.5"
+                  >
+                    <span className="t-micro w-[5.5rem] shrink-0 pt-0.5">{beat.when}</span>
+                    <span className="t-body font-semibold text-foreground">{beat.what}</span>
+                  </li>
+                ))}
+              </ol>
+            </article>
           ) : null}
 
           {courseId !== "south" ? (
@@ -161,30 +173,34 @@ function SchedulePage() {
           ) : null}
 
           {courseId === "copperhead" ? (
-            <ul className="surface divide-y divide-border overflow-hidden">
-              <li className="px-4 py-2.5">
-                <p className="t-eyebrow">Snake Pit</p>
-              </li>
-              {SNAKE_PIT.map((hole) => (
-                <li key={hole.hole} className="flex gap-3 px-4 py-2.5">
-                  <span className="t-micro w-4 shrink-0 tabular-nums">{hole.hole}</span>
-                  <span className="t-body text-foreground">{hole.name}</span>
-                </li>
-              ))}
-            </ul>
+            <section className="surface overflow-hidden">
+              <p className="section-cap t-eyebrow">Snake Pit</p>
+              <ul className="grid grid-cols-3 divide-x divide-border">
+                {SNAKE_PIT.map((hole) => (
+                  <li key={hole.hole} className="px-3 py-4 text-center">
+                    <p className="t-numeral text-[1.35rem] text-foreground">{hole.hole}</p>
+                    <p className="t-micro mt-1.5 text-foreground">{hole.name}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
           ) : null}
 
           {courseId === "island" ? (
-            <ul className="surface divide-y divide-border overflow-hidden">
-              <li className="px-4 py-2.5">
-                <p className="t-eyebrow">Awards</p>
-              </li>
-              {TROPHIES.map((row) => (
-                <li key={row.name} className="px-4 py-2.5">
-                  <p className="t-body text-foreground">{row.name}</p>
-                </li>
-              ))}
-            </ul>
+            <section className="surface overflow-hidden">
+              <p className="section-cap t-eyebrow">Awards</p>
+              <ul>
+                {TROPHIES.map((row, index) => (
+                  <li
+                    key={row.name}
+                    className={`card-row py-3.5 ${index === 0 ? "" : "border-t border-border"}`}
+                  >
+                    <p className="t-body font-semibold text-foreground">{row.name}</p>
+                    <p className="t-micro mt-1">{row.detail}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
           ) : null}
 
         </section>
