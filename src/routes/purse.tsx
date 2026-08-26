@@ -1,14 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PageMasthead } from "@/components/tin-cup/PageMasthead";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
 import { useTournament } from "@/hooks/useTournament";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { sideCash, sideCashByPlayer, settlement, formatPayout } from "@/lib/purse";
-import { MoneySplit } from "@/components/tin-cup/DayStory";
 import {
   BUY_IN,
   EXPECTED_PLAYER_COUNT,
+  FEE_BREAKDOWN,
   TOURNAMENT_BANK,
   SIDE_BET_PAYOUTS_CONFIRMED,
   venmoUrl,
@@ -49,28 +48,6 @@ function PursePage() {
   return (
     <Shell variant="content">
       <div className="stack-page pb-10">
-        <PageMasthead
-          title="Purse"
-          meta={
-            <>
-              Venmo {TOURNAMENT_BANK}
-              <span className="mt-1 block">
-                Team win ${cup.winnerPayout} · side cash ${cash.pool}
-                {hasTbdPayouts ? " · holes TBD" : ""}
-              </span>
-            </>
-          }
-        >
-          <a
-            href={venmoUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="press chip chip-on mt-4 inline-flex min-h-11 no-underline"
-          >
-            Pay ${BUY_IN}
-          </a>
-        </PageMasthead>
-
         {isError && !data && (
           <ErrorState
             title="Purse board didn't load"
@@ -80,37 +57,64 @@ function PursePage() {
           />
         )}
 
-        <section className="stack-tight">
-          <h2 className="t-eyebrow">Where the $150 goes</h2>
-          <MoneySplit />
+        <section className="surface overflow-hidden">
+          <div className="card-row py-5">
+            <p className="t-eyebrow">Buy-in</p>
+            <p className="t-hero mt-1 text-foreground">${BUY_IN}</p>
+            <p className="t-micro mt-2">
+              Venmo {TOURNAMENT_BANK}
+              <span className="mt-1 block">
+                Team win ${cup.winnerPayout} · side cash ${cash.pool}
+                {hasTbdPayouts ? " · holes TBD" : ""}
+              </span>
+            </p>
+            <a
+              href={venmoUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="press btn-primary t-body mt-4 flex min-h-12 w-full items-center justify-center no-underline"
+            >
+              Pay ${BUY_IN}
+            </a>
+          </div>
+          <div className="grid grid-cols-2 border-t border-border">
+            {FEE_BREAKDOWN.map((row, index) => (
+              <article
+                key={row.label}
+                className={`card-row py-4 ${index === 1 ? "border-l border-border" : ""}`}
+              >
+                <p className="t-micro">{row.label}</p>
+                <p className="t-title mt-1 tabular-nums text-foreground">{row.value}</p>
+                <p className="t-micro mt-1.5">{row.note}</p>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section>
           <div className="mb-3 flex items-baseline justify-between gap-3">
             <h2 className="t-eyebrow">Side pots</h2>
-            <span className="t-micro text-muted-foreground">
+            <span className="t-micro">
               {claimed.length}/{pots.length}
             </span>
           </div>
-          <ul className="surface divide-y divide-border overflow-hidden">
+          <ul className="grid grid-cols-2 gap-2">
             {pots.map((bet) => (
-              <li key={bet.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
-                <span className="min-w-0">
-                  <span className="flex min-w-0 items-center gap-2">
-                    <span className="contest-mark">
-                      {isLongDrive(bet.kind) ? "LD" : isCtp(bet.kind) ? "CTP" : bet.kind}
-                    </span>
-                    <span className="t-body min-w-0 truncate font-medium text-foreground">
-                      {bet.label}
-                    </span>
+              <li key={bet.id} className="surface px-3 py-3.5">
+                <span className="flex items-center justify-between gap-2">
+                  <span className="contest-mark">
+                    {isLongDrive(bet.kind) ? "LD" : isCtp(bet.kind) ? "CTP" : bet.kind}
                   </span>
-                  <span className="t-micro text-muted-foreground">
-                    {bet.player_name ?? "Open"} · {potStatus(bet.hole)}
+                  <span className="t-numeral text-[1.05rem] text-foreground">
+                    {formatPayout(bet.amount)}
                   </span>
                 </span>
-                <span className="t-numeral shrink-0 text-foreground">
-                  {formatPayout(bet.amount)}
-                </span>
+                <p className="t-body mt-2 font-semibold leading-snug text-foreground">
+                  {bet.label}
+                </p>
+                <p className="t-micro mt-1">
+                  {bet.player_name ?? "Open"} · {potStatus(bet.hole)}
+                </p>
               </li>
             ))}
           </ul>

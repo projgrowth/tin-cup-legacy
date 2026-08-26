@@ -108,20 +108,27 @@ export const WEEKEND_SOCIAL = [
   {
     day: "Friday",
     title: "Pool & Salamander Grille",
-    detail:
-      "If weather is good, hit the pool after golf, then head to Salamander Grille in the main clubhouse for dinner.",
+    beats: [
+      { when: "After golf", what: "Pool if the weather holds" },
+      { when: "Dinner", what: "Salamander Grille, main clubhouse" },
+    ],
   },
   {
     day: "Saturday",
     title: "Breakfast, free time & Steakhouse",
-    detail:
-      "Breakfast is included in the main clubhouse. After the round: ask Andrew or the hosts about another round on property, rent bikes, or hit the pool. Dinner reservation is 7:00 PM at the Steakhouse.",
+    beats: [
+      { when: "Breakfast", what: "Main clubhouse, included" },
+      { when: "After golf", what: "Another round, bikes, or the pool — ask Andrew" },
+      { when: "7:00 PM", what: "Steakhouse" },
+    ],
   },
   {
     day: "Sunday",
     title: "Breakfast, lunch & awards",
-    detail:
-      "Breakfast is available at the main clubhouse. Please stick around for a quick lunch and a brief awards ceremony — feel free to hang afterward, but we’d love everyone there for the presentations.",
+    beats: [
+      { when: "Breakfast", what: "Main clubhouse" },
+      { when: "After golf", what: "Lunch, then awards — stick around for presentations" },
+    ],
   },
 ];
 
