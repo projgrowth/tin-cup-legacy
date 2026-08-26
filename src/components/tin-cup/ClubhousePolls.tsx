@@ -2,8 +2,10 @@ import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
+import { Avatar } from "@/components/tin-cup/Avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useEngagementPlatform } from "@/hooks/useEngagementPlatform";
+import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { useProfile } from "@/hooks/useJournal";
 import type { Player, Team } from "@/hooks/useTournament";
 import { fridayRosterNames } from "@/lib/day1-pairings";
@@ -15,6 +17,7 @@ function firstName(name: string) {
 
 export function ClubhousePolls({
   players,
+  teams = [],
   canCreate = false,
 }: {
   players: Player[];
@@ -26,6 +29,7 @@ export function ClubhousePolls({
   const claimed = Boolean(profile?.player_id);
   const canVote = Boolean(user && claimed);
   const engagement = useEngagementPlatform(user?.id, profile?.player_id);
+  const avatars = usePlayerAvatars(players, teams);
   const [question, setQuestion] = useState("");
   const roster = useMemo(
     () =>
@@ -114,11 +118,20 @@ export function ClubhousePolls({
                   ) ?? poll.options.find((row) => firstName(row.label) === firstName(player.name));
                 const selected = Boolean(option && mine?.optionId === option.id);
                 const count = countFor(player.name);
+                const face = avatars.data?.byPlayerId.get(player.id)?.url;
                 const row = (
                   <>
                     <span className="t-numeral w-6 shrink-0 text-[0.95rem] text-foreground">
                       {count}
                     </span>
+                    {face ? (
+                      <Avatar
+                        name={player.name}
+                        src={face}
+                        size="sm"
+                        fallback="none"
+                      />
+                    ) : null}
                     <span
                       className={`t-body min-w-0 flex-1 truncate ${
                         selected ? "font-semibold text-foreground" : "text-foreground"
