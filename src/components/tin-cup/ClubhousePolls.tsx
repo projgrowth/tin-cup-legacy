@@ -224,12 +224,12 @@ export function ClubhousePolls({
               <p className="card-row t-micro pt-2.5">
                 {leading.length > 0 ? "Everyone else" : "The field"}
               </p>
-              <div className="card-row flex flex-wrap gap-x-1 gap-y-0.5 pb-2 pt-1">
+              <div className="grid grid-cols-2 pb-1">
                 {rest.map((player) => {
                   const option = optionFor(poll, player);
                   const selected = Boolean(option && mine?.optionId === option.id);
                   const label = firstName(player.name);
-                  const className = `press t-micro min-h-11 px-1.5 ${
+                  const className = `press card-row t-body flex min-h-11 items-center py-2.5 text-left ${
                     selected ? "font-semibold text-foreground" : "text-muted-foreground"
                   }`;
                   if (canVote && !closed) {
@@ -260,7 +260,7 @@ export function ClubhousePolls({
                     );
                   }
                   return (
-                    <span key={player.id} className="t-micro px-1.5 py-2.5 text-muted-foreground">
+                    <span key={player.id} className={className}>
                       {label}
                     </span>
                   );
