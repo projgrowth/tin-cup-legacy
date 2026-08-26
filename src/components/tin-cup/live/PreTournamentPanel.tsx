@@ -28,31 +28,34 @@ export function PreTournamentPanel({
   return (
     <section aria-label="This weekend" className="stack-page">
       <HomeAnnouncement canModerate={canModerate} />
-      <div className="surface overflow-hidden">
-        <header className="card-row bg-hunter py-5">
+      <header className="surface overflow-hidden">
+        <div className="card-row bg-hunter py-5">
           <p className="t-eyebrow text-primary-foreground/70">
             {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
           </p>
           <div className="mt-1 flex items-baseline justify-between gap-3">
             <h1 className="t-hero min-w-0 text-primary-foreground">{today.firstTee}</h1>
-            <Countdown compact className="text-primary-foreground/75" />
+            <p className="flex shrink-0 items-baseline gap-x-1.5 whitespace-nowrap text-primary-foreground/80">
+              <Countdown compact className="text-primary-foreground/80" />
+              <span aria-hidden="true">·</span>
+              <a
+                href={venmoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="press py-2 font-semibold text-primary-foreground no-underline"
+              >
+                Pay ${BUY_IN}
+              </a>
+            </p>
           </div>
-          <a
-            href={venmoUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="press t-body mt-4 flex min-h-12 w-full items-center justify-center rounded-[var(--radius-card)] bg-background font-semibold text-hunter no-underline"
-          >
-            Pay ${BUY_IN}
-          </a>
-        </header>
-        <TheCardSheet
-          claimedName={claimedName}
-          playerIdByName={playerIdByName}
-          players={players}
-          teams={teams}
-        />
-      </div>
+        </div>
+      </header>
+      <TheCardSheet
+        claimedName={claimedName}
+        playerIdByName={playerIdByName}
+        players={players}
+        teams={teams}
+      />
 
       <ClubhousePolls players={players} teams={teams} canCreate={canModerate && Boolean(user)} />
     </section>
