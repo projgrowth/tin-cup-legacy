@@ -125,6 +125,7 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(page.getByRole("tab", { name: "Strong Mental" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Grass Roots" })).toBeVisible();
   await expect(page.getByText("Zack", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("w/ Chris")).toBeVisible();
   await expect(page.getByText("Kevin", { exact: true }).first()).toBeVisible();
   await page.getByRole("tab", { name: "Grass Roots" }).click();
   await expect(page.getByRole("tab", { name: "Grass Roots" })).toHaveAttribute(
