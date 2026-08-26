@@ -28,30 +28,24 @@ export function PreTournamentPanel({
   return (
     <section aria-label="This weekend" className="stack-page">
       <HomeAnnouncement canModerate={canModerate} />
-      <div className="stack-tight">
-        <header>
+      <div className="surface overflow-hidden">
+        <header className="card-row py-4">
           <p className="t-eyebrow">
             {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
           </p>
           <div className="mt-1 flex items-baseline justify-between gap-3">
             <h1 className="t-hero min-w-0 text-foreground">{today.firstTee}</h1>
-            <p className="flex shrink-0 items-baseline gap-x-1.5 whitespace-nowrap">
-              <Countdown compact />
-              <span className="t-micro" aria-hidden="true">
-                ·
-              </span>
-              <a
-                href={venmoUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="press t-micro-strong py-2 no-underline"
-              >
-                Pay ${BUY_IN}
-              </a>
-            </p>
+            <Countdown compact />
           </div>
+          <a
+            href={venmoUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="press btn-primary t-body mt-4 flex min-h-12 w-full items-center justify-center no-underline"
+          >
+            Pay ${BUY_IN}
+          </a>
         </header>
-
         <TheCardSheet
           claimedName={claimedName}
           playerIdByName={playerIdByName}
