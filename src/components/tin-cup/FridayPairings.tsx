@@ -7,7 +7,7 @@ function sameName(a: string, b: string) {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
 
-/** Type-first Friday sheet — faces live on Home Faceoff. */
+/** Type-first Friday sheet on Weekend. Home Faceoff is the same names, You first. */
 export function FridayPairings({
   claimedName = null,
   playerIdByName,
@@ -39,7 +39,7 @@ export function FridayPairings({
   );
 }
 
-function SideNames({
+export function SideNames({
   names,
   playerIdByName,
 }: {

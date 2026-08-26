@@ -52,6 +52,12 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Field" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Updates" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Faceoff" })).toBeVisible();
+  await expect(page.getByText("Zack · Chris")).toBeVisible();
+  await expect(page.getByText("Nick · Andrew")).toBeVisible();
+  await expect(page.getByText("Kevin · Max")).toBeVisible();
+  await expect(page.getByText("Seth · Keenan")).toBeVisible();
+  await expect(page.getByText("2 more")).toHaveCount(0);
+  await expect(page.getByText("Add a line")).toHaveCount(0);
   await expect(page.getByText(/with Zack/)).toHaveCount(0);
   await expect(page.getByText("First tee ·")).toHaveCount(0);
   await expect(page.getByText("to 3-putt the first hole")).toHaveCount(0);

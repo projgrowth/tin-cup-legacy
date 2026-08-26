@@ -1,17 +1,15 @@
 import { ClubhousePolls } from "@/components/tin-cup/ClubhousePolls";
 import { Countdown } from "@/components/tin-cup/Countdown";
+import { HomeAnnouncement } from "@/components/tin-cup/HomeAnnouncement";
 import { TheCardSheet } from "@/components/tin-cup/TheCardSheet";
 import { useAuth } from "@/hooks/useAuth";
 import type { Match, Player, Round, Team } from "@/hooks/useTournament";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
-import { yourGroupLine } from "@/lib/day1-pairings";
 import { BUY_IN, venmoUrl } from "@/lib/tin-cup";
 import type { WeekendContext } from "@/lib/weekend-context";
 
 /** Pre-event Home — first tee, Faceoff, poll, board. Dinner lives on Weekend. */
 export function PreTournamentPanel({
-  rounds = [],
-  matches = [],
   players = [],
   teams = [],
   claimedName = null,
@@ -31,18 +29,17 @@ export function PreTournamentPanel({
   const { user } = useAuth();
   const nextCourseId = defaultCourseId() as CourseId;
   const today = COURSE_DETAILS[nextCourseId];
-  const groupLine = claimedName ? yourGroupLine(claimedName) : null;
+  const playerIdByName = (name: string) =>
+    players.find((player) => player.name.trim().toLowerCase() === name.trim().toLowerCase())?.id;
 
   return (
     <section aria-label="This weekend" className="stack-page">
+      <HomeAnnouncement canModerate={canModerate} />
       <header>
         <p className="t-eyebrow">
           {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
         </p>
         <h1 className="t-hero mt-1 text-foreground">{today.firstTee}</h1>
-        {groupLine ? (
-          <p className="t-body mt-3 font-semibold text-foreground">{groupLine}</p>
-        ) : null}
         <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
           <Countdown compact />
           <a
@@ -56,7 +53,7 @@ export function PreTournamentPanel({
         </p>
       </header>
 
-      <TheCardSheet matches={matches} rounds={rounds} players={players} teams={teams} />
+      <TheCardSheet claimedName={claimedName} playerIdByName={playerIdByName} />
 
       <ClubhousePolls players={players} teams={teams} canCreate={canModerate && Boolean(user)} />
     </section>
