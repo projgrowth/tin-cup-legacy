@@ -150,6 +150,9 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByText("Skip intro")).toHaveCount(0);
   await expect(page.getByText("Just looking")).toHaveCount(0);
   await expect(page.getByText("Welcome to the weekend")).toHaveCount(0);
+  await expect(page.getByLabel("View tournament phase")).toHaveCount(0);
+  await expect(page.getByText("Auto ·")).toHaveCount(0);
+  await expect(page.getByText("Viewing ·")).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
 });
 
@@ -187,24 +190,27 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(
     page.getByRole("button", { name: /Scramble \+ Modified Alt Shot/ }),
   ).toBeVisible();
-  await expect(page.getByText("Zack · Chris")).toBeVisible();
-  await expect(page.getByText("Charles · Blake")).toBeVisible();
+  await expect(page.getByText("Where to be")).toBeVisible();
+  await expect(page.getByText("Pool & Salamander Grille")).toBeVisible();
+  await expect(page.getByText("Zack · Chris")).toHaveCount(0);
+  await expect(page.getByText("Charles · Blake")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Take / })).toHaveCount(0);
   await expect(page.getByText("Side A", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("tab", { name: "Saturday" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Sunday" })).toBeVisible();
   await page.getByRole("tab", { name: "Saturday" }).click();
   await expect(page.getByRole("heading", { name: /^Copperhead$/ })).toBeVisible();
-  await expect(page.getByText("Breakfast · Steakhouse 7:00")).toBeVisible();
+  await expect(page.getByText("Breakfast, free time & Steakhouse")).toBeVisible();
+  await expect(page.getByText("Breakfast · Steakhouse 7:00")).toHaveCount(0);
   await expect(page.getByText("Breakfast · golf")).toHaveCount(0);
   await expect(page.getByText("Pairings posted Friday night.")).toBeVisible();
-  await expect(page.getByText("Pool & Salamander Grille")).toHaveCount(0);
   await expect(page.getByText(/scramble partner/i)).toHaveCount(0);
   await expect(page.getByText("Loading…")).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
   await page.getByRole("tab", { name: "Sunday" }).click();
   await expect(page.getByRole("heading", { name: /^Island$/ })).toBeVisible();
-  await expect(page.getByText("Breakfast · lunch and awards")).toBeVisible();
+  await expect(page.getByText("Breakfast, lunch & awards")).toBeVisible();
+  await expect(page.getByText("Breakfast · lunch and awards")).toHaveCount(0);
   await page.getByRole("button", { name: /Shamble \+ Singles/ }).click();
   await expect(page.getByRole("heading", { name: "Weekend formats" })).toBeVisible();
 

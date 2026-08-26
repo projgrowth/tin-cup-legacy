@@ -10,24 +10,13 @@ import { LivePanel, PreTournamentPanel } from "@/components/tin-cup/panels";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
-import { usePlanningProgress } from "@/hooks/usePlanningProgress";
 import { useExperiencePreferences } from "@/hooks/useExperiencePreferences";
 import { getEventPhase, phaseMode } from "@/lib/event-phase";
 import { type BoardMode } from "@/lib/tin-cup";
-import { tallyStandings } from "@/lib/scoring";
 
 import { hasAuthCallbackParams, parseAuthCallbackParams } from "@/lib/auth-recovery";
 import { resolveIdentity } from "@/lib/profile-identity";
-import { buildWeekendContext } from "@/lib/weekend-context";
 import { type FeedFilter } from "@/lib/social-platform";
-
-const MODES: Array<{ key: BoardMode; label: string }> = [
-  { key: "pre", label: "Weekend" },
-  { key: "live", label: "Live" },
-  { key: "post", label: "Legacy" },
-] as const;
-
-const PHASE_OVERRIDE_KEY = "tin-cup-phase-override-v1";
 
 type HomeSearch = {
   /** Clubhouse / TV large-type board */
@@ -108,8 +97,6 @@ function Index() {
   const navigate = useNavigate();
   const { user, loading: authLoading, passwordRecovery, canScore, isAdmin } = useAuth();
   const [autoMode, setAutoMode] = useState<BoardMode>("pre");
-  const [override, setOverride] = useState<BoardMode | null>(null);
-  const introDone = true;
 
   useEffect(() => {
     const params = parseAuthCallbackParams(window.location.href);
@@ -135,8 +122,6 @@ function Index() {
 
   useEffect(() => {
     setAutoMode(phaseMode(getEventPhase()));
-    const saved = window.sessionStorage.getItem(PHASE_OVERRIDE_KEY);
-    if (saved === "pre" || saved === "live" || saved === "post") setOverride(saved);
   }, []);
 
   // Keep the board honest if the app is left open across the first tee.
@@ -150,19 +135,7 @@ function Index() {
     };
   }, []);
 
-  const mode = search.story === "recap" ? "post" : (override ?? autoMode);
-
-  function selectMode(value: string) {
-    if (value === "auto") {
-      setOverride(null);
-      window.sessionStorage.removeItem(PHASE_OVERRIDE_KEY);
-      return;
-    }
-    if (value === "pre" || value === "live" || value === "post") {
-      setOverride(value);
-      window.sessionStorage.setItem(PHASE_OVERRIDE_KEY, value);
-    }
-  }
+  const mode = search.story === "recap" ? "post" : autoMode;
 
   const {
     data,
@@ -172,14 +145,12 @@ function Index() {
     isFetching,
     pendingWrites,
     failedWrites,
-    conflicts,
     retryFailedWrites,
     flashedMatchIds,
     realtimeStatus,
   } = useTournament();
   const { profile, loading: profileLoading, error: profileError } = useProfile();
   const experience = useExperiencePreferences(user?.id);
-  const planning = usePlanningProgress();
   const stale = isError && Boolean(data);
   const claimedPlayer = profile?.player_id
     ? (data?.players ?? []).find((p) => p.id === profile.player_id)
@@ -193,20 +164,6 @@ function Index() {
     playerOnRoster: Boolean(claimedPlayer),
   });
   const needsClaim = Boolean(user) && identity.kind === "claim";
-  const standings = tallyStandings(data?.matches ?? []);
-  const weekendContext = buildWeekendContext({
-    phase: mode,
-    signedIn: Boolean(user),
-    identityPending: Boolean(user) && identity.kind === "loading",
-    player: claimedPlayer ?? null,
-    rounds: data?.rounds ?? [],
-    matches: data?.matches ?? [],
-    canScore,
-    plannedHoles: planning.best,
-    pendingWrites,
-    failedWrites,
-    conflicts,
-  });
   useEffect(() => {
     if (!claimedPlayer) return;
     const team = (data?.teams ?? []).find((candidate) => candidate.id === claimedPlayer.team_id);
@@ -217,7 +174,7 @@ function Index() {
   }, [claimedPlayer, data?.teams]);
 
   useEffect(() => {
-    if (!introDone || !search.post) return;
+    if (!search.post) return;
     const id = window.setTimeout(() => {
       const target = search.comment
         ? (document.getElementById(`comment-${search.comment}`) ??
@@ -228,7 +185,7 @@ function Index() {
       window.setTimeout(() => target?.classList.remove("deep-link-target"), 2400);
     }, 250);
     return () => window.clearTimeout(id);
-  }, [introDone, search.comment, search.post]);
+  }, [search.comment, search.post]);
 
   // Clubhouse / TV large-type mode — no shell chrome
   if (displayMode) {
@@ -277,10 +234,6 @@ function Index() {
             <span className="t-micro shrink-0">Account</span>
           </Link>
         )}
-        {(canScore || isAdmin) && (
-          <PhaseControl mode={mode} automatic={!override} onChange={selectMode} />
-        )}
-
         {mode === "post" ? (
           <div className="mt-3">
             {isPending && !data ? (
@@ -302,15 +255,9 @@ function Index() {
             {mode === "pre" && (
               <div className="home-action">
                 <PreTournamentPanel
-                  rounds={data?.rounds ?? []}
-                  matches={data?.matches ?? []}
                   players={data?.players ?? []}
                   teams={data?.teams ?? []}
-                  canUpload={Boolean(user)}
-                  signedIn={Boolean(user)}
                   claimedName={claimedPlayer?.name ?? null}
-                  needsClaim={needsClaim}
-                  context={weekendContext}
                   canModerate={canScore || isAdmin}
                 />
               </div>
@@ -389,42 +336,6 @@ function Index() {
         )}
       </Shell>
     </>
-  );
-}
-
-function PhaseControl({
-  mode,
-  automatic,
-  onChange,
-}: {
-  mode: BoardMode;
-  automatic: boolean;
-  onChange: (value: string) => void;
-}) {
-  const label = MODES.find((item) => item.key === mode)?.label ?? "Weekend";
-  return (
-    <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
-      <p className="t-micro min-w-0">
-        <span className="mr-2 inline-block size-1.5 rounded-full bg-muted-foreground align-middle" />
-        {automatic ? `Auto · ${label}` : `Viewing · ${label}`}
-      </p>
-      <label className="sr-only" htmlFor="phase-view">
-        View tournament phase
-      </label>
-      <select
-        id="phase-view"
-        value={automatic ? "auto" : mode}
-        onChange={(event) => onChange(event.target.value)}
-        className="control t-micro min-h-11 w-auto py-1.5 pl-3 pr-8"
-      >
-        <option value="auto">Automatic</option>
-        {MODES.map((item) => (
-          <option key={item.key} value={item.key}>
-            {item.label}
-          </option>
-        ))}
-      </select>
-    </div>
   );
 }
 
