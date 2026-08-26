@@ -72,7 +72,7 @@ describe("the card", () => {
   });
 
   it("prints a ride count on the ticket, not a feed sentence", () => {
-    expect(rideCountLine(4, "Zack · Chris")).toBe("4 with Zack · Chris");
+    expect(rideCountLine(4, "Zack · Chris")).toBe("4");
     expect(rideCountLine(0, "Zack · Chris")).toBeNull();
     expect(predictionMomentKey(["s1", "a1"], "u1")).toBe("prediction:s1:u1");
   });

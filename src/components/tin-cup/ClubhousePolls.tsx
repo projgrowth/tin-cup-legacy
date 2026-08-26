@@ -2,10 +2,8 @@ import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
-import { Avatar } from "@/components/tin-cup/Avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useEngagementPlatform } from "@/hooks/useEngagementPlatform";
-import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { useProfile } from "@/hooks/useJournal";
 import type { Player, Team } from "@/hooks/useTournament";
 import { fridayRosterNames } from "@/lib/day1-pairings";
@@ -17,11 +15,10 @@ function firstName(name: string) {
 
 export function ClubhousePolls({
   players,
-  teams,
   canCreate = false,
 }: {
   players: Player[];
-  teams: Team[];
+  teams?: Team[];
   canCreate?: boolean;
 }) {
   const { user } = useAuth();
@@ -29,10 +26,8 @@ export function ClubhousePolls({
   const claimed = Boolean(profile?.player_id);
   const canVote = Boolean(user && claimed);
   const engagement = useEngagementPlatform(user?.id, profile?.player_id);
-  const avatars = usePlayerAvatars(players, teams);
   const [question, setQuestion] = useState("");
   const [index, setIndex] = useState(0);
-  const teamById = useMemo(() => new Map(teams.map((team) => [team.id, team.slug])), [teams]);
   const roster = useMemo(
     () =>
       fridayRosterNames()
@@ -90,10 +85,9 @@ export function ClubhousePolls({
   }
 
   return (
-    <section aria-label="Most likely" className="space-y-3">
+    <section aria-label="Most likely" className="stack-tight">
       {poll ? (
-        <>
-          <div className="surface overflow-hidden">
+        <div className="surface overflow-hidden">
           <header className="px-4 py-2.5">
             <p className="t-eyebrow">Most likely</p>
             {polls.length > 1 ? (
@@ -116,16 +110,14 @@ export function ClubhousePolls({
                 ))}
               </div>
             ) : null}
-            <h2 className="t-title mt-1.5 text-foreground">{pollDare(poll.question)}</h2>
-            {closed || youVoted || canVote || (user && !claimed) ? (
+            <h2 className="t-body mt-1.5 font-semibold text-foreground">{pollDare(poll.question)}</h2>
+            {closed || youVoted || (user && !claimed) ? (
               <p className="t-micro mt-1">
                 {closed
                   ? "Locked after the weekend."
                   : youVoted
-                    ? `You picked ${firstName(youVoted)}. Tap someone else to change it.`
-                    : canVote
-                      ? "Tap a name. One vote — change it anytime."
-                      : "Claim your roster name to vote."}
+                    ? `You picked ${firstName(youVoted)}.`
+                    : "Claim your roster name to vote."}
               </p>
             ) : null}
             {user && !claimed && !closed ? (
@@ -143,17 +135,11 @@ export function ClubhousePolls({
                   ) ?? poll.options.find((row) => firstName(row.label) === firstName(player.name));
                 const selected = Boolean(option && mine?.optionId === option.id);
                 const count = countFor(player.name);
-                const teamSlug = teamById.get(player.team_id);
                 const row = (
                   <>
-                    <Avatar
-                      name={player.name}
-                      teamSlug={teamSlug}
-                      src={avatars.data?.byPlayerId.get(player.id)?.url}
-                      size="sm"
-                      title={firstName(player.name)}
-                      className={selected ? "ring-2 ring-hunter/50" : ""}
-                    />
+                    <span className="t-numeral w-6 shrink-0 text-[0.95rem] text-foreground">
+                      {count}
+                    </span>
                     <span
                       className={`t-body min-w-0 flex-1 truncate ${
                         selected ? "font-semibold text-foreground" : "text-foreground"
@@ -161,7 +147,6 @@ export function ClubhousePolls({
                     >
                       {firstName(player.name)}
                     </span>
-                    <span className="t-micro tabular-nums text-muted-foreground">{count}</span>
                   </>
                 );
                 return (
@@ -195,9 +180,8 @@ export function ClubhousePolls({
               })}
             </ul>
           ) : null}
-          </div>
-          {rest.length > 0 && canVote ? (
-            <div className="flex flex-wrap gap-x-1 gap-y-1">
+          {rest.length > 0 ? (
+            <div className="flex flex-wrap gap-x-1 gap-y-1 border-t border-border px-2 py-1.5">
               {rest.map((player) => {
                 const option =
                   poll.options.find(
@@ -205,6 +189,9 @@ export function ClubhousePolls({
                   ) ?? poll.options.find((row) => firstName(row.label) === firstName(player.name));
                 const selected = Boolean(option && mine?.optionId === option.id);
                 const label = firstName(player.name);
+                const className = `press t-micro min-h-11 px-2 ${
+                  selected ? "font-semibold text-foreground" : "text-muted-foreground"
+                }`;
                 if (canVote && !closed) {
                   return (
                     <button
@@ -214,23 +201,33 @@ export function ClubhousePolls({
                       aria-pressed={selected}
                       aria-label={`Vote ${label}`}
                       onClick={() => option && void pick(option.id)}
-                      className={`press t-body min-h-11 px-2.5 ${
-                        selected ? "font-semibold text-foreground" : "text-muted-foreground"
-                      }`}
+                      className={className}
                     >
                       {label}
                     </button>
                   );
                 }
+                if (!user && !closed) {
+                  return (
+                    <Link
+                      key={player.id}
+                      to="/profile"
+                      aria-label={`Vote ${label}`}
+                      className={className}
+                    >
+                      {label}
+                    </Link>
+                  );
+                }
                 return (
-                  <span key={player.id} className="t-body px-2.5 py-2.5 text-muted-foreground">
+                  <span key={player.id} className="t-micro px-2 py-2.5 text-muted-foreground">
                     {label}
                   </span>
                 );
               })}
             </div>
           ) : null}
-        </>
+        </div>
       ) : (
         <p className="t-micro">No poll yet.</p>
       )}

@@ -16,9 +16,9 @@ export function predictionMomentKey(matchIds: string[], userId: string): string 
   return `prediction:${id}:${userId}`;
 }
 
-export function rideCountLine(count: number, side: string): string | null {
+export function rideCountLine(count: number, _side?: string): string | null {
   if (count <= 0) return null;
-  return `${count} with ${side}`;
+  return String(count);
 }
 
 export function pairingFirstNames(side: string | null | undefined): string {

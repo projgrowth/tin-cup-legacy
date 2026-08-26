@@ -71,31 +71,28 @@ export function TheCardSheet({
   if (!social.predictionsEnabled) return null;
 
   return (
-    <div className="space-y-5">
-      {yours ? (
-        <section aria-label="Your match">
-          <TheCardTicket
-            market={yours}
-            matches={matches}
-            userId={user?.id}
-            claimed={claimed}
-            social={social}
-            peopleA={peopleForMarket(yours, face).peopleA}
-            peopleB={peopleForMarket(yours, face).peopleB}
-            yours
-            signedIn={Boolean(user)}
-          />
-        </section>
-      ) : null}
-      <section aria-labelledby="the-card-title">
-        <div className="surface overflow-hidden">
-          <div className="px-4 py-2.5">
-            <h2 id="the-card-title" className="t-eyebrow">
-              Faceoff
-            </h2>
-          </div>
-          <div className="divide-y divide-border">
-            {shownMarkets.map((market) => {
+    <section aria-labelledby="the-card-title">
+      <div className="surface overflow-hidden">
+        <div className="px-4 py-2.5">
+          <h2 id="the-card-title" className="t-eyebrow">
+            Faceoff
+          </h2>
+        </div>
+        <div className="divide-y divide-border">
+          {yours ? (
+            <TheCardTicket
+              market={yours}
+              matches={matches}
+              userId={user?.id}
+              claimed={claimed}
+              social={social}
+              peopleA={peopleForMarket(yours, face).peopleA}
+              peopleB={peopleForMarket(yours, face).peopleB}
+              yours
+              signedIn={Boolean(user)}
+            />
+          ) : null}
+          {shownMarkets.map((market) => {
               const people = peopleForMarket(market, face);
               const roasts = faceoffRoasts(social.predictions, market.matchIds).map((pick) => ({
                 userId: pick.userId,
@@ -128,30 +125,29 @@ export function TheCardSheet({
                 />
               );
             })}
-            {hiddenMarkets > 0 ? (
-              <button
-                type="button"
-                onClick={() => setMoreCard(true)}
-                className="press t-micro flex min-h-11 w-full items-center px-4"
-              >
-                {hiddenMarkets} more
-              </button>
-            ) : null}
-          </div>
+          {hiddenMarkets > 0 ? (
+            <button
+              type="button"
+              onClick={() => setMoreCard(true)}
+              className="press t-micro flex min-h-11 w-full items-center px-4 text-muted-foreground"
+            >
+              {hiddenMarkets} more
+            </button>
+          ) : null}
         </div>
-        {records.length > 0 ? (
-          <ul className="mt-2">
-            {records.map((row) => (
-              <li key={row.userId} className="t-micro flex justify-between gap-3 py-1">
-                <span className="text-foreground">{nameOf(row.userId)}</span>
-                <span className="tabular-nums text-muted-foreground">
-                  {row.cashed} called · {row.pending} live
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </section>
-    </div>
+      </div>
+      {records.length > 0 ? (
+        <ul className="mt-2">
+          {records.map((row) => (
+            <li key={row.userId} className="t-micro flex justify-between gap-3 py-1">
+              <span className="text-foreground">{nameOf(row.userId)}</span>
+              <span className="tabular-nums text-muted-foreground">
+                {row.cashed} called · {row.pending} live
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
   );
 }

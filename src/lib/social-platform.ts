@@ -148,7 +148,7 @@ export function orderClubhousePolls(polls: ClubhousePoll[]) {
 }
 
 export function pollDare(question: string) {
-  const stripped = question.replace(/^most likely\s+/i, "").trim();
+  const stripped = question.replace(/^most likely\s+(to\s+)?/i, "").trim();
   return stripped || question;
 }
 

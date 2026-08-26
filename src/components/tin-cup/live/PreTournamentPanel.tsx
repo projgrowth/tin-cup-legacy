@@ -34,7 +34,7 @@ export function PreTournamentPanel({
   const groupLine = claimedName ? yourGroupLine(claimedName) : null;
 
   return (
-    <section aria-label="This weekend" className="space-y-8">
+    <section aria-label="This weekend" className="stack-page">
       <header>
         <p className="t-eyebrow">
           {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
@@ -43,7 +43,7 @@ export function PreTournamentPanel({
         {groupLine ? (
           <p className="t-body mt-3 font-semibold text-foreground">{groupLine}</p>
         ) : null}
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
           <Countdown compact />
           <a
             href={venmoUrl}
@@ -53,7 +53,7 @@ export function PreTournamentPanel({
           >
             Pay ${BUY_IN}
           </a>
-        </div>
+        </p>
       </header>
 
       <TheCardSheet matches={matches} rounds={rounds} players={players} teams={teams} />
