@@ -25,7 +25,7 @@ export function TheCardSheet({
   return (
     <section aria-labelledby="the-card-title">
       <div className="surface overflow-hidden">
-        <div className="px-4 py-2.5">
+        <div className="section-cap">
           <h2 id="the-card-title" className="t-eyebrow">
             Faceoff
           </h2>
@@ -34,19 +34,20 @@ export function TheCardSheet({
           {rows.map((pairing) => {
             const you = pairing.matchIndex === yours?.matchIndex;
             return (
-              <li key={pairing.matchIndex} className={you ? "bg-hunter/5" : ""}>
-                {you ? (
-                  <p className="t-micro px-4 pt-2.5 text-hunter">You</p>
-                ) : null}
-                <p
-                  className={`t-body min-w-0 px-4 font-medium leading-snug text-foreground ${
-                    you ? "pb-2.5 pt-1" : "py-2.5"
-                  }`}
-                >
-                  <SideNames names={pairing.playersA} playerIdByName={playerIdByName} />
-                  <span className="t-micro font-medium text-muted-foreground"> vs </span>
-                  <SideNames names={pairing.playersB} playerIdByName={playerIdByName} />
-                </p>
+              <li
+                key={pairing.matchIndex}
+                className={`px-4 py-3 ${you ? "rail-a bg-hunter/5" : ""}`}
+              >
+                {you ? <p className="t-micro mb-1 text-hunter">You</p> : null}
+                <div className="tc-matchup">
+                  <p className="t-body min-w-0 text-left font-semibold leading-snug text-foreground">
+                    <SideNames names={pairing.playersA} playerIdByName={playerIdByName} />
+                  </p>
+                  <span className="t-micro px-1">vs</span>
+                  <p className="t-body min-w-0 text-right font-semibold leading-snug text-foreground">
+                    <SideNames names={pairing.playersB} playerIdByName={playerIdByName} />
+                  </p>
+                </div>
               </li>
             );
           })}

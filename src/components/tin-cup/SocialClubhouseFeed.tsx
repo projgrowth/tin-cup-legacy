@@ -269,7 +269,7 @@ export function SocialClubhouseFeed({
   return (
     <section aria-labelledby="updates-title" className="stack-tight">
       <div className="surface overflow-hidden">
-      <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+      <div className="section-cap flex items-center justify-between gap-3">
         <h2 id="updates-title" className="t-eyebrow">
           Board
         </h2>

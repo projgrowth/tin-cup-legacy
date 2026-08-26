@@ -7,7 +7,7 @@ import { useEngagementPlatform } from "@/hooks/useEngagementPlatform";
 import { useProfile } from "@/hooks/useJournal";
 import type { Player, Team } from "@/hooks/useTournament";
 import { fridayRosterNames } from "@/lib/day1-pairings";
-import { orderClubhousePolls, pollClosed, pollDare, pollDareChip } from "@/lib/social-platform";
+import { orderClubhousePolls, pollClosed, pollDare } from "@/lib/social-platform";
 
 function firstName(name: string) {
   return name.trim().split(/\s+/)[0] ?? name;
@@ -27,7 +27,6 @@ export function ClubhousePolls({
   const canVote = Boolean(user && claimed);
   const engagement = useEngagementPlatform(user?.id, profile?.player_id);
   const [question, setQuestion] = useState("");
-  const [index, setIndex] = useState(0);
   const roster = useMemo(
     () =>
       fridayRosterNames()
@@ -40,7 +39,7 @@ export function ClubhousePolls({
   const polls = orderClubhousePolls(engagement.polls);
   if (!engagement.pollsEnabled) return null;
   if (polls.length === 0 && !canCreate) return null;
-  const poll = polls[Math.min(index, Math.max(polls.length - 1, 0))];
+  const poll = polls.find((row) => /3-putt/i.test(row.question)) ?? polls[0];
   const votes = poll ? engagement.votes.filter((vote) => vote.pollId === poll.id) : [];
   const mine = votes.find((vote) => vote.userId === user?.id);
   const tallies = (poll?.options ?? [])
@@ -88,28 +87,8 @@ export function ClubhousePolls({
     <section aria-label="Most likely" className="stack-tight">
       {poll ? (
         <div className="surface overflow-hidden">
-          <header className="px-4 py-2.5">
+          <header className="section-cap">
             <p className="t-eyebrow">Most likely</p>
-            {polls.length > 1 ? (
-              <div
-                className="no-scrollbar mt-1.5 flex gap-2 overflow-x-auto"
-                role="tablist"
-                aria-label="Polls"
-              >
-                {polls.map((row, i) => (
-                  <button
-                    key={row.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={i === index}
-                    onClick={() => setIndex(i)}
-                    className={`press chip min-h-11 shrink-0 ${i === index ? "chip-on" : ""}`}
-                  >
-                    {pollDareChip(row.question)}
-                  </button>
-                ))}
-              </div>
-            ) : null}
             <h2 className="t-body mt-1.5 font-semibold text-foreground">{pollDare(poll.question)}</h2>
             {closed || youVoted || (user && !claimed) ? (
               <p className="t-micro mt-1">
@@ -158,7 +137,7 @@ export function ClubhousePolls({
                         aria-pressed={selected}
                         aria-label={`Vote ${firstName(player.name)}`}
                         onClick={() => option && void pick(option.id)}
-                        className="press flex min-h-12 w-full items-center gap-3 px-4 py-2.5 text-left"
+                        className="press flex min-h-12 w-full items-center gap-3 px-4 py-3 text-left"
                       >
                         {row}
                       </button>
@@ -166,12 +145,12 @@ export function ClubhousePolls({
                       <Link
                         to="/profile"
                         aria-label={`Vote ${firstName(player.name)}`}
-                        className="press flex min-h-12 w-full items-center gap-3 px-4 py-2.5"
+                        className="press flex min-h-12 w-full items-center gap-3 px-4 py-3"
                       >
                         {row}
                       </Link>
                     ) : (
-                      <div className="flex min-h-12 w-full items-center gap-3 px-4 py-2.5">
+                      <div className="flex min-h-12 w-full items-center gap-3 px-4 py-3">
                         {row}
                       </div>
                     )}
