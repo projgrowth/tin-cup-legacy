@@ -217,14 +217,19 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await page.goto("/rosters");
   await expect(page.getByRole("tab", { name: "Strong Mental" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Grass Roots" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Strong Mental · 8/ })).toBeVisible();
+  await expect(page.getByText("Captain Zack")).toBeVisible();
   await expect(page.getByText("Zack", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("w/ Chris")).toBeVisible();
+  await expect(page.getByText("w/ Chris")).toHaveCount(0);
+  await expect(page.getByText("Friday with")).toHaveCount(0);
   await expect(page.getByText("Kevin", { exact: true }).first()).toBeVisible();
   await page.getByRole("tab", { name: "Grass Roots" }).click();
   await expect(page.getByRole("tab", { name: "Grass Roots" })).toHaveAttribute(
     "aria-selected",
     "true",
   );
+  await expect(page.getByRole("heading", { name: /Grass Roots · 8/ })).toBeVisible();
+  await expect(page.getByText("Captain Charles")).toBeVisible();
   await expect(page.getByText("Charles", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Team Strong Mental" })).toHaveCount(0);
   await expect(page.getByText("Loading…")).toHaveCount(0);
