@@ -134,36 +134,17 @@ export function pollClosed(poll: Pick<ClubhousePoll, "closedAt" | "closesAt">, n
   return Boolean(poll.closedAt || (poll.closesAt && Date.parse(poll.closesAt) <= now));
 }
 
-/** First-hole 3-putt leads. Other dares keep insert order. */
+/** Live dares in the order they were posted. */
 export function orderClubhousePolls(polls: ClubhousePoll[]) {
-  const ranked = polls
+  return polls
     .filter((poll) => !poll.deletedAt)
     .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
-  const first = ranked.findIndex((poll) => /3-putt/i.test(poll.question));
-  if (first > 0) {
-    const [hit] = ranked.splice(first, 1);
-    ranked.unshift(hit);
-  }
-  return ranked;
 }
 
+/** Strip a leading "Most likely (to)" so the section title is not repeated. */
 export function pollDare(question: string) {
   const stripped = question.replace(/^most likely\s+(to\s+)?/i, "").trim();
   return stripped || question;
-}
-
-/** Short tab label so chips do not repeat the dare title. */
-export function pollDareChip(question: string) {
-  const dare = pollDare(question);
-  if (/3-putt/i.test(dare)) return "3-putt";
-  if (/3-wood/i.test(dare)) return "3-wood";
-  if (/steakhouse/i.test(dare)) return "steakhouse";
-  const words = dare
-    .replace(/^to\s+/i, "")
-    .split(/\s+/)
-    .slice(0, 2)
-    .join(" ");
-  return words || dare;
 }
 
 export function activeCheckIns(rows: PlayerCheckIn[], now = Date.now()) {

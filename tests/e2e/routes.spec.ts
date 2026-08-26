@@ -8,6 +8,48 @@ test.beforeEach(async ({ page }) => {
     sessionStorage.setItem("tc-intro-played", "1");
     Object.defineProperty(navigator, "share", { configurable: true, value: undefined });
     Object.defineProperty(navigator, "canShare", { configurable: true, value: undefined });
+    const names = [
+      "Zack Smith",
+      "Chris Maher",
+      "Nick Sears",
+      "Andrew Kezsbom",
+      "Kevin Maher",
+      "Max Furth",
+      "Seth Beaver",
+      "Keenan Horrell",
+      "Charles Grass",
+      "Blake Weeks",
+      "Neil Candelora",
+      "Mike Maher",
+      "Dan Rodriguez",
+      "Josef Yehia",
+      "Casey Gillespie",
+      "Barry Rigby",
+    ];
+    const dare = (id: string, question: string, createdAt: string) => ({
+      id,
+      authorId: "preview",
+      question,
+      createdAt,
+      closesAt: "2026-08-30T23:59:59-04:00",
+      closedAt: null,
+      deletedAt: null,
+      moderatedBy: null,
+      options: names.map((label, sortOrder) => ({
+        id: `${id}-${sortOrder}`,
+        pollId: id,
+        label,
+        sortOrder,
+      })),
+    });
+    localStorage.setItem(
+      "tin-cup-preview-v1:polls",
+      JSON.stringify([
+        dare("p-3putt", "Most likely to 3-putt the first hole", "2026-08-25T01:56:08.000Z"),
+        dare("p-fall", "Fall apart mentally before friday is over", "2026-08-25T19:15:02.000Z"),
+        dare("p-late", "Show up to the first tee box late", "2026-08-26T01:42:20.000Z"),
+      ]),
+    );
   });
 });
 
@@ -85,8 +127,15 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByText("Seth · Keenan")).toBeVisible();
   await expect(page.getByText("2 more")).toHaveCount(0);
   await expect(page.getByText("Add a line")).toHaveCount(0);
-  await expect(page.getByText("Fall apart")).toHaveCount(0);
-  await expect(page.getByText("Show up")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Most likely" })).toBeVisible();
+  await expect(page.getByText("Sign in to vote.")).toBeVisible();
+  await expect(page.getByRole("tab", { name: "3-putt the first hole" })).toBeVisible();
+  await expect(
+    page.getByRole("tab", { name: "Fall apart mentally before friday is over" }),
+  ).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Show up to the first tee box late" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Fall apart", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("tab", { name: "Show up", exact: true })).toHaveCount(0);
   await expect(page.getByText(/with Zack/)).toHaveCount(0);
   await expect(page.getByText("First tee ·")).toHaveCount(0);
   await expect(page.getByText("to 3-putt the first hole")).toHaveCount(0);
