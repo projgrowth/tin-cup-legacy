@@ -103,8 +103,7 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
       vw: window.innerWidth,
     };
   });
-  expect(mast.time).toBeGreaterThan(mast.crest);
-  expect(Math.abs(mast.time - mast.faceoff)).toBeLessThanOrEqual(2);
+  expect(mast.time).toBe(mast.crest);
   expect(mast.pay).toBeGreaterThan(mast.timeRight);
   expect(mast.payTop).toBeLessThan(mast.timeBottom);
   expect(mast.vw - mast.payRight).toBeGreaterThanOrEqual(12);
@@ -128,7 +127,7 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByText("Add a line")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Most likely" })).toBeVisible();
   await expect(page.getByText("Sign in to vote.")).toBeVisible();
-  await expect(page.getByRole("tab", { name: "3-putt the first hole" })).toBeVisible();
+  await expect(page.getByText("3-putt the first hole").first()).toBeVisible();
   await expect(
     page.getByRole("tab", { name: "Fall apart mentally before friday is over" }),
   ).toBeVisible();

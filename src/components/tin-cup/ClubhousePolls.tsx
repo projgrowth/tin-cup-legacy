@@ -119,6 +119,7 @@ export function ClubhousePolls({
         <div className="surface overflow-hidden">
           <header className="section-cap">
             <h2 className="t-eyebrow">Most likely</h2>
+            <p className="t-title mt-1.5 text-foreground">{pollDare(poll.question)}</p>
             <p className="t-micro mt-1">{hint}</p>
             {user && !claimed && !closed ? (
               <Link to="/profile" className="press t-micro mt-1 inline-flex min-h-11 items-center">
@@ -128,37 +129,24 @@ export function ClubhousePolls({
           </header>
 
           {polls.length > 1 ? (
-            <ul role="tablist" aria-label="Dares" className="divide-y divide-border">
-              {polls.map((row) => {
-                const on = row.id === poll.id;
-                return (
+            <ul role="tablist" aria-label="Other dares" className="border-b border-border">
+              {polls
+                .filter((row) => row.id !== poll.id)
+                .map((row) => (
                   <li key={row.id}>
                     <button
                       type="button"
                       role="tab"
-                      aria-selected={on}
+                      aria-selected={false}
                       onClick={() => setPickedId(row.id)}
-                      className={`press card-row flex min-h-12 w-full items-start py-3 text-left ${
-                        on ? "rail-a bg-hunter/5" : ""
-                      }`}
+                      className="press card-row t-micro flex min-h-11 w-full items-center py-2 text-left"
                     >
-                      <span
-                        className={`t-body line-clamp-2 ${
-                          on ? "font-semibold text-foreground" : "text-foreground"
-                        }`}
-                      >
-                        {pollDare(row.question)}
-                      </span>
+                      {pollDare(row.question)}
                     </button>
                   </li>
-                );
-              })}
+                ))}
             </ul>
-          ) : (
-            <h3 className="card-row t-body py-3 font-semibold text-foreground">
-              {pollDare(poll.question)}
-            </h3>
-          )}
+          ) : null}
 
           {leading.length > 0 ? (
             <ul className="grid grid-cols-2 border-t border-border">

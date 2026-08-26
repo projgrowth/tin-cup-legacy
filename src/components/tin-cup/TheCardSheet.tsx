@@ -38,60 +38,58 @@ export function TheCardSheet({
     : DAY1_PAIRINGS;
 
   return (
-    <section aria-labelledby="the-card-title">
-      <div className="surface overflow-hidden">
-        <div className="section-cap">
-          <h2 id="the-card-title" className="t-eyebrow">
-            Faceoff
-          </h2>
-        </div>
-        <ul className="divide-y divide-border">
-          {rows.map((pairing) => {
-            const you = pairing.matchIndex === yours?.matchIndex;
-            const faceA = faceFor(pairing.playersA);
-            const faceB = faceFor(pairing.playersB);
-            return (
-              <li
-                key={pairing.matchIndex}
-                className={`card-row py-3.5 ${you ? "rail-a bg-hunter/5" : ""}`}
-              >
-                {you ? <p className="t-micro mb-1 text-hunter">You</p> : null}
-                <div className="tc-matchup">
-                  <div className="flex min-w-0 items-center gap-2">
-                    {faceA ? (
-                      <Avatar
-                        name={faceA.name}
-                        src={faceA.url}
-                        teamSlug={faceA.teamSlug}
-                        size="md"
-                        fallback="none"
-                      />
-                    ) : null}
-                    <p className="t-body min-w-0 truncate text-left font-semibold leading-snug text-hunter [&_a]:text-hunter">
-                      <SideNames names={pairing.playersA} playerIdByName={playerIdByName} />
-                    </p>
-                  </div>
-                  <span className="t-micro px-1">vs</span>
-                  <div className="flex min-w-0 items-center justify-end gap-2">
-                    <p className="t-body min-w-0 truncate text-right font-semibold leading-snug text-stone [&_a]:text-stone">
-                      <SideNames names={pairing.playersB} playerIdByName={playerIdByName} />
-                    </p>
-                    {faceB ? (
-                      <Avatar
-                        name={faceB.name}
-                        src={faceB.url}
-                        teamSlug={faceB.teamSlug}
-                        size="md"
-                        fallback="none"
-                      />
-                    ) : null}
-                  </div>
+    <section aria-labelledby="the-card-title" className="stack-tight">
+      <h2 id="the-card-title" className="t-eyebrow">
+        Faceoff
+      </h2>
+      <ul className="stack-tight">
+        {rows.map((pairing) => {
+          const you = pairing.matchIndex === yours?.matchIndex;
+          const faceA = faceFor(pairing.playersA);
+          const faceB = faceFor(pairing.playersB);
+          return (
+            <li
+              key={pairing.matchIndex}
+              className={`surface overflow-hidden ${you ? "ring-1 ring-hunter/35" : ""}`}
+            >
+              {you ? (
+                <p className="card-row t-micro bg-hunter/10 py-1.5 text-hunter">You</p>
+              ) : null}
+              <div className="flex flex-col items-center gap-1 px-4 py-4 text-center">
+                <div className="flex items-center justify-center gap-2">
+                  {faceA ? (
+                    <Avatar
+                      name={faceA.name}
+                      src={faceA.url}
+                      teamSlug={faceA.teamSlug}
+                      size="md"
+                      fallback="none"
+                    />
+                  ) : null}
+                  <p className="t-body font-semibold leading-snug text-hunter [&_a]:text-hunter">
+                    <SideNames names={pairing.playersA} playerIdByName={playerIdByName} />
+                  </p>
                 </div>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+                <span className="t-micro">vs</span>
+                <div className="flex items-center justify-center gap-2">
+                  <p className="t-body font-semibold leading-snug text-stone [&_a]:text-stone">
+                    <SideNames names={pairing.playersB} playerIdByName={playerIdByName} />
+                  </p>
+                  {faceB ? (
+                    <Avatar
+                      name={faceB.name}
+                      src={faceB.url}
+                      teamSlug={faceB.teamSlug}
+                      size="md"
+                      fallback="none"
+                    />
+                  ) : null}
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

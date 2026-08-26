@@ -28,26 +28,24 @@ export function PreTournamentPanel({
   return (
     <section aria-label="This weekend" className="stack-page">
       <HomeAnnouncement canModerate={canModerate} />
-      <header className="surface overflow-hidden">
-        <div className="card-row bg-hunter py-5">
-          <p className="t-eyebrow text-primary-foreground/70">
-            {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
+      <header className="-mx-4 bg-hunter px-4 py-5 sm:-mx-5 sm:px-5">
+        <p className="t-eyebrow text-primary-foreground/70">
+          {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
+        </p>
+        <div className="mt-1 flex items-baseline justify-between gap-3">
+          <h1 className="t-hero min-w-0 text-primary-foreground">{today.firstTee}</h1>
+          <p className="flex shrink-0 items-baseline gap-x-1.5 whitespace-nowrap text-primary-foreground/80">
+            <Countdown compact className="text-primary-foreground/80" />
+            <span aria-hidden="true">·</span>
+            <a
+              href={venmoUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="press py-2 font-semibold text-primary-foreground no-underline"
+            >
+              Pay ${BUY_IN}
+            </a>
           </p>
-          <div className="mt-1 flex items-baseline justify-between gap-3">
-            <h1 className="t-hero min-w-0 text-primary-foreground">{today.firstTee}</h1>
-            <p className="flex shrink-0 items-baseline gap-x-1.5 whitespace-nowrap text-primary-foreground/80">
-              <Countdown compact className="text-primary-foreground/80" />
-              <span aria-hidden="true">·</span>
-              <a
-                href={venmoUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="press py-2 font-semibold text-primary-foreground no-underline"
-              >
-                Pay ${BUY_IN}
-              </a>
-            </p>
-          </div>
         </div>
       </header>
       <TheCardSheet
