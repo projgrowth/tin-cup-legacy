@@ -161,29 +161,36 @@ export function ClubhousePolls({
           )}
 
           {leading.length > 0 ? (
-            <ul className="divide-y divide-border border-t border-border">
-              {leading.map((player) => {
+            <ul className="grid grid-cols-2 border-t border-border">
+              {leading.map((player, index) => {
                 const option = optionFor(poll, player);
                 const selected = Boolean(option && mine?.optionId === option.id);
                 const count = countFor(player.name);
                 const face = avatars.data?.byPlayerId.get(player.id)?.url;
-                const row = (
+                const tile = (
                   <>
-                    <span className="t-numeral w-6 shrink-0 text-foreground">{count}</span>
+                    <span className="t-numeral text-[1.15rem] text-foreground">{count}</span>
                     {face ? (
-                      <Avatar name={player.name} src={face} size="sm" fallback="none" />
+                      <Avatar name={player.name} src={face} size="md" fallback="none" />
                     ) : null}
                     <span
-                      className={`t-body min-w-0 flex-1 truncate ${
-                        selected ? "font-semibold text-foreground" : "text-foreground"
+                      className={`t-body mt-1 font-semibold ${
+                        selected ? "text-hunter" : "text-foreground"
                       }`}
                     >
                       {firstName(player.name)}
                     </span>
                   </>
                 );
+                const box =
+                  "press flex min-h-24 w-full flex-col items-center justify-center gap-1 px-2 py-4 text-center";
                 return (
-                  <li key={player.id}>
+                  <li
+                    key={player.id}
+                    className={`${index >= 2 ? "border-t border-border" : ""} ${
+                      index % 2 === 1 ? "border-l border-border" : ""
+                    }`}
+                  >
                     {canVote && !closed ? (
                       <button
                         type="button"
@@ -191,22 +198,20 @@ export function ClubhousePolls({
                         aria-pressed={selected}
                         aria-label={`Vote ${firstName(player.name)}`}
                         onClick={() => option && void pick(option.id)}
-                        className="press card-row flex min-h-12 w-full items-center gap-3 py-3 text-left"
+                        className={box}
                       >
-                        {row}
+                        {tile}
                       </button>
                     ) : !user && !closed ? (
                       <Link
                         to="/profile"
                         aria-label={`Vote ${firstName(player.name)}`}
-                        className="press card-row flex min-h-12 w-full items-center gap-3 py-3"
+                        className={box}
                       >
-                        {row}
+                        {tile}
                       </Link>
                     ) : (
-                      <div className="card-row flex min-h-12 w-full items-center gap-3 py-3">
-                        {row}
-                      </div>
+                      <div className={box}>{tile}</div>
                     )}
                   </li>
                 );

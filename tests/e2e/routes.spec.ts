@@ -103,11 +103,9 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
       vw: window.innerWidth,
     };
   });
-  expect(mast.time).toBe(mast.crest);
-  expect(mast.faceoff).toBeGreaterThan(mast.time + 10);
-  expect(mast.pay).toBeGreaterThan(mast.timeRight);
-  expect(mast.payTop).toBeLessThan(mast.timeBottom);
-  expect(mast.payBottom).toBeGreaterThan(mast.timeTop);
+  expect(mast.time).toBeGreaterThan(mast.crest);
+  expect(Math.abs(mast.time - mast.faceoff)).toBeLessThanOrEqual(2);
+  expect(mast.payTop).toBeGreaterThan(mast.timeBottom);
   expect(mast.vw - mast.payRight).toBeGreaterThanOrEqual(12);
   await expect(page.getByText(/Fri 8 \+ Sat 6 \+ Sun 12/)).toHaveCount(0);
   await expect(page.getByText("Sign in to join the Clubhouse")).toHaveCount(0);

@@ -10,7 +10,7 @@ export function HomeAnnouncement({ canModerate = false }: { canModerate?: boolea
   if (!pin) return null;
 
   return (
-    <aside className="surface-inset px-4 py-3" aria-label="Announcement">
+    <aside className="surface-inset card-row py-3" aria-label="Announcement">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="t-eyebrow">Captains</p>
