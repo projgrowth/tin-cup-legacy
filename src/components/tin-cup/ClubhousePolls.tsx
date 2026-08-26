@@ -150,7 +150,7 @@ export function ClubhousePolls({
                         aria-pressed={selected}
                         aria-label={`Vote ${firstName(player.name)}`}
                         onClick={() => option && void pick(option.id)}
-                        className="press flex min-h-12 w-full items-center gap-3 px-4 py-3 text-left"
+                        className="press card-row flex min-h-12 w-full items-center gap-3 py-3 text-left"
                       >
                         {row}
                       </button>
@@ -158,12 +158,12 @@ export function ClubhousePolls({
                       <Link
                         to="/profile"
                         aria-label={`Vote ${firstName(player.name)}`}
-                        className="press flex min-h-12 w-full items-center gap-3 px-4 py-3"
+                        className="press card-row flex min-h-12 w-full items-center gap-3 py-3"
                       >
                         {row}
                       </Link>
                     ) : (
-                      <div className="flex min-h-12 w-full items-center gap-3 px-4 py-3">
+                      <div className="card-row flex min-h-12 w-full items-center gap-3 py-3">
                         {row}
                       </div>
                     )}

@@ -281,7 +281,7 @@ export function SocialClubhouseFeed({
       {!user ? (
         <Link
           to="/profile"
-          className="press flex min-h-12 items-center justify-between border-t border-border px-4 py-3"
+          className="press card-row flex min-h-12 items-center justify-between border-t border-border py-3"
         >
           <span className="t-body font-medium text-foreground">Sign in to post</span>
           <span className="t-micro">Account</span>
@@ -289,7 +289,7 @@ export function SocialClubhouseFeed({
       ) : !canParticipate ? (
         <Link
           to="/profile"
-          className="press flex min-h-12 items-center justify-between border-t border-border px-4 py-3"
+          className="press card-row flex min-h-12 items-center justify-between border-t border-border py-3"
         >
           <span className="t-body font-medium text-foreground">Claim your name to post</span>
           <span className="t-micro">Account</span>
@@ -490,7 +490,7 @@ export function SocialClubhouseFeed({
                   <article
                     key={post.id}
                     id={`post-${post.id}`}
-                    className={`px-4 py-3.5 ${post.pinned_at ? "announcement-card" : ""}`}
+                    className={`card-row py-3.5 ${post.pinned_at ? "announcement-card" : ""}`}
                   >
                     <header className="flex items-start gap-3">
                       <Avatar
@@ -732,7 +732,7 @@ export function SocialClubhouseFeed({
                 ) : moment.kind === "photo" && moment.mediaPath ? (
                   <div className="skeleton h-48 w-full" />
                 ) : null}
-                <div className="px-4 py-3.5">
+                <div className="card-row py-3.5">
                   <header className="flex items-start gap-3">
                     <Avatar
                       name={moment.playerName || "Tin Cup"}
@@ -874,7 +874,7 @@ export function SocialClubhouseFeed({
               ) : moment.mediaPath ? (
                 <div className="skeleton h-48 w-full" />
               ) : null}
-              <div className="px-4 py-3.5">
+              <div className="card-row py-3.5">
                 <header className="flex items-start gap-3">
                   <Avatar
                     name={moment.playerName || "Tin Cup"}

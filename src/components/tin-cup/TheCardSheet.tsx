@@ -53,7 +53,7 @@ export function TheCardSheet({
             return (
               <li
                 key={pairing.matchIndex}
-                className={`px-4 py-3 ${you ? "rail-a bg-hunter/5" : ""}`}
+                className={`card-row py-2.5 ${you ? "rail-a bg-hunter/5" : ""}`}
               >
                 {you ? <p className="t-micro mb-1 text-hunter">You</p> : null}
                 <div className="tc-matchup">
