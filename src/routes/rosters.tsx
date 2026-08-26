@@ -11,6 +11,10 @@ import { FIELD_SIDES, fridayPartnerName } from "@/lib/day1-pairings";
 
 type RosterSearch = { side?: "strong-mental" | "grass-roots" };
 
+function firstName(name: string) {
+  return name.trim().split(/\s+/)[0] ?? name;
+}
+
 export const Route = createFileRoute("/rosters")({
   validateSearch: (raw: Record<string, unknown>): RosterSearch => {
     const side = String(raw.side ?? "");
@@ -83,6 +87,7 @@ function RostersPage() {
         <div className="grid grid-cols-2 gap-2 md:hidden" role="tablist" aria-label="Side">
           {FIELD_SIDES.map((side) => {
             const on = side.slug === pickedSide;
+            const label = side.name.replace("Team ", "");
             return (
               <Link
                 key={side.slug}
@@ -93,7 +98,7 @@ function RostersPage() {
                 replace
                 className={`press chip min-h-11 w-full ${on ? "chip-on" : ""}`}
               >
-                {side.name.replace("Team ", "")}
+                {label}
                 {myTeam?.slug === side.slug ? " · You" : ""}
               </Link>
             );
@@ -104,64 +109,72 @@ function RostersPage() {
           {FIELD_SIDES.map((side) => {
             const hiddenOnMobile = side.slug !== pickedSide;
             const rail = side.slug === "strong-mental" ? "border-hunter" : "border-stone";
+            const label = side.name.replace("Team ", "");
+            const yours = myTeam?.slug === side.slug;
             return (
               <section
                 key={side.slug}
                 className={`surface overflow-hidden border-t-2 ${rail} ${hiddenOnMobile ? "hidden md:block" : ""}`}
               >
-                <p className="t-micro hidden px-4 pb-1 pt-3 text-muted-foreground md:block">
-                  {side.name.replace("Team ", "")}
-                  {myTeam?.slug === side.slug ? " · Your side" : ""}
-                </p>
-                <ul className="divide-y divide-border">
-                  {side.players.map((name) => {
+                <header className="card-row py-3">
+                  <h2 className="t-eyebrow">
+                    {label} · {side.players.length}
+                  </h2>
+                  <p className="t-micro mt-1">Captain {firstName(side.captain)}</p>
+                  {yours && myPartner ? (
+                    <p className="t-body mt-2 font-semibold text-hunter">
+                      You · Friday with {myPartner}
+                    </p>
+                  ) : null}
+                </header>
+                <ul className="grid grid-cols-2 border-t border-border">
+                  {side.players.map((name, index) => {
                     const player = playersByName.get(name.trim().toLowerCase());
                     const isYou = Boolean(player && myPlayerId === player.id);
-                    const isPartner = Boolean(myPartner && name.split(/\s+/)[0] === myPartner);
                     const isCaptain = name === side.captain || Boolean(player?.is_captain);
-                    const friday = fridayPartnerName(name);
                     const face = player ? avatars.data?.byPlayerId.get(player.id)?.url : undefined;
                     const body = (
-                      <span className="flex min-w-0 flex-1 items-center gap-3">
+                      <>
                         <Avatar
                           name={name}
                           teamSlug={side.slug}
                           src={face}
-                          size="sm"
+                          size="md"
                           fallback="ink"
                         />
-                        <span className="min-w-0 flex-1">
-                          <span className="t-body flex items-center gap-2 truncate font-medium text-foreground">
-                            <span className="truncate">{name.split(" ")[0]}</span>
-                            {isCaptain ? (
-                              <span className="t-micro text-muted-foreground">C</span>
-                            ) : null}
-                            {isYou ? (
-                              <span className="t-micro shrink-0 text-hunter">You</span>
-                            ) : isPartner ? (
-                              <span className="t-micro shrink-0">Friday</span>
-                            ) : null}
-                          </span>
-                          {friday ? (
-                            <span className="t-micro mt-0.5 block truncate">w/ {friday}</span>
-                          ) : null}
+                        <span
+                          className={`t-body mt-2 font-semibold ${
+                            isYou ? "text-hunter" : "text-foreground"
+                          }`}
+                        >
+                          {firstName(name)}
                         </span>
-                      </span>
+                        {isCaptain ? (
+                          <span className="t-micro mt-0.5">Captain</span>
+                        ) : isYou ? (
+                          <span className="t-micro mt-0.5 text-hunter">You</span>
+                        ) : null}
+                      </>
                     );
+                    const tile =
+                      "press flex min-h-28 flex-col items-center justify-center px-3 py-4 text-center";
                     return (
-                      <li key={name} className={isYou || isPartner ? "bg-secondary/40" : ""}>
+                      <li
+                        key={name}
+                        className={`${index >= 2 ? "border-t border-border" : ""} ${
+                          index % 2 === 1 ? "border-l border-border" : ""
+                        }`}
+                      >
                         {player ? (
                           <Link
                             to="/player/$playerId"
                             params={{ playerId: player.id }}
-                            className="press flex min-h-14 min-w-0 items-center gap-3 px-4 py-3.5"
+                            className={tile}
                           >
                             {body}
                           </Link>
                         ) : (
-                          <div className="flex min-h-14 min-w-0 items-center px-4 py-3.5">
-                            {body}
-                          </div>
+                          <div className={tile}>{body}</div>
                         )}
                       </li>
                     );
