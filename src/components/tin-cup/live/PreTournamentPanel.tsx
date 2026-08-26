@@ -3,10 +3,9 @@ import { Countdown } from "@/components/tin-cup/Countdown";
 import { HomeAnnouncement } from "@/components/tin-cup/HomeAnnouncement";
 import { TheCardSheet } from "@/components/tin-cup/TheCardSheet";
 import { useAuth } from "@/hooks/useAuth";
-import type { Match, Player, Round, Team } from "@/hooks/useTournament";
+import type { Player, Team } from "@/hooks/useTournament";
 import { COURSE_DETAILS, COURSE_LABEL, defaultCourseId, type CourseId } from "@/lib/courses";
 import { BUY_IN, venmoUrl } from "@/lib/tin-cup";
-import type { WeekendContext } from "@/lib/weekend-context";
 
 /** Pre-event Home — first tee, Faceoff, poll, board. Dinner lives on Weekend. */
 export function PreTournamentPanel({
@@ -15,15 +14,9 @@ export function PreTournamentPanel({
   claimedName = null,
   canModerate = false,
 }: {
-  rounds?: Round[];
-  matches?: Match[];
   players?: Player[];
   teams?: Team[];
-  canUpload?: boolean;
-  signedIn?: boolean;
   claimedName?: string | null;
-  needsClaim?: boolean;
-  context?: WeekendContext;
   canModerate?: boolean;
 }) {
   const { user } = useAuth();
@@ -70,14 +63,4 @@ export function PreTournamentPanel({
       <ClubhousePolls players={players} teams={teams} canCreate={canModerate && Boolean(user)} />
     </section>
   );
-}
-
-/** Install / WhatsApp stay off Home. Kept so live mode callers compile. */
-export function HomeWeekendDoors(_props: {
-  signedIn?: boolean;
-  claimedName?: string | null;
-  players?: Player[];
-  teams?: Team[];
-}) {
-  return null;
 }

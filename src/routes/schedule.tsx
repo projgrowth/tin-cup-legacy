@@ -1,9 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { FormatSheet } from "@/components/tin-cup/FormatSheet";
-import { FridayPairings } from "@/components/tin-cup/FridayPairings";
 import { ErrorState, Shell } from "@/components/tin-cup/Shell";
-import { useProfile } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
 import { roundStatus } from "@/lib/scoring";
 import { downloadWeekendIcs } from "@/lib/calendar";
@@ -17,7 +15,7 @@ import {
   defaultCourseId,
   type CourseId,
 } from "@/lib/courses";
-import { SNAKE_PIT, TROPHIES } from "@/lib/tin-cup";
+import { SNAKE_PIT, TROPHIES, WEEKEND_SOCIAL } from "@/lib/tin-cup";
 
 function useNow() {
   const [now, setNow] = useState<number | null>(null);
@@ -55,21 +53,9 @@ export const Route = createFileRoute("/schedule")({
   component: SchedulePage,
 });
 
-function afterGolf(dayLabel: string) {
-  if (dayLabel === "Friday") return "Pool if the weather holds, then Salamander.";
-  return null;
-}
-
-function dayBeat(courseId: CourseId) {
-  if (courseId === "copperhead") return "Breakfast · Steakhouse 7:00";
-  if (courseId === "island") return "Breakfast · lunch and awards";
-  return null;
-}
-
 function SchedulePage() {
   const search = Route.useSearch();
   const { data, isError, refetch, isFetching } = useTournament();
-  const { profile } = useProfile();
   const now = useNow();
   const todayCourse = defaultCourseId(now ?? undefined);
 
@@ -98,13 +84,7 @@ function SchedulePage() {
     : todayCourse;
   const courseId: CourseId = search.course ?? autoCourseId;
   const details = COURSE_DETAILS[courseId];
-  const claimedPlayer = profile?.player_id
-    ? (data?.players ?? []).find((player) => player.id === profile.player_id)
-    : undefined;
-  const playerIdByName = (name: string) =>
-    (data?.players ?? []).find(
-      (player) => player.name.trim().toLowerCase() === name.trim().toLowerCase(),
-    )?.id;
+  const social = WEEKEND_SOCIAL.find((row) => row.day === details.dayLabel);
 
   return (
     <Shell variant="content">
@@ -164,20 +144,21 @@ function SchedulePage() {
             <p className="t-body mt-3 text-muted-foreground">{details.formatTip}</p>
           </header>
 
-          {dayBeat(courseId) ? <p className="t-body">{dayBeat(courseId)}</p> : null}
+          {social ? (
+            <div>
+              <p className="t-eyebrow">Where to be</p>
+              <p className="t-body mt-1.5 font-semibold text-foreground">{social.title}</p>
+              <p className="t-body mt-1.5 text-muted-foreground">{social.detail}</p>
+            </div>
+          ) : null}
 
-          {courseId === "south" ? (
-            <FridayPairings
-              claimedName={claimedPlayer?.name ?? null}
-              playerIdByName={playerIdByName}
-            />
-          ) : (
+          {courseId !== "south" ? (
             <p className="t-micro">
               {courseId === "copperhead"
                 ? "Pairings posted Friday night."
                 : "Pairings posted Saturday night."}
             </p>
-          )}
+          ) : null}
 
           {courseId === "copperhead" ? (
             <ul className="surface divide-y divide-border overflow-hidden">
@@ -206,9 +187,6 @@ function SchedulePage() {
             </ul>
           ) : null}
 
-          {afterGolf(details.dayLabel) ? (
-            <p className="t-body font-medium text-foreground">{afterGolf(details.dayLabel)}</p>
-          ) : null}
         </section>
 
         {isError && !data && <ErrorState onRetry={() => void refetch()} busy={isFetching} />}
