@@ -479,7 +479,7 @@ export function SocialClubhouseFeed({
         <div className="surface divide-y divide-border overflow-hidden empty:hidden">
           {showClubhouse &&
             story.clubhousePosts
-              .filter((post) => !isJunkBody(post.body))
+              .filter((post) => !isJunkBody(post.body) && !post.pinned_at)
               .map((post) => {
                 const reactionKey = `clubhouse-post:${post.id}`;
                 const reactions = story.reactions.filter((row) => row.moment_key === reactionKey);
