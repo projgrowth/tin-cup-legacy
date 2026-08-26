@@ -1,4 +1,7 @@
+import { Avatar } from "@/components/tin-cup/Avatar";
 import { SideNames } from "@/components/tin-cup/FridayPairings";
+import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
+import type { Player, Team } from "@/hooks/useTournament";
 import { DAY1_PAIRINGS } from "@/lib/day1-pairings";
 
 function sameName(a: string, b: string) {
@@ -9,10 +12,22 @@ function sameName(a: string, b: string) {
 export function TheCardSheet({
   claimedName = null,
   playerIdByName,
+  players = [],
+  teams = [],
 }: {
   claimedName?: string | null;
   playerIdByName?: (name: string) => string | undefined;
+  players?: Player[];
+  teams?: Team[];
 }) {
+  const avatars = usePlayerAvatars(players, teams);
+  const faceFor = (names: string[]) => {
+    for (const name of names) {
+      const entry = avatars.data?.getByName(name);
+      if (entry?.url) return { name, url: entry.url, teamSlug: entry.teamSlug };
+    }
+    return null;
+  };
   const yours = claimedName
     ? DAY1_PAIRINGS.find((pairing) =>
         [...pairing.playersA, ...pairing.playersB].some((name) => sameName(name, claimedName)),
@@ -33,6 +48,8 @@ export function TheCardSheet({
         <ul className="divide-y divide-border">
           {rows.map((pairing) => {
             const you = pairing.matchIndex === yours?.matchIndex;
+            const faceA = faceFor(pairing.playersA);
+            const faceB = faceFor(pairing.playersB);
             return (
               <li
                 key={pairing.matchIndex}
@@ -40,13 +57,35 @@ export function TheCardSheet({
               >
                 {you ? <p className="t-micro mb-1 text-hunter">You</p> : null}
                 <div className="tc-matchup">
-                  <p className="t-body min-w-0 text-left font-semibold leading-snug text-foreground">
-                    <SideNames names={pairing.playersA} playerIdByName={playerIdByName} />
-                  </p>
+                  <div className="flex min-w-0 items-center gap-2">
+                    {faceA ? (
+                      <Avatar
+                        name={faceA.name}
+                        src={faceA.url}
+                        teamSlug={faceA.teamSlug}
+                        size="sm"
+                        fallback="none"
+                      />
+                    ) : null}
+                    <p className="t-body min-w-0 truncate text-left font-semibold leading-snug text-foreground">
+                      <SideNames names={pairing.playersA} playerIdByName={playerIdByName} />
+                    </p>
+                  </div>
                   <span className="t-micro px-1">vs</span>
-                  <p className="t-body min-w-0 text-right font-semibold leading-snug text-foreground">
-                    <SideNames names={pairing.playersB} playerIdByName={playerIdByName} />
-                  </p>
+                  <div className="flex min-w-0 items-center justify-end gap-2">
+                    <p className="t-body min-w-0 truncate text-right font-semibold leading-snug text-foreground">
+                      <SideNames names={pairing.playersB} playerIdByName={playerIdByName} />
+                    </p>
+                    {faceB ? (
+                      <Avatar
+                        name={faceB.name}
+                        src={faceB.url}
+                        teamSlug={faceB.teamSlug}
+                        size="sm"
+                        fallback="none"
+                      />
+                    ) : null}
+                  </div>
                 </div>
               </li>
             );

@@ -35,25 +35,30 @@ export function PreTournamentPanel({
   return (
     <section aria-label="This weekend" className="stack-page">
       <HomeAnnouncement canModerate={canModerate} />
-      <header>
+      <header className="px-4">
         <p className="t-eyebrow">
           {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
         </p>
         <h1 className="t-hero mt-1 text-foreground">{today.firstTee}</h1>
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <div className="mt-3 flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1">
           <Countdown compact />
           <a
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className="press t-micro-strong min-h-11 no-underline"
+            className="press t-micro-strong no-underline"
           >
             Pay ${BUY_IN}
           </a>
         </div>
       </header>
 
-      <TheCardSheet claimedName={claimedName} playerIdByName={playerIdByName} />
+      <TheCardSheet
+        claimedName={claimedName}
+        playerIdByName={playerIdByName}
+        players={players}
+        teams={teams}
+      />
 
       <ClubhousePolls players={players} teams={teams} canCreate={canModerate && Boolean(user)} />
     </section>

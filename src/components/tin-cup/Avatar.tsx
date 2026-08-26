@@ -20,12 +20,13 @@ export function Avatar({
   teamSlug?: TeamSlug | null;
   src?: string | null;
   size?: "sm" | "md" | "lg";
-  /** `ink` is a bag-tag initial, not a team-color disc. */
-  fallback?: "team" | "ink";
+  /** `ink` is a bag-tag initial. `none` hides missing photos. */
+  fallback?: "team" | "ink" | "none";
   className?: string;
   title?: string;
 }) {
   const dim = SIZE[size];
+  if (!src && fallback === "none") return null;
   if (src) {
     return (
       <span
