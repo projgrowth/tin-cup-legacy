@@ -94,6 +94,7 @@ function RostersPage() {
                 className={`press chip min-h-11 w-full ${on ? "chip-on" : ""}`}
               >
                 {side.name.replace("Team ", "")}
+                {myTeam?.slug === side.slug ? " · You" : ""}
               </Link>
             );
           })}
@@ -108,7 +109,7 @@ function RostersPage() {
                 key={side.slug}
                 className={`surface overflow-hidden border-t-2 ${rail} ${hiddenOnMobile ? "hidden md:block" : ""}`}
               >
-                <p className="t-micro px-4 pb-1 pt-3 text-muted-foreground">
+                <p className="t-micro hidden px-4 pb-1 pt-3 text-muted-foreground md:block">
                   {side.name.replace("Team ", "")}
                   {myTeam?.slug === side.slug ? " · Your side" : ""}
                 </p>
@@ -119,13 +120,15 @@ function RostersPage() {
                     const isPartner = Boolean(myPartner && name.split(/\s+/)[0] === myPartner);
                     const isCaptain = name === side.captain || Boolean(player?.is_captain);
                     const friday = fridayPartnerName(name);
+                    const face = player ? avatars.data?.byPlayerId.get(player.id)?.url : undefined;
                     const body = (
                       <span className="flex min-w-0 flex-1 items-center gap-3">
                         <Avatar
                           name={name}
                           teamSlug={side.slug}
-                          src={player ? avatars.data?.byPlayerId.get(player.id)?.url : undefined}
-                          size="md"
+                          src={face}
+                          size="sm"
+                          fallback="ink"
                         />
                         <span className="min-w-0 flex-1">
                           <span className="t-body flex items-center gap-2 truncate font-medium text-foreground">

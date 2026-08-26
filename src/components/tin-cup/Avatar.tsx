@@ -6,12 +6,13 @@ const SIZE = {
   lg: "size-12 text-sm",
 } as const;
 
-/** Circular face or team-color monogram fallback. Faces never overlap. */
+/** Circular face, or initials when there is no photo. */
 export function Avatar({
   name,
   teamSlug,
   src,
   size = "md",
+  fallback = "team",
   className = "",
   title,
 }: {
@@ -19,6 +20,8 @@ export function Avatar({
   teamSlug?: TeamSlug | null;
   src?: string | null;
   size?: "sm" | "md" | "lg";
+  /** `ink` is a bag-tag initial, not a team-color disc. */
+  fallback?: "team" | "ink";
   className?: string;
   title?: string;
 }) {
@@ -37,11 +40,15 @@ export function Avatar({
       </span>
     );
   }
+  const mark =
+    fallback === "ink"
+      ? `${dim} rounded-full border border-foreground/15 font-medium tracking-wide text-muted-foreground`
+      : monogramClass(teamSlug, size);
   return (
     <span
       title={title ?? name}
       aria-hidden={!title}
-      className={`inline-flex shrink-0 items-center justify-center ${monogramClass(teamSlug, size)} ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center ${mark} ${className}`}
     >
       {playerInitials(name)}
     </span>
