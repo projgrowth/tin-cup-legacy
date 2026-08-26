@@ -40,17 +40,17 @@ export function PreTournamentPanel({
           {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
         </p>
         <h1 className="t-hero mt-1 text-foreground">{today.firstTee}</h1>
-        <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
           <Countdown compact />
           <a
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className="press chip chip-on min-h-11 no-underline"
+            className="press t-micro-strong min-h-11 no-underline"
           >
             Pay ${BUY_IN}
           </a>
-        </p>
+        </div>
       </header>
 
       <TheCardSheet claimedName={claimedName} playerIdByName={playerIdByName} />

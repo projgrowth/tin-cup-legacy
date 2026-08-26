@@ -58,6 +58,8 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByText("Seth · Keenan")).toBeVisible();
   await expect(page.getByText("2 more")).toHaveCount(0);
   await expect(page.getByText("Add a line")).toHaveCount(0);
+  await expect(page.getByText("Fall apart")).toHaveCount(0);
+  await expect(page.getByText("Show up")).toHaveCount(0);
   await expect(page.getByText(/with Zack/)).toHaveCount(0);
   await expect(page.getByText("First tee ·")).toHaveCount(0);
   await expect(page.getByText("to 3-putt the first hole")).toHaveCount(0);
