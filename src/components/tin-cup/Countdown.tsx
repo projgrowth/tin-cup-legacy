@@ -15,7 +15,7 @@ export function Countdown({ compact = false }: { compact?: boolean }) {
       : `${time.days}d ${String(time.hours).padStart(2, "0")}h ${String(time.minutes).padStart(2, "0")}m`;
     return (
       <p suppressHydrationWarning className="t-micro tabular-nums text-muted-foreground">
-        First tee · <span className="font-semibold text-foreground">{line}</span>
+        <span className="font-semibold text-foreground">{line}</span>
       </p>
     );
   }

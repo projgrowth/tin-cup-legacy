@@ -155,10 +155,10 @@ export function TheCardTicket({
         />
       </div>
       {rideA || rideB ? (
-        <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-1">
-          <p className="t-micro">{rideA}</p>
+        <div className="mt-0.5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-1">
+          <p className="t-micro tabular-nums">{rideA ?? ""}</p>
           <span />
-          <p className="t-micro text-right">{rideB}</p>
+          <p className="t-micro tabular-nums text-right">{rideB ?? ""}</p>
         </div>
       ) : null}
       {visible.map((roast) => {

@@ -52,6 +52,9 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Field" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Updates" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Faceoff" })).toBeVisible();
+  await expect(page.getByText(/with Zack/)).toHaveCount(0);
+  await expect(page.getByText("First tee ·")).toHaveCount(0);
+  await expect(page.getByText("to 3-putt the first hole")).toHaveCount(0);
   await expect(page.getByText("Ride the other groups. Yours is already set.")).toHaveCount(0);
   await expect(page.getByText("Side A", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Take", exact: true })).toHaveCount(0);
