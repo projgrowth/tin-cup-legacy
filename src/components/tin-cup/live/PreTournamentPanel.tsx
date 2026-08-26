@@ -29,19 +29,19 @@ export function PreTournamentPanel({
     <section aria-label="This weekend" className="stack-page">
       <HomeAnnouncement canModerate={canModerate} />
       <div className="surface overflow-hidden">
-        <header className="card-row py-4">
-          <p className="t-eyebrow">
+        <header className="card-row bg-hunter py-5">
+          <p className="t-eyebrow text-primary-foreground/70">
             {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
           </p>
           <div className="mt-1 flex items-baseline justify-between gap-3">
-            <h1 className="t-hero min-w-0 text-foreground">{today.firstTee}</h1>
-            <Countdown compact />
+            <h1 className="t-hero min-w-0 text-primary-foreground">{today.firstTee}</h1>
+            <Countdown compact className="text-primary-foreground/75" />
           </div>
           <a
             href={venmoUrl}
             target="_blank"
             rel="noreferrer"
-            className="press btn-primary t-body mt-4 flex min-h-12 w-full items-center justify-center no-underline"
+            className="press t-body mt-4 flex min-h-12 w-full items-center justify-center rounded-[var(--radius-card)] bg-background font-semibold text-hunter no-underline"
           >
             Pay ${BUY_IN}
           </a>
