@@ -35,30 +35,37 @@ export function PreTournamentPanel({
   return (
     <section aria-label="This weekend" className="stack-page">
       <HomeAnnouncement canModerate={canModerate} />
-      <header className="px-4">
-        <p className="t-eyebrow">
-          {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
-        </p>
-        <h1 className="t-hero mt-1 text-foreground">{today.firstTee}</h1>
-        <div className="mt-3 flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1">
-          <Countdown compact />
-          <a
-            href={venmoUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="press t-micro-strong no-underline"
-          >
-            Pay ${BUY_IN}
-          </a>
-        </div>
-      </header>
+      <div className="stack-tight">
+        <header>
+          <p className="t-eyebrow">
+            {today.dayLabel} · {COURSE_LABEL[nextCourseId]}
+          </p>
+          <div className="mt-1 flex items-baseline justify-between gap-3">
+            <h1 className="t-hero min-w-0 text-foreground">{today.firstTee}</h1>
+            <p className="flex shrink-0 items-baseline gap-x-1.5 whitespace-nowrap">
+              <Countdown compact />
+              <span className="t-micro" aria-hidden="true">
+                ·
+              </span>
+              <a
+                href={venmoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="press t-micro-strong py-2 no-underline"
+              >
+                Pay ${BUY_IN}
+              </a>
+            </p>
+          </div>
+        </header>
 
-      <TheCardSheet
-        claimedName={claimedName}
-        playerIdByName={playerIdByName}
-        players={players}
-        teams={teams}
-      />
+        <TheCardSheet
+          claimedName={claimedName}
+          playerIdByName={playerIdByName}
+          players={players}
+          teams={teams}
+        />
+      </div>
 
       <ClubhousePolls players={players} teams={teams} canCreate={canModerate && Boolean(user)} />
     </section>

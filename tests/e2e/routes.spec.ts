@@ -40,6 +40,33 @@ test("home loads its local brand and weekend cover", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Weekend", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Plan", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Pay \$150/ }).first()).toBeVisible();
+  const mast = await page.evaluate(() => {
+    const crest = document.querySelector('img[alt="The Tin Cup Invitational"]');
+    const time = document.querySelector("main h1");
+    const pay = document.querySelector('main a[href*="venmo.com"]');
+    const faceoff = document.getElementById("the-card-title");
+    const timeBox = time?.getBoundingClientRect();
+    const payBox = pay?.getBoundingClientRect();
+    return {
+      crest: Math.round(crest?.getBoundingClientRect().left ?? -1),
+      time: Math.round(timeBox?.left ?? -1),
+      timeRight: Math.round(timeBox?.right ?? -1),
+      timeTop: Math.round(timeBox?.top ?? -1),
+      timeBottom: Math.round(timeBox?.bottom ?? -1),
+      pay: Math.round(payBox?.left ?? -1),
+      payRight: Math.round(payBox?.right ?? -1),
+      payTop: Math.round(payBox?.top ?? -1),
+      payBottom: Math.round(payBox?.bottom ?? -1),
+      faceoff: Math.round(faceoff?.getBoundingClientRect().left ?? -1),
+      vw: window.innerWidth,
+    };
+  });
+  expect(mast.time).toBe(mast.crest);
+  expect(mast.faceoff).toBeGreaterThan(mast.time + 10);
+  expect(mast.pay).toBeGreaterThan(mast.timeRight);
+  expect(mast.payTop).toBeLessThan(mast.timeBottom);
+  expect(mast.payBottom).toBeGreaterThan(mast.timeTop);
+  expect(mast.vw - mast.payRight).toBeGreaterThanOrEqual(12);
   await expect(page.getByText(/Fri 8 \+ Sat 6 \+ Sun 12/)).toHaveCount(0);
   await expect(page.getByText("Sign in to join the Clubhouse")).toHaveCount(0);
   await expect(page.getByText("Today at Tin Cup")).toHaveCount(0);

@@ -1,5 +1,11 @@
 import { formatCountdown } from "@/lib/countdown";
+import { COURSE_DETAILS } from "@/lib/courses";
 import { useLiveCountdown } from "@/lib/use-live-countdown";
+
+function onTeeLine() {
+  const south = COURSE_DETAILS.south;
+  return `On the tee · ${south.dayLabel} ${south.firstTee}`;
+}
 
 /** Full-width first-tee clock. Compact is a single caption for tight slots. */
 export function Countdown({ compact = false }: { compact?: boolean }) {
@@ -8,22 +14,22 @@ export function Countdown({ compact = false }: { compact?: boolean }) {
 
   if (compact) {
     if (time.done) {
-      return <p className="t-micro text-hunter">On the tee · Friday 12:19</p>;
+      return <span className="t-micro text-hunter">{onTeeLine()}</span>;
     }
     const line = close
       ? `${String(time.hours + time.days * 24).padStart(2, "0")}:${String(time.minutes).padStart(2, "0")}:${String(time.seconds).padStart(2, "0")}`
-      : `${time.days}d ${String(time.hours).padStart(2, "0")}h ${String(time.minutes).padStart(2, "0")}m`;
+      : `${time.days}d ${time.hours}h ${time.minutes}m`;
     return (
-      <p suppressHydrationWarning className="t-micro tabular-nums text-muted-foreground">
+      <span suppressHydrationWarning className="t-micro tabular-nums text-muted-foreground">
         <span className="font-semibold text-foreground">{line}</span>
-      </p>
+      </span>
     );
   }
 
   if (time.done) {
     return (
       <section aria-live="polite">
-        <p className="t-micro text-hunter">On the tee · Friday 12:19</p>
+        <p className="t-micro text-hunter">{onTeeLine()}</p>
       </section>
     );
   }

@@ -72,10 +72,11 @@
   --space-4: 1rem;
   --space-5: 1.5rem;
   --space-6: 1.75rem;
+  --card-inset: var(--space-4);
   --header-height: 3.6rem;
   --nav-height: 4.25rem;
   --text-display: clamp(1.65rem, 6vw, 2.15rem);
-  --text-hero: clamp(2rem, 8vw, 2.75rem);
+  --text-hero: clamp(1.75rem, 7vw, 2.4rem);
   --text-title: 1.125rem;
   --text-body: 0.9375rem;
   --text-caption: 0.75rem;
@@ -472,12 +473,15 @@
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   column-gap: 0.5rem;
-  min-height: 2.75rem;
+}
+
+@utility card-row {
+  padding-inline: var(--card-inset);
 }
 
 @utility section-cap {
   border-bottom: 1px solid var(--border);
-  padding: 0.75rem 1rem;
+  padding: var(--space-3) var(--card-inset);
 }
 
 /* Quiet chip (app-wide, not only HUD) */
