@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import type { Match, Player, Round, SideBet, Team } from "@/hooks/useTournament";
+import type { Match, Player, Round, SideBet, Team, Trophy } from "@/hooks/useTournament";
 import { FieldChatLink } from "@/components/tin-cup/WhatsAppLinks";
 import { roundStatus } from "@/lib/scoring";
 import { isCtp, isLongDrive } from "@/lib/side-bets";
 import { formatPayout } from "@/lib/purse";
 import { contestHoleLabel } from "@/lib/tin-cup";
 import { COURSE_LABEL, courseIdFromRound, defaultCourseId } from "@/lib/courses";
-import { BetClaim } from "./MatchControls";
+import { BetClaim, TrophyAward } from "./MatchControls";
 import { MyMatchCard } from "./MyMatchCard";
 import { LiveHero, RoundStrip, StatusLine } from "./ScoreBoard";
 import { RoundBlock } from "./RoundBlock";
@@ -18,6 +18,7 @@ export function LivePanel({
   teams,
   players,
   sideBets,
+  trophies = [],
   syncedAt,
   pendingWrites = 0,
   failedWrites = 0,
@@ -35,6 +36,7 @@ export function LivePanel({
   teams: Team[];
   players: Player[];
   sideBets: SideBet[];
+  trophies?: Trophy[];
   syncedAt?: number;
   pendingWrites?: number;
   failedWrites?: number;
@@ -52,6 +54,8 @@ export function LivePanel({
   const claimedPots = sideBets.filter((b) => Boolean(b.player_name?.trim())).length;
   const decided = matches.some((m) => m.result !== "pending");
   const [needsResultOnly, setNeedsResultOnly] = useState(initialOpenOnly);
+  const awarded = trophies.filter((trophy) => Boolean(trophy.winner_name?.trim())).length;
+  const [awardsOpen, setAwardsOpen] = useState(canScore || awarded > 0);
   // Open side cash when captains are scoring or any pot is claimed — outdoor glance.
   const [sideOpen, setSideOpen] = useState(canScore || claimedPots > 0);
   const orderedRounds = useMemo(() => {
@@ -159,6 +163,42 @@ export function LivePanel({
         onRetryFailed={onRetryFailed}
         stale={stale}
       />
+
+      {trophies.length > 0 && (
+        <section className="surface overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setAwardsOpen((value) => !value)}
+            className="press flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left"
+            aria-expanded={awardsOpen}
+          >
+            <span className="t-body font-medium text-foreground">
+              Awards
+              <span className="t-micro ml-2 font-normal text-muted-foreground">
+                {awarded}/{trophies.length} assigned · MVP & Vibes
+              </span>
+            </span>
+            <span className="t-micro text-muted-foreground">{awardsOpen ? "Hide" : "Show"}</span>
+          </button>
+          {awardsOpen && (
+            <ul className="divide-y divide-border border-t border-border px-4 pb-2">
+              {trophies.map((trophy) => (
+                <li key={trophy.id} className="py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="t-body min-w-0 truncate text-foreground">{trophy.name}</span>
+                    <span className="t-body shrink-0 text-right text-foreground">
+                      {trophy.winner_name ?? "Open"}
+                    </span>
+                  </div>
+                  {canScore ? (
+                    <TrophyAward trophy={trophy} players={players} teams={teams} />
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       <section className="surface overflow-hidden">
         <button

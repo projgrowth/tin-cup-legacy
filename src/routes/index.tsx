@@ -240,6 +240,7 @@ function Index() {
                 teams={data.teams}
                 players={data.players}
                 sideBets={data.sideBets}
+                trophies={data.trophies}
                 syncedAt={data.syncedAt}
                 pendingWrites={pendingWrites}
                 failedWrites={failedWrites}
@@ -291,6 +292,7 @@ function Index() {
                     teams={data?.teams ?? []}
                     players={data?.players ?? []}
                     sideBets={data?.sideBets ?? []}
+                    trophies={data?.trophies ?? []}
                     syncedAt={data?.syncedAt}
                     pendingWrites={pendingWrites}
                     failedWrites={failedWrites}

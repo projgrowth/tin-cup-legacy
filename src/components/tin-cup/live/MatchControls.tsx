@@ -8,6 +8,7 @@ import {
   type Player,
   type SideBet,
   type Team,
+  type Trophy,
   useRowWriteStatus,
 } from "@/hooks/useTournament";
 import { enqueueWrite, expectedVersionAfterWrite } from "@/lib/write-queue";
@@ -405,6 +406,164 @@ export function BetClaim({ bet, players }: { bet: SideBet; players: Player[] }) 
       >
         Cancel
       </button>
+    </div>
+  );
+}
+
+/** Captain/admin assigns a trophy winner from the roster. */
+export function TrophyAward({
+  trophy,
+  players,
+  teams = [],
+}: {
+  trophy: Trophy;
+  players: Player[];
+  teams?: Team[];
+}) {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [other, setOther] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const rosterNames = players.map((player) => player.name);
+  const teamNames = teams.map((team) => team.name);
+  const known = (value: string) =>
+    rosterNames.includes(value.trim()) || teamNames.includes(value.trim());
+
+  async function save() {
+    const final = name.trim();
+    if (!final) {
+      toast.error("Pick who gets this award.");
+      return;
+    }
+    setSaving(true);
+    const status = await enqueueWrite(
+      "trophies",
+      trophy.id,
+      { winner_name: final },
+      trophy.revision ?? trophy.updated_at,
+    );
+    setSaving(false);
+    if (status === "rejected") {
+      toast.error("Could not save that award. Captains only.");
+      return;
+    }
+    if (status === "conflict") {
+      toast.error("That award changed on another device. Refresh before saving again.");
+      return;
+    }
+    toast.success(status === "saved" ? `${trophy.name} awarded` : "Saved offline — syncs later");
+    void queryClient.invalidateQueries({ queryKey: tournamentQueryKey });
+    setOpen(false);
+  }
+
+  async function clear() {
+    setSaving(true);
+    const status = await enqueueWrite(
+      "trophies",
+      trophy.id,
+      { winner_name: null },
+      trophy.revision ?? trophy.updated_at,
+    );
+    setSaving(false);
+    if (status === "rejected" || status === "conflict") {
+      toast.error("Could not clear that award.");
+      return;
+    }
+    toast.success("Award cleared");
+    void queryClient.invalidateQueries({ queryKey: tournamentQueryKey });
+    setOpen(false);
+    setName("");
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(true);
+          const existing = trophy.winner_name ?? "";
+          setName(existing);
+          setOther(existing ? !known(existing) : false);
+        }}
+        className="press mt-1 inline-flex min-h-11 items-center t-micro text-muted-foreground"
+      >
+        {trophy.winner_name ? "Edit award" : "Assign"}
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
+      {other || (players.length === 0 && teams.length === 0) ? (
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Winner"
+          className="control t-body w-full"
+        />
+      ) : (
+        <select
+          value={known(name) ? name : ""}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === "__other__") {
+              setOther(true);
+              setName("");
+            } else {
+              setName(value);
+            }
+          }}
+          className="control t-body w-full"
+        >
+          <option value="">Pick winner</option>
+          {teams.map((team) => (
+            <option key={team.id} value={team.name}>
+              {team.name}
+            </option>
+          ))}
+          {players.map((player) => (
+            <option key={player.id} value={player.name}>
+              {player.name}
+            </option>
+          ))}
+          <option value="__other__">Other…</option>
+        </select>
+      )}
+      {other && (players.length > 0 || teams.length > 0) && (
+        <button
+          type="button"
+          onClick={() => {
+            setOther(false);
+            setName("");
+          }}
+          className="col-span-2 text-left t-body text-muted-foreground"
+        >
+          ← Back to roster
+        </button>
+      )}
+      <button
+        type="button"
+        disabled={saving}
+        onClick={() => void save()}
+        className="press btn-primary t-body"
+      >
+        {saving ? "Saving…" : "Save"}
+      </button>
+      <button type="button" onClick={() => setOpen(false)} className="press btn-quiet t-body">
+        Cancel
+      </button>
+      {trophy.winner_name ? (
+        <button
+          type="button"
+          disabled={saving}
+          onClick={() => void clear()}
+          className="col-span-2 press t-micro min-h-11 text-left text-muted-foreground"
+        >
+          Clear award
+        </button>
+      ) : null}
     </div>
   );
 }
