@@ -13,10 +13,14 @@ export function readTheme(): PaperTheme {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "paper";
 }
 
+const THEME_COLOR = { paper: "#f4efe6", night: "#2c2820" } as const;
+
 export function applyTheme(theme: PaperTheme) {
   if (typeof document === "undefined") return;
   document.documentElement.dataset.theme = theme;
   document.documentElement.style.colorScheme = theme === "night" ? "dark" : "light";
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", THEME_COLOR[theme]);
 }
 
 export function writeTheme(theme: PaperTheme) {

@@ -75,7 +75,7 @@ export function WeekendRecap({
 
   return (
     <section className="recap-shell space-y-5" aria-labelledby="weekend-recap-title">
-      <header className="recap-hero overflow-hidden rounded-2xl border border-border">
+      <header className="recap-hero overflow-hidden rounded-2xl border">
         <Link
           to="/photos"
           className="press recap-hero-photo relative block overflow-hidden"
@@ -86,20 +86,17 @@ export function WeekendRecap({
             alt=""
             className="block h-auto w-full"
           />
-          <span className="t-micro absolute left-3 top-3 text-white drop-shadow-[0_1px_8px_rgba(0,0,0,.8)]">
-            4th Annual · Innisbrook 2026
-          </span>
         </Link>
-        <div className="recap-score-plate relative px-4 pb-5 pt-11 text-center sm:px-6">
+        <div className="recap-score-plate relative px-4 pb-6 pt-12 text-center sm:px-8">
           <img
             src="/tin-cup-medal.png"
             alt=""
             className="recap-hero-medal pointer-events-none absolute left-1/2 top-0 w-[4.75rem] -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,.45)] sm:w-24"
           />
-          <p className="event-kicker text-hunter">The complete story</p>
+          <p className="event-kicker recap-kicker">4th Annual · Innisbrook</p>
           <h1
             id="weekend-recap-title"
-            className={`${winner || decided.length ? "event-title" : "t-display"} mt-3 text-foreground`}
+            className={`${winner || decided.length ? "event-title" : "t-display"} recap-ink mt-3`}
           >
             {winner
               ? `${winner.name} wins the Cup`
@@ -108,44 +105,43 @@ export function WeekendRecap({
                 : "The weekend is still being written"}
           </h1>
           <p className="t-hero mt-4">
-            <span className="text-hunter">{formatCupPoints(standings.strongMental)}</span>
-            <span className="mx-3 text-muted-foreground/40">–</span>
-            <span className="text-stone">{formatCupPoints(standings.grassRoots)}</span>
+            <span className="recap-sm">{formatCupPoints(standings.strongMental)}</span>
+            <span className="mx-3 recap-muted">–</span>
+            <span className="recap-gr">{formatCupPoints(standings.grassRoots)}</span>
           </p>
           <p className="t-micro mt-1">
-            <span className="text-hunter">Strong Mental</span>
-            <span className="mx-2 text-muted-foreground">·</span>
-            <span className="text-stone">Grass Roots</span>
+            <span className="recap-sm">Strong Mental</span>
+            <span className="mx-2 recap-muted">·</span>
+            <span className="recap-gr">Grass Roots</span>
           </p>
           {cupStory.days.length > 0 ? (
-            <ol className="mt-4 grid grid-cols-3 gap-2">
+            <ol className="mt-5 grid grid-cols-3 gap-2">
               {cupStory.days.map((day) => (
-                <li key={day.label} className="rounded-xl bg-hunter/5 px-2 py-2.5">
-                  <p className="t-micro text-muted-foreground">{day.label.slice(0, 3)}</p>
-                  <p className="mt-1 font-semibold tabular-nums text-foreground">
+                <li key={day.label} className="recap-day rounded-xl px-2 py-2.5">
+                  <p className="t-micro recap-muted">{day.label.slice(0, 3)}</p>
+                  <p className="recap-ink mt-1 font-semibold tabular-nums">
                     {formatCupPoints(day.strongMental)}–{formatCupPoints(day.grassRoots)}
                   </p>
                 </li>
               ))}
             </ol>
           ) : null}
-          <p className="t-body mt-3 text-muted-foreground">
+          <p className="t-body recap-muted mt-4">
             {decided.length} official results · {photos.length} photos · {story.comments.length}{" "}
             comments
           </p>
           <ShareMomentButton className="btn-primary mt-5 min-w-48" payload={storyPayload}>
             Share Stories card
           </ShareMomentButton>
-          <label className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 text-muted-foreground">
+          <label className="recap-muted mt-3 inline-flex min-h-11 items-center justify-center gap-2">
             <input
               type="checkbox"
               checked={withPhoto}
               onChange={(event) => setWithPhoto(event.target.checked)}
-              className="size-4 accent-[var(--gold)]"
+              className="size-4 accent-[var(--scorecard-brass)]"
             />
-            <span className="t-micro">Include group photo</span>
+            <span className="t-micro recap-muted">Include group photo</span>
           </label>
-          <p className="t-micro mt-1 text-muted-foreground/80">1080×1920 · Instagram Stories</p>
         </div>
       </header>
       {photos.length > 0 ? (

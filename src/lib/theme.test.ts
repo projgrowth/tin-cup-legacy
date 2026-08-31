@@ -7,4 +7,9 @@ describe("paper theme", () => {
     expect(THEME_BOOT).toContain("prefers-color-scheme: dark");
     expect(THEME_BOOT).toContain("dataset.theme=t");
   });
+
+  it("keeps paper and night as distinct looks", () => {
+    expect(THEME_BOOT).toContain('"paper"');
+    expect(THEME_BOOT).toContain('"night"');
+  });
 });

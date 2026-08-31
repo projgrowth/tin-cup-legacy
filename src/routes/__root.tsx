@@ -93,7 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           name: "description",
           content: description,
         },
-        { name: "theme-color", content: "#f6f3ee" },
+        { name: "theme-color", content: "#f4efe6" },
         { property: "og:title", content: title },
         {
           property: "og:description",
