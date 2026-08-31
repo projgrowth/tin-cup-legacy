@@ -21,12 +21,15 @@ export function ShareMomentButton({
         setBusy(true);
         const result = await shareMoment(payload);
         setBusy(false);
-        if (result === "downloaded")
-          toast.success("Share image downloaded. Caption copied when available.");
+        if (result === "shared") toast.success("Stories card ready to post.");
+        else if (result === "downloaded")
+          toast.success("Stories card downloaded. Caption copied when available.");
         else if (result === "copied") toast.success("Share caption copied.");
         else if (result === "failed") toast.error("Could not create the share image.");
       }}
-      className={`press btn-quiet t-body inline-flex min-h-11 items-center justify-center ${className}`}
+      className={`press t-body inline-flex min-h-11 items-center justify-center ${
+        className.includes("btn-primary") ? "" : "btn-quiet"
+      } ${className}`}
     >
       {busy ? "Creating…" : children}
     </button>

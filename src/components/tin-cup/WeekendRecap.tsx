@@ -13,10 +13,18 @@ import { usePlanningProgress } from "@/hooks/usePlanningProgress";
 import { usePlayerAvatars } from "@/hooks/usePlayerAvatars";
 import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import { useWeekendStory } from "@/hooks/useWeekendStory";
-import type { Match, Player, SideBet, Team, Trophy as TrophyRow } from "@/hooks/useTournament";
+import type {
+  Match,
+  Player,
+  Round,
+  SideBet,
+  Team,
+  Trophy as TrophyRow,
+} from "@/hooks/useTournament";
 import { signedVaultUrl } from "@/integrations/supabase/storage";
 import { deriveAchievements, type MatchPredictionChoice } from "@/lib/social-platform";
 import { formatRecord, playerRecord, tallyStandings } from "@/lib/scoring";
+import { buildCupStoryPayload } from "@/lib/share-moment";
 
 function resultChoice(result: string): MatchPredictionChoice | null {
   return result === "strong-mental"
@@ -30,12 +38,14 @@ function resultChoice(result: string): MatchPredictionChoice | null {
 
 export function WeekendRecap({
   matches,
+  rounds = [],
   players,
   teams,
   sideBets,
   trophies,
 }: {
   matches: Match[];
+  rounds?: Round[];
   players: Player[];
   teams: Team[];
   sideBets: SideBet[];
@@ -158,18 +168,19 @@ export function WeekendRecap({
             comments
           </p>
           <ShareMomentButton
-            className="mt-5 min-w-48"
-            payload={{
-              kind: "final",
-              eyebrow: "Final result",
-              title: winner?.name ?? "All square",
-              primary: `${standings.strongMental} – ${standings.grassRoots}`,
-              secondary: "Tin Cup Invitational 2026",
+            className="btn-primary mt-5 min-w-48"
+            payload={buildCupStoryPayload({
+              matches,
+              rounds,
+              teams,
+              trophies,
+              sideBets,
               canonicalUrl,
-            }}
+            })}
           >
-            Download final card
+            Share Stories card
           </ShareMomentButton>
+          <p className="t-micro mt-2 text-white/60">1080×1920 · Instagram Stories</p>
         </div>
       </header>
       {photos.length > 0 && (

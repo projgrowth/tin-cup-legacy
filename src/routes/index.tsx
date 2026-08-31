@@ -261,6 +261,7 @@ function Index() {
             ) : data ? (
               <WeekendRecap
                 matches={data.matches}
+                rounds={data.rounds}
                 players={data.players}
                 teams={data.teams}
                 sideBets={data.sideBets}
