@@ -165,11 +165,7 @@ function SchedulePage() {
           ) : null}
 
           {courseId !== "south" ? (
-            <p className="t-micro">
-              {courseId === "copperhead"
-                ? "Pairings posted Friday night."
-                : "Pairings posted Saturday night."}
-            </p>
+            <p className="t-micro">Pairings are on the Home board.</p>
           ) : null}
 
           {courseId === "copperhead" ? (

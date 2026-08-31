@@ -201,7 +201,7 @@ test("weekend, scout and purse retain confirmed source-of-truth details", async 
   await expect(page.getByText("Breakfast, free time & Steakhouse")).toBeVisible();
   await expect(page.getByText("Breakfast · Steakhouse 7:00")).toHaveCount(0);
   await expect(page.getByText("Breakfast · golf")).toHaveCount(0);
-  await expect(page.getByText("Pairings posted Friday night.")).toBeVisible();
+  await expect(page.getByText("Pairings are on the Home board.")).toBeVisible();
   await expect(page.getByText(/scramble partner/i)).toHaveCount(0);
   await expect(page.getByText("Loading…")).toHaveCount(0);
   await expectNoHorizontalOverflow(page);

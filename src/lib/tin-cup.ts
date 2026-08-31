@@ -100,7 +100,7 @@ export const FEE_BREAKDOWN = [
     value: "$100",
     note: "Returned to each winner, plus $100 from the opposing side",
   },
-  { label: "Side cash pool", value: "$50", note: "Funds six CTPs and two Long Drives" },
+  { label: "Side cash pool", value: "$50", note: "Funds closest-to-the-pin and long drive pots" },
 ];
 
 /** Social copy aligned to Desktop deck: `4th Annual Tin Cup Invitational 2026.pdf`. */
@@ -140,8 +140,8 @@ export const PURSE = [
   },
   {
     title: "Closest to the Pin",
-    amount: "$100",
-    detail: "Six opportunities (one per nine). Friday: holes 3 and 18. Other days TBD.",
+    amount: "$100 / $50",
+    detail: "Friday & Saturday $100. Sunday four at $50. Friday holes 3 and 18.",
   },
   {
     title: "Long Drive",
