@@ -232,38 +232,69 @@ function Index() {
         )}
         {mode === "post" ? (
           <div className="mt-3 stack-page">
-            {canScore && data ? (
-              <LivePanel
-                variant="board"
-                rounds={data.rounds}
-                matches={data.matches}
-                teams={data.teams}
-                players={data.players}
-                sideBets={data.sideBets}
-                trophies={data.trophies}
-                syncedAt={data.syncedAt}
-                pendingWrites={pendingWrites}
-                failedWrites={failedWrites}
-                onRetryFailed={() => void retryFailedWrites()}
-                stale={stale || realtimeStatus === "stale"}
-                canScore
-                claimedName={claimedPlayer?.name ?? null}
-                flashedMatchIds={flashedMatchIds}
-              />
-            ) : null}
             {isPending && !data ? (
               <BoardSkeleton />
             ) : isError && !data ? (
               <BoardError onRetry={() => void refetch()} busy={isFetching} />
             ) : data ? (
-              <WeekendRecap
-                matches={data.matches}
-                rounds={data.rounds}
-                players={data.players}
-                teams={data.teams}
-                sideBets={data.sideBets}
-                trophies={data.trophies}
-              />
+              <>
+                <WeekendRecap
+                  matches={data.matches}
+                  rounds={data.rounds}
+                  players={data.players}
+                  teams={data.teams}
+                  sideBets={data.sideBets}
+                  trophies={data.trophies}
+                />
+                <SocialClubhouseFeed
+                  matches={data.matches}
+                  sideBets={data.sideBets}
+                  trophies={data.trophies}
+                  players={data.players}
+                  teams={data.teams}
+                  rounds={data.rounds}
+                  filter={search.feed ?? "all"}
+                  onFilter={(feed) =>
+                    void navigate({
+                      to: "/",
+                      search: { ...search, feed: feed === "all" ? undefined : feed },
+                      replace: true,
+                    })
+                  }
+                  canModerate={canScore || isAdmin}
+                  canUpload={Boolean(user)}
+                  compact={experience.preferences.compactFeed}
+                />
+                {canScore ? (
+                  <details className="surface overflow-hidden">
+                    <summary className="press flex min-h-12 cursor-pointer list-none items-center justify-between px-4 py-3 t-body font-medium text-foreground [&::-webkit-details-marker]:hidden">
+                      Board
+                      <span className="t-micro font-normal text-muted-foreground">
+                        Scores & pots
+                      </span>
+                    </summary>
+                    <div className="border-t border-border px-3 py-3">
+                      <LivePanel
+                        variant="board"
+                        rounds={data.rounds}
+                        matches={data.matches}
+                        teams={data.teams}
+                        players={data.players}
+                        sideBets={data.sideBets}
+                        trophies={data.trophies}
+                        syncedAt={data.syncedAt}
+                        pendingWrites={pendingWrites}
+                        failedWrites={failedWrites}
+                        onRetryFailed={() => void retryFailedWrites()}
+                        stale={stale || realtimeStatus === "stale"}
+                        canScore
+                        claimedName={claimedPlayer?.name ?? null}
+                        flashedMatchIds={flashedMatchIds}
+                      />
+                    </div>
+                  </details>
+                ) : null}
+              </>
             ) : null}
           </div>
         ) : (
