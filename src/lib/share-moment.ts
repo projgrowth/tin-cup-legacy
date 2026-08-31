@@ -39,6 +39,7 @@ export type CupStoryPayload = {
   trophies: Array<{ name: string; winner: string | null }>;
   sideCash: Array<{ label: string; player: string }>;
   canonicalUrl: string;
+  includePhoto?: boolean;
 };
 
 export type ShareMomentPayload = ShareCaptionPayload | CupStoryPayload;
@@ -57,13 +58,6 @@ export function formatCupPoints(value: number): string {
 
 export function firstName(value: string): string {
   return value.trim().split(/\s+/)[0] ?? value;
-}
-
-function shortPot(label: string): string {
-  return label
-    .replace(/^CTP - /i, "CTP ")
-    .replace(/^Long Drive - /i, "LD ")
-    .replace(/^Long Drive /i, "LD ");
 }
 
 function shortTrophy(name: string): string {
@@ -150,6 +144,53 @@ export function cupStoryCaption(payload: CupStoryPayload): string {
   return `4th Annual Tin Cup Invitational\n${score}\n${status}\n${payload.canonicalUrl}`;
 }
 
+export function groupSideCashByPlayer(
+  pots: Array<{ player: string }>,
+): Array<{ name: string; count: number }> {
+  const counts = new Map<string, number>();
+  for (const pot of pots) {
+    const name = firstName(pot.player);
+    counts.set(name, (counts.get(name) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+}
+
+export type StoryBand = { id: string; top: number; height: number };
+
+const STORY_SAFE_TOP = 250;
+const STORY_SAFE_BOTTOM = 1700;
+
+/** Non-overlapping vertical bands. Instagram UI sits outside these. */
+export function layoutCupStory(payload: CupStoryPayload): StoryBand[] {
+  const awarded = payload.trophies.filter((trophy) => trophy.winner);
+  const cash = groupSideCashByPlayer(payload.sideCash);
+  const withPhoto = Boolean(payload.includePhoto);
+  let y = withPhoto ? 200 : STORY_SAFE_TOP;
+  const bands: StoryBand[] = [];
+  const push = (id: string, height: number, gap = 32) => {
+    bands.push({ id, top: y, height });
+    y += height + gap;
+  };
+  if (withPhoto) {
+    push("photo", 420, 22);
+    push("title", 88, 28);
+  } else {
+    push("medal", 132, 18);
+    push("title", 96, 36);
+  }
+  push("score", 252, 40);
+  push("days", 28 + payload.days.length * 58, awarded.length || cash.length ? 36 : 24);
+  if (awarded.length) push("awards", 28 + awarded.length * 50, cash.length ? 32 : 24);
+  if (cash.length) push("cash", 72, 0);
+  const last = bands[bands.length - 1];
+  if (last && last.top + last.height > STORY_SAFE_BOTTOM) {
+    return bands.filter((band) => band.id !== "cash");
+  }
+  return bands;
+}
+
 function wrap(
   ctx: CanvasRenderingContext2D,
   value: string,
@@ -171,17 +212,49 @@ function wrap(
   if (line) ctx.fillText(line, x, y);
 }
 
-async function loadBadge(): Promise<HTMLImageElement | null> {
+async function loadImage(src: string): Promise<HTMLImageElement | null> {
   if (typeof Image === "undefined") return null;
   try {
     const image = new Image();
     image.decoding = "async";
-    image.src = "/tin-cup-medal.png";
+    image.src = src;
     await image.decode();
     return image;
   } catch {
     return null;
   }
+}
+
+async function loadBadge(): Promise<HTMLImageElement | null> {
+  return loadImage("/tin-cup-medal.png");
+}
+
+async function loadFieldPhoto(): Promise<HTMLImageElement | null> {
+  return loadImage("/tin-cup-field-2026.jpg");
+}
+
+function drawCover(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+) {
+  const imageRatio = image.width / image.height;
+  const boxRatio = w / h;
+  let sx = 0;
+  let sy = 0;
+  let sw = image.width;
+  let sh = image.height;
+  if (imageRatio > boxRatio) {
+    sw = image.height * boxRatio;
+    sx = (image.width - sw) / 2;
+  } else {
+    sh = image.width / boxRatio;
+    sy = (image.height - sh) / 2;
+  }
+  ctx.drawImage(image, sx, sy, sw, sh, x, y, w, h);
 }
 
 async function waitForFonts() {
@@ -260,6 +333,19 @@ async function renderMoment(payload: ShareCaptionPayload): Promise<Blob> {
   return await blobFrom(canvas);
 }
 
+function fitText(ctx: CanvasRenderingContext2D, value: string, max: number): string {
+  if (ctx.measureText(value).width <= max) return value;
+  let text = value;
+  while (text.length > 1 && ctx.measureText(`${text}…`).width > max) {
+    text = text.slice(0, -1);
+  }
+  return `${text}…`;
+}
+
+function band(bands: StoryBand[], id: string): StoryBand | undefined {
+  return bands.find((row) => row.id === id);
+}
+
 async function renderCupStory(payload: CupStoryPayload): Promise<Blob> {
   const canvas = document.createElement("canvas");
   canvas.width = STORY_WIDTH;
@@ -267,158 +353,156 @@ async function renderCupStory(payload: CupStoryPayload): Promise<Blob> {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas unavailable");
   await waitForFonts();
-  const badge = await loadBadge();
+  const badge = payload.includePhoto ? null : await loadBadge();
+  const fieldPhoto = payload.includePhoto ? await loadFieldPhoto() : null;
+  const bands = layoutCupStory(payload);
+  const awarded = payload.trophies.filter((trophy) => trophy.winner);
+  const cash = groupSideCashByPlayer(payload.sideCash);
+  const cx = STORY_WIDTH / 2;
+  const inset = 112;
+  const gold = "#c4a35a";
+  const ivory = "#f3eee4";
+  const hunter = "#16382e";
+  const stone = "#8b6a3e";
 
   const field = ctx.createLinearGradient(0, 0, 0, STORY_HEIGHT);
-  field.addColorStop(0, "#16382e");
-  field.addColorStop(0.45, "#0d241d");
-  field.addColorStop(1, "#071410");
+  field.addColorStop(0, "#1a3d32");
+  field.addColorStop(1, "#0a1c16");
   ctx.fillStyle = field;
   ctx.fillRect(0, 0, STORY_WIDTH, STORY_HEIGHT);
 
-  ctx.strokeStyle = "#c7a85d";
-  ctx.lineWidth = 4;
-  ctx.strokeRect(48, 72, STORY_WIDTH - 96, STORY_HEIGHT - 168);
-  ctx.strokeStyle = "rgba(199,168,93,.28)";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(68, 92, STORY_WIDTH - 136, STORY_HEIGHT - 208);
-
-  const cx = STORY_WIDTH / 2;
-  if (badge) {
-    const size = 300;
-    ctx.drawImage(badge, cx - size / 2, 130, size, size);
-  }
-
-  ctx.textAlign = "center";
-  ctx.fillStyle = "#d9c27e";
-  ctx.font = "600 26px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("4TH ANNUAL", cx, badge ? 470 : 220);
-  ctx.fillStyle = "#f4f0e6";
-  ctx.font = "700 54px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("TIN CUP INVITATIONAL", cx, badge ? 534 : 284);
-  ctx.fillStyle = "rgba(244,240,230,.62)";
-  ctx.font = "500 24px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("INNISBROOK · AUGUST 28–30", cx, badge ? 578 : 328);
-
-  const panelY = badge ? 620 : 380;
-  ctx.fillStyle = "#f4f0e6";
-  roundRect(ctx, 120, panelY, STORY_WIDTH - 240, 340, 18);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(16,46,37,.16)";
-  ctx.lineWidth = 2;
-  roundRect(ctx, 120, panelY, STORY_WIDTH - 240, 340, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = "#3d5a3a";
-  ctx.font = "700 22px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("STRONG MENTAL", 330, panelY + 70);
-  ctx.fillStyle = "#8a6840";
-  ctx.fillText("GRASS ROOTS", 750, panelY + 70);
-
-  ctx.fillStyle = "#16382e";
-  ctx.font = "700 120px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText(formatCupPoints(payload.strongMental), 330, panelY + 200);
-  ctx.fillStyle = "#8a6840";
-  ctx.fillText(formatCupPoints(payload.grassRoots), 750, panelY + 200);
-  ctx.fillStyle = "rgba(16,46,37,.35)";
-  ctx.font = "600 48px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("–", cx, panelY + 186);
-
-  ctx.fillStyle = "#5c4a28";
-  ctx.font = "600 26px 'Plus Jakarta Sans', sans-serif";
-  const status = payload.winnerName
-    ? `${payload.winnerName.replace(/^Team /i, "")} wins the Cup`
-    : payload.remaining > 0
-      ? `${formatCupPoints(payload.remaining)} pts still on the course`
-      : "All square · playoff if tied at 13";
-  ctx.fillText(status.toUpperCase(), cx, panelY + 280);
-
-  let y = panelY + 390;
-  ctx.textAlign = "left";
-  ctx.fillStyle = "#d9c27e";
-  ctx.font = "600 22px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("THE CARD", 140, y);
-  y += 18;
-  for (const day of payload.days) {
-    y += 78;
-    ctx.fillStyle = "rgba(244,240,230,.06)";
-    roundRect(ctx, 120, y - 52, STORY_WIDTH - 240, 70, 12);
-    ctx.fill();
-    ctx.fillStyle = "#f4f0e6";
-    ctx.font = "700 28px 'Plus Jakarta Sans', sans-serif";
-    ctx.fillText(day.label, 150, y - 8);
-    ctx.fillStyle = "rgba(244,240,230,.55)";
-    ctx.font = "500 20px 'Plus Jakarta Sans', sans-serif";
-    ctx.fillText(day.format, 150, y + 18);
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#f4f0e6";
-    ctx.font = "700 32px 'Plus Jakarta Sans', sans-serif";
-    const dayScore =
-      day.remaining > 0
-        ? `${formatCupPoints(day.strongMental)} – ${formatCupPoints(day.grassRoots)} · ${formatCupPoints(day.remaining)} out`
-        : `${formatCupPoints(day.strongMental)} – ${formatCupPoints(day.grassRoots)}`;
-    ctx.fillText(dayScore, STORY_WIDTH - 150, y + 4);
-    ctx.textAlign = "left";
-  }
-
-  y += 64;
-  ctx.fillStyle = "#d9c27e";
-  ctx.font = "600 22px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("TROPHIES", 140, y);
-  const awarded = payload.trophies.filter((trophy) => trophy.winner);
-  if (awarded.length === 0) {
-    y += 48;
-    ctx.fillStyle = "rgba(244,240,230,.7)";
-    ctx.font = "500 26px 'Plus Jakarta Sans', sans-serif";
-    ctx.fillText("Championship · Chubbs MVP · Stinson Vibes · Snake Pit", 150, y);
-    y += 36;
-    ctx.fillStyle = "rgba(244,240,230,.42)";
-    ctx.font = "500 22px 'Plus Jakarta Sans', sans-serif";
-    ctx.fillText("Winners post after the last putt", 150, y);
+  const photo = band(bands, "photo");
+  if (fieldPhoto && photo) {
+    drawCover(ctx, fieldPhoto, 0, photo.top, STORY_WIDTH, photo.height);
+    const fade = ctx.createLinearGradient(0, photo.top + photo.height - 90, 0, photo.top + photo.height);
+    fade.addColorStop(0, "rgba(10,28,22,0)");
+    fade.addColorStop(1, "#0a1c16");
+    ctx.fillStyle = fade;
+    ctx.fillRect(0, photo.top + photo.height - 90, STORY_WIDTH, 90);
   } else {
-    y += 8;
-    for (const trophy of payload.trophies) {
-      y += 50;
-      ctx.fillStyle = "#f4f0e6";
-      ctx.font = "600 26px 'Plus Jakarta Sans', sans-serif";
-      ctx.fillText(shortTrophy(trophy.name), 150, y);
-      ctx.textAlign = "right";
-      ctx.fillStyle = trophy.winner ? "#d9c27e" : "rgba(244,240,230,.4)";
-      ctx.font = "600 24px 'Plus Jakarta Sans', sans-serif";
-      ctx.fillText(trophy.winner ? firstName(trophy.winner) : "TBD", STORY_WIDTH - 150, y);
-      ctx.textAlign = "left";
-    }
+    ctx.strokeStyle = gold;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(56, 96, STORY_WIDTH - 112, STORY_HEIGHT - 220);
   }
 
-  if (payload.sideCash.length > 0) {
-    y += 58;
-    ctx.fillStyle = "#d9c27e";
+  const medal = band(bands, "medal");
+  if (badge && medal) {
+    const size = medal.height;
+    ctx.drawImage(badge, cx - size / 2, medal.top, size, size);
+  }
+
+  const title = band(bands, "title");
+  if (title) {
+    ctx.textAlign = "center";
+    ctx.fillStyle = gold;
+    ctx.font = "600 20px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText("4TH ANNUAL", cx, title.top + 28);
+    ctx.fillStyle = ivory;
+    ctx.font = "700 44px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText("TIN CUP", cx, title.top + 76);
+    ctx.fillStyle = "rgba(243,238,228,.55)";
+    ctx.font = "500 20px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText("INNISBROOK  ·  2026", cx, title.top + 104);
+  }
+
+  const score = band(bands, "score");
+  if (score) {
+    ctx.fillStyle = ivory;
+    roundRect(ctx, inset, score.top, STORY_WIDTH - inset * 2, score.height, 16);
+    ctx.fill();
+    const left = inset + (STORY_WIDTH - inset * 2) * 0.25;
+    const right = inset + (STORY_WIDTH - inset * 2) * 0.75;
+    ctx.textAlign = "center";
+    ctx.fillStyle = hunter;
+    ctx.font = "700 18px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText("STRONG MENTAL", left, score.top + 48);
+    ctx.fillStyle = stone;
+    ctx.fillText("GRASS ROOTS", right, score.top + 48);
+    ctx.fillStyle = hunter;
+    ctx.font = "700 96px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText(formatCupPoints(payload.strongMental), left, score.top + 158);
+    ctx.fillStyle = stone;
+    ctx.fillText(formatCupPoints(payload.grassRoots), right, score.top + 158);
+    ctx.fillStyle = "rgba(22,56,46,.28)";
+    ctx.font = "600 36px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText("–", cx, score.top + 148);
+    ctx.fillStyle = stone;
     ctx.font = "600 22px 'Plus Jakarta Sans', sans-serif";
-    ctx.fillText("SIDE CASH", 140, y);
-    y += 8;
-    const pots = payload.sideCash.slice(0, 6);
-    for (let i = 0; i < pots.length; i += 2) {
-      y += 44;
-      const left = pots[i]!;
-      const right = pots[i + 1];
-      ctx.fillStyle = "rgba(244,240,230,.78)";
-      ctx.font = "500 22px 'Plus Jakarta Sans', sans-serif";
-      ctx.fillText(`${shortPot(left.label)} · ${firstName(left.player)}`, 150, y);
-      if (right) {
-        ctx.textAlign = "right";
-        ctx.fillText(`${shortPot(right.label)} · ${firstName(right.player)}`, STORY_WIDTH - 150, y);
-        ctx.textAlign = "left";
-      }
-    }
+    const status = payload.winnerName
+      ? `${payload.winnerName.replace(/^Team /i, "")} wins the Cup`
+      : payload.remaining > 0
+        ? `${formatCupPoints(payload.remaining)} pts still out`
+        : "All square";
+    ctx.fillText(fitText(ctx, status, STORY_WIDTH - inset * 2 - 48), cx, score.top + 214);
+  }
+
+  const days = band(bands, "days");
+  if (days) {
+    ctx.textAlign = "left";
+    ctx.fillStyle = gold;
+    ctx.font = "600 16px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText("THE CARD", inset, days.top + 18);
+    payload.days.forEach((day, index) => {
+      const rowTop = days.top + 36 + index * 58;
+      ctx.beginPath();
+      ctx.moveTo(inset, rowTop);
+      ctx.lineTo(STORY_WIDTH - inset, rowTop);
+      ctx.strokeStyle = "rgba(243,238,228,.12)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = ivory;
+      ctx.font = "600 28px 'Plus Jakarta Sans', sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(day.label, inset, rowTop + 38);
+      ctx.textAlign = "right";
+      const line =
+        day.remaining > 0
+          ? `${formatCupPoints(day.strongMental)} – ${formatCupPoints(day.grassRoots)}`
+          : `${formatCupPoints(day.strongMental)} – ${formatCupPoints(day.grassRoots)}`;
+      ctx.fillText(line, STORY_WIDTH - inset, rowTop + 38);
+    });
+  }
+
+  const awards = band(bands, "awards");
+  if (awards && awarded.length) {
+    ctx.textAlign = "left";
+    ctx.fillStyle = gold;
+    ctx.font = "600 16px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText("AWARDS", inset, awards.top + 18);
+    awarded.forEach((trophy, index) => {
+      const row = awards.top + 48 + index * 50;
+      ctx.fillStyle = ivory;
+      ctx.font = "500 24px 'Plus Jakarta Sans', sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(fitText(ctx, shortTrophy(trophy.name), 520), inset, row);
+      ctx.textAlign = "right";
+      ctx.fillStyle = gold;
+      ctx.font = "600 24px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillText(firstName(trophy.winner ?? ""), STORY_WIDTH - inset, row);
+    });
+  }
+
+  const cashBand = band(bands, "cash");
+  if (cashBand && cash.length) {
+    ctx.textAlign = "left";
+    ctx.fillStyle = gold;
+    ctx.font = "600 16px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText("SIDE CASH", inset, cashBand.top + 18);
+    ctx.fillStyle = "rgba(243,238,228,.82)";
+    ctx.font = "500 24px 'Plus Jakarta Sans', sans-serif";
+    const line = cash
+      .map((row) => (row.count > 1 ? `${row.name} ${row.count}` : row.name))
+      .join("   ·   ");
+    ctx.fillText(fitText(ctx, line, STORY_WIDTH - inset * 2), inset, cashBand.top + 56);
   }
 
   ctx.textAlign = "center";
-  ctx.fillStyle = "#f4f0e6";
-  ctx.font = "600 28px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("tincupinv.com", cx, STORY_HEIGHT - 118);
-  ctx.fillStyle = "rgba(244,240,230,.5)";
-  ctx.font = "500 20px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText(`${EVENT.dates.toUpperCase()} · ${EVENT.totalPoints} POINT CUP`, cx, STORY_HEIGHT - 82);
+  ctx.fillStyle = ivory;
+  ctx.font = "600 22px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("tincupinv.com", cx, 1768);
+  ctx.fillStyle = "rgba(243,238,228,.45)";
+  ctx.font = "500 16px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText(`${EVENT.totalPoints} POINT CUP`, cx, 1800);
 
   return await blobFrom(canvas);
 }

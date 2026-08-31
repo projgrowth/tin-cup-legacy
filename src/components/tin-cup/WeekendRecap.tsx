@@ -132,10 +132,22 @@ export function WeekendRecap({
     confirmations: myConfirmations,
     points: myRecord?.points ?? 0,
   });
+  const [withPhoto, setWithPhoto] = useState(true);
   const canonicalUrl =
     typeof window === "undefined"
       ? "https://www.tincupinv.com/?story=recap"
       : `${window.location.origin}/?story=recap`;
+  const storyPayload = {
+    ...buildCupStoryPayload({
+      matches,
+      rounds,
+      teams,
+      trophies,
+      sideBets,
+      canonicalUrl,
+    }),
+    includePhoto: withPhoto,
+  };
 
   return (
     <section className="recap-shell space-y-5" aria-labelledby="weekend-recap-title">
@@ -167,20 +179,19 @@ export function WeekendRecap({
             {decided.length} official results · {photos.length} photos · {story.comments.length}{" "}
             comments
           </p>
-          <ShareMomentButton
-            className="btn-primary mt-5 min-w-48"
-            payload={buildCupStoryPayload({
-              matches,
-              rounds,
-              teams,
-              trophies,
-              sideBets,
-              canonicalUrl,
-            })}
-          >
+          <ShareMomentButton className="btn-primary mt-5 min-w-48" payload={storyPayload}>
             Share Stories card
           </ShareMomentButton>
-          <p className="t-micro mt-2 text-white/60">1080×1920 · Instagram Stories</p>
+          <label className="mt-3 inline-flex min-h-11 items-center gap-2 text-white/75">
+            <input
+              type="checkbox"
+              checked={withPhoto}
+              onChange={(event) => setWithPhoto(event.target.checked)}
+              className="size-4 accent-[var(--gold)]"
+            />
+            <span className="t-micro">Include group photo</span>
+          </label>
+          <p className="t-micro mt-1 text-white/60">1080×1920 · Instagram Stories</p>
         </div>
       </header>
       {photos.length > 0 && (

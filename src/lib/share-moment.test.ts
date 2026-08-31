@@ -5,6 +5,8 @@ import {
   cupStoryCaption,
   firstName,
   formatCupPoints,
+  groupSideCashByPlayer,
+  layoutCupStory,
 } from "./share-moment";
 
 const friday = {
@@ -91,5 +93,57 @@ describe("buildCupStoryPayload", () => {
     expect(payload.winnerName).toBe("Team Grass Roots");
     expect(payload.trophies[0]?.winner).toBe("Grass Roots");
     expect(firstName("Andrew Kezsbom")).toBe("Andrew");
+  });
+});
+
+describe("layoutCupStory", () => {
+  it("keeps bands stacked without overlap and inside the Stories safe area", () => {
+    const payload = buildCupStoryPayload({
+      matches: [{ round_id: "sun", points: 13.5, result: "grass-roots" }],
+      rounds: [friday, saturday, sunday],
+      teams: [
+        { slug: "strong-mental", name: "Team Strong Mental" },
+        { slug: "grass-roots", name: "Team Grass Roots" },
+      ],
+      trophies: [
+        { name: "Chubbs Peterson MVP", winner_name: "Zack Smith", sort_order: 1 },
+        { name: "Steve Stinson Vibes Award", winner_name: "Kevin Maher", sort_order: 2 },
+      ],
+      sideBets: [
+        { label: "CTP - Sunday 1", player_name: "Blake Weeks", sort_order: 1 },
+        { label: "CTP - Sunday 2", player_name: "Blake Weeks", sort_order: 2 },
+        { label: "CTP - Sunday 3", player_name: "Blake Weeks", sort_order: 3 },
+        { label: "CTP - Sunday 4", player_name: "Andrew Kezsbom", sort_order: 4 },
+        { label: "Long Drive - Friday", player_name: "Neil Candelora", sort_order: 5 },
+      ],
+      canonicalUrl: "https://tincupinv.com",
+    });
+    const bands = layoutCupStory(payload);
+    expect(groupSideCashByPlayer(payload.sideCash)[0]).toMatchObject({ name: "Blake", count: 3 });
+    for (let i = 1; i < bands.length; i += 1) {
+      const prev = bands[i - 1]!;
+      const next = bands[i]!;
+      expect(prev.top + prev.height).toBeLessThanOrEqual(next.top);
+    }
+    const last = bands[bands.length - 1]!;
+    expect(last.top + last.height).toBeLessThanOrEqual(1700);
+    expect(bands[0]?.top).toBeGreaterThanOrEqual(250);
+  });
+
+  it("places the group photo in its own band when included", () => {
+    const payload = buildCupStoryPayload({
+      matches: [{ round_id: "sun", points: 13.5, result: "grass-roots" }],
+      rounds: [sunday],
+      teams: [{ slug: "grass-roots", name: "Team Grass Roots" }],
+      trophies: [],
+      sideBets: [],
+      canonicalUrl: "https://tincupinv.com",
+    });
+    const bands = layoutCupStory({ ...payload, includePhoto: true });
+    expect(bands[0]?.id).toBe("photo");
+    expect(bands.some((row) => row.id === "medal")).toBe(false);
+    for (let i = 1; i < bands.length; i += 1) {
+      expect(bands[i - 1]!.top + bands[i - 1]!.height).toBeLessThanOrEqual(bands[i]!.top);
+    }
   });
 });
