@@ -235,7 +235,25 @@ function Index() {
           </Link>
         )}
         {mode === "post" ? (
-          <div className="mt-3">
+          <div className="mt-3 stack-page">
+            {canScore && data ? (
+              <LivePanel
+                variant="board"
+                rounds={data.rounds}
+                matches={data.matches}
+                teams={data.teams}
+                players={data.players}
+                sideBets={data.sideBets}
+                syncedAt={data.syncedAt}
+                pendingWrites={pendingWrites}
+                failedWrites={failedWrites}
+                onRetryFailed={() => void retryFailedWrites()}
+                stale={stale || realtimeStatus === "stale"}
+                canScore
+                claimedName={claimedPlayer?.name ?? null}
+                flashedMatchIds={flashedMatchIds}
+              />
+            ) : null}
             {isPending && !data ? (
               <BoardSkeleton />
             ) : isError && !data ? (
@@ -317,11 +335,12 @@ function Index() {
           </div>
         )}
 
-        {canScore && mode === "live" && (
+        {canScore && (
           <ScoreModal
             matches={data?.matches ?? []}
             rounds={data?.rounds ?? []}
             players={data?.players ?? []}
+            teams={data?.teams ?? []}
             sideBets={data?.sideBets ?? []}
             startOpen={Boolean(search.score)}
             initialMatchId={search.match}

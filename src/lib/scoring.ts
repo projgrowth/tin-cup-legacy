@@ -254,3 +254,23 @@ export function roundStatus(round: TimedRound, now: number = Date.now()): RoundS
   if (now < start) return "upcoming";
   return now < start + 5.5 * 3_600_000 ? "live" : "complete";
 }
+
+/**
+ * Captain Input should open on the round still being scored — not Friday
+ * after Sunday's window has closed with singles still pending.
+ */
+export function defaultScoreRoundId(
+  rounds: Array<TimedRound & { id: string }>,
+  matches: Array<{ round_id: string; result: string }>,
+  now: number = Date.now(),
+): string | null {
+  if (rounds.length === 0) return null;
+  const live = rounds.find((round) => roundStatus(round, now) === "live");
+  if (live) return live.id;
+  const withPending = rounds.find((round) =>
+    matches.some((match) => match.round_id === round.id && match.result === "pending"),
+  );
+  if (withPending) return withPending.id;
+  const upcoming = rounds.find((round) => roundStatus(round, now) === "upcoming");
+  return (upcoming ?? rounds[0]).id;
+}

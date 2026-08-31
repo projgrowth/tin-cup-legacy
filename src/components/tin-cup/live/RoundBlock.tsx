@@ -45,8 +45,9 @@ export function RoundBlock({
   const allDone =
     status === "complete" ||
     (rows.length > 0 && rows.every((m) => m.result !== "pending") && !pendingOnly);
-  // Default open only for the live round; completed / upcoming stay collapsed.
-  const [open, setOpen] = useState(status === "live");
+  const hasOpenMatches = rows.some((match) => match.result === "pending");
+  // Live round, or any round that still has results to log.
+  const [open, setOpen] = useState(status === "live" || hasOpenMatches);
   const avatars = usePlayerAvatars(players, teams);
   const { user } = useAuth();
   const { profile } = useProfile();

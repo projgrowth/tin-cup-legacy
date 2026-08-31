@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   clinchSummary,
+  defaultScoreRoundId,
   formatRecord,
   matchFormatChip,
   pairingIncludes,
@@ -177,6 +178,30 @@ describe("roundStatus", () => {
 
   it("falls back to upcoming when the tee window has no time", () => {
     expect(roundStatus({ play_date: "2026-08-30", tee_window: "TBD" })).toBe("upcoming");
+  });
+});
+
+describe("defaultScoreRoundId", () => {
+  const friday = { id: "fri", play_date: "2026-08-28", tee_window: "12:19–12:44 PM" };
+  const saturday = { id: "sat", play_date: "2026-08-29", tee_window: "9:54–10:20 AM" };
+  const sunday = { id: "sun", play_date: "2026-08-30", tee_window: "9:54–10:20 AM" };
+  const rounds = [friday, saturday, sunday];
+
+  it("stays on the live round while that window is open", () => {
+    expect(
+      defaultScoreRoundId(rounds, [], Date.parse("2026-08-30T11:00:00-04:00")),
+    ).toBe("sun");
+  });
+
+  it("opens the round that still has pending matches after the event", () => {
+    const matches = [
+      { round_id: "fri", result: "strong-mental" },
+      { round_id: "sat", result: "grass-roots" },
+      { round_id: "sun", result: "pending" },
+    ];
+    expect(
+      defaultScoreRoundId(rounds, matches, Date.parse("2026-08-31T10:00:00-04:00")),
+    ).toBe("sun");
   });
 });
 describe("playerRecord", () => {

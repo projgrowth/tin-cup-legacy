@@ -10,14 +10,21 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { MatchPairingEditor } from "@/components/tin-cup/live/MatchControls";
 import {
   tournamentQueryKey,
   type Match,
   type Player,
   type Round,
   type SideBet,
+  type Team,
 } from "@/hooks/useTournament";
-import { clinchSummary, roundStatus, roundTally, tallyStandings } from "@/lib/scoring";
+import {
+  clinchSummary,
+  defaultScoreRoundId,
+  roundTally,
+  tallyStandings,
+} from "@/lib/scoring";
 import { formatPayout } from "@/lib/purse";
 import { contestHoleLabel } from "@/lib/tin-cup";
 import { enqueueWrite, expectedVersionAfterWrite } from "@/lib/write-queue";
@@ -26,6 +33,7 @@ type Props = {
   matches: Match[];
   rounds: Round[];
   players: Player[];
+  teams?: Team[];
   sideBets: SideBet[];
   startOpen?: boolean;
   initialMatchId?: string;
@@ -50,6 +58,7 @@ export function ScoreModal({
   matches,
   rounds,
   players,
+  teams = [],
   sideBets,
   startOpen = false,
   initialMatchId,
@@ -83,13 +92,11 @@ export function ScoreModal({
     }
   }, [startOpen, initialMatchId, matches]);
 
-  // Default to whichever round is on the course right now.
+  // Default to the live round, or the one that still has results to log.
   useEffect(() => {
     if (roundId || rounds.length === 0) return;
-    const live = rounds.find((r) => roundStatus(r) === "live");
-    const next = rounds.find((r) => roundStatus(r) === "upcoming");
-    setRoundId((live ?? next ?? rounds[0]).id);
-  }, [rounds, roundId]);
+    setRoundId(defaultScoreRoundId(rounds, matches));
+  }, [rounds, matches, roundId]);
 
   const roundMatches = useMemo(
     () => matches.filter((m) => !roundId || m.round_id === roundId),
@@ -318,9 +325,11 @@ export function ScoreModal({
                   <p className="t-body mt-1 text-foreground">
                     {selectedMatch.side_a ?? "TBD"} vs {selectedMatch.side_b ?? "TBD"}
                   </p>
-                  <p className="t-micro mt-1">
-                    Pairings are set by captains from the match card on the Live board.
-                  </p>
+                  <MatchPairingEditor
+                    match={selectedMatch}
+                    teams={teams}
+                    players={players}
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {RESULTS.map((r) => (
