@@ -20,7 +20,7 @@ import { signedVaultUrl } from "@/integrations/supabase/storage";
 import { TrophyAward } from "@/components/tin-cup/live/MatchControls";
 import { formatPayout } from "@/lib/purse";
 import { formatRecord, playerRecord, tallyStandings } from "@/lib/scoring";
-import { buildCupStoryPayload } from "@/lib/share-moment";
+import { buildCupStoryPayload, formatCupPoints } from "@/lib/share-moment";
 
 export function WeekendRecap({
   matches,
@@ -63,32 +63,43 @@ export function WeekendRecap({
     typeof window === "undefined"
       ? "https://www.tincupinv.com/?story=recap"
       : `${window.location.origin}/?story=recap`;
-  const storyPayload = {
-    ...buildCupStoryPayload({
-      matches,
-      rounds,
-      teams,
-      trophies,
-      sideBets,
-      canonicalUrl,
-    }),
-    includePhoto: withPhoto,
-  };
+  const cupStory = buildCupStoryPayload({
+    matches,
+    rounds,
+    teams,
+    trophies,
+    sideBets,
+    canonicalUrl,
+  });
+  const storyPayload = { ...cupStory, includePhoto: withPhoto };
 
   return (
     <section className="recap-shell space-y-5" aria-labelledby="weekend-recap-title">
-      <header className="recap-hero relative overflow-hidden rounded-xl border border-border p-6 text-center sm:p-8">
-        <img
-          src="/tin-cup-intro-poster.jpg"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover object-[center_42%] opacity-[0.78]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#06120f] via-[#06120f]/70 to-transparent" />
-        <div className="relative">
+      <header className="recap-hero overflow-hidden rounded-2xl border border-border">
+        <Link
+          to="/photos"
+          className="press recap-hero-photo relative block overflow-hidden"
+          aria-label="The 2026 field at Innisbrook"
+        >
+          <img
+            src="/tin-cup-field-2026.jpg"
+            alt=""
+            className="block h-auto w-full"
+          />
+          <span className="t-micro absolute left-3 top-3 text-white drop-shadow-[0_1px_8px_rgba(0,0,0,.8)]">
+            4th Annual · Innisbrook 2026
+          </span>
+        </Link>
+        <div className="recap-score-plate relative px-4 pb-5 pt-11 text-center sm:px-6">
+          <img
+            src="/tin-cup-medal.png"
+            alt=""
+            className="recap-hero-medal pointer-events-none absolute left-1/2 top-0 w-[4.75rem] -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,.45)] sm:w-24"
+          />
           <p className="event-kicker text-hunter">The complete story</p>
           <h1
             id="weekend-recap-title"
-            className={`${winner || decided.length ? "event-title" : "t-display"} mt-3 text-white`}
+            className={`${winner || decided.length ? "event-title" : "t-display"} mt-3 text-foreground`}
           >
             {winner
               ? `${winner.name} wins the Cup`
@@ -97,18 +108,35 @@ export function WeekendRecap({
                 : "The weekend is still being written"}
           </h1>
           <p className="t-hero mt-4">
-            <span className="text-hunter">{standings.strongMental}</span>
-            <span className="mx-3 text-white/30">–</span>
-            <span className="text-stone">{standings.grassRoots}</span>
+            <span className="text-hunter">{formatCupPoints(standings.strongMental)}</span>
+            <span className="mx-3 text-muted-foreground/40">–</span>
+            <span className="text-stone">{formatCupPoints(standings.grassRoots)}</span>
           </p>
-          <p className="t-body mt-2 text-white/75">
+          <p className="t-micro mt-1">
+            <span className="text-hunter">Strong Mental</span>
+            <span className="mx-2 text-muted-foreground">·</span>
+            <span className="text-stone">Grass Roots</span>
+          </p>
+          {cupStory.days.length > 0 ? (
+            <ol className="mt-4 grid grid-cols-3 gap-2">
+              {cupStory.days.map((day) => (
+                <li key={day.label} className="rounded-xl bg-hunter/5 px-2 py-2.5">
+                  <p className="t-micro text-muted-foreground">{day.label.slice(0, 3)}</p>
+                  <p className="mt-1 font-semibold tabular-nums text-foreground">
+                    {formatCupPoints(day.strongMental)}–{formatCupPoints(day.grassRoots)}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          ) : null}
+          <p className="t-body mt-3 text-muted-foreground">
             {decided.length} official results · {photos.length} photos · {story.comments.length}{" "}
             comments
           </p>
           <ShareMomentButton className="btn-primary mt-5 min-w-48" payload={storyPayload}>
             Share Stories card
           </ShareMomentButton>
-          <label className="mt-3 inline-flex min-h-11 items-center gap-2 text-white/75">
+          <label className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 text-muted-foreground">
             <input
               type="checkbox"
               checked={withPhoto}
@@ -117,21 +145,11 @@ export function WeekendRecap({
             />
             <span className="t-micro">Include group photo</span>
           </label>
-          <p className="t-micro mt-1 text-white/60">1080×1920 · Instagram Stories</p>
+          <p className="t-micro mt-1 text-muted-foreground/80">1080×1920 · Instagram Stories</p>
         </div>
       </header>
-      <section aria-label="Weekend photographs" className="stack-tight">
-        <Link
-          to="/photos"
-          className="press recap-photo relative aspect-[16/7] overflow-hidden rounded-2xl border border-border"
-        >
-          <img
-            src="/tin-cup-field-2026.jpg"
-            alt="The 2026 field at Innisbrook"
-            className="h-full w-full object-cover object-[center_40%]"
-          />
-        </Link>
-        {photos.length > 0 ? (
+      {photos.length > 0 ? (
+        <section aria-label="Weekend photographs" className="stack-tight">
           <div className="grid grid-cols-3 gap-2">
             {photos.slice(0, 3).map((item) => (
               <Link
@@ -150,8 +168,8 @@ export function WeekendRecap({
               </Link>
             ))}
           </div>
-        ) : null}
-      </section>
+        </section>
+      ) : null}
 
       {trophies.length > 0 && (
         <section className="surface overflow-hidden">

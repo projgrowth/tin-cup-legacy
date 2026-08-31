@@ -816,6 +816,13 @@ html {
   background: var(--card);
   box-shadow: none;
 }
+.recap-hero-photo {
+  display: block;
+  background: #0a1c16;
+}
+.recap-score-plate {
+  background: var(--card);
+}
 @media (min-width: 768px) {
   .gallery-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));

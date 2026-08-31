@@ -7,6 +7,7 @@ import {
   formatCupPoints,
   groupSideCashByPlayer,
   layoutCupStory,
+  storyMedalPlacement,
 } from "./share-moment";
 
 const friday = {
@@ -128,12 +129,17 @@ describe("layoutCupStory", () => {
     const last = bands[bands.length - 1]!;
     expect(last.top + last.height).toBeLessThanOrEqual(1700);
     expect(bands[0]?.top).toBeGreaterThanOrEqual(250);
+    expect(bands.some((row) => row.id === "score")).toBe(true);
+    expect(bands.find((row) => row.id === "score")?.height).toBe(336);
+    const crest = storyMedalPlacement(bands);
+    expect(crest?.size).toBe(156);
+    expect(crest?.top).toBe(bands[0]!.top);
   });
 
-  it("places the group photo in its own band when included", () => {
+  it("places the group photo in its own band and seats the crest on the score seam", () => {
     const payload = buildCupStoryPayload({
       matches: [{ round_id: "sun", points: 13.5, result: "grass-roots" }],
-      rounds: [sunday],
+      rounds: [friday, saturday, sunday],
       teams: [{ slug: "grass-roots", name: "Team Grass Roots" }],
       trophies: [],
       sideBets: [],
@@ -141,9 +147,20 @@ describe("layoutCupStory", () => {
     });
     const bands = layoutCupStory({ ...payload, includePhoto: true });
     expect(bands[0]?.id).toBe("photo");
+    expect(bands[0]?.height).toBe(424);
     expect(bands.some((row) => row.id === "medal")).toBe(false);
+    expect(bands.some((row) => row.id === "days")).toBe(false);
+    const photo = bands.find((row) => row.id === "photo")!;
+    const score = bands.find((row) => row.id === "score")!;
+    expect(photo.top + photo.height).toBeLessThanOrEqual(score.top);
+    const crest = storyMedalPlacement(bands);
+    expect(crest).toBeTruthy();
+    expect(crest!.top).toBeLessThan(photo.top + photo.height);
+    expect(crest!.top + crest!.size).toBeGreaterThan(score.top);
     for (let i = 1; i < bands.length; i += 1) {
       expect(bands[i - 1]!.top + bands[i - 1]!.height).toBeLessThanOrEqual(bands[i]!.top);
     }
+    const last = bands[bands.length - 1]!;
+    expect(last.top + last.height).toBeLessThanOrEqual(1700);
   });
 });
