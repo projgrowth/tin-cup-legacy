@@ -13,3 +13,16 @@ export function phaseMode(phase: EventPhase): BoardMode {
   if (phase === "after") return "post";
   return "live";
 }
+
+/** Recap stays off until every Cup point is posted — clock does not close scoring. */
+export function boardMode(
+  remaining: number,
+  now: number = Date.now(),
+  recap = false,
+): BoardMode {
+  const phase = getEventPhase(now);
+  if (phase === "before") return "pre";
+  if (remaining > 0) return "live";
+  if (recap || phase === "after") return "post";
+  return "live";
+}

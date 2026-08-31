@@ -55,11 +55,14 @@ export function LivePanel({
   // Open side cash when captains are scoring or any pot is claimed — outdoor glance.
   const [sideOpen, setSideOpen] = useState(canScore || claimedPots > 0);
   const orderedRounds = useMemo(() => {
-    const weight: Record<string, number> = { live: 0, upcoming: 1, complete: 2 };
-    return [...rounds].sort(
-      (a, b) => (weight[roundStatus(a)] ?? 9) - (weight[roundStatus(b)] ?? 9),
-    );
-  }, [rounds]);
+    const open = (roundId: string) =>
+      matches.some((match) => match.round_id === roundId && match.result === "pending");
+    const weight = (round: Round) => {
+      if (open(round.id)) return 0;
+      return { live: 1, upcoming: 2, complete: 3 }[roundStatus(round)] ?? 9;
+    };
+    return [...rounds].sort((a, b) => weight(a) - weight(b));
+  }, [rounds, matches]);
 
   const liveRound =
     orderedRounds.find((r) => roundStatus(r) === "live") ??

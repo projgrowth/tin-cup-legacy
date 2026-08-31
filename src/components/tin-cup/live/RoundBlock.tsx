@@ -43,8 +43,7 @@ export function RoundBlock({
   );
   const tally = roundTally(matches, round.id);
   const allDone =
-    status === "complete" ||
-    (rows.length > 0 && rows.every((m) => m.result !== "pending") && !pendingOnly);
+    rows.length > 0 && rows.every((m) => m.result !== "pending") && !pendingOnly;
   const hasOpenMatches = rows.some((match) => match.result === "pending");
   // Live round, or any round that still has results to log.
   const [open, setOpen] = useState(status === "live" || hasOpenMatches);

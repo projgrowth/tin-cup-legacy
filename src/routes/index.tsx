@@ -11,8 +11,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useJournal";
 import { useTournament } from "@/hooks/useTournament";
 import { useExperiencePreferences } from "@/hooks/useExperiencePreferences";
-import { getEventPhase, phaseMode } from "@/lib/event-phase";
-import { type BoardMode } from "@/lib/tin-cup";
+import { boardMode, getEventPhase } from "@/lib/event-phase";
+import { tallyStandings } from "@/lib/scoring";
 
 import { hasAuthCallbackParams, parseAuthCallbackParams } from "@/lib/auth-recovery";
 import { resolveIdentity } from "@/lib/profile-identity";
@@ -96,7 +96,7 @@ function Index() {
   const { board: displayMode } = search;
   const navigate = useNavigate();
   const { user, loading: authLoading, passwordRecovery, canScore, isAdmin } = useAuth();
-  const [autoMode, setAutoMode] = useState<BoardMode>("pre");
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     const params = parseAuthCallbackParams(window.location.href);
@@ -121,12 +121,8 @@ function Index() {
   }, [navigate, search.code, search.token_hash, search.type, authLoading, user, passwordRecovery]);
 
   useEffect(() => {
-    setAutoMode(phaseMode(getEventPhase()));
-  }, []);
-
-  // Keep the board honest if the app is left open across the first tee.
-  useEffect(() => {
-    const sync = () => setAutoMode(phaseMode(getEventPhase()));
+    const sync = () => setNow(Date.now());
+    sync();
     const id = window.setInterval(sync, 60_000);
     window.addEventListener("focus", sync);
     return () => {
@@ -134,8 +130,6 @@ function Index() {
       window.removeEventListener("focus", sync);
     };
   }, []);
-
-  const mode = search.story === "recap" ? "post" : autoMode;
 
   const {
     data,
@@ -149,6 +143,8 @@ function Index() {
     flashedMatchIds,
     realtimeStatus,
   } = useTournament();
+  const remaining = tallyStandings(data?.matches ?? []).remaining;
+  const mode = boardMode(remaining, now, search.story === "recap");
   const { profile, loading: profileLoading, error: profileError } = useProfile();
   const experience = useExperiencePreferences(user?.id);
   const stale = isError && Boolean(data);
@@ -289,7 +285,7 @@ function Index() {
                   <BoardError onRetry={() => void refetch()} busy={isFetching} />
                 ) : (
                   <LivePanel
-                    variant="hero"
+                    variant={canScore ? "full" : "hero"}
                     rounds={data?.rounds ?? []}
                     matches={data?.matches ?? []}
                     teams={data?.teams ?? []}
@@ -301,6 +297,7 @@ function Index() {
                     onRetryFailed={() => void retryFailedWrites()}
                     stale={stale || realtimeStatus === "stale"}
                     canScore={canScore}
+                    initialOpenOnly={canScore}
                     claimedName={claimedPlayer?.name ?? null}
                     flashedMatchIds={flashedMatchIds}
                   />
