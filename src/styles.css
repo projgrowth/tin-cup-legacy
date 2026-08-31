@@ -74,7 +74,8 @@
   --space-6: 1.75rem;
   --card-inset: var(--space-4);
   --header-height: 3.6rem;
-  --nav-height: 4.25rem;
+  /* Icon + label + padding + hairline. Keep in sync with BottomNav. */
+  --nav-height: 5rem;
   --text-display: clamp(1.65rem, 6vw, 2.15rem);
   --text-hero: clamp(1.75rem, 7vw, 2.4rem);
   --text-title: 1.125rem;
@@ -130,6 +131,10 @@
   --sidebar-accent-foreground: oklch(0.24 0.035 155);
   --sidebar-border: oklch(0.24 0.035 155 / 12%);
   --sidebar-ring: oklch(0.34 0.055 155 / 50%);
+}
+
+html {
+  scroll-padding-bottom: calc(var(--nav-height) + 4.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 /* ---- Course map (premium schematic · Black scorecard yards separate) ---- */

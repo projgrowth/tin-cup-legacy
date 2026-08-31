@@ -245,6 +245,26 @@ function ProfilePage() {
                 </Link>
               </li>
             )}
+            {isAdmin ? (
+              <li>
+                <Link
+                  to="/admin"
+                  className="press flex min-h-12 items-center px-4 py-3 t-body font-medium text-foreground"
+                >
+                  Admin
+                </Link>
+              </li>
+            ) : null}
+            {canScore ? (
+              <li>
+                <Link
+                  to="/ops"
+                  className="press flex min-h-12 items-center px-4 py-3 t-body font-medium text-foreground"
+                >
+                  Ops
+                </Link>
+              </li>
+            ) : null}
             <li>
               <button
                 type="button"
@@ -298,22 +318,7 @@ function ProfilePage() {
                 <p className="t-body font-medium text-foreground">Add to Home Screen</p>
                 <p className="t-micro mt-0.5">iPhone: Share → Add to Home Screen</p>
               </div>
-              {canScore ? (
-                <Link
-                  to="/ops"
-                  className="press flex min-h-12 items-center px-4 py-3 t-body font-medium text-foreground"
-                >
-                  Ops
-                </Link>
-              ) : null}
-              {isAdmin ? (
-                <Link
-                  to="/admin"
-                  className="press flex min-h-12 items-center px-4 py-3 t-body font-medium text-foreground"
-                >
-                  Admin
-                </Link>
-              ) : null}
+
             </div>
           </details>
         </div>

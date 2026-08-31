@@ -84,10 +84,10 @@ export function Shell({
   }
   return (
     <div
-      className={`min-h-screen ${
+      className={`min-h-svh ${
         immersive
-          ? "pb-[calc(var(--nav-height)+var(--space-4)+env(safe-area-inset-bottom))] md:pb-10"
-          : "pb-[calc(var(--nav-height)+var(--space-8)+env(safe-area-inset-bottom))] md:pb-12"
+          ? "pb-[calc(var(--nav-height)+4.5rem+env(safe-area-inset-bottom,0px))] md:pb-10"
+          : "pb-[calc(var(--nav-height)+5.5rem+env(safe-area-inset-bottom,0px))] md:pb-12"
       }`}
     >
       <a
